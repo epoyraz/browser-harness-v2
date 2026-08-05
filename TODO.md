@@ -11,22 +11,22 @@ version 5×–60× smaller.
 
 ## Phase 0 — foundation (nothing works until these do)
 
-- [ ] **1. Repo scaffold + `pyproject.toml`** — `harness/{core,connect,cli,ops}`, `uv` install,
+- [x] **1. Repo scaffold + `pyproject.toml`** — `harness/{core,connect,cli,ops}`, `uv` install,
       single entry point `bh`. *Done when:* `uv run bh --version` prints.
-- [ ] **2. CI: pytest + ruff on every push** — *Done when:* a red test blocks the run.
-- [ ] **3. `Outcome` and typed errors** (D11) — `ok`, `class` (closed enum), `detail`,
+- [x] **2. CI: pytest + ruff on every push** — *Done when:* a red test blocks the run.
+- [x] **3. `Outcome` and typed errors** (D11) — `ok`, `class` (closed enum), `detail`,
       `observed`, `retryable`, `id`. Python exceptions derive from the class and carry the
       payload. *Done when:* `NavigationFailed(...).landed` works and no code path stringifies
       an error to re-parse it later.
-- [ ] **4. Test policy: no module without a test file** (§2.2) — enforced in CI.
+- [x] **4. Test policy: no module without a test file** (§2.2) — enforced in CI.
       *Done when:* adding `harness/core/foo.py` with no `tests/unit/test_foo.py` fails CI.
-- [ ] **5. Journal writer** (D11b) — append-only JSONL per session; every entry carries
+- [x] **5. Journal writer** (D11b) — append-only JSONL per session; every entry carries
       `ts`, `id`, `kind`. *Done when:* a run produces a file whose entries can be ordered
       against each other.
 
 ## Phase 1 — transport and session (the part v1 got wrong)
 
-- [ ] **6. IPC transport** — AF_UNIX on POSIX, TCP loopback + token on Windows, as **one
+- [x] **6. IPC transport** — AF_UNIX on POSIX, TCP loopback + token on Windows, as **one
       `platform.system()` branch**, never a strategy abstraction (§6: 13 rejected PRs).
       Carry v1's macOS 104-byte `sun_path` constraint and the runtime/tmp dir split.
       *Done when:* both platforms pass the same test file.
