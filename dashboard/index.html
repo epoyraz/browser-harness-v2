@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Application Runner</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#14161a; --muted:#6b7280; --line:#e5e7eb;
+    --red:#e5484d; --amber:#f5a524; --green:#30a46c; --accent:#3b6ef5;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#0f1114; --card:#171a1f; --ink:#e8eaed; --muted:#9aa1ac; --line:#272b33; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1060px;margin:0 auto;padding:28px 20px 80px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;
+         padding:16px;margin-bottom:18px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  input,button,select{font:inherit;border-radius:8px;border:1px solid var(--line);
+        padding:10px 12px;background:var(--card);color:var(--ink)}
+  input:focus{outline:2px solid var(--accent);outline-offset:0}
+  #prompt{flex:1;min-width:280px}
+  button{cursor:pointer;border:0;background:var(--accent);color:#fff;font-weight:600;
+         padding:10px 18px}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);
+               font-weight:500}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .hint{color:var(--muted);font-size:12px;margin-top:8px}
+  table{width:100%;border-collapse:collapse;background:var(--card);
+        border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);
+        vertical-align:middle}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+     font-weight:600;background:transparent}
+  tr:last-child td{border-bottom:0}
+  .dot{width:13px;height:13px;border-radius:50%;display:inline-block;flex:0 0 auto}
+  .pending{background:var(--red)}
+  .running{background:var(--amber)}
+  .done{background:var(--green)}
+  .failed{background:var(--red);box-shadow:0 0 0 3px rgba(229,72,77,.18)}
+  /* Only rows in the list pulse. The legend dot up top is a key, not a live status —
+     a blinking swatch there is noise, and it never stops. */
+  #rows .running{animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  @media (prefers-reduced-motion: reduce){ #rows .running{animation:none} }
+  .lbl{font-size:12px;color:var(--muted);margin-left:8px}
+  .co{font-weight:600}
+  .ti{color:var(--muted);font-size:13px}
+  .host{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,Consolas,monospace}
+  .badge{font-size:10px;padding:2px 6px;border-radius:5px;border:1px solid var(--line);
+         color:var(--muted);margin-left:6px}
+  .thumb{height:44px;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;
+         display:block}
+  .msg{font-size:13px;color:var(--muted)}
+  .counts{display:flex;gap:14px;font-size:13px;align-items:center}
+  .counts span{display:flex;align-items:center;gap:6px}
+  dialog{border:0;border-radius:12px;padding:0;background:var(--card);max-width:94vw}
+  dialog img{display:block;max-width:92vw;max-height:86vh}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  .err{color:var(--red);font-size:12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Application Runner</h1>
+  <div class="sub">browser-harness v2 · forms are filled and left <b>unsubmitted</b> · no CV is uploaded</div>
+
+  <div class="panel">
+    <div class="row">
+      <input id="prompt" placeholder="e.g. Software Engineer Zürich last week" autofocus>
+      <select id="count">
+        <option>5</option><option selected>10</option><option>15</option><option>20</option>
+      </select>
+      <button id="find" class="ghost">Get jobs</button>
+      <button id="run" disabled>▶ Run</button>
+      <button id="reset" class="ghost">Reset</button>
+    </div>
+    <div class="hint" id="parsed"></div>
+  </div>
+
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div class="counts">
+        <span><i class="dot pending"></i> not started <b id="c-pending">0</b></span>
+        <span><i class="dot running"></i> in progress <b id="c-running">0</b></span>
+        <span><i class="dot done"></i> applied <b id="c-done">0</b></span>
+      </div>
+      <div class="msg" id="msg">idle</div>
+    </div>
+  </div>
+
+  <details class="panel">
+    <summary style="cursor:pointer;font-weight:600">Your details</summary>
+    <div class="grid" style="margin-top:12px">
+      <input id="a-first" placeholder="First name">
+      <input id="a-last" placeholder="Last name">
+      <input id="a-email" placeholder="Email">
+      <input id="a-phone" placeholder="Phone">
+      <input id="a-city" placeholder="City">
+    </div>
+    <div class="hint">Saved as you type. Phone is blank until you fill it in.</div>
+  </details>
+
+  <table>
+    <thead><tr>
+      <th style="width:34px"></th><th>Company / role</th><th style="width:150px">Where</th>
+      <th style="width:110px">Fields</th><th style="width:90px">Proof</th>
+    </tr></thead>
+    <tbody id="rows"><tr><td colspan="5" class="msg" style="padding:22px">
+      No jobs yet — type a prompt and press <b>Get jobs</b>.</td></tr></tbody>
+  </table>
+</div>
+
+<dialog id="lightbox"><img id="lbimg" alt="screenshot"></dialog>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function post(url, body){
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(body||{})});
+  return r.json().catch(()=>({}));
+}
+
+function render(s){
+  $('#msg').textContent = s.message || s.phase;
+  const p = s.parsed || {};
+  $('#parsed').textContent = p.title
+    ? `searching: title="${p.title}"${p.city?`, city="${p.city}"`:''}${p.since?`, last ${p.since} days`:''}`
+    : '';
+  const busy = s.phase === 'searching' || s.phase === 'running';
+  $('#find').disabled = busy;
+  $('#run').disabled  = busy || !(s.jobs||[]).length;
+  $('#reset').disabled = busy;
+
+  const jobs = s.jobs || [];
+  const n = k => jobs.filter(j => j.status === k).length;
+  $('#c-pending').textContent = n('pending');
+  $('#c-running').textContent = n('running');
+  $('#c-done').textContent    = n('done');
+
+  if(!jobs.length){
+    $('#rows').innerHTML = `<tr><td colspan="5" class="msg" style="padding:22px">
+      ${s.phase==='searching' ? 'searching…' : 'No jobs yet — type a prompt and press <b>Get jobs</b>.'}
+      </td></tr>`;
+    return;
+  }
+  $('#rows').innerHTML = jobs.map(j => {
+    const cls = j.status === 'failed' ? 'failed' : j.status;
+    const label = {pending:'not started', running:'in progress', done:'applied',
+                   failed:'failed'}[j.status] || j.status;
+    const proof = j.shot
+      ? `<img class="thumb" src="/shots/${esc(j.shot)}?t=${Date.now()}"
+             onclick="zoom('/shots/${esc(j.shot)}')">`
+      : '<span class="msg">—</span>';
+    const fields = j.attempted ? `${j.filled}/${j.attempted}` : (j.status==='done'?'—':'');
+    return `<tr>
+      <td><i class="dot ${cls}" title="${label}"></i></td>
+      <td><div class="co">${esc(j.company)}</div>
+          <div class="ti">${esc(j.title)}</div>
+          ${j.error ? `<div class="err">${esc(j.error)}</div>` : ''}
+          ${j.note ? `<div class="msg" style="font-size:11px">${esc(j.note)}</div>` : ''}</td>
+      <td><span class="host">${esc(j.host)}</span>
+          ${j.third_party ? '<span class="badge">ATS</span>' : '<span class="badge">own site</span>'}</td>
+      <td>${fields}<span class="lbl">${label}</span></td>
+      <td>${proof}</td></tr>`;
+  }).join('');
+}
+
+function zoom(src){ $('#lbimg').src = src; $('#lightbox').showModal(); }
+$('#lightbox').addEventListener('click', () => $('#lightbox').close());
+
+$('#find').onclick  = () => post('/api/search',
+  {prompt: $('#prompt').value, count: +$('#count').value});
+$('#run').onclick   = () => post('/api/run');
+$('#reset').onclick = () => post('/api/reset');
+$('#prompt').addEventListener('keydown', e => { if(e.key === 'Enter') $('#find').click(); });
+
+let saveTimer;
+for(const id of ['first','last','email','phone','city']){
+  $('#a-'+id).addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => post('/api/applicant', {
+      first:$('#a-first').value, last:$('#a-last').value, email:$('#a-email').value,
+      phone:$('#a-phone').value, city:$('#a-city').value}), 400);
+  });
+}
+
+let first = true;
+async function tick(){
+  try{
+    const s = await (await fetch('/api/state')).json();
+    if(first && s.applicant){
+      for(const k of ['first','last','email','phone','city']) $('#a-'+k).value = s.applicant[k]||'';
+      first = false;
+    }
+    render(s);
+  }catch(e){ $('#msg').textContent = 'server not reachable'; }
+}
+tick(); setInterval(tick, 900);
+</script>
+</body>
+</html>

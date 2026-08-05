@@ -26,3 +26,8 @@ addopts = "-q"
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint.per-file-ignores]
+# bh scripts: goto/js/fill_form/snapshot are bound by the runtime before exec, so every
+# helper reads as an undefined name to a static analyser.
+"dashboard/*_job.py" = ["F821"]
