@@ -8,7 +8,7 @@ import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-ROOT = Path("/Users/rebourne/Desktop/Dev/browser-harness/v2")
+ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
