@@ -235,10 +235,34 @@ to a version 5×–60× smaller.
       public content carries no authority. *Done when:* `which` explains *why* a skill matched.
 - [ ] **33. Migration + docs** — generate frontmatter for v1's 105 skill files, publish as the
       first community source, write the v1→v2 mapping.
-- [ ] **34. Cut `0.1.0`** — PyPI, single `bh` entry point, README with the §1 table.
+- [x] **34. Cut `0.1.0`** — PyPI, single `bh` entry point, README with the §1 table.
       *Done when:* `uv tool install` works on a clean machine.
+      *Partly met — the entry point, not the release.* `bh` now runs a script from
+      stdin against a live browser, auto-spawning a daemon that holds the one websocket
+      (~670 ms cold, ~130 ms warm) and outlives the script. `SKILL.md` documents the
+      surface and `tests/live/skill_check.py` runs **every example in it** against real
+      Chrome, so the doc cannot drift. PyPI publish and the README table remain.
 
 ---
+
+## Closed since the plan was written
+
+**The daemon had never met a real browser.** Every live suite drove `Connection`
+directly and `Daemon` was exercised only against a fake, so D5/D7 were architecture
+rather than fact. `tests/live/daemon_check.py` now runs the real thing end to end —
+`bh` spawning a real daemon against real Chrome — and TODO 7's done-when finally holds
+where it counts: **two independent client *processes* drove two tabs over one websocket,
+each got its own tab back, 147 ms wall.** Also verified there: the daemon outlives its
+client, a second script reuses it (126 ms vs 673 ms cold — no second consent prompt),
+event-driven click deltas survive the IPC hop, and a typed failure crosses the process
+boundary as a class with evidence rather than a string.
+
+Three bugs it found that no unit test could:
+  - `upload_file`'s JS was half an f-string, so `}}` reached Chrome literally
+  - `run_script` built its `Session` *outside* its own try, so "cannot reach the browser"
+    — the likeliest failure of all — escaped as a traceback instead of an outcome
+  - bh's own `argv` leaked into the script namespace; a script read `sys.argv[1]`, got
+    `"-"`, and asked the daemon to attach to a target named `-`
 
 ## Open questions
 

@@ -30,6 +30,34 @@ from harness.core.outcome import BrowserDisconnected, Class, HarnessError, fail,
 _SESSION_METHODS = frozenset({"Target.attachToTarget", "Target.detachFromTarget"})
 
 
+class _Peer:
+    """One client socket, with the lock that keeps replies and events from interleaving.
+
+    Two threads write here — the client's own handler thread (replies) and the CDP reader
+    thread (events) — so an unguarded `sendall` would splice two JSON lines together.
+    """
+
+    __slots__ = ("lock", "sock")
+
+    def __init__(self, sock: socket.socket):
+        self.sock, self.lock = sock, threading.Lock()
+
+    def send(self, payload: dict[str, Any]) -> bool:
+        line = (json.dumps(payload, default=str) + "\n").encode()
+        try:
+            with self.lock:
+                self.sock.sendall(line)
+            return True
+        except OSError:
+            return False
+
+    def close(self) -> None:
+        try:
+            self.sock.close()
+        except OSError:
+            pass
+
+
 class Daemon:
     """Serves the IPC socket. Owns exactly one `Connection` and one `SessionRegistry`."""
 
@@ -43,12 +71,15 @@ class Daemon:
         self._server: socket.socket | None = None
         self._threads: list[threading.Thread] = []
         self._stop = threading.Event()
+        self._peers: set[_Peer] = set()
+        self._plock = threading.Lock()
 
     # -- lifecycle ---------------------------------------------------------
 
     def start(self) -> Self:
         self.conn.start()
         self.conn.subscribe(self._watch_disconnect)
+        self.conn.subscribe(self._broadcast)
         self.sessions.discover()
         self._server = ipc.bind(self.name)
         self._server.settimeout(0.5)
@@ -92,6 +123,7 @@ class Daemon:
         Threads are what make the done-when true: two clients issuing long CDP calls against
         two tabs overlap in flight, rather than one waiting out the other.
         """
+        peer = _Peer(client)
         buf = bytearray()
         try:
             while not self._stop.is_set():
@@ -102,17 +134,20 @@ class Daemon:
                 while b"\n" in buf:
                     line, _, rest = bytes(buf).partition(b"\n")
                     buf = bytearray(rest)
-                    reply = self._answer(line)
-                    client.sendall((json.dumps(reply, default=str) + "\n").encode())
+                    reply = self._answer(line, peer)
+                    # Echo the client's request id so a multiplexed client can match the
+                    # reply to the call, the same way CDP's own `id` works.
+                    if (rid := _rid_of(line)) is not None:
+                        reply = {**reply, "rid": rid}
+                    peer.send(reply)
         except OSError:
             return          # a client that vanishes mid-request is normal, not an error
         finally:
-            try:
-                client.close()
-            except OSError:
-                pass
+            with self._plock:
+                self._peers.discard(peer)
+            peer.close()
 
-    def _answer(self, line: bytes) -> dict[str, Any]:
+    def _answer(self, line: bytes, peer: _Peer | None = None) -> dict[str, Any]:
         try:
             request = json.loads(line)
         except json.JSONDecodeError:
@@ -122,7 +157,27 @@ class Daemon:
         if self._token and request.get("token") != self._token:
             # Loopback has no chmod equivalent, so the token is the only boundary on Windows.
             return fail(Class.SCOPE_REFUSED, "bad or missing token").to_json()
+        if request.get("meta") == "subscribe" and peer is not None:
+            # A client that wants CDP events gets them pushed on this same socket. The
+            # alternative — a second connection — would cost a consent prompt (D7), and
+            # polling would reintroduce exactly the latency D13 removed.
+            with self._plock:
+                self._peers.add(peer)
+            return _value(ok({"subscribed": True}))
         return self.handle(request)
+
+    def _broadcast(self, msg: dict[str, Any]) -> None:
+        """Fan a CDP event out to subscribed clients. Runs on the CDP reader thread, so it
+        must never block: a peer that has gone away is dropped, not waited on."""
+        with self._plock:
+            peers = list(self._peers)
+        if not peers:
+            return
+        frame = {"event": msg}
+        for peer in peers:
+            if not peer.send(frame):
+                with self._plock:
+                    self._peers.discard(peer)
 
     def handle(self, request: dict[str, Any]) -> dict[str, Any]:
         """Answer one request. Always an outcome, never a bare value or a bare string."""
@@ -140,8 +195,8 @@ class Daemon:
             return self._session_method(method, request)
         try:
             target_id = request.get("target_id")
-            session_id = None
-            if target_id:
+            session_id = request.get("session_id")
+            if target_id and not session_id:
                 session_id = self.sessions.ensure_live(target_id).session_id
             result = self.conn.request(
                 method, request.get("params") or {},
@@ -199,10 +254,37 @@ class Daemon:
             self.sessions.disconnected(str((msg.get("params") or {}).get("reason", "")))
 
 
+def _rid_of(line: bytes) -> Any:
+    try:
+        return json.loads(line).get("rid")
+    except (json.JSONDecodeError, AttributeError):
+        return None
+
+
 def _value(outcome: Any) -> dict[str, Any]:
     """Outcome JSON plus its value. `to_json()` deliberately omits the payload so a journal
     line stays small; a wire reply is the one place it must be carried."""
     return {**outcome.to_json(), "value": outcome.value}
+
+
+def serve(name: str = "default", *, journal_path: str | None = None) -> int:
+    """Discovery → transport → daemon → serve. The missing wire: until this existed, the
+    daemon had never been connected to a real browser, only to a fake in unit tests."""
+    from harness.connect.cdp import WebSocketTransport
+    from harness.connect.endpoint import binding_for, resolve
+
+    resolution = resolve(binding_for(name))
+    journal = Journal(journal_path, session=name) if journal_path else Journal(None)
+    journal.write("daemon", event="serving", ws=resolution.ws_url,
+                  strategy=resolution.strategy)
+    daemon = Daemon(name, WebSocketTransport(resolution.ws_url), journal=journal).start()
+    try:
+        daemon.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        daemon.stop()
+    return 0
 
 
 def request(name: str, payload: dict[str, Any], *, timeout: float = 30.0) -> dict[str, Any]:

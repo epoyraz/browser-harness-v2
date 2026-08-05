@@ -110,6 +110,17 @@ def _unwrap_eval(r: dict[str, Any]) -> Any:
         type=res.get("type"), description=(res.get("description") or "")[:120])
 
 
+#: keyName -> (code, text). Only printable keys carry text; see press_key.
+_KEYS = {
+    "Enter": ("Enter", "\r"), "Tab": ("Tab", "\t"), "Backspace": ("Backspace", ""),
+    "Escape": ("Escape", ""), "Delete": ("Delete", ""), " ": ("Space", " "),
+    "ArrowLeft": ("ArrowLeft", ""), "ArrowRight": ("ArrowRight", ""),
+    "ArrowUp": ("ArrowUp", ""), "ArrowDown": ("ArrowDown", ""),
+    "Home": ("Home", ""), "End": ("End", ""), "PageUp": ("PageUp", ""),
+    "PageDown": ("PageDown", ""),
+}
+
+
 class _Waiter:
     """Buffers matching events from arming time, so nothing that fires between `navigate`
     returning and the wait starting can be missed."""
@@ -394,6 +405,74 @@ class Tab:
             "new_targets": [t.get("targetId") for t in list(self._created)[targets_before:]],
             "dialog": dialog,
         }
+
+    # -- the rest of the promised surface ----------------------------------
+
+    def page_text(self, max_chars: int = 40_000) -> str:
+        """Rendered text, truncated. `innerText` not `textContent`: the latter includes
+        script bodies and hidden nodes, which is how a "page text" read becomes 200 KB of
+        minified JS."""
+        with self._j.call("page_text"):
+            return self._world_js(
+                f"(document.body ? document.body.innerText : '').slice(0, {max_chars})",
+                timeout=15.0) or ""
+
+    def press_key(self, key: str, *, modifiers: int = 0, timeout: float = 10.0) -> None:
+        """One named key. `text` is sent only for printable keys — attaching it to Enter or
+        Tab makes Chrome insert a character instead of firing the shortcut (v1 paid for
+        this with an uncleared field)."""
+        spec = _KEYS.get(key)
+        code, text = (spec if spec else (key, key if len(key) == 1 else ""))
+        base: dict[str, Any] = {"key": key, "code": code, "modifiers": modifiers}
+        down = {**base, "type": "keyDown"}
+        if text and not modifiers:
+            down["text"] = text
+        self.cdp("Input.dispatchKeyEvent", down, timeout=timeout)
+        self.cdp("Input.dispatchKeyEvent", {**base, "type": "keyUp"}, timeout=timeout)
+
+    def scroll(self, dy: int = 600, dx: int = 0, *, x: int = 400, y: int = 300,
+               timeout: float = 10.0) -> dict[str, Any]:
+        """Wheel event at a point, so it scrolls whatever container is under the cursor —
+        an overflow pane, a virtualised list — not just the document."""
+        self.cdp("Input.dispatchMouseEvent",
+                 {"type": "mouseWheel", "x": x, "y": y, "deltaX": dx, "deltaY": dy},
+                 timeout=timeout)
+        return self._world_js(
+            "({y: Math.round(scrollY), height: document.documentElement.scrollHeight,"
+            " atBottom: Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight})",
+            timeout=timeout)
+
+    def upload_file(self, ref: str, paths: str | list[str], *,
+                    timeout: float = 20.0) -> dict[str, Any]:
+        """Set a file input's files without touching the OS picker.
+
+        `DOM.setFileInputFiles` needs a backendNodeId, and the ref registry holds a JS
+        handle — so the bridge is `Runtime.evaluate(returnByValue=false)` to get an object
+        id, then `DOM.describeNode`. Clicking the input instead would open a native dialog
+        that blocks the renderer with no CDP way back out.
+        """
+        files = [paths] if isinstance(paths, str) else list(paths)
+        missing = [f for f in files if not Path(f).is_file()]
+        if missing:
+            raise ElementGone(f"no such file(s): {missing}", files=missing)
+        ctx = self._ensure_world()
+        params: dict[str, Any] = {"expression": f"window.__bh.refs[{ref!r}]",
+                                  "returnByValue": False}
+        if ctx is not None:
+            params["contextId"] = ctx
+        handle = self.cdp("Runtime.evaluate", params, timeout=timeout).get("result") or {}
+        if not handle.get("objectId"):
+            raise ElementGone(f"no element registered for ref {ref!r}", ref=ref)
+        node = self.cdp("DOM.describeNode", {"objectId": handle["objectId"]},
+                        timeout=timeout)["node"]
+        with self._j.call("upload_file", ref=ref, n=len(files)):
+            self.cdp("DOM.setFileInputFiles",
+                     {"files": [str(Path(f).resolve()) for f in files],
+                      "backendNodeId": node["backendNodeId"]}, timeout=timeout)
+        got = self._world_js(
+            f"(() => {{const e = window.__bh.refs[{ref!r}];"
+            f" return [...(e.files||[])].map(f => f.name);}})()", timeout=timeout)
+        return {"ref": ref, "attached": got or [], "requested": len(files)}
 
     # -- item 21: screenshots ----------------------------------------------
 
