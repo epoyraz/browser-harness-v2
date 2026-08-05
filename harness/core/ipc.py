@@ -116,16 +116,29 @@ def connect(name: str, timeout: float = 5.0) -> tuple[socket.socket, str | None]
 
 
 def request(sock: socket.socket, token: str | None, payload: dict[str, Any]) -> dict[str, Any]:
-    """One newline-delimited JSON round trip. The caller owns the socket."""
+    """One newline-delimited JSON round trip. The caller owns the socket.
+
+    Every transport failure leaves here as `IPCError`. A peer that closes mid-exchange
+    raises `BrokenPipeError` or `ConnectionResetError` — siblings of `IPCError` under
+    `OSError`, not subclasses — so an unwrapped `sendall` leaks an untyped error and forces
+    callers back to catching `OSError` broadly. That is the failure mode this module exists
+    to prevent, and which side of the race you land on is timing-dependent.
+    """
     if token:
         payload = {**payload, "token": token}
-    sock.sendall((json.dumps(payload, default=str) + "\n").encode())
+    try:
+        sock.sendall((json.dumps(payload, default=str) + "\n").encode())
+    except OSError as e:
+        raise IPCError(f"send failed, daemon went away: {e}") from e
     buf = bytearray()
-    while not buf.endswith(b"\n"):
-        chunk = sock.recv(1 << 16)
-        if not chunk:
-            break
-        buf += chunk
+    try:
+        while not buf.endswith(b"\n"):
+            chunk = sock.recv(1 << 16)
+            if not chunk:
+                break
+            buf += chunk
+    except OSError as e:
+        raise IPCError(f"receive failed after {len(buf)} bytes: {e}") from e
     if not buf:
         raise IPCError("daemon closed the connection without replying")
     try:

@@ -2,9 +2,13 @@
 import pytest
 
 from harness.core.outcome import (
-    Class, HarnessError, NavigationFailed, Outcome, Tally, Timeout, fail, ok,
+    Class,
+    HarnessError,
+    NavigationFailed,
+    Tally,
+    fail,
+    ok,
 )
-
 
 # --- rule 3: define success -------------------------------------------------
 # v1's goto() returned a title for a chrome-error:// page, so "no exception" read as success.

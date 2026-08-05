@@ -1,7 +1,6 @@
 """IPC tests. Each maps to a v1 failure that cost at least one PR."""
 import json
 import os
-import socket
 import stat
 import threading
 
@@ -14,7 +13,8 @@ from harness.core import ipc
 def short_runtime_dir(monkeypatch):
     """pytest's tmp_path on macOS is ~128 bytes — over the AF_UNIX limit this module
     enforces. The fixture has to obey the constraint it is testing."""
-    import shutil, tempfile
+    import shutil
+    import tempfile
     d = tempfile.mkdtemp(prefix="bh", dir="/tmp" if not ipc.IS_WINDOWS else None)
     monkeypatch.setenv("BH_RUNTIME_DIR", d)
     yield d
@@ -195,3 +195,27 @@ def test_cleanup_never_raises_even_for_an_unrepresentable_path(monkeypatch, tmp_
     """Teardown must not be blocked by the same limit that blocks bind."""
     monkeypatch.setenv("BH_RUNTIME_DIR", str(tmp_path / ("z" * 80)))
     ipc.cleanup("default")          # must be silent
+
+
+def test_every_transport_failure_is_typed_regardless_of_race_timing():
+    """A peer closing mid-exchange must not leak BrokenPipeError/ConnectionResetError.
+
+    Those are siblings of IPCError under OSError, not subclasses — leaking one forces
+    callers back to catching OSError broadly, which is the untyped-error disease.
+    Run repeatedly: which side of the race you land on is timing-dependent.
+    """
+    for _ in range(12):
+        s = ipc.bind("default")
+        if ipc.IS_WINDOWS:
+            ipc.write_port("default", s.getsockname()[1], "tok")
+
+        def slam(listener=s):          # bind per iteration, not by reference
+            conn, _ = listener.accept()
+            conn.close()
+        threading.Thread(target=slam, daemon=True).start()
+        sock, token = ipc.connect("default", timeout=5)
+        try:
+            with pytest.raises(ipc.IPCError):
+                ipc.request(sock, token, {"meta": "ping"})
+        finally:
+            sock.close(); s.close(); ipc.cleanup("default")

@@ -25,10 +25,11 @@ import json
 import os
 import threading
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 #: Payloads above this are replaced by {"_elided": n, "_sha256": "..."}.
 #: A single screenshot response was 51 KB of a 54 KB session.
@@ -91,7 +92,9 @@ class Journal:
         try:
             with self._lock, self.path.open("a", encoding="utf-8") as fh:
                 fh.write(line + "\n")
-        except Exception:
+        except Exception:  # noqa: BLE001, S110 — deliberate: see the "never raise" rule above.
+            # Blind rather than enumerated, on purpose. Narrowing to OSError would let a
+            # novel serialisation error take down a run for the sake of a log line.
             pass
 
     def next_id(self) -> str:
@@ -101,7 +104,7 @@ class Journal:
 
     # -- spans ------------------------------------------------------------
 
-    def call(self, fn: str, **args: Any) -> "_CallCtx":
+    def call(self, fn: str, **args: Any) -> _CallCtx:
         """Context manager recording one helper call and its outcome.
 
         The id it allocates is what the daemon echoes back, so a client failure and a

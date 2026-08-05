@@ -60,10 +60,9 @@ def test_cdp_outside_a_span_is_not_an_error(j):
 # --- rule 2: never discard a cause you were handed --------------------------
 
 def test_typed_failure_is_recorded_with_its_class_and_evidence(j):
-    with pytest.raises(NavigationFailed):
-        with j.call("goto", url="https://x/careers"):
-            raise NavigationFailed("net::ERR_HTTP_RESPONSE_CODE_FAILURE",
-                                   landed="chrome-error://chromewebdata/")
+    with pytest.raises(NavigationFailed), j.call("goto", url="https://x/careers"):
+        raise NavigationFailed("net::ERR_HTTP_RESPONSE_CODE_FAILURE",
+                               landed="chrome-error://chromewebdata/")
     out = next(e for e in j.entries() if e["kind"] == "call")["outcome"]
     assert out["ok"] is False
     assert out["class"] == Class.NAVIGATION_FAILED.value
@@ -71,9 +70,8 @@ def test_typed_failure_is_recorded_with_its_class_and_evidence(j):
 
 
 def test_the_context_manager_never_swallows(j):
-    with pytest.raises(ValueError):
-        with j.call("boom"):
-            raise ValueError("x")
+    with pytest.raises(ValueError), j.call("boom"):
+        raise ValueError("x")
 
 
 # --- elision keeps the journal diffable -------------------------------------

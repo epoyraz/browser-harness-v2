@@ -165,7 +165,7 @@ class HarnessError(Exception):
         return self.outcome.retryable
 
     @staticmethod
-    def of(outcome: Outcome) -> "HarnessError":
+    def of(outcome: Outcome) -> HarnessError:
         exc = _BY_CLASS.get(outcome.cls, HarnessError)(outcome.detail)
         exc.outcome = outcome
         return exc

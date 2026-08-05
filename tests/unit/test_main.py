@@ -1,12 +1,15 @@
 """CLI entry point. Heredoc/stdin is the settled interface (DESIGN.md §6, v1 #188→#343)."""
-import subprocess, sys
+import subprocess
+import sys
 
 
 def test_version_flag_prints_something():
-    r = subprocess.run([sys.executable, "-c",
-                        "import sys; sys.argv=['bh','--version']; "
-                        "from harness.cli.main import main; raise SystemExit(main())"],
-                       capture_output=True, text=True)
+    script = (
+        "import sys; sys.argv=['bh','--version']; "
+        "from harness.cli.main import main; raise SystemExit(main())"
+    )
+    r = subprocess.run([sys.executable, "-c", script],
+                       capture_output=True, text=True, check=False)
     assert r.returncode == 0 and r.stdout.strip()
 
 
