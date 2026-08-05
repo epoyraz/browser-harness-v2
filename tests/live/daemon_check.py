@@ -28,7 +28,10 @@ sys.path.insert(0, str(ROOT))
 
 from harness.core import ipc
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROME = (os.environ.get("BH_CHROME")
+          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+#: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
+FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 FIXTURES = ROOT / "tests" / "fixtures"
 results: list[tuple[str, bool, str]] = []
 
@@ -57,7 +60,7 @@ def main() -> int:
     chrome = subprocess.Popen(
         [CHROME, f"--user-data-dir={scratch}", "--remote-debugging-port=0",
          "--no-first-run", "--no-default-browser-check", "--window-size=1200,900",
-         "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+         *FLAGS, "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     env = {**os.environ, "PYTHONPATH": str(ROOT),
            "BH_RUNTIME_DIR": str(runtime),
            "BH_PROFILE_DIRS": str(scratch), "BU_CDP_URL": "", "BU_CDP_WS": ""}

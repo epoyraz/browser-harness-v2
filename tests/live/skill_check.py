@@ -14,10 +14,16 @@ ROOT = Path(__file__).resolve().parents[2]
 site = ThreadingHTTPServer(("127.0.0.1",0), partial(SimpleHTTPRequestHandler, directory=str(ROOT/"tests"/"fixtures")))
 threading.Thread(target=site.serve_forever, daemon=True).start()
 base = f"http://127.0.0.1:{site.server_port}"
-scratch = Path(tempfile.mkdtemp(prefix="bh-skill-")); runtime = Path(tempfile.mkdtemp(prefix="bhs-", dir="/tmp"))
-ch = subprocess.Popen(["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+CHROME = (os.environ.get("BH_CHROME")
+          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+#: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
+FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
+scratch = Path(tempfile.mkdtemp(prefix="bh-skill-"))
+# /tmp keeps the AF_UNIX sun_path inside its 104-byte budget; Windows has no such limit.
+runtime = Path(tempfile.mkdtemp(prefix="bhs-", dir=None if os.name == "nt" else "/tmp"))
+ch = subprocess.Popen([CHROME,
   f"--user-data-dir={scratch}","--remote-debugging-port=0","--no-first-run",
-  "--no-default-browser-check","about:blank"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+  "--no-default-browser-check",*FLAGS,"about:blank"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 env={**os.environ,"PYTHONPATH":str(ROOT),"BH_RUNTIME_DIR":str(runtime),
      "BH_PROFILE_DIRS":str(scratch),"BU_CDP_URL":"","BU_CDP_WS":"","BU_NAME":"skillcheck"}
 def bh(s): return subprocess.run([sys.executable,"-m","harness.cli.main","-"],input=s,

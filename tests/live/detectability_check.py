@@ -1,5 +1,6 @@
 """Isolate WHAT sets navigator.webdriver: the flag, or the CDP attach? The page reports
 back over plain HTTP, so no CDP is involved in the measurement itself."""
+import os
 import queue
 import subprocess
 import sys
@@ -11,6 +12,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+
+CHROME = (os.environ.get("BH_CHROME")
+          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 
 results = queue.Queue()
 PROBE = """<!doctype html><meta charset=utf-8><body><script>
@@ -37,7 +41,7 @@ URL = f"http://127.0.0.1:{site.server_port}/"
 
 def launch(extra):
     scratch = Path(tempfile.mkdtemp(prefix="bh-det3-"))
-    args = ["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    args = [CHROME,
             f"--user-data-dir={scratch}", "--no-first-run",
             "--no-default-browser-check"] + extra + [URL]
     return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL), scratch

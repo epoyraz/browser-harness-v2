@@ -12,6 +12,7 @@ count on the line is TODO 26's done-when, demonstrated on real traffic.
 from __future__ import annotations
 
 import contextlib
+import os
 import shutil
 import statistics
 import subprocess
@@ -35,7 +36,10 @@ from harness.ops.batch import fetch_all
 from harness.ops.forms import fill_form, form_schema
 from harness.ops.page import Tab
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+CHROME = (os.environ.get("BH_CHROME")
+          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+#: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
+FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 FIXTURES = ROOT / "tests" / "fixtures"
 
 results: list[tuple[str, bool, str]] = []
@@ -79,7 +83,7 @@ def main() -> int:
     chrome = subprocess.Popen(
         [CHROME, f"--user-data-dir={scratch}", "--remote-debugging-port=0",
          "--no-first-run", "--no-default-browser-check", "--window-size=1200,900",
-         "about:blank"],
+         *FLAGS, "about:blank"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         deadline = time.monotonic() + 15
