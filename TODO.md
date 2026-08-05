@@ -30,17 +30,30 @@ version 5×–60× smaller.
       `platform.system()` branch**, never a strategy abstraction (§6: 13 rejected PRs).
       Carry v1's macOS 104-byte `sun_path` constraint and the runtime/tmp dir split.
       *Done when:* both platforms pass the same test file.
-- [ ] **7. Daemon: one CDP websocket, per-request session routing** (D5) —
+- [x] **7. Daemon: one CDP websocket, per-request session routing** (D5) —
       *Done when:* two clients drive two tabs concurrently over one connection.
-- [ ] **8. Session registry `{targetId → sessionId}`** (D1) — lazy attach, `current_tid`
-      default. *Done when:* issue #375's subagent case works: N clients, N tabs, no fighting.
-- [ ] **9. Exactly ONE `ready_session(target_id)`** (D1, regression class A) — every path goes
+      *Met:* six clients over two tabs, 300 ms each, finish in <0.9 s (serialised would be
+      1.8 s) with `max_in_flight > 1`, and each gets its own target back.
+- [x] **8. Session registry `{targetId → sessionId}`** (D1) — lazy attach, per-target
+      locking. *Done when:* issue #375's subagent case works: N clients, N tabs, no fighting.
+      *Met:* there is no `current_tid` at all — the target is a parameter, so there is no
+      shared cursor to fight over. Eight threads racing one target produce one session.
+- [x] **9. Exactly ONE `ready_session(target_id)`** (D1, regression class A) — every path goes
       through it: initial attach, switch, lazy attach. *Done when:* grep finds one function
       that enables domains, and a test asserts no other path can produce a session.
-- [ ] **10. Typed session states** (D11a, #352) — `attached`, `target_missing`,
+      *Met:* `test_one_function_enables_domains` greps the shipped tree; mutation-tested by
+      adding a stray `Page.enable` to `cdp.py`, which fails it. Raw `Target.attachToTarget`
+      over the wire is routed to `ready_session()` rather than left as a bypass.
+- [x] **10. Typed session states** (D11a, #352) — `attached`, `target_missing`,
       `session_stale`, `renderer_unresponsive`, `browser_disconnected`; one
-      `ensure_live_session()` boundary. *Done when:* zero string-matching on CDP prose
-      anywhere in the tree.
+      `ensure_live()` boundary. *Done when:* zero string-matching on CDP prose anywhere
+      in the tree.
+      *Met, with one honest qualification:* prose is read in exactly one function,
+      `cdp.classify()`, which maps it to the closed enum. It cannot be zero — CDP returns
+      `-32000` for nearly everything — but it is one place with one test instead of every
+      recovery site. Staleness is normally learned *before* any failure, from
+      `detachedFromTarget` / `targetDestroyed` / `targetCrashed`; v1 subscribed to none of
+      these, which is why prose was its only signal.
 
 ## Phase 2 — connection lifecycle (where v1's complexity actually lives)
 
@@ -99,8 +112,14 @@ version 5×–60× smaller.
 - [ ] **26. `--trace`** (D11b) — span tree with **CDP round-trip counts**, silent on success,
       last N spans dumped automatically on error.
       *Done when:* `fill_input`-style waste is visible without a benchmark.
-- [ ] **27. CDP cassette record/replay** (D11c) — tap the daemon seam; hash/elide screenshot
+- [x] **27. CDP cassette record/replay** (D11c) — tap the daemon seam; hash/elide screenshot
       payloads. *Done when:* a session replays hermetically at ~680 bytes/call.
+      *Pulled forward from Phase 5* so items 7–10 could be tested without live Chrome —
+      the session registry is the part v1 got wrong four times, and a live test costs a
+      consent prompt per connection (D7) and is not deterministic.
+      *Met:* 47 calls replay hermetically at 187 B/call, keyed by request signature rather
+      than message id. Caveat: measured against the in-process fake, whose payloads are
+      smaller than Chrome's; the real figure needs a live recording in Phase 2.
 - [ ] **28. `bh replay --diff`** (D11c) — golden-file diff over the request stream.
       *Done when:* a change that turns 1 round trip into 60 fails the test.
 - [ ] **29. DOM fixtures from the four live ATS forms** — Abacus, Personio, FactorialHR,

@@ -1,0 +1,162 @@
+"""An in-process CDP browser, good enough to test session logic against.
+
+Not a mock of our own code — a stand-in for Chrome that implements the `Target.*` semantics
+the registry depends on: flattened attach, per-session domain state, and the lifecycle
+events v1 never subscribed to. Replies are queued from worker threads, so they arrive
+out of order exactly as a real browser's do; a test that passes here has actually exercised
+id-multiplexing rather than a fortunate ordering.
+"""
+from __future__ import annotations
+
+import threading
+import time
+from collections import defaultdict, deque
+from typing import Any
+
+
+class FakeBrowser:
+    """Transport-compatible: `send` / `recv(timeout)` / `close`."""
+
+    def __init__(self, *targets: str, latency: float = 0.0):
+        self.targets: dict[str, dict[str, Any]] = {
+            t: {"targetId": t, "type": "page", "url": f"https://{t}.test/"} for t in targets
+        }
+        self.sessions: dict[str, str] = {}                       # sessionId → targetId
+        self.enabled: dict[str, list[str]] = defaultdict(list)   # sessionId → domains
+        self.calls: list[dict[str, Any]] = []
+        self.attach_count: dict[str, int] = defaultdict(int)
+        self.latency = latency
+        self.in_flight = 0
+        self.max_in_flight = 0
+
+        self._q: deque[dict[str, Any]] = deque()
+        self._lock = threading.Lock()
+        self._ready = threading.Event()
+        self._closed = False
+        self._n = 0
+        self._workers: list[threading.Thread] = []
+
+    # -- transport interface ----------------------------------------------
+
+    def send(self, msg: dict[str, Any]) -> None:
+        if self._closed:
+            raise EOFError("fake browser closed")
+        with self._lock:
+            self.calls.append(msg)
+        worker = threading.Thread(target=self._work, args=(msg,), daemon=True)
+        worker.start()
+        self._workers.append(worker)
+
+    def recv(self, timeout: float | None = None) -> dict[str, Any]:
+        deadline = None if timeout is None else time.monotonic() + timeout
+        while True:
+            with self._lock:
+                if self._q:
+                    return self._q.popleft()
+                if self._closed:
+                    raise EOFError("fake browser closed")
+                self._ready.clear()
+            if deadline is not None and time.monotonic() >= deadline:
+                raise TimeoutError("no frame")
+            self._ready.wait(0.02)
+
+    def close(self) -> None:
+        with self._lock:
+            self._closed = True
+            self._ready.set()
+
+    # -- emission ----------------------------------------------------------
+
+    def emit(self, method: str, params: dict[str, Any] | None = None,
+             session_id: str | None = None) -> None:
+        """Push an unsolicited event, as the browser does."""
+        frame: dict[str, Any] = {"method": method, "params": params or {}}
+        if session_id:
+            frame["sessionId"] = session_id
+        self._push(frame)
+
+    def _push(self, frame: dict[str, Any]) -> None:
+        with self._lock:
+            self._q.append(frame)
+            self._ready.set()
+
+    # -- behaviour ---------------------------------------------------------
+
+    def _work(self, msg: dict[str, Any]) -> None:
+        with self._lock:
+            self.in_flight += 1
+            self.max_in_flight = max(self.max_in_flight, self.in_flight)
+        try:
+            if self.latency:
+                time.sleep(self.latency)
+            self._push(self._respond(msg))
+        finally:
+            with self._lock:
+                self.in_flight -= 1
+
+    def _respond(self, msg: dict[str, Any]) -> dict[str, Any]:
+        method, params = msg.get("method", ""), msg.get("params") or {}
+        session_id, msg_id = msg.get("sessionId"), msg.get("id")
+
+        def err(message: str, code: int = -32000) -> dict[str, Any]:
+            return {"id": msg_id, "error": {"code": code, "message": message}}
+
+        if session_id and session_id not in self.sessions:
+            return err("Session with given id not found.")
+
+        if method == "Target.attachToTarget":
+            target = params.get("targetId")
+            if target not in self.targets:
+                return err(f"No target with given id found: {target}")
+            with self._lock:
+                self._n += 1
+                sid = f"S{self._n}"
+                self.sessions[sid] = target
+                self.attach_count[target] += 1
+            self.emit("Target.attachedToTarget",
+                      {"sessionId": sid, "targetInfo": self.targets[target]})
+            return {"id": msg_id, "result": {"sessionId": sid}}
+
+        if method == "Target.getTargets":
+            return {"id": msg_id, "result": {"targetInfos": list(self.targets.values())}}
+
+        if method in ("Target.setDiscoverTargets", "Target.activateTarget"):
+            return {"id": msg_id, "result": {}}
+
+        if method.endswith(".enable"):
+            if session_id:
+                with self._lock:
+                    self.enabled[session_id].append(method.split(".")[0])
+            return {"id": msg_id, "result": {}}
+
+        if method == "Runtime.evaluate":
+            # Echo both the target and the expression, so a test can prove which tab a call
+            # landed on *and* that a reply was matched to the request that asked for it.
+            target = self.sessions.get(session_id or "", "<browser>")
+            return {"id": msg_id, "result": {"result": {
+                "type": "string", "value": target, "echo": params.get("expression")}}}
+
+        return {"id": msg_id, "result": {}}
+
+    # -- test affordances --------------------------------------------------
+
+    def destroy(self, target_id: str) -> None:
+        """Close a tab the way Chrome does: invalidate its sessions, then announce it."""
+        with self._lock:
+            self.targets.pop(target_id, None)
+            dead = [s for s, t in self.sessions.items() if t == target_id]
+            for s in dead:
+                self.sessions.pop(s, None)
+        for s in dead:
+            self.emit("Target.detachedFromTarget", {"sessionId": s, "targetId": target_id})
+        self.emit("Target.targetDestroyed", {"targetId": target_id})
+
+    def crash(self, target_id: str) -> None:
+        self.emit("Target.targetCrashed", {"targetId": target_id, "reason": "oom"})
+
+    def domains_for(self, target_id: str) -> list[str]:
+        with self._lock:
+            for sid, tid in self.sessions.items():
+                if tid == target_id:
+                    return list(self.enabled[sid])
+        return []

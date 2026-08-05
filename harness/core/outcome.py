@@ -46,6 +46,11 @@ class Class(str, Enum):
     SESSION_STALE = "session_stale"
     RENDERER_UNRESPONSIVE = "renderer_unresponsive"
 
+    #: The browser refused a command and `classify()` did not recognise which way. This is
+    #: NOT a `misc` member: it is the honest floor of rule 1. Without it, an unrecognised
+    #: CDP error would have to be reported as some *specific* cause we never verified.
+    CDP_ERROR = "cdp_error"
+
     # page-level (D11, D15)
     NAVIGATION_FAILED = "navigation_failed"
     JS_EXCEPTION = "js_exception"
@@ -185,6 +190,7 @@ ScopeRefused = _error("ScopeRefused", Class.SCOPE_REFUSED)
 TargetGone = _error("TargetGone", Class.TARGET_GONE)
 SessionStale = _error("SessionStale", Class.SESSION_STALE)
 RendererUnresponsive = _error("RendererUnresponsive", Class.RENDERER_UNRESPONSIVE)
+CdpError = _error("CdpError", Class.CDP_ERROR)
 NavigationFailed = _error("NavigationFailed", Class.NAVIGATION_FAILED)
 JsException = _error("JsException", Class.JS_EXCEPTION)
 NotSerializable = _error("NotSerializable", Class.NOT_SERIALIZABLE)
@@ -198,8 +204,8 @@ _BY_CLASS: dict[Class, type[HarnessError]] = {
     e.cls: e for e in (
         EndpointUnreachable, Endpoint404, NoBrowserWindow, PermissionPending,
         WsRejectedUpstream, BrowserDisconnected, ScopeRefused, TargetGone, SessionStale,
-        RendererUnresponsive, NavigationFailed, JsException, NotSerializable, NoOptionMatch,
-        NotAForm, ElementGone, Partial, Timeout,
+        RendererUnresponsive, CdpError, NavigationFailed, JsException, NotSerializable,
+        NoOptionMatch, NotAForm, ElementGone, Partial, Timeout,
     )
 }
 
