@@ -15,6 +15,7 @@ because that is what forced v1's clients to string-match Chrome's prose back out
 """
 from __future__ import annotations
 
+import contextlib
 import json
 import socket
 import threading
@@ -65,7 +66,11 @@ class Daemon:
                  token: str | None = None):
         self.name = ipc.check_name(name)
         self.journal = journal or Journal(None)
-        self.conn = Connection(transport, journal=self.journal)
+        # A callable defers the handshake until after the endpoint is published; a live
+        # transport is used as-is, which is what every unit test passes.
+        self._make_transport = transport if callable(transport) else None
+        self.conn = Connection(None if self._make_transport else transport,
+                               journal=self.journal)
         self.sessions = SessionRegistry(self.conn, journal=self.journal)
         self._token = token
         self._server: socket.socket | None = None
@@ -73,21 +78,70 @@ class Daemon:
         self._stop = threading.Event()
         self._peers: set[_Peer] = set()
         self._plock = threading.Lock()
+        #: Set once the browser handshake has *finished*, successfully or not. The IPC
+        #: endpoint is published before this, so a client can always reach the daemon and
+        #: be told what is pending instead of waiting out a silent timeout.
+        self._settled = threading.Event()
+        self._connect_error = ""
+        self._connect_started = False
 
     # -- lifecycle ---------------------------------------------------------
 
     def start(self) -> Self:
-        self.conn.start()
-        self.conn.subscribe(self._watch_disconnect)
-        self.conn.subscribe(self._broadcast)
-        self.sessions.discover()
+        """Publish the endpoint first, open the browser connection second.
+
+        The handshake is unbounded work: Chrome M144 shows an "Allow remote debugging"
+        prompt **per websocket** and blocks until someone answers it. Connecting before
+        binding meant the port file appeared only after that click, so a waiting client
+        saw 30 s of silence — indistinguishable from a daemon that never started, and with
+        the spawned daemon's stderr going to DEVNULL there was nothing to read either.
+        Binding first makes the daemon pingable throughout, so it can say what it is
+        waiting for.
+        """
         self._server = ipc.bind(self.name)
         # On Windows `bind()` mints the token it published in the port file; adopting it is
         # what makes `_answer`'s check a real boundary rather than a no-op. None on POSIX.
         if self._token is None:
             self._token = ipc.expected_token()
         self._server.settimeout(0.5)
+        self._connect_started = True
+        threading.Thread(target=self._open_browser, daemon=True,
+                         name=f"bh-connect-{self.name}").start()
         return self
+
+    def _open_browser(self) -> None:
+        """The browser half of startup. Failures are recorded, never raised: this runs on
+        its own thread, and a client asking `ping` deserves the reason, not a dead socket."""
+        try:
+            if self._make_transport is not None:
+                # THIS is the call Chrome blocks: the websocket handshake waits on the
+                # consent prompt. It happens here, after bind(), so the daemon is already
+                # answering pings and can report that it is waiting.
+                self.conn.attach(self._make_transport())
+            self.conn.start()
+            self.conn.subscribe(self._watch_disconnect)
+            self.conn.subscribe(self._broadcast)
+            self.sessions.discover()
+        except Exception as e:                       # noqa: BLE001 — reported, not raised
+            self._connect_error = f"{type(e).__name__}: {str(e)[:200]}"
+            self.journal.write("daemon", event="connect_failed", error=self._connect_error)
+        finally:
+            self._settled.set()
+
+    def _browser_pending(self, timeout: float) -> dict[str, Any] | None:
+        """`None` when the browser is usable, else the typed outcome explaining why not."""
+        if not self._connect_started:
+            return None                  # conn is being driven directly (unit tests)
+        if not self._settled.wait(timeout=max(0.0, min(timeout, 30.0))):
+            return fail(Class.BROWSER_DISCONNECTED,
+                        "browser connection has not opened yet — Chrome shows an 'Allow "
+                        "remote debugging' prompt per websocket and blocks until it is "
+                        "answered", daemon=self.name, connecting=True).to_json()
+        if self._connect_error:
+            return fail(Class.BROWSER_DISCONNECTED,
+                        f"browser connection failed: {self._connect_error}",
+                        daemon=self.name).to_json()
+        return None
 
     def serve_forever(self) -> None:
         assert self._server is not None, "call start() first"
@@ -109,7 +163,10 @@ class Daemon:
                 self._server.close()
             except OSError:
                 pass
-        self.conn.close()
+        # The connect thread may still be mid-handshake; closing an unopened transport
+        # must not turn teardown into an exception.
+        with contextlib.suppress(Exception):
+            self.conn.close()
         ipc.cleanup(self.name)
 
     def __enter__(self) -> Self:
@@ -191,6 +248,8 @@ class Daemon:
         method = request.get("method")
         if not method:
             return fail(Class.CDP_ERROR, "request names no method").to_json()
+        if (pending := self._browser_pending(float(request.get("timeout", 20.0)))) is not None:
+            return pending
         if method in _SESSION_METHODS:
             # The raw-CDP surface is an escape hatch, not a second way to make a session.
             # v1's `helpers.js()` called `Target.attachToTarget` directly on every call and
@@ -239,8 +298,22 @@ class Daemon:
         if meta == "ping":
             # Liveness means *both* processes are alive: a meta-only pong from a daemon whose
             # browser socket is dead is what v1 needed six PRs to stop reporting as healthy.
-            return {"pong": True, "browser": not self.conn._closed,
-                    "targets": self.sessions.live_targets}
+            # So `browser` stays the readiness signal — but the pong now also carries WHY it
+            # is false, which is the difference between "still waiting on your click" and
+            # "never coming up".
+            settled = self._settled.is_set() or not self._connect_started
+            live = settled and not self._connect_error and not self.conn._closed
+            out: dict[str, Any] = {"pong": True, "browser": live,
+                                   "targets": self.sessions.live_targets}
+            if not live:
+                out["connecting"] = not settled
+                out["reason"] = self._connect_error or (
+                    "browser handshake still open — Chrome prompts per websocket and "
+                    "blocks until it is answered" if not settled
+                    else "browser connection is closed")
+            return out
+        if (pending := self._browser_pending(20.0)) is not None and meta in ("attach", "forget"):
+            return pending
         if meta == "attach":
             try:
                 return _value(ok(self.sessions.ready_session(request["target_id"]).to_json()))
@@ -281,7 +354,11 @@ def serve(name: str = "default", *, journal_path: str | None = None) -> int:
     journal = Journal(journal_path, session=name) if journal_path else Journal(None)
     journal.write("daemon", event="serving", ws=resolution.ws_url,
                   strategy=resolution.strategy)
-    daemon = Daemon(name, WebSocketTransport(resolution.ws_url), journal=journal).start()
+    # A factory, not a live transport: constructing WebSocketTransport performs the
+    # handshake, and doing that before Daemon.start() meant the port file appeared only
+    # after Chrome's consent prompt was answered.
+    daemon = Daemon(name, lambda: WebSocketTransport(resolution.ws_url),
+                    journal=journal).start()
     try:
         daemon.serve_forever()
     except KeyboardInterrupt:

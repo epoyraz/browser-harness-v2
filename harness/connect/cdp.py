@@ -115,7 +115,7 @@ class Connection:
     per-caller, not global: two clients driving two tabs do not queue behind each other.
     """
 
-    def __init__(self, transport: Any, *, journal: Journal | None = None):
+    def __init__(self, transport: Any | None = None, *, journal: Journal | None = None):
         self._t = transport
         self._j = journal or Journal(None)
         self._pending: dict[int, _Slot] = {}
@@ -127,7 +127,18 @@ class Connection:
 
     # -- lifecycle ---------------------------------------------------------
 
+    def attach(self, transport: Any) -> None:
+        """Install the transport after construction.
+
+        `WebSocketTransport.__init__` *is* the handshake, and Chrome blocks it behind a
+        consent prompt. The daemon must publish its IPC endpoint before paying that cost,
+        which means the Connection has to exist before there is a websocket to give it.
+        """
+        self._t = transport
+
     def start(self) -> Self:
+        if self._t is None:
+            raise BrowserDisconnected("connection has no transport; call attach() first")
         self._reader = threading.Thread(target=self._pump, name="cdp-reader", daemon=True)
         self._reader.start()
         return self

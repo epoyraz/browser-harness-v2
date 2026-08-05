@@ -36,27 +36,62 @@ from harness.core.outcome import (
 SPAWN_TIMEOUT = 30.0
 
 
+def _spawn_kwargs() -> dict[str, Any]:
+    """Detach the daemon from this terminal so it outlives the client.
+
+    `start_new_session` is POSIX-only and silently ignored on Windows, which needs creation
+    flags instead. DETACHED_PROCESS is deliberately omitted: per the Win32 docs it overrides
+    CREATE_NO_WINDOW and Windows then allocates a fresh console for the daemon.
+    """
+    if sys.platform == "win32":
+        return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP
+                | subprocess.CREATE_NO_WINDOW}
+    return {"start_new_session": True}
+
+
 def ensure_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> dict[str, Any]:
-    """Return the daemon's pong, spawning it if nothing is listening.
+    """Return the daemon's pong once its **browser** connection is live, spawning it first
+    if nothing is listening.
+
+    A pong alone is not readiness. The daemon publishes its IPC endpoint before opening the
+    browser handshake, so it answers while Chrome is still showing its per-websocket consent
+    prompt. Waiting on `browser` keeps the v1 rule that alive means *both* processes, while
+    the pong's `reason` turns the pending case from silence into a sentence.
 
     The spawned process is detached and outlives this client, because its whole purpose is
     to hold one browser connection across many short-lived client runs.
     """
-    if (pong := ipc.ping(name)) is not None:
+    if (pong := ipc.ping(name)) is not None and pong.get("browser"):
         return pong
-    subprocess.Popen(
-        [sys.executable, "-m", "harness.cli.main", "daemon", name],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        stdin=subprocess.DEVNULL, start_new_session=True,
-        env={**os.environ, "PYTHONPATH": os.environ.get("PYTHONPATH", "")},
-    )
+    if pong is None:
+        log = ipc.ensure_private(ipc.runtime_dir()) / f"{ipc.check_name(name)}.log"
+        # Not DEVNULL: a daemon that died during startup used to leave nothing behind at
+        # all, which is exactly why its failures could not be diagnosed.
+        with open(log, "ab", buffering=0) as fh:
+            subprocess.Popen(
+                [sys.executable, "-m", "harness.cli.main", "daemon", name],
+                stdout=fh, stderr=fh, stdin=subprocess.DEVNULL,
+                env={**os.environ, "PYTHONPATH": os.environ.get("PYTHONPATH", "")},
+                **_spawn_kwargs(),
+            )
     deadline = time.monotonic() + timeout
+    last: dict[str, Any] = pong or {}
     while time.monotonic() < deadline:
         if (pong := ipc.ping(name)) is not None:
-            return pong
+            if pong.get("browser"):
+                return pong
+            last = pong
         time.sleep(0.1)
+    if last:
+        # The daemon is up and talking; it simply has no browser yet — and it told us why.
+        raise BrowserDisconnected(
+            f"daemon {name!r} is running but its browser connection did not open in "
+            f"{timeout}s: {last.get('reason') or 'no reason reported'}",
+            daemon=name, connecting=bool(last.get("connecting")),
+            reason=last.get("reason", ""))
     raise BrowserDisconnected(
-        f"daemon {name!r} did not come up in {timeout}s — run `bh --doctor` to see which "
+        f"daemon {name!r} did not come up in {timeout}s — see "
+        f"{ipc.runtime_dir() / (name + '.log')}, or run `bh --doctor` to see which "
         f"endpoint strategies declined", daemon=name)
 
 

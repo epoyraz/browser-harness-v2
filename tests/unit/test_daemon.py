@@ -189,3 +189,71 @@ def test_stopping_removes_the_socket(runtime):
     assert ipc.sock_path("gone").exists()
     daemon.stop()
     assert not ipc.sock_path("gone").exists()
+
+
+# --- the endpoint is published before the browser handshake -------------------
+
+def test_the_endpoint_is_published_before_the_browser_handshake(runtime):
+    """Chrome shows an "Allow remote debugging" prompt per websocket and blocks the
+    handshake until it is answered. Publishing the endpoint only after that click made a
+    waiting client see 30s of silence — identical to a daemon that never started, and with
+    the spawned daemon's stderr going to DEVNULL there was nothing to read either."""
+    import threading as _t
+
+    from harness.core import ipc
+    from harness.core.outcome import Class
+
+    gate = _t.Event()
+
+    def blocked_handshake():
+        gate.wait(10)                     # stands in for the unanswered consent prompt
+        return FakeBrowser("a")
+
+    daemon = Daemon("pending", blocked_handshake)
+    daemon.start()
+    try:
+        _t.Thread(target=daemon.serve_forever, daemon=True).start()
+
+        # reachable while the handshake is still blocked
+        pong = ipc.ping("pending", timeout=3.0)
+        assert pong is not None and pong["pong"] is True
+        assert pong["browser"] is False            # not ready, and says so
+        assert pong["connecting"] is True
+        assert "prompt" in pong["reason"] or "handshake" in pong["reason"]
+
+        # a real request is refused with a class, not left hanging forever
+        reply = daemon.handle({"method": "Runtime.evaluate", "timeout": 0.2})
+        assert reply["class"] == Class.BROWSER_DISCONNECTED.value
+
+        gate.set()                                 # "user clicks Allow"
+        for _ in range(100):
+            pong = ipc.ping("pending", timeout=3.0)
+            if pong and pong["browser"]:
+                break
+            time.sleep(0.05)
+        assert pong["browser"] is True
+        assert "reason" not in pong
+    finally:
+        gate.set()
+        daemon.stop()
+
+
+def test_a_handshake_that_fails_reports_why_instead_of_going_quiet(runtime):
+    from harness.core import ipc
+
+    def refused():
+        raise OSError("connection refused by the browser")
+
+    daemon = Daemon("refused", refused)
+    daemon.start()
+    try:
+        threading.Thread(target=daemon.serve_forever, daemon=True).start()
+        for _ in range(100):
+            pong = ipc.ping("refused", timeout=3.0)
+            if pong and not pong.get("connecting"):
+                break
+            time.sleep(0.05)
+        assert pong["browser"] is False
+        assert "connection refused" in pong["reason"]
+    finally:
+        daemon.stop()
