@@ -57,6 +57,8 @@ def classify(error: dict[str, Any]) -> Class:
         return Class.RENDERER_UNRESPONSIVE
     if "node with given id" in text or "could not find node" in text:
         return Class.ELEMENT_GONE
+    if "returned by value" in text or "reference chain is too long" in text:
+        return Class.NOT_SERIALIZABLE          # v1 returned None here, silently
     return Class.CDP_ERROR
 
 
@@ -148,9 +150,20 @@ class Connection:
     # -- events ------------------------------------------------------------
 
     def subscribe(self, fn: Callable[[dict[str, Any]], None]) -> None:
-        """Register an event handler. Handlers run on the reader thread and must not block."""
+        """Register an event handler. Handlers run on the reader thread and must not block —
+        and must never call `request()`: the reader cannot dispatch the reply it would be
+        waiting for, so that is a deadlock by construction."""
         with self._lock:
             self._subscribers.append(fn)
+
+    def unsubscribe(self, fn: Callable[[dict[str, Any]], None]) -> None:
+        with self._lock:
+            if fn in self._subscribers:
+                self._subscribers.remove(fn)
+
+    @property
+    def journal(self) -> Journal:
+        return self._j
 
     # -- requests ----------------------------------------------------------
 

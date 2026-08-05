@@ -93,24 +93,48 @@ to a version 5×–60× smaller.
 
 ## Phase 3 — primitives (the agent-facing surface)
 
-- [ ] **15. `cdp()` and `js()`** — per-call timeout as an **argument, not an env var** (§6);
+- [x] **15. `cdp()` and `js()`** — per-call timeout as an **argument, not an env var** (§6);
       `replMode` so top-level `await` works (D14). *Done when:* `js("await fetch(...)")` runs.
-- [ ] **16. `goto()`** (D11) — returns `requested` **and** `landed`; raises
+      *Met (live, scratch-profile Chrome on this machine):* `js("const r = await fetch(...); r.status")` → 200.
+      A value-less result raises `NotSerializable` instead of v1's silent None; note Chrome
+      serialises a DOM node to `{}` under `returnByValue`, so that path fires only for
+      genuinely unserialisable results.
+- [x] **16. `goto()`** (D11) — returns `requested` **and** `landed`; raises
       `NavigationFailed` when CDP reports `errorText` or the tab lands on `chrome-error://`.
       *Done when:* a 404 cannot be reported as a title.
-- [ ] **17. Actions return a delta** (D11) — `click_*` reports url change, new tab, DOM node
+      *Met (live, scratch-profile Chrome on this machine):* refused port → `net::ERR_CONNECTION_REFUSED` typed; empty-body 404 →
+      `NavigationFailed` with `landed=chrome-error://chromewebdata/`. Bonus find: Chrome
+      rejects low ports as `ERR_UNSAFE_PORT` before connecting — a distinct prose, same
+      class, which is the point of classifying once.
+- [x] **17. Actions return a delta** (D11) — `click_*` reports url change, new tab, DOM node
       delta, dialog opened + text. *Done when:* clicking a button that opens a modal reports
       the modal, not silence.
-- [ ] **18. Injected page runtime** (D13) — `Page.addScriptToEvaluateOnNewDocument` installs
+      *Met (live, scratch-profile Chrome on this machine):* a mutate click reports `dom_mutations=7`, a `target=_blank` click reports the
+      new targetId, and a real blocking `confirm()` is survived: `Input.dispatchMouseEvent`
+      does not ACK while the dialog is up, so a dispatch timeout with a dialog pending is
+      reported as a successful click that opened a dialog — captured, auto-dismissed
+      (accept=False default), page responsive after.
+- [x] **18. Injected page runtime** (D13) — `Page.addScriptToEvaluateOnNewDocument` installs
       the ref registry and a MutationObserver on every document.
       *Done when:* snapshot refs survive a navigation.
-- [ ] **19. Event-driven waits** (D13) — `Runtime.addBinding` + `Page.lifecycleEvent` replace
+      *Met (live, scratch-profile Chrome on this machine):* after `goto()` the runtime is present on the new document and a fresh
+      snapshot's refs click. Refs survive by *reinstallation*, not by luck — a ref minted
+      before the navigation is dead with the document that owned it.
+- [x] **19. Event-driven waits** (D13) — `Runtime.addBinding` + `Page.lifecycleEvent` replace
       300 ms polling. *Done when:* wait overshoot drops from ~153 ms median to <10 ms.
-- [ ] **20. `snapshot()` / `click_ref()`** (D4) — interactive elements with exact coordinates
+      *Met (live, scratch-profile Chrome on this machine):* overshoot **0.11 ms** (lifecycle event wakes a condition variable).
+      `Page.setLifecycleEventsEnabled` lives in `ready_session()` with the domain enables —
+      a session without lifecycle events silently breaks every wait, so it is session setup.
+- [x] **20. `snapshot()` / `click_ref()`** (D4) — interactive elements with exact coordinates
       from `getBoundingClientRect`. *Done when:* 450 elements in <10 ms.
-- [ ] **21. `capture_screenshot()`** (D4) — JPEG, `clip.scale=0.5` → CSS pixels on any
+      *Met (live, scratch-profile Chrome on this machine):* 444 elements in **2.6 ms in-page** (26.8 ms round trip). Coordinates are
+      viewport CSS px — exactly what `Input.dispatchMouseEvent` takes.
+- [x] **21. `capture_screenshot()`** (D4) — JPEG, `clip.scale=0.5` → CSS pixels on any
       display; `max_dim` computes scale rather than post-resizing.
       *Done when:* output px == CSS viewport px, ~150 ms.
+      *Met (live, scratch-profile Chrome on this machine):* `clip.scale = 1/devicePixelRatio` (the general form of the 0.5 that was
+      measured on one Retina display): dpr=2, css=1200 → output 1200 px, **126 ms warm**.
+      The first shot on a fresh renderer paid ~1 s of raster warm-up — worth knowing.
 
 ## Phase 4 — the batching surface (where the speed is)
 
@@ -147,8 +171,11 @@ to a version 5×–60× smaller.
       the session registry is the part v1 got wrong four times, and a live test costs a
       consent prompt per connection (D7) and is not deterministic.
       *Met:* 47 calls replay hermetically at 187 B/call, keyed by request signature rather
-      than message id. Caveat: measured against the in-process fake, whose payloads are
-      smaller than Chrome's; the real figure needs a live recording in Phase 2.
+      than message id. **Real-traffic figure (Phase 3 live run): 3,759 B/call** — snapshot
+      responses are lists of small dicts, which string-only elision does not digest.
+      Known issue for item 28: an elided *response* is handed to the replaying client as a
+      digest, so code that decodes it (screenshot base64) breaks under replay — the elision
+      boundary belongs at --diff comparison time, not at response-delivery time.
 - [ ] **28. `bh replay --diff`** (D11c) — golden-file diff over the request stream.
       *Done when:* a change that turns 1 round trip into 60 fails the test.
 - [ ] **29. DOM fixtures from the four live ATS forms** — Abacus, Personio, FactorialHR,

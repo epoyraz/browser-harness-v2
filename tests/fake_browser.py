@@ -28,6 +28,13 @@ class FakeBrowser:
         self.latency = latency
         self.in_flight = 0
         self.max_in_flight = 0
+        #: Optional: expression → value for Runtime.evaluate. Return {"__raw__": {...}} to
+        #: substitute the full CDP result payload (for exceptionDetails etc.).
+        self.eval_hook = None
+        #: Methods that never get a reply — simulates a renderer blocked by a JS dialog.
+        self.hang_methods: set[str] = set()
+        #: When set, Page.navigate reports this errorText (e.g. "net::ERR_CONNECTION_REFUSED").
+        self.navigate_error: str | None = None
 
         self._q: deque[dict[str, Any]] = deque()
         self._lock = threading.Lock()
@@ -89,6 +96,8 @@ class FakeBrowser:
         try:
             if self.latency:
                 time.sleep(self.latency)
+            if msg.get("method") in self.hang_methods:
+                return                                   # deliberately never answered
             self._push(self._respond(msg))
         finally:
             with self._lock:
@@ -129,7 +138,31 @@ class FakeBrowser:
                     self.enabled[session_id].append(method.split(".")[0])
             return {"id": msg_id, "result": {}}
 
+        if method == "Page.navigate":
+            if self.navigate_error:
+                return {"id": msg_id,
+                        "result": {"loaderId": "L1", "errorText": self.navigate_error}}
+            # the load event races the navigate reply, exactly as in real Chrome
+            self.emit("Page.lifecycleEvent",
+                      {"name": "load", "loaderId": "L1", "frameId": "F1"},
+                      session_id=session_id)
+            return {"id": msg_id, "result": {"loaderId": "L1", "frameId": "F1"}}
+
+        if method == "Page.getLayoutMetrics":
+            return {"id": msg_id, "result": {"cssLayoutViewport": {
+                "pageX": 0, "pageY": 0, "clientWidth": 1200, "clientHeight": 800}}}
+
+        if method == "Page.captureScreenshot":
+            import base64
+            return {"id": msg_id,
+                    "result": {"data": base64.b64encode(b"fake-image-bytes").decode()}}
+
         if method == "Runtime.evaluate":
+            if self.eval_hook is not None:
+                value = self.eval_hook(params.get("expression", ""))
+                if isinstance(value, dict) and "__raw__" in value:
+                    return {"id": msg_id, "result": value["__raw__"]}
+                return {"id": msg_id, "result": {"result": {"type": "object", "value": value}}}
             # Echo both the target and the expression, so a test can prove which tab a call
             # landed on *and* that a reply was matched to the request that asked for it.
             target = self.sessions.get(session_id or "", "<browser>")

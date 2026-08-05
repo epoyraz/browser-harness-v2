@@ -146,6 +146,10 @@ class SessionRegistry:
         for domain in self._domains:
             self._conn.request(f"{domain}.enable", session_id=session_id, timeout=10.0)
             enabled.append(domain)
+        # Session setup lives here too, for the same reason the enables do: a session
+        # without lifecycle events silently breaks every event-driven wait (D13).
+        self._conn.request("Page.setLifecycleEventsEnabled", {"enabled": True},
+                           session_id=session_id, timeout=10.0)
         return tuple(enabled)
 
     # -- the one consumer boundary ----------------------------------------
