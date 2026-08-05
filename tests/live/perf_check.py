@@ -159,13 +159,17 @@ def main() -> int:
 
         # --- TODO 26 on real traffic: the trace names where round trips went --
         lines = render(Journal(journal_path).entries())
-        fill_lines = [ln for ln in lines if ln.lstrip().startswith("js")
-                      and "((plan)" in ln]
+        # The count now lands on fill_form itself: routing the machinery through the
+        # isolated world removed the nested anonymous `js` span, so the span that names
+        # the operation is also the span that carries its cost.
+        fill_lines = [ln for ln in lines if ln.lstrip().startswith("fill_form")]
         print("\n  --- bh trace (excerpt) ---")
         for ln in lines[:6]:
             print(f"  {ln}")
-        check("trace: the batched fill is cdp=1 on the line",
-              any("cdp=1" in ln for ln in fill_lines), f"{len(fill_lines)} fill spans")
+        check("trace: the batched fill's cost is on the fill_form span",
+              fill_lines and all(("cdp=1" in ln or "cdp=2" in ln) for ln in fill_lines),
+              f"{len(fill_lines)} spans: " + (fill_lines[0].split("|")[0][:52].strip()
+                                              if fill_lines else "none"))
 
     finally:
         chrome.terminate()

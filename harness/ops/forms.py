@@ -236,7 +236,7 @@ def form_schema(tab: Tab, *, timeout: float = 20.0) -> dict[str, Any]:
     """One evaluate: `{verdict, fields, files}`. Fields carry refs from the shared
     registry, so a schema field is directly fillable and clickable."""
     with tab.journal.call("form_schema"):
-        return tab.js(_SCHEMA_JS, timeout=timeout)
+        return tab._world_js(_SCHEMA_JS, timeout=timeout)
 
 
 def require_form(schema: dict[str, Any]) -> dict[str, Any]:
@@ -278,11 +278,11 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         return ok([], attempted=0, succeeded=0, failed=0)
     src = _FILL_JS.replace("__PLAN__", json.dumps(plan))
     with tab.journal.call("fill_form", n=len(plan)):
-        report = tab.js(src, timeout=timeout) or []
+        report = tab._world_js(src, timeout=timeout) or []
         if recheck > 0:
             time.sleep(recheck)
-            settled = tab.js(_RECHECK_JS.replace("__PLAN__", json.dumps(plan)),
-                             timeout=timeout) or []
+            settled = tab._world_js(_RECHECK_JS.replace("__PLAN__", json.dumps(plan)),
+                                    timeout=timeout) or []
             for i, entry in enumerate(report):
                 if i >= len(settled) or settled[i] is None or "error" in entry:
                     continue
@@ -336,7 +336,7 @@ def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
     if mode == "value":
         return fill_form(tab, [{"ref": ref, "value": value}], timeout=timeout,
                          recheck=recheck)
-    focused = tab.js(
+    focused = tab._world_js(
         f"(() => {{const el = window.__bh && __bh.refs[{json.dumps(ref)}]; if (!el) return false;"
         " el.focus(); el.select && el.select(); return true;})()",
         timeout=timeout)
@@ -352,7 +352,7 @@ def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
                                                "key": ch, "unmodifiedText": ch},
                     timeout=timeout)
             tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch}, timeout=timeout)
-    got = tab.js(f"(() => {{const el = __bh.refs[{json.dumps(ref)}]; el.blur();"
+    got = tab._world_js(f"(() => {{const el = __bh.refs[{json.dumps(ref)}]; el.blur();"
                  " return String(el.value).slice(0, 80);})()",
                  timeout=timeout)
     want = str(value)

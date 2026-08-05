@@ -13,7 +13,7 @@ from harness.core.outcome import (
     NotSerializable,
     Timeout,
 )
-from harness.ops.page import Tab
+from harness.ops.page import WORLD, Tab
 from tests.fake_browser import FakeBrowser
 
 
@@ -280,3 +280,49 @@ def test_events_from_another_tabs_session_are_ignored(wired):
                  session_id=other)
     time.sleep(0.1)
     assert tab._dialog is None
+
+
+# --- the machinery runs off-window (2026-08-05 detectability finding) ---------
+
+def test_the_runtime_is_installed_into_an_isolated_world(wired):
+    """A page could read `Object.getOwnPropertyNames(window)` and find a stray `__bh`,
+    which announces the harness for no benefit. The isolated world shares the DOM and
+    has its own global object, so page script cannot see the registry at all."""
+    browser, _, _ = wired
+    _tab(wired)
+    installed = [c for c in browser.calls
+                 if c.get("method") == "Page.addScriptToEvaluateOnNewDocument"]
+    assert installed[0]["params"]["worldName"] == WORLD    # survives every navigation
+    assert WORLD in browser.isolated_worlds                # and exists for this document
+
+
+def test_harness_evaluates_carry_the_world_context_but_js_does_not(wired):
+    """The split that matters: our machinery is invisible, the user's escape hatch is not.
+    `js()` must land where the page's globals live or it cannot reach them."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    tab.snapshot()
+    tab.js("window.someAppState")
+    evals = [c for c in browser.calls if c.get("method") == "Runtime.evaluate"]
+    snapshot_call = next(c for c in evals if "querySelectorAll" in c["params"]["expression"])
+    user_call = next(c for c in evals if c["params"]["expression"] == "window.someAppState")
+    assert snapshot_call["params"].get("contextId") == 77
+    assert "contextId" not in user_call["params"]
+
+
+def test_a_dead_world_is_rebuilt_rather_than_failing_the_call(wired):
+    """Isolated worlds die with their document, so the id is re-resolved, never cached
+    across a navigation."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    tab.snapshot()
+    before = len(browser.isolated_worlds)
+    browser.emit("Runtime.executionContextsCleared", {}, session_id=tab._session_id)
+    deadline = time.monotonic() + 2
+    while tab._world_ctx is not None and time.monotonic() < deadline:
+        time.sleep(0.01)
+    assert tab._world_ctx is None
+    tab.snapshot()
+    assert len(browser.isolated_worlds) == before + 1

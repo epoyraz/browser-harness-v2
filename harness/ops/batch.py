@@ -67,7 +67,7 @@ def fetch_all(tab: Tab, urls: list[str], *, concurrency: int = 5, retries: int =
            .replace("__MAXBODY__", str(int(max_body)))
            .replace("__PER_MS__", str(int(per_request * 1000))))
     with tab.journal.call("fetch_all", n=len(urls), concurrency=concurrency):
-        results = tab.js(src, timeout=timeout) or []
+        results = tab._world_js(src, timeout=timeout) or []
     tally = Tally()
     for i, url in enumerate(urls):
         r = results[i] if i < len(results) else None

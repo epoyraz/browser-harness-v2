@@ -205,8 +205,8 @@ def main() -> int:
         long_text = ("Motivation. " * 170)[:2000]
         out = set_value(tab, moti["ref"], long_text)
         check("set_value: 2,000 chars in one call", out.ok, f"{len(long_text)} chars")
-        out = set_value(tab, moti["ref"], "via insertText", keystrokes=True)
-        check("set_value keystrokes: one Input.insertText", out.ok,
+        out = set_value(tab, moti["ref"], "via insertText", mode="insert")
+        check("set_value mode=insert: one Input.insertText", out.ok,
               str(out.observed.get("mode")))
 
         # ---- widgets: the two failure modes from the 2026-08-05 live run -----

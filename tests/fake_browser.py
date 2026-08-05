@@ -35,6 +35,8 @@ class FakeBrowser:
         self.hang_methods: set[str] = set()
         #: When set, Page.navigate reports this errorText (e.g. "net::ERR_CONNECTION_REFUSED").
         self.navigate_error: str | None = None
+        #: worldName of every Page.createIsolatedWorld — proves the machinery is off-window.
+        self.isolated_worlds: list[str] = []
 
         self._q: deque[dict[str, Any]] = deque()
         self._lock = threading.Lock()
@@ -147,6 +149,14 @@ class FakeBrowser:
                       {"name": "load", "loaderId": "L1", "frameId": "F1"},
                       session_id=session_id)
             return {"id": msg_id, "result": {"loaderId": "L1", "frameId": "F1"}}
+
+        if method == "Page.getFrameTree":
+            return {"id": msg_id, "result": {"frameTree": {"frame": {"id": "F1"}}}}
+
+        if method == "Page.createIsolatedWorld":
+            # The harness's machinery runs here, so the page's `window` never sees it.
+            self.isolated_worlds.append(params.get("worldName"))
+            return {"id": msg_id, "result": {"executionContextId": 77}}
 
         if method == "Page.getLayoutMetrics":
             return {"id": msg_id, "result": {"cssLayoutViewport": {

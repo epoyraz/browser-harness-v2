@@ -963,6 +963,62 @@ Second, **bot protection is an endpoint property, not a form property**: the Dat
 is indistinguishable from a slow SPA by any DOM measure, which is the strongest argument
 for the managed-IP cloud browsers in D12 rather than for more retry logic.
 
+#### What a page can actually observe (and the premise worth correcting)
+
+*Prompted by a direct question: does v2 even use CDP, and is v1's different shape a stealth
+decision? Measured rather than argued.*
+
+**Both are CDP.** v1 connects via `cdp-use`, v2 via `websockets`, to the same DevTools
+endpoint, with the same `Target.attachToTarget(flatten)` model. There is no protocol-level
+difference to trade stealth against. What differs is *input synthesis* (above) and, until
+this run, one artefact v2 was leaving on the page.
+
+Probed from inside a page, with the page reporting over plain HTTP so the measurement
+itself involves no CDP:
+
+| Signal | Cause | v1 | v2 (before) | v2 (now) |
+|---|---|---|---|---|
+| `navigator.webdriver === true` | **the `--remote-debugging-port` flag alone** — proven: true with the flag and *nobody attached*, false without it | same | same | same |
+| `window.__bh` visible on `window` | v2's injected page runtime (D13/item 18) | **absent** | **present** | **absent** |
+| `console.debug` serialise timing | `Runtime.enable` (2.3 ms vs 0.3 ms for the same payload) | same | same | same |
+| `isTrusted: false` on input events | one-shot value writes | n/a — v1 types | default | default; `mode` opts out |
+
+Three conclusions, in order of how much they matter.
+
+**1. `navigator.webdriver` is set by the flag, not by the attach, and not by either
+harness.** Chrome flips it the moment remote debugging is enabled on the command line —
+measured with nobody connected at all. No harness-level change can hide it, and v1 and v2
+are equally exposed. This is worth knowing precisely because it is the signal people assume
+their automation library controls. (Untested and worth testing: whether enabling debugging
+at runtime through `chrome://inspect` — v1's documented local flow — differs from the
+launch flag.)
+
+**2. `window.__bh` was a self-inflicted wound, and is fixed.** v2 injected its ref registry
+onto the page's `window`, where any script could enumerate it. v1 never did this, because
+it has no persistent injected runtime — so on this axis the intuition that "v1 is doing
+something different" was correct, and v2 was the worse citizen. The fix is a CDP **isolated
+world**: same DOM, separate global object, recreated on every navigation for free via
+`Page.addScriptToEvaluateOnNewDocument(worldName=…)`. Page script now sees nothing.
+`js()` deliberately stays in the main world — it is the user's escape hatch, and code that
+reaches for page globals must land where those globals live. This is D14 in its purest
+form: the alternative was obfuscating a global name, which only raises the cost of finding
+it rather than removing it.
+
+**3. `Runtime.enable` is a measurable side channel** — a logged object serialises ~8×
+slower with the domain enabled. Both harnesses enable it by default. v2 can at least *make
+it optional*, since `DEFAULT_DOMAINS` is a registry parameter and the isolated world no
+longer needs main-world `Runtime` for its own machinery; that is left as a documented knob
+rather than a default change, because turning it off costs `js()` and console capture.
+
+**Scope, stated once.** The defensible goal is that the harness should not *announce*
+itself for no benefit — a stray global and an unnecessary domain are bugs by that standard,
+and both are now addressed. The undefensible goal is defeating anti-bot systems: it is an
+arms race, `navigator.webdriver` alone makes it unwinnable from inside the page, and the
+DataDome wall in the six-form run is the evidence — a fresh profile with a clean DOM was
+CAPTCHA'd on **IP and TLS reputation**, which no amount of in-page tidiness touches. That
+is what D12's managed cloud browsers are for, and it is also where automating a site that
+forbids it stops being an engineering question.
+
 #### Why v1 is slow, and what its slowness was buying
 
 *The 193× invites a bad conclusion — that v1 was simply doing it wrong. It was not, and

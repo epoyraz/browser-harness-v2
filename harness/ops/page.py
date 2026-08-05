@@ -31,6 +31,7 @@ from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.journal import Journal
 from harness.core.outcome import (
+    Class,
     ElementGone,
     HarnessError,
     JsException,
@@ -39,8 +40,22 @@ from harness.core.outcome import (
     Timeout,
 )
 
+#: The harness's machinery runs in a CDP **isolated world**, not on `window`.
+#:
+#: Measured: a page can read `Object.getOwnPropertyNames(window)` and see a stray
+#: `__bh` global, which announces the harness for no benefit. An isolated world shares the
+#: DOM but has its own global object, so page script cannot see our registry at all —
+#: `Page.addScriptToEvaluateOnNewDocument(worldName=...)` recreates it on every navigation
+#: for free. This is D14 ("use more of CDP, not more code"): the alternative was obfuscating
+#: a global name, which only raises the cost of finding it.
+#:
+#: The user's own `js()` deliberately stays in the **main** world — it is the escape hatch,
+#: and code that reaches for page globals must land where the page's globals live.
+WORLD = "__bh_world"
+
 #: Installed on every new document (item 18). Idempotent; `__bh.mutations` is the DOM
-#: delta counter, `__bh.refs` the snapshot ref registry.
+#: delta counter, `__bh.refs` the snapshot ref registry. Lives in the isolated world, so
+#: `__bh` is reachable from harness JS and invisible to the page.
 RUNTIME_JS = """(() => {
   if (window.__bh) return;
   const bh = window.__bh = {refs: {}, n: 0, mutations: 0};
@@ -77,6 +92,22 @@ SNAPSHOT_JS = """(() => {
   }
   return out;
 })()"""
+
+
+def _unwrap_eval(r: dict[str, Any]) -> Any:
+    """`Runtime.evaluate` result → a Python value, or the typed error. One implementation,
+    shared by the main-world and isolated-world paths."""
+    if ex := r.get("exceptionDetails"):
+        desc = (ex.get("exception") or {}).get("description") or ex.get("text", "")
+        raise JsException(desc.split("\n")[0][:300], line=ex.get("lineNumber"),
+                          url=ex.get("url"), stack=desc[:1000])
+    res = r.get("result") or {}
+    if "value" in res or res.get("type") == "undefined":
+        return res.get("value")
+    # rule 3: a value we cannot hand over is an error, not a silent None (v1's bug)
+    raise NotSerializable(
+        f"result of type {res.get('subtype') or res.get('type')} has no JSON value",
+        type=res.get("type"), description=(res.get("description") or "")[:120])
 
 
 class _Waiter:
@@ -127,6 +158,7 @@ class Tab:
         self._waiters: list[_Waiter] = []
         self._dialog: dict[str, Any] | None = None
         self._created: deque[dict[str, Any]] = deque(maxlen=16)
+        self._world_ctx: int | None = None
         conn.subscribe(self._on_event)
         self._install_runtime()
 
@@ -145,12 +177,61 @@ class Tab:
 
     def _install_runtime(self) -> None:
         """Item 18: the registry + mutation counter exist on every document this tab will
-        ever load, so refs survive navigation by reinstallation, not by luck."""
+        ever load, so refs survive navigation by reinstallation, not by luck — and they
+        live in an isolated world, so the page never sees them."""
         sid = self._sid()
-        self._conn.request("Page.addScriptToEvaluateOnNewDocument",
-                           {"source": RUNTIME_JS}, session_id=sid, timeout=10.0)
-        self._conn.request("Runtime.evaluate", {"expression": RUNTIME_JS},
-                           session_id=sid, timeout=10.0)      # and on the current one
+        self._conn.request(
+            "Page.addScriptToEvaluateOnNewDocument",
+            {"source": RUNTIME_JS, "worldName": WORLD, "runImmediately": True},
+            session_id=sid, timeout=10.0)
+        self._ensure_world()                                   # and for the current document
+
+    def _ensure_world(self) -> int | None:
+        """Isolated-world context id for the main frame, created on demand.
+
+        Worlds die with their document, so this is re-resolved rather than cached across
+        navigations; `executionContextsCleared` drops the stale id (see `_on_event`).
+        """
+        if self._world_ctx is not None:
+            return self._world_ctx
+        sid = self._sid()
+        try:
+            frame = self._conn.request("Page.getFrameTree", session_id=sid,
+                                       timeout=10.0)["frameTree"]["frame"]["id"]
+            ctx = self._conn.request(
+                "Page.createIsolatedWorld",
+                {"frameId": frame, "worldName": WORLD, "grantUniveralAccess": True},
+                session_id=sid, timeout=10.0)["executionContextId"]
+        except HarnessError:
+            return None            # degrade to the main world rather than fail the call
+        self._conn.request("Runtime.evaluate",
+                           {"expression": RUNTIME_JS, "contextId": ctx},
+                           session_id=sid, timeout=10.0)
+        self._world_ctx = ctx
+        return ctx
+
+    def _world_js(self, expression: str, *, timeout: float = 10.0) -> Any:
+        """Evaluate harness machinery in the isolated world. Falls back to the main world
+        only if the world could not be created, so a degraded run still works."""
+        ctx = self._ensure_world()
+        if ctx is None:
+            return self.js(expression, timeout=timeout)
+        # replMode here too, for the same reason js() needs it: `fetch_all`'s template is a
+        # top-level `await`, which is a syntax error without it (D14).
+        params = {"expression": expression, "returnByValue": True, "awaitPromise": True,
+                  "replMode": True, "contextId": ctx}
+        try:
+            r = self.cdp("Runtime.evaluate", params, timeout=timeout)
+        except HarnessError as e:
+            if e.cls is not Class.CDP_ERROR:
+                raise
+            self._world_ctx = None                 # context died under us; rebuild once
+            ctx = self._ensure_world()
+            if ctx is None:
+                return self.js(expression, timeout=timeout)
+            params["contextId"] = ctx
+            r = self.cdp("Runtime.evaluate", params, timeout=timeout)
+        return _unwrap_eval(r)
 
     def _on_event(self, msg: dict[str, Any]) -> None:
         """Reader thread: bookkeeping and waiter wakeups only, never a request."""
@@ -159,6 +240,8 @@ class Tab:
             return                                     # another tab's event
         method = msg.get("method", "")
         params = msg.get("params") or {}
+        if method in ("Runtime.executionContextsCleared", "Page.frameNavigated"):
+            self._world_ctx = None            # the world died with its document
         if method == "Page.javascriptDialogOpening":
             with self._wlock:
                 self._dialog = params
@@ -201,18 +284,7 @@ class Tab:
             r = self.cdp("Runtime.evaluate", {
                 "expression": expression, "replMode": True, "returnByValue": True,
                 "awaitPromise": await_promise}, timeout=timeout)
-        if ex := r.get("exceptionDetails"):
-            desc = (ex.get("exception") or {}).get("description") or ex.get("text", "")
-            raise JsException(desc.split("\n")[0][:300],
-                              line=ex.get("lineNumber"), url=ex.get("url"),
-                              stack=desc[:1000])
-        res = r.get("result") or {}
-        if "value" in res or res.get("type") == "undefined":
-            return res.get("value")
-        # rule 3: a value we cannot hand over is an error, not a silent None (v1's bug)
-        raise NotSerializable(
-            f"result of type {res.get('subtype') or res.get('type')} has no JSON value",
-            type=res.get("type"), description=(res.get("description") or "")[:120])
+        return _unwrap_eval(r)
 
     # -- item 16 + 19: navigation and event-driven waits -------------------
 
@@ -255,10 +327,10 @@ class Tab:
     def snapshot(self) -> list[dict[str, Any]]:
         """Interactive elements with viewport-CSS coordinates, one round trip (item 20)."""
         with self._j.call("snapshot"):
-            return self.js(SNAPSHOT_JS) or []
+            return self._world_js(SNAPSHOT_JS) or []
 
     def click_ref(self, ref: str, *, settle: float = 0.15, timeout: float = 10.0) -> dict[str, Any]:
-        pre = self.js(
+        pre = self._world_js(
             f"(() => {{const el = window.__bh && __bh.refs[{ref!r}]; if (!el) return null;"
             " el.scrollIntoView({block: 'center', inline: 'center'});"
             " const r = el.getBoundingClientRect();"
@@ -272,7 +344,8 @@ class Tab:
                  timeout: float = 10.0) -> dict[str, Any]:
         """Coordinate click — the default modality: compositor-level events pass through
         iframes and shadow roots that no selector can reach."""
-        before = self.js("[location.href, window.__bh ? __bh.mutations : 0]", timeout=timeout)
+        before = self._world_js("[location.href, window.__bh ? __bh.mutations : 0]",
+                                timeout=timeout)
         return self._click(x, y, before[0], int(before[1]), settle, timeout)
 
     def _click(self, x: float, y: float, url_before: str, mut_before: int,
@@ -305,8 +378,8 @@ class Tab:
 
         post: list[Any] | None = None
         try:
-            post = self.js("[location.href, window.__bh ? __bh.mutations : 0]",
-                           timeout=timeout)
+            post = self._world_js("[location.href, window.__bh ? __bh.mutations : 0]",
+                                  timeout=timeout)
         except HarnessError:
             pass                                       # e.g. the click closed the tab
         url_after = post[0] if post else None
