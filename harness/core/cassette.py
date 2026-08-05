@@ -14,23 +14,37 @@ sessionId, params — is what the run actually asked for.
 That is also the mechanism behind `bh replay --diff` (TODO 28): a change that turns one
 round trip into sixty stops matching, and the cassette misses instead of quietly passing.
 
-Payloads over `ELIDE_OVER` become a digest. One screenshot response was 51 KB of a 54 KB
-session, and a digest still compares equal across runs, which is all replay needs.
+Bulky payloads live in a **content-addressed sidecar** (`<cassette>.blobs/`), with an
+`_elide`-shaped marker left in the JSONL. One screenshot response was 51 KB of a 54 KB
+session, so the marker keeps the cassette small and diffable — but the Player *reinflates*
+markers from the sidecar on delivery, because an elided response handed to the replaying
+client is a crash (base64-decoding a digest dict). The marker's shape is deliberately
+identical to `_elide`'s output: `signature()` elides live params the same way, so a stored
+send and an incoming send hash identically with or without the sidecar.
+
+`diff()` (TODO 28) compares the **send streams** of two cassettes: replay answers requests,
+so the requests are the behaviour. A change that turns one round trip into sixty shows up
+as a sequence divergence plus a per-method count delta.
 """
 from __future__ import annotations
 
 import json
 import threading
 import time
-from collections import defaultdict, deque
+from collections import Counter, defaultdict, deque
 from dataclasses import dataclass, field
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
-from harness.core.journal import _elide
+from harness.core.journal import ELIDE_OVER, _elide
 
 SEND = "send"
 RECV = "recv"
+
+
+def _blobs_dir(path: str | Path) -> Path:
+    return Path(str(path) + ".blobs")
 
 
 class CassetteMiss(KeyError):
@@ -73,12 +87,35 @@ class Recorder:
     def __init__(self, inner: Any, path: str | Path):
         self._inner = inner
         self._path = Path(path)
+        self._blobs = _blobs_dir(path)
         self._lock = threading.Lock()
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text("", encoding="utf-8")
 
+    def _spill(self, value: Any) -> Any:
+        """`_elide`'s marker shape, plus the original bytes in the sidecar.
+
+        Content-addressed by the same 16-hex digest the marker carries, so identical
+        payloads dedupe to one file and the marker alone names its blob.
+        """
+        if isinstance(value, str) and len(value) > ELIDE_OVER:
+            digest = sha256(value.encode()).hexdigest()[:16]
+            try:
+                self._blobs.mkdir(parents=True, exist_ok=True)
+                blob = self._blobs / digest
+                if not blob.exists():
+                    blob.write_text(value, encoding="utf-8")
+            except OSError:
+                pass      # degrade to a plain marker; recording must not break the run
+            return {"_elided": len(value), "_sha256": digest}
+        if isinstance(value, dict):
+            return {k: self._spill(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._spill(v) for v in value]
+        return value
+
     def _log(self, kind: str, msg: dict[str, Any]) -> None:
-        line = json.dumps({"t": kind, **_elide(msg)}, default=str, ensure_ascii=False)
+        line = json.dumps({"t": kind, **self._spill(msg)}, default=str, ensure_ascii=False)
         try:
             with self._lock, self._path.open("a", encoding="utf-8") as fh:
                 fh.write(line + "\n")
@@ -112,7 +149,26 @@ class Player:
         self._lock = threading.Lock()
         self._ready = threading.Event()
         self._closed = False
+        self._blobs = _blobs_dir(path)
         self._load(Path(path))
+
+    def _reinflate(self, value: Any) -> Any:
+        """Replace a marker with its sidecar bytes before delivery. An elided response
+        handed to the client is a crash (item 28's known break); a missing sidecar
+        degrades back to the marker rather than failing the replay."""
+        if isinstance(value, dict):
+            if set(value) == {"_elided", "_sha256"}:
+                try:
+                    s = (self._blobs / str(value["_sha256"])).read_text(encoding="utf-8")
+                    if len(s) == value["_elided"]:
+                        return s
+                except OSError:
+                    pass
+                return value
+            return {k: self._reinflate(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._reinflate(v) for v in value]
+        return value
 
     def _load(self, path: Path) -> None:
         """Rebuild exchanges by walking the frames in recorded order.
@@ -137,10 +193,13 @@ class Player:
             elif kind == RECV and "id" in msg:
                 sig = sig_of_id.pop(msg["id"], None)
                 if sig is not None:
-                    self._by_sig[sig].append(_Exchange(response=msg, events=pending))
+                    # responses and events reinflate from the sidecar; sends stay elided
+                    # because signature() elides the live side identically anyway
+                    self._by_sig[sig].append(_Exchange(response=self._reinflate(msg),
+                                                       events=pending))
                 pending = []
             elif kind == RECV:
-                pending.append(msg)
+                pending.append(self._reinflate(msg))
         self._tail.extend(pending)          # events after the last response
 
     def send(self, msg: dict[str, Any]) -> None:
@@ -193,3 +252,36 @@ class Player:
         than the recording did, which is worth failing on.
         """
         return not any(self._by_sig.values())
+
+
+# -- golden-file diff (TODO 28) ---------------------------------------------
+
+def send_signatures(path: str | Path) -> list[str]:
+    """The request stream, in order. Replay answers requests, so this IS the behaviour."""
+    sigs: list[str] = []
+    for line in Path(path).read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            frame = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if frame.pop("t", None) == SEND:
+            sigs.append(signature(frame))
+    return sigs
+
+
+def diff(golden: str | Path, other: str | Path) -> dict[str, Any]:
+    """Compare two cassettes' request streams. The per-method count delta is what makes
+    "1 round trip became 60" legible at a glance; the first divergence pins where."""
+    a, b = send_signatures(golden), send_signatures(other)
+    first = next((i for i, (x, y) in enumerate(zip(a, b)) if x != y), None)
+    if first is None and len(a) != len(b):
+        first = min(len(a), len(b))
+    ca = Counter(json.loads(s)[0] for s in a)
+    cb = Counter(json.loads(s)[0] for s in b)
+    deltas = {m: {"golden": ca.get(m, 0), "got": cb.get(m, 0)}
+              for m in sorted(set(ca) | set(cb)) if ca.get(m, 0) != cb.get(m, 0)}
+    return {"equal": a == b, "golden_calls": len(a), "got_calls": len(b),
+            "first_divergence": first, "method_deltas": deltas}

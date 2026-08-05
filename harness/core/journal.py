@@ -158,6 +158,8 @@ class _CallCtx:
         self.j._stack.pop()
         payload: dict[str, Any] = {"fn": self.fn, "args": self.args,
                                    "ms": round(span.ms, 1), "cdp": span.cdp_calls}
+        if self.j._stack:
+            payload["parent"] = self.j._stack[-1].id      # lets --trace render the tree
         if exc is not None:
             # rule 2: never discard a cause you were handed
             outcome = getattr(exc, "outcome", None)

@@ -94,19 +94,103 @@ def test_events_replay_ahead_of_the_response_they_preceded(tmp_path):
     assert any(e.get("method") == "Target.attachedToTarget" for e in seen)
 
 
-# --- size -------------------------------------------------------------------
+# --- size and the sidecar ----------------------------------------------------
 
-def test_bulky_payloads_are_stored_as_a_digest(tmp_path):
-    """One screenshot response was 51 KB of a 54 KB session; a digest still compares equal
-    across runs, which is all replay needs."""
+def test_bulky_payloads_become_a_marker_plus_a_sidecar_blob(tmp_path):
+    """The cassette line stays small and diffable; the bytes live in the sidecar."""
     tape = tmp_path / "s.jsonl"
-    browser = FakeBrowser("a")
-    recorder = Recorder(browser, tape)
+    recorder = Recorder(FakeBrowser("a"), tape)
     recorder.send({"id": 1, "method": "Page.captureScreenshot",
                    "params": {"data": "Q" * (ELIDE_OVER + 1)}})
     frames = [json.loads(x) for x in tape.read_text().splitlines()]
-    assert frames[0]["params"]["data"]["_elided"] == ELIDE_OVER + 1
+    marker = frames[0]["params"]["data"]
+    assert marker["_elided"] == ELIDE_OVER + 1
     assert len(tape.read_bytes()) < 400
+    blob = tmp_path / "s.jsonl.blobs" / marker["_sha256"]
+    assert blob.read_text() == "Q" * (ELIDE_OVER + 1)
+
+
+def test_replay_delivers_the_original_bytes_not_the_marker(tmp_path):
+    """Item 28's known break, fixed: an elided response handed to the replaying client
+    crashes anything that decodes it. The Player reinflates from the sidecar."""
+    tape = tmp_path / "s.jsonl"
+    browser = FakeBrowser("a")
+    big = "R" * (ELIDE_OVER * 3)
+    browser.eval_hook = lambda e: big
+    with Connection(Recorder(browser, tape)) as conn:
+        assert conn.request("Runtime.evaluate", {"expression": "x"})["result"]["value"] == big
+    with Connection(Player(tape)) as conn:
+        got = conn.request("Runtime.evaluate", {"expression": "x"})["result"]["value"]
+    assert got == big                               # byte-faithful, not a digest dict
+
+
+def test_identical_payloads_dedupe_to_one_blob(tmp_path):
+    tape = tmp_path / "s.jsonl"
+    recorder = Recorder(FakeBrowser("a"), tape)
+    for i in (1, 2):
+        recorder.send({"id": i, "method": "M", "params": {"data": "Z" * 5000}})
+    assert len(list((tmp_path / "s.jsonl.blobs").iterdir())) == 1
+
+
+def test_a_missing_sidecar_degrades_to_the_marker_not_a_crash(tmp_path):
+    import shutil
+    tape = tmp_path / "s.jsonl"
+    browser = FakeBrowser("a")
+    browser.eval_hook = lambda e: "S" * 5000
+    with Connection(Recorder(browser, tape)) as conn:
+        conn.request("Runtime.evaluate", {"expression": "x"})
+    shutil.rmtree(tmp_path / "s.jsonl.blobs")
+    with Connection(Player(tape)) as conn:
+        got = conn.request("Runtime.evaluate", {"expression": "x"})["result"]["value"]
+    assert got["_elided"] == 5000                   # the marker, documented degrade
+
+
+def test_signatures_match_across_the_sidecar_boundary(tmp_path):
+    """A stored send holds the marker; a live send holds the raw string. They must hash
+    identically, or every big-param request would miss on replay."""
+    tape = tmp_path / "s.jsonl"
+    big = "T" * 5000
+    _record(tape, lambda c: c.request("Runtime.evaluate", {"expression": big}))
+    with Connection(Player(tape)) as conn:
+        assert conn.request("Runtime.evaluate", {"expression": big})
+
+
+# --- golden-file diff (TODO 28) ----------------------------------------------
+
+def test_identical_recordings_diff_equal(tmp_path):
+    from harness.core.cassette import diff
+    for name in ("a.jsonl", "b.jsonl"):
+        _record(tmp_path / name, lambda c: c.request("Runtime.evaluate", {"expression": "x"}))
+    report = diff(tmp_path / "a.jsonl", tmp_path / "b.jsonl")
+    assert report["equal"] is True and report["first_divergence"] is None
+
+
+def test_a_change_that_turns_1_round_trip_into_60_fails_the_diff(tmp_path):
+    """TODO 28's done-when, verbatim."""
+    from harness.core.cassette import diff
+    _record(tmp_path / "golden.jsonl",
+            lambda c: c.request("Runtime.evaluate", {"expression": "batch-fill"}))
+
+    def v1_style(c):                                # per-character keystrokes
+        for i in range(60):
+            c.request("Input.dispatchKeyEvent", {"type": "char", "text": chr(97 + i % 26)})
+    _record(tmp_path / "regressed.jsonl", v1_style)
+
+    report = diff(tmp_path / "golden.jsonl", tmp_path / "regressed.jsonl")
+    assert report["equal"] is False
+    assert report["method_deltas"]["Input.dispatchKeyEvent"] == {"golden": 0, "got": 60}
+    assert report["method_deltas"]["Runtime.evaluate"] == {"golden": 1, "got": 0}
+    assert report["first_divergence"] == 0
+
+
+def test_diff_pins_the_first_divergence(tmp_path):
+    from harness.core.cassette import diff
+    _record(tmp_path / "g.jsonl", lambda c: [c.request("Runtime.evaluate", {"expression": e})
+                                             for e in ("a", "b", "c")])
+    _record(tmp_path / "o.jsonl", lambda c: [c.request("Runtime.evaluate", {"expression": e})
+                                             for e in ("a", "X", "c")])
+    report = diff(tmp_path / "g.jsonl", tmp_path / "o.jsonl")
+    assert report["first_divergence"] == 1 and report["method_deltas"] == {}
 
 
 def test_recording_never_alters_the_traffic(tmp_path):

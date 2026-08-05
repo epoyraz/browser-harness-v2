@@ -19,6 +19,20 @@ def main() -> int:
         for line in render(outcome):
             print(line)
         return 0 if outcome.ok else 1
+    if len(args) >= 2 and args[0] == "trace":
+        from harness.core.journal import Journal
+        from harness.core.trace import render as render_trace
+        tail = int(args[args.index("--tail") + 1]) if "--tail" in args else None
+        for line in render_trace(Journal(args[1]).entries(), tail=tail):
+            print(line)
+        return 0
+    if len(args) >= 4 and args[0] == "replay" and args[1] == "--diff":
+        import json
+
+        from harness.core.cassette import diff
+        report = diff(args[2], args[3])
+        print(json.dumps(report, indent=2))
+        return 0 if report["equal"] else 1
     print("bh — browser-harness v2 (scaffolding; see TODO.md)", file=sys.stderr)
     return 0
 

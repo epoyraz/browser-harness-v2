@@ -43,6 +43,15 @@ def test_span_counts_cdp_round_trips(j):
     assert entry["ms"] >= 0
 
 
+def test_nested_spans_record_their_parent(j):
+    """What lets --trace render a tree instead of a flat list."""
+    with j.call("outer") as outer, j.call("inner"):
+        pass
+    entries = {e["fn"]: e for e in j.entries() if e["kind"] == "call"}
+    assert entries["inner"]["parent"] == outer.id
+    assert "parent" not in entries["outer"]
+
+
 def test_cdp_counts_against_the_innermost_span(j):
     with j.call("outer"):
         with j.call("inner") as inner:
