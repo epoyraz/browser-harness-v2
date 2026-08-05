@@ -76,6 +76,16 @@ def test_partial_still_returns_what_it_got():
     assert o.ok is False
 
 
+def test_partial_carries_the_typed_failures_not_just_a_count():
+    t = Tally()
+    t.record(ok("a"))
+    t.record(fail(Class.TIMEOUT, "slow", url="u2"))
+    o = t.outcome()
+    assert len(o.failures) == 1 and o.failures[0].cls is Class.TIMEOUT
+    assert o.failures[0].observed["url"] == "u2"
+    assert o.to_json()["failures"][0]["class"] == "timeout"
+
+
 def test_a_clean_run_is_ok():
     t = Tally()
     for i in range(3):

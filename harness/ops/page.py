@@ -133,6 +133,10 @@ class Tab:
     def close(self) -> None:
         self._conn.unsubscribe(self._on_event)
 
+    @property
+    def journal(self) -> Journal:
+        return self._j
+
     # -- plumbing ----------------------------------------------------------
 
     def _sid(self) -> str:
@@ -188,6 +192,10 @@ class Tab:
            await_promise: bool = True) -> Any:
         """Evaluate with `replMode`, so top-level `await` and re-declared `const` work
         (D14) — v1 grew a wrap-and-retry heuristic instead and mis-wrapped nested returns.
+
+        Sharp edge, measured: under replMode a **bare async IIFE** `(async()=>{...})()`
+        resolves to `{}` — awaitPromise is effectively ignored there. Write top-level
+        `await (async()=>{...})()` instead; replMode handles the await natively.
         """
         with self._j.call("js", expression=expression[:200]):
             r = self.cdp("Runtime.evaluate", {

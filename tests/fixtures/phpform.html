@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- Reconstruction of the custom-PHP ContactRH-style form (live run 2026-08-04). Encodes
+     the 249-option phone-prefix select (placeholder first) where a blind options[0] once
+     picked "+34 Espagne", labels as bare <b> text above the field, and the checkbox that
+     v1's substring matching once filled with "Zürich" (name jobportal_taca — v2 fills by
+     ref only, so the fixture proves the checkbox is treated as a boolean). The prefix
+     list is generated inline, as the real page did. -->
+<html lang="fr"><head><meta charset="utf-8"><title>Candidature</title></head><body>
+<b>Nom *</b><br><input name="nom"><br>
+<b>Pr&eacute;nom *</b><br><input name="prenom"><br>
+<b>Indicatif *</b><br><select id="prefix" name="indicatif"></select><br>
+<b>T&eacute;l&eacute;phone</b><br><input type="tel" name="telephone"><br>
+<b>Motivation</b><br><textarea name="motivation" rows="5"></textarea><br>
+<input type="checkbox" name="jobportal_taca" id="taca"> J'accepte les conditions *<br>
+<input type="submit" value="Envoyer">
+<script>
+  const sel = document.getElementById('prefix');
+  sel.add(new Option('-- Choisir --', ''));
+  const names = ['Afghanistan','Albanie','Algérie','Andorre','Angola'];
+  for (let i = 0; i < 249; i++) {
+    const label = (i === 33 ? 'Espagne (+34)' : i === 40 ? 'Suisse (+41)'
+                   : (names[i % names.length] + ' (+' + (i + 1) + ')'));
+    sel.add(new Option(label, '+' + (i + 1)));
+  }
+</script>
+</body></html>

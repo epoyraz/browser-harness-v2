@@ -138,18 +138,36 @@ to a version 5×–60× smaller.
 
 ## Phase 4 — the batching surface (where the speed is)
 
-- [ ] **22. `fetch_all(urls, concurrency=5)`** (D0) — in-page, session-authenticated, bounded,
+- [x] **22. `fetch_all(urls, concurrency=5)`** (D0) — in-page, session-authenticated, bounded,
       retries 429/5xx, returns **attempted / succeeded / failed**.
       *Done when:* it cannot silently return 163 of 300.
-- [ ] **23. `form_schema()`** (D15) — label chain **plus proximity fallback**; `required`,
+      *Met (live, fixtures in real Chrome):* 27/30 in 349 ms via a 6-worker in-page pool; the three 500-once URLs won by
+      in-page retry, the three 404s came back typed `http_error` with url+status, and a
+      results array shorter than the url list is *counted* as failures. Found en route:
+      under replMode a bare async IIFE's resolved value serialises to `{}` — the template
+      must be a top-level `await`, and a unit test pins that.
+- [x] **23. `form_schema()`** (D15) — label chain **plus proximity fallback**; `required`,
       `options`, `autocomplete`; marks placeholder options and ARIA comboboxes; excludes
       buttons, files, cookie/search furniture; returns a **form-identity verdict**.
       *Done when:* the Abacus fixture yields "Vorname *", not `customeraddressshoppervorname`.
-- [ ] **24. `fill_form(plan)`** (D15) — one write, focus→input→change→blur, per-field
+      *Met (live, fixtures in real Chrome):* the Abacus fixture yields exactly "Vorname *" (geometric proximity — the whole
+      markup chain resolves nothing there), star-in-text means required, "Bitte wählen"
+      selects are marked `placeholder_first`, the ARIA combobox is visible with
+      `needs_interaction`, the file input is excluded but counted, and the cookie-banner
+      404 page reads as NOT a form.
+- [x] **24. `fill_form(plan)`** (D15) — one write, focus→input→change→blur, per-field
       `ok`/`got`/`want`; accepts a **label** for long option lists and resolves it in-page.
       *Done when:* 249 phone prefixes cannot silently select Spain.
-- [ ] **25. `set_value()` + keystroke opt-in** (D3) — one round trip by default.
+      *Met (live, fixtures in real Chrome):* 7 Abacus fields filled and verified in ONE evaluate, 5 ms. "Suisse (+41)"
+      resolves among 249 options; "Atlantis" is `no_option_match` with candidates and
+      leaves the select untouched — an index pick is structurally impossible. `Outcome`
+      grew a typed `failures` list so aggregate callers branch on classes, not report
+      strings.
+- [x] **25. `set_value()` + keystroke opt-in** (D3) — one round trip by default.
       *Done when:* a 2,000-char field is one call, not 6,000.
+      *Met (live, fixtures in real Chrome):* 2,000 chars in one evaluate; `keystrokes=True` is ONE `Input.insertText` for
+      the whole string (real input events, still not per-character — v1 spent 61 round
+      trips on 20 chars).
 - [ ] **25b. Output budget + reversible elision** (D0/D4; headroom-style, see
       github.com/headroomlabs-ai/headroom) — every agent-facing surface (REPL stdout,
       `cdp()`/`js()` returns, console/network reads) is capped; an over-budget payload is
@@ -178,8 +196,13 @@ to a version 5×–60× smaller.
       boundary belongs at --diff comparison time, not at response-delivery time.
 - [ ] **28. `bh replay --diff`** (D11c) — golden-file diff over the request stream.
       *Done when:* a change that turns 1 round trip into 60 fails the test.
-- [ ] **29. DOM fixtures from the four live ATS forms** — Abacus, Personio, FactorialHR,
+- [x] **29. DOM fixtures from the four live ATS forms** — Abacus, Personio, FactorialHR,
       custom PHP. *Done when:* schema/label/ref logic is tested with no network.
+      *Met (live, fixtures in real Chrome):* *Pulled forward to be Phase 4's test bed.* Five fixtures (the four ATS forms
+      plus the cookie-banner 404 trap), each a reconstruction encoding the measured
+      failure mode, validated in real Chrome via `tests/live/forms_check.py` (25/25) —
+      proximity labelling is geometry, which no fake can testify to. Caveat: replace with
+      verbatim captures when the live forms are next visited.
 - [ ] **30. Port the measurements into the test suite** — primitive latencies, screenshot
       variants, batch-vs-sequential. *Done when:* §1's numbers are asserted, not remembered.
 

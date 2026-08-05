@@ -1,0 +1,24 @@
+<!doctype html>
+<!-- Reconstruction of the Abacus/Umantis application form (ti&m, live run 2026-08-04).
+     Encodes the measured failure mode: the ENTIRE standard label chain resolves nothing.
+     No <label> elements, no aria, no placeholders — labels are bare text in the table
+     cell to the left, required is a star inside that text, and field names are machine
+     identifiers like customeraddressshoppervorname. Replace with a verbatim capture when
+     the form is next visited live. -->
+<html lang="de"><head><meta charset="utf-8"><title>Bewerbung</title>
+<style>td{padding:6px 14px 6px 0;font:14px sans-serif}input,select,textarea{width:220px}</style>
+</head><body>
+<h1>Online-Bewerbung</h1>
+<table>
+<tr><td>Anrede *</td><td><select name="customeraddressshopperanrede">
+  <option value="">Bitte w&auml;hlen</option><option>Herr</option><option>Frau</option>
+</select></td></tr>
+<tr><td>Vorname *</td><td><input name="customeraddressshoppervorname"></td></tr>
+<tr><td>Nachname *</td><td><input name="customeraddressshoppernachname"></td></tr>
+<tr><td>E-Mail *</td><td><input type="email" name="customeraddressshopperemail"></td></tr>
+<tr><td>Telefon</td><td><input type="tel" name="customeraddressshoppertelefon"></td></tr>
+<tr><td>Wohnort</td><td><input name="customeraddressshopperort"></td></tr>
+<tr><td>Bemerkungen</td><td><textarea name="bemerkungen" rows="4"></textarea></td></tr>
+</table>
+<p><input type="submit" value="Bewerbung absenden"></p>
+</body></html>

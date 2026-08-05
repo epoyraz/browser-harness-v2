@@ -1,0 +1,17 @@
+<!doctype html>
+<!-- The 404-page trap (live run 2026-08-04): a dead apply link rendered a page that
+     passed a naive has-inputs check with 8 "fields" — all of them a cookie banner and a
+     site search. The form-identity verdict must read this page as NOT a form. -->
+<html lang="en"><head><meta charset="utf-8"><title>Page not found</title></head><body>
+<div id="cookieConsentBanner">
+  We use cookies. <input type="checkbox" id="c1"> necessary
+  <input type="checkbox" id="c2"> marketing
+  <button>Accept all</button>
+</div>
+<nav><a href="/">Home</a> <a href="/jobs">Jobs</a></nav>
+<div role="search">
+  <input type="search" placeholder="Search our site">
+  <button>Search</button>
+</div>
+<h1>404 — this posting is no longer available</h1>
+</body></html>

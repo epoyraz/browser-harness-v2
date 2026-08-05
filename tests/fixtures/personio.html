@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- Reconstruction of a Personio tenant application form (live run 2026-08-04). The
+     well-behaved case: proper label[for] chains, required attributes, a file input for
+     the CV (schema must EXCLUDE it from fillable fields but count it in the verdict),
+     and a privacy checkbox inside a wrapping label. -->
+<html lang="en"><head><meta charset="utf-8"><title>Apply</title></head><body>
+<form>
+  <div><label for="first">First name</label><input id="first" name="first_name" required></div>
+  <div><label for="last">Last name</label><input id="last" name="last_name" required></div>
+  <div><label for="em">Email</label><input id="em" type="email" name="email"
+       autocomplete="email" required></div>
+  <div><label for="ph">Phone</label><input id="ph" type="tel" name="phone"
+       autocomplete="tel"></div>
+  <div><label for="cv">CV / Resume</label><input id="cv" type="file" name="cv"></div>
+  <div><label for="msg">Message to the hiring team</label>
+       <textarea id="msg" name="message"></textarea></div>
+  <div><label><input type="checkbox" name="privacy" required>
+       I accept the privacy policy</label></div>
+  <button type="submit">Submit application</button>
+</form>
+</body></html>

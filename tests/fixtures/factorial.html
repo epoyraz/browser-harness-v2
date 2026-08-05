@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Reconstruction of a FactorialHR React form (live run 2026-08-04). Encodes the two
+     modes v1 was blind to: an ARIA combobox that is a div (no <select> to enumerate),
+     and a real <select> whose first option is a placeholder ("Select country"). Inputs
+     are labelled via aria-labelledby, React-style. -->
+<html lang="en"><head><meta charset="utf-8"><title>Join us</title></head><body>
+<div id="app">
+  <span id="lbl-name">Full name</span>
+  <input aria-labelledby="lbl-name" name="fullName" required>
+  <span id="lbl-mail">Work email</span>
+  <input aria-labelledby="lbl-mail" type="email" name="email" required>
+  <span id="lbl-src">How did you hear about us?</span>
+  <div role="combobox" aria-labelledby="lbl-src" aria-expanded="false"
+       aria-haspopup="listbox" tabindex="0">Select an option</div>
+  <span id="lbl-country">Country</span>
+  <select aria-labelledby="lbl-country" name="country">
+    <option value="">Select country</option>
+    <option>Switzerland</option><option>Germany</option><option>Austria</option>
+  </select>
+  <button type="submit">Apply now</button>
+</div>
+</body></html>

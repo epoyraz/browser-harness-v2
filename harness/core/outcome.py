@@ -53,6 +53,8 @@ class Class(str, Enum):
 
     # page-level (D11, D15)
     NAVIGATION_FAILED = "navigation_failed"
+    HTTP_ERROR = "http_error"                  # added for fetch_all (D0): a 404 inside a
+                                               # batch is not a navigation and not a JS throw
     JS_EXCEPTION = "js_exception"
     NOT_SERIALIZABLE = "not_serializable"      # v1 returned None here, silently
     NO_OPTION_MATCH = "no_option_match"        # 249 prefixes, none matched the label
@@ -86,6 +88,9 @@ class Outcome:
     value: Any = None
     id: str = ""
     ts: float = field(default_factory=time.time)
+    #: For aggregates (rule 4): the per-item failures, still typed. A bare failed-count
+    #: would force callers to re-parse the report to learn *why* — the `str` disease back.
+    failures: list[Outcome] = field(default_factory=list)
 
     @property
     def retryable(self) -> bool:
@@ -107,6 +112,8 @@ class Outcome:
             d["id"] = self.id
         if not self.ok:
             d["retryable"] = self.retryable
+        if self.failures:
+            d["failures"] = [f.to_json() for f in self.failures]
         return d
 
 
@@ -137,18 +144,22 @@ class Tally:
     def complete(self) -> bool:
         return self.attempted > 0 and self.failed == 0
 
-    def outcome(self, **observed: Any) -> Outcome:
-        """PARTIAL when anything failed — never a bare success carrying a short list."""
+    def outcome(self, value: Any = None, **observed: Any) -> Outcome:
+        """PARTIAL when anything failed — never a bare success carrying a short list.
+        `value` overrides the default (the successes) when the caller's natural payload
+        is the full report, e.g. fill_form's per-field ok/got/want list."""
         seen = {"attempted": self.attempted, "succeeded": self.succeeded, "failed": self.failed,
                 **observed}
+        payload = self.results if value is None else value
         if self.complete:
-            return Outcome(ok=True, value=self.results, observed=seen)
+            return Outcome(ok=True, value=payload, observed=seen)
         return Outcome(
             ok=False,
             cls=Class.PARTIAL,
             detail=f"{self.succeeded}/{self.attempted} succeeded",
             observed=seen,
-            value=self.results,          # partial results are still returned, just not as success
+            value=payload,               # partial results are still returned, just not as success
+            failures=list(self.failures),
         )
 
 
@@ -192,6 +203,7 @@ SessionStale = _error("SessionStale", Class.SESSION_STALE)
 RendererUnresponsive = _error("RendererUnresponsive", Class.RENDERER_UNRESPONSIVE)
 CdpError = _error("CdpError", Class.CDP_ERROR)
 NavigationFailed = _error("NavigationFailed", Class.NAVIGATION_FAILED)
+HttpError = _error("HttpError", Class.HTTP_ERROR)
 JsException = _error("JsException", Class.JS_EXCEPTION)
 NotSerializable = _error("NotSerializable", Class.NOT_SERIALIZABLE)
 NoOptionMatch = _error("NoOptionMatch", Class.NO_OPTION_MATCH)
@@ -204,8 +216,8 @@ _BY_CLASS: dict[Class, type[HarnessError]] = {
     e.cls: e for e in (
         EndpointUnreachable, Endpoint404, NoBrowserWindow, PermissionPending,
         WsRejectedUpstream, BrowserDisconnected, ScopeRefused, TargetGone, SessionStale,
-        RendererUnresponsive, CdpError, NavigationFailed, JsException, NotSerializable,
-        NoOptionMatch, NotAForm, ElementGone, Partial, Timeout,
+        RendererUnresponsive, CdpError, NavigationFailed, HttpError, JsException,
+        NotSerializable, NoOptionMatch, NotAForm, ElementGone, Partial, Timeout,
     )
 }
 
