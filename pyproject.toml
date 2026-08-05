@@ -8,6 +8,11 @@ dependencies = ["websockets==15.0.1"]
 [project.scripts]
 bh = "harness.cli.main:main"
 
+# CI runs `uv sync --dev`; without this group it installed neither, and every
+# `uv run ruff` / `uv run pytest` step failed on a missing command.
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
