@@ -56,7 +56,39 @@ Classes you will actually see: `navigation_failed`, `js_exception`, `not_seriali
 control refused or rewrote it — a phone mask snapping back to `+41`. The fix is a
 different write `mode`, not a different script. (`js_exception` means a real throw.)
 
-## Read the page
+## Read the page — two channels, one index
+
+Perception has two channels and neither is the default. **Structure** is ~18× cheaper and
+sees things vision cannot; **vision** sees things structure cannot. `see()` returns both,
+sharing one index.
+
+```python
+snapshot()      # interactive elements: ref, tag, name, x, y, w, h  (~450 in ~3 ms)
+see("/tmp/s.jpg")   # the same elements PLUS a screenshot with every ref drawn on it
+page_text()     # rendered innerText, truncated
+form_schema()   # {verdict, fields, files} — labels, required, options, refs
+capture_screenshot("shot.jpeg", max_dim=800)   # a plain frame, no marks
+```
+
+`see()` writes a frame with a labelled box over every element, then hands you the element
+list. Read the image to *decide*, use the `ref` to *act* — so you never estimate a
+coordinate off a picture. Measured: 5 elements marked in 126 ms, 11.8 KB.
+
+**When to spend the tokens.** A form schema is ~78 tokens; the marked frame of the same
+page is ~1,390. Reach for `see()` when structure is not enough:
+
+| Vision catches what structure misses | Structure catches what vision misses |
+|---|---|
+| a control that is *visually* a 1×1 nothing — the Select2 decoy read back byte-identical and submitted nothing | 249 collapsed `<option>`s — you cannot see a closed dropdown |
+| a bot wall: DataDome renders an empty DOM, so `page_text()` is `""` and the page looks broken | `hidden_control` — the real `<select>` behind a widget has **no box to draw**, so it is invisible to the eye |
+| layout, overlap, what is actually on top | exact coordinates, `required`, `autocomplete`, option lists |
+| a modal you did not know opened | the ref that survives a re-render |
+
+The honest rule: **start with structure, escalate to `see()` the moment something does not
+add up** — a fill that verified but looks wrong, a page that reads as empty, a widget with
+no obvious value. `marks=False` gives a clean frame when a human will look at it.
+
+## Read the page (reference)
 
 ```python
 snapshot()      # interactive elements: ref, tag, name, x, y, w, h  (~450 in ~3 ms)

@@ -13,7 +13,7 @@ from harness.core.outcome import (
     NotSerializable,
     Timeout,
 )
-from harness.ops.page import WORLD, Tab
+from harness.ops.page import ANNOTATE_JS, WORLD, Tab
 from tests.fake_browser import FakeBrowser
 
 
@@ -395,3 +395,73 @@ def test_a_consumed_file_is_not_reported_as_an_accept_rejection(wired, tmp_path)
     out = t.upload_file("e7", str(doc))
     assert out["consumed_or_rejected"] is True
     assert "accept_rejected" not in out
+
+
+# --- vision: the other half of perception ------------------------------------
+
+def test_see_returns_elements_and_a_frame_that_share_one_index(wired, tmp_path):
+    """The point of the pairing: look at the picture, act on the ref. A model reading
+    coordinates off an unannotated image estimates them; here every box carries its ref."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    els = [{"ref": "e1", "tag": "button", "name": "Apply", "x": 50, "y": 20,
+            "w": 80, "h": 24}]
+    browser.eval_hook = lambda e: els if "querySelectorAll" in e else 1
+    out = tab.see(tmp_path / "s.jpg")
+    assert out["elements"] == els and out["marked"] == 1
+    assert (tmp_path / "s.jpg").exists()
+
+
+def test_the_marks_are_removed_even_when_the_capture_fails(wired):
+    """A leftover overlay is `position:fixed` at the top z-index — it would change what
+    every later click lands on, so removal cannot be conditional on success."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    removals = []
+
+    def hook(expr):
+        if "querySelectorAll" in expr:
+            return [{"ref": "e1", "tag": "a", "name": "x", "x": 5, "y": 5, "w": 10, "h": 10}]
+        if "__bh_marks" in expr and "remove" in expr:
+            removals.append(expr)
+        return 1
+    browser.eval_hook = hook
+    browser.hang_methods = {"Page.captureScreenshot"}      # a capture that never answers
+    with pytest.raises(Timeout):
+        tab.see(timeout=0.3)
+    assert removals, "the overlay outlived a failed capture"
+
+
+def test_a_hidden_control_gets_no_mark(wired, tmp_path):
+    """Measured on the Select2 fixture: the real 250-option <select> is clipped to 1x1, so
+    it has no box to draw. Vision cannot see the control that actually submits — which is
+    precisely why `see()` returns the schema-visible elements alongside the image."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    els = [{"ref": "e1", "tag": "select", "name": "country", "x": 0, "y": 0,
+            "w": 0, "h": 0, "hidden_control": True},
+           {"ref": "e2", "tag": "input", "name": "city", "x": 40, "y": 60,
+            "w": 120, "h": 24}]
+    drawn = {}
+
+    def hook(expr):
+        if "querySelectorAll" in expr:
+            return els
+        if "__bh_marks" in expr and "appendChild" in expr:
+            drawn["js"] = expr
+            return 1
+        return 1
+    browser.eval_hook = hook
+    out = tab.see(tmp_path / "s.jpg")
+    assert len(out["elements"]) == 2                 # both reachable structurally
+    assert '"w": 0' in drawn["js"]                   # the zero-box one is passed through
+    # ...and ANNOTATE_JS skips it: `if (!e.w || !e.h) continue`
+    assert "if (!e.w || !e.h) continue" in ANNOTATE_JS
+
+
+def test_marks_can_be_turned_off_for_a_human_frame(wired, tmp_path):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: [] if "querySelectorAll" in e else 1
+    out = tab.see(tmp_path / "s.jpg", marks=False)
+    assert out["marked"] == 0

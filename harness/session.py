@@ -131,7 +131,7 @@ class Session:
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
         }
-        for name in ("goto", "js", "cdp", "snapshot", "click_ref", "click_at",
+        for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
                      "capture_screenshot", "wait_lifecycle", "page_text", "press_key",
                      "scroll", "upload_file"):
             ns[name] = on_tab(name)

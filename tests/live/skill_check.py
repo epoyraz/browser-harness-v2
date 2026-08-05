@@ -37,6 +37,7 @@ try:
                       'try:\n    goto("http://127.0.0.1:9/x")\n'
                       'except HarnessError as e:\n    print(e.cls is Class.NAVIGATION_FAILED, "landed" in e.observed)'),
       "read the page": f'goto("{base}/abacus.html")\nprint(len(snapshot()), len(page_text())>0, form_schema()["verdict"]["is_form"])',
+      "see (two channels)": f'goto("{base}/widgets.html")\no = see("/tmp/bh_skill_see.jpg")\nprint(len(o["elements"]), o["marked"], o["bytes"] > 0, js("!document.getElementById(\'__bh_marks\')"))',
       "act": f'goto("{base}/personio.html")\nr=snapshot()[0]\nprint(type(click_ref(r["ref"]))is dict); press_key("Tab"); print(scroll(200)["y"]>=0)',
       "three tiers": f'goto("{base}/abacus.html")\ns=form_schema()\nf=[x for x in s["fields"] if x["kind"]=="text"][0]\nprint([set_value(f["ref"],"x",mode=m).ok for m in ("value","insert","type")])',
       "fill a form": f'''goto("{base}/abacus.html")

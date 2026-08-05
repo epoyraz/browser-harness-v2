@@ -20,6 +20,7 @@ dialog is auto-dismissed (accept=False by default) and reported in the delta.
 from __future__ import annotations
 
 import base64
+import json
 import threading
 import time
 from collections import deque
@@ -133,6 +134,44 @@ SNAPSHOT_JS = """(() => {
   }
   return out;
 })()"""
+
+
+#: Draw a labelled box over every snapshot ref, so a screenshot and the structured
+#: element list share one index (set-of-mark). Injected from the isolated world, but the
+#: nodes must live in the page's own DOM or the renderer would not paint them into the
+#: capture; they are removed immediately afterwards.
+#:
+#: Why this exists: structured extraction and vision each fail where the other is strong.
+#: A schema cannot see that a control is a 1x1 clipped decoy — it read back byte-identical
+#: and submitted nothing. A screenshot cannot see 249 collapsed <option>s, and a model
+#: reading coordinates off an image estimates them. Sharing an index removes the trade:
+#: look at the picture, act on the ref.
+ANNOTATE_JS = """((els) => {
+  const prev = document.getElementById('__bh_marks');
+  if (prev) prev.remove();
+  const layer = document.createElement('div');
+  layer.id = '__bh_marks';
+  layer.style.cssText =
+    'position:fixed;inset:0;z-index:2147483647;pointer-events:none;font:11px/1.2 ' +
+    'ui-monospace,Menlo,monospace';
+  for (const e of els) {
+    if (!e.w || !e.h) continue;                       // hidden controls have no box to draw
+    const b = document.createElement('div');
+    b.style.cssText =
+      `position:absolute;left:${e.x - e.w / 2}px;top:${e.y - e.h / 2}px;` +
+      `width:${e.w}px;height:${e.h}px;outline:2px solid #e0115f;` +
+      'outline-offset:-1px;background:rgba(224,17,95,.06)';
+    const tag = document.createElement('span');
+    tag.textContent = e.ref;
+    tag.style.cssText =
+      'position:absolute;left:0;top:-14px;padding:0 3px;background:#e0115f;' +
+      'color:#fff;border-radius:2px;white-space:nowrap';
+    b.appendChild(tag);
+    layer.appendChild(b);
+  }
+  document.documentElement.appendChild(layer);
+  return els.length;
+})(__ELS__)"""
 
 
 def _unwrap_eval(r: dict[str, Any]) -> Any:
@@ -446,6 +485,45 @@ class Tab:
             "new_targets": [t.get("targetId") for t in list(self._created)[targets_before:]],
             "dialog": dialog,
         }
+
+    # -- vision: the other half of perception ------------------------------
+
+    def see(self, path: str | Path | None = None, *, marks: bool = True,
+            max_dim: int | None = 1400, quality: int = 70,
+            timeout: float = 20.0) -> dict[str, Any]:
+        """One perception act: the structured elements **and** a screenshot they index.
+
+        v1 ships no extraction helper at all — its SKILL.md hands the agent the
+        `getFullAXTree` + `getBoxModel` recipe and says "screenshot when layout or imagery
+        matters", so perception is whatever the model writes or sees. v2 shipped one fixed
+        extractor instead, which is faster and cheaper (a form schema is ~175 tokens where
+        its screenshot is ~3,200) but has exactly one way to be blind, and was: a Select2
+        decoy that a schema read as a real field and a human eye would never have typed
+        into.
+
+        So neither channel is the default. `see()` returns both, sharing one index: every
+        box drawn on the image carries its `ref`, so looking at the picture and acting on
+        the DOM are the same decision. `marks=False` gives a clean frame for a human.
+
+        The returned `elements` are the same objects `snapshot()` returns.
+        """
+        with self._j.call("see", marks=marks):
+            els = self._world_js(SNAPSHOT_JS, timeout=timeout) or []
+            drawn = 0
+            if marks and els:
+                drawn = self._world_js(
+                    ANNOTATE_JS.replace("__ELS__", json.dumps(els)), timeout=timeout) or 0
+            try:
+                shot = self.capture_screenshot(path, max_dim=max_dim, quality=quality,
+                                               timeout=timeout)
+            finally:
+                if marks and els:
+                    # Always clear the overlay, even if the capture failed — leaving it
+                    # would change what every later click lands on.
+                    self._world_js(
+                        "(() => {const m = document.getElementById('__bh_marks');"
+                        " if (m) m.remove(); return true;})()", timeout=timeout)
+        return {**shot, "elements": els, "marked": drawn}
 
     # -- the rest of the promised surface ----------------------------------
 
