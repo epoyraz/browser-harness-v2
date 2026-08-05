@@ -22,9 +22,20 @@ def runtime(monkeypatch):
 
 
 def _serve(name, browser):
+    """A daemon that is actually ready, not merely bound.
+
+    `start()` publishes the IPC endpoint and opens the browser on a background thread, so
+    it returns while the handshake is still in flight — deliberately, so a client can ping
+    a connecting daemon and be told what it is waiting for. Production honours that:
+    `ensure_daemon` waits for `pong["browser"]`, and `handle()` gates on
+    `_browser_pending()`. Tests want the settled daemon, and `ping` is the one call that
+    reports readiness rather than waiting for it — so without this the ping test failed
+    roughly one full-suite run in ten, and only under load.
+    """
     daemon = Daemon(name, browser).start()
     thread = threading.Thread(target=daemon.serve_forever, daemon=True)
     thread.start()
+    assert daemon._settled.wait(10), "daemon never finished connecting"
     return daemon
 
 
