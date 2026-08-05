@@ -1,0 +1,46 @@
+tests/unit/test_trace.py
+  s_f8f0d07adf98b4::t_51a8cfa977ec78 1-24,27-52,55-73
+  s_f8f0d07adf98b4::t_d1d124d787d9fe 25-26,53-54
+TODO.md
+  s_f8f0d07adf98b4::t_7cf6a6ac2cfc90 183,186-191,200-203,205-211,219,221-227
+harness/cli/main.py
+  s_f8f0d07adf98b4::t_6b192866c4b499 22-30,32-35
+  s_f8f0d07adf98b4::t_d1d124d787d9fe 31
+harness/core/journal.py
+  s_f8f0d07adf98b4::t_ef73c6358e8414 161-162
+harness/core/trace.py
+  s_f8f0d07adf98b4::t_9868d3869a2d23 1-61
+tests/unit/test_journal.py
+  s_f8f0d07adf98b4::t_61771add32a943 46-47,50-54
+  s_f8f0d07adf98b4::t_d1d124d787d9fe 48-49
+harness/core/cassette.py
+  s_f8f0d07adf98b4::t_029b0ff5fc9e7e 34
+  s_f8f0d07adf98b4::t_d414e9c4867b15 255-287
+  s_f8f0d07adf98b4::t_a90ddb2a97de45 152,155-171
+  s_f8f0d07adf98b4::t_60a6759921863e 40,46-47
+  s_f8f0d07adf98b4::t_4f59d42bfcd15f 196-199,202
+  s_f8f0d07adf98b4::t_d1d124d787d9fe 36
+  s_f8f0d07adf98b4::t_eb0a0d1ac27248 90,95-116,118
+  s_f8f0d07adf98b4::t_ece54b2578d406 17-27
+  s_f8f0d07adf98b4::t_693b24292869bd 48-49,172
+tests/live/perf_check.py
+  s_f8f0d07adf98b4::t_39db50916d66ef 1-184
+tests/unit/test_cassette.py
+  s_f8f0d07adf98b4::t_3751fd14ed0148 97,99-100,102,106-107,109-193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "7f2cb3f29b48f6087bf2bf2236d928d7edd4efcd",
+  "prompts": {},
+  "sessions": {
+    "s_f8f0d07adf98b4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7b753352-16c0-4be9-a2e8-463830d23ce3",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
