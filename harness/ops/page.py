@@ -65,6 +65,38 @@ RUNTIME_JS = """(() => {
   document.documentElement ? arm() : document.addEventListener('DOMContentLoaded', arm);
 })()"""
 
+#: Extension -> MIME for reading a file input's `accept`. Only the types upload controls
+#: realistically advertise; anything else is treated as admissible, because the job here
+#: is to name a definite client-side rejection, never to invent one.
+_MIME = {".pdf": "application/pdf", ".doc": "application/msword",
+         ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+         ".txt": "text/plain", ".rtf": "application/rtf",
+         ".odt": "application/vnd.oasis.opendocument.text",
+         ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+         ".gif": "image/gif", ".webp": "image/webp"}
+
+
+def _accepts(accept: str, path: str) -> bool:
+    """Would this input's `accept` admit this file? An empty filter or an unknown
+    extension admits — a false rejection would be worse than no check at all."""
+    if not accept.strip():
+        return True
+    ext = Path(path).suffix.lower()
+    mime = _MIME.get(ext)
+    for tok in (t.strip().lower() for t in accept.split(",")):
+        if not tok:
+            continue
+        if tok.startswith("."):
+            if tok == ext:
+                return True
+        elif tok.endswith("/*"):
+            if mime and mime.startswith(tok[:-1]):
+                return True
+        elif mime and tok == mime:
+            return True
+    return mime is None
+
+
 #: One in-page pass over the interactive elements (item 20). Coordinates are viewport CSS
 #: pixels from getBoundingClientRect — exactly what Input.dispatchMouseEvent takes.
 SNAPSHOT_JS = """(() => {
@@ -75,9 +107,17 @@ SNAPSHOT_JS = """(() => {
   const out = [];
   for (const el of document.querySelectorAll(sel)) {
     const r = el.getBoundingClientRect();
-    if (!r.width || !r.height) continue;
     const cs = getComputedStyle(el);
-    if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+    const invisible = !r.width || !r.height
+      || cs.visibility === 'hidden' || cs.display === 'none';
+    // A file input is never clicked — clicking opens a native picker that blocks the
+    // renderer with no CDP way back out — so upload_file() always drives it
+    // programmatically. Visibility therefore says nothing about whether it is reachable,
+    // and every dropzone UI hides the real input behind a styled div. Excluding it left
+    // the ordinary ATS upload with no ref at all, so upload_file() silently took the
+    // nearest visible file input instead.
+    const isFile = el.tagName === 'INPUT' && el.type === 'file';
+    if (invisible && !isFile) continue;
     let ref = el.__bhRef;
     if (!ref || bh.refs[ref] !== el) { ref = 'e' + (++bh.n); el.__bhRef = ref; bh.refs[ref] = el; }
     const it = {ref, tag: el.tagName.toLowerCase(),
@@ -87,6 +127,7 @@ SNAPSHOT_JS = """(() => {
       w: Math.round(r.width), h: Math.round(r.height)};
     if (el.disabled) it.disabled = true;
     if (el.type && el.type !== el.tagName.toLowerCase()) it.type = el.type;
+    if (invisible) it.hidden_control = true;
     if (el.tagName === 'SELECT') it.options = el.options.length;
     out.push(it);
   }
@@ -450,6 +491,12 @@ class Tab:
         handle — so the bridge is `Runtime.evaluate(returnByValue=false)` to get an object
         id, then `DOM.describeNode`. Clicking the input instead would open a native dialog
         that blocks the renderer with no CDP way back out.
+
+        The return says what actually happened, because `attached: []` alone cannot
+        distinguish three different outcomes: a page whose change handler consumed the
+        file and cleared the input (success), a file the input's `accept` filtered out,
+        and a ref that was never a file input. The second and third are now loud —
+        pointing this at the wrong element used to look exactly like success.
         """
         files = [paths] if isinstance(paths, str) else list(paths)
         missing = [f for f in files if not Path(f).is_file()]
@@ -463,6 +510,20 @@ class Tab:
         handle = self.cdp("Runtime.evaluate", params, timeout=timeout).get("result") or {}
         if not handle.get("objectId"):
             raise ElementGone(f"no element registered for ref {ref!r}", ref=ref)
+        el = self._world_js(
+            f"(() => {{const e = window.__bh.refs[{ref!r}];"
+            " return {tag: e.tagName.toLowerCase(), type: e.type || null,"
+            "  name: e.name || e.id || null, accept: e.accept || ''};})()",
+            timeout=timeout) or {}
+        if el.get("tag") != "input" or el.get("type") != "file":
+            # The failure that motivated this check: snapshot() skipped a display:none
+            # CV input, so the only file ref on the page was an unrelated 1x1 control,
+            # and setting files on it reported `attached: []` — indistinguishable from
+            # the success case. Refuse instead of guessing.
+            raise ElementGone(
+                f"ref {ref!r} is <{el.get('tag')} type={el.get('type')!r}>, not a file "
+                f"input — setting files on it would silently do nothing",
+                ref=ref, tag=el.get("tag"), type=el.get("type"))
         node = self.cdp("DOM.describeNode", {"objectId": handle["objectId"]},
                         timeout=timeout)["node"]
         with self._j.call("upload_file", ref=ref, n=len(files)):
@@ -472,7 +533,17 @@ class Tab:
         got = self._world_js(
             f"(() => {{const e = window.__bh.refs[{ref!r}];"
             f" return [...(e.files||[])].map(f => f.name);}})()", timeout=timeout)
-        return {"ref": ref, "attached": got or [], "requested": len(files)}
+        out: dict[str, Any] = {"ref": ref, "attached": got or [], "requested": len(files),
+                               "accept": el.get("accept") or ""}
+        if not got:
+            # Empty is normal when the page's change handler moves the file into its own
+            # state and clears the input. It is NOT normal when `accept` excluded the file
+            # — that one is a silent client-side rejection, so name it.
+            rejected = [f for f in files if not _accepts(el.get("accept") or "", f)]
+            out["consumed_or_rejected"] = True
+            if rejected:
+                out["accept_rejected"] = [Path(f).name for f in rejected]
+        return out
 
     # -- item 21: screenshots ----------------------------------------------
 

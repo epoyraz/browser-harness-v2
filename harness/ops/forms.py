@@ -231,6 +231,52 @@ _FILL_JS = """((plan) => {
 _STEP_CLASS = {"element_gone": Class.ELEMENT_GONE, "no_option_match": Class.NO_OPTION_MATCH,
                "needs_interaction": Class.NEEDS_INTERACTION}
 
+MODES = ("value", "insert", "type")
+
+
+def _step_class(entry: dict[str, Any]) -> Class:
+    """A step that reports no `error` executed cleanly and had its value refused or
+    rewritten by the control. That is VALUE_REJECTED, not JS_EXCEPTION — the recovery is
+    a different write mode, and calling it a JS exception sent readers looking for a
+    stack trace that was never thrown."""
+    err = str(entry.get("error") or "")
+    if not err:
+        return Class.VALUE_REJECTED
+    return _STEP_CLASS.get(err, Class.JS_EXCEPTION)
+
+
+def _typed_write(tab: Tab, ref: str, value: Any, mode: str, timeout: float) -> dict[str, Any]:
+    """The `insert`/`type` tiers, as one report entry shaped like the batched writer's.
+
+    Focus is not optional and not the caller's job: `Input.insertText` and
+    `dispatchKeyEvent` go to whatever the renderer considers focused, so without this the
+    keystrokes land somewhere else entirely and the field is left untouched with no error.
+    """
+    focused = tab._world_js(
+        f"(() => {{const el = window.__bh && __bh.refs[{json.dumps(ref)}]; if (!el) return false;"
+        " el.focus(); el.select && el.select(); return true;})()", timeout=timeout)
+    if not focused:
+        return {"ref": ref, "ok": False, "error": "element_gone", "mode": mode}
+    if mode == "insert":
+        tab.cdp("Input.insertText", {"text": str(value)}, timeout=timeout)
+    else:
+        for ch in str(value):
+            # keyDown carrying `text` is what makes the page see a real character; the
+            # matching keyUp is what a keystroke-driven typeahead listens for.
+            tab.cdp("Input.dispatchKeyEvent", {"type": "keyDown", "text": ch,
+                                               "key": ch, "unmodifiedText": ch},
+                    timeout=timeout)
+            tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch}, timeout=timeout)
+    got = tab._world_js(f"(() => {{const el = __bh.refs[{json.dumps(ref)}]; el.blur();"
+                        " return String(el.value).slice(0, 80);})()", timeout=timeout)
+    want = str(value)
+    good = got == want[:80] or got == want or (_digits(got) == _digits(want) != "")
+    entry = {"ref": ref, "ok": bool(good), "mode": mode,
+             "want": want[:80], "got": got}
+    if good and got != want[:80]:
+        entry["normalized"] = True
+    return entry
+
 
 def form_schema(tab: Tab, *, timeout: float = 20.0) -> dict[str, Any]:
     """One evaluate: `{verdict, fields, files}`. Fields carry refs from the shared
@@ -273,15 +319,29 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
     rewrites `+41791234567` to `+41 79 123 45 67` — so the write succeeded while the
     immediate check said it failed, and a normalising field would otherwise be reported as
     a failure forever. Set `recheck=0` to skip the settle when speed matters more.
+
+    A step may carry `"mode": "insert" | "type"` for a control the one-shot write cannot
+    drive — a mask that reformats as you type, a keystroke typeahead. Those cost a round
+    trip each and so are done after the batch, but they travel in the same plan and come
+    back in the same report: without this the caller had to abandon `fill_form` and hand-
+    roll `set_value` per field, which is the batching win thrown away on exactly the forms
+    that most need it.
     """
     if not plan:
         return ok([], attempted=0, succeeded=0, failed=0)
-    src = _FILL_JS.replace("__PLAN__", json.dumps(plan))
+    bad = [s.get("mode") for s in plan if s.get("mode") and s.get("mode") not in MODES]
+    if bad:
+        raise ValueError(f"mode must be one of {MODES}, got {bad!r}")
+    batched = [(i, s) for i, s in enumerate(plan) if s.get("mode", "value") == "value"]
+    typed = [(i, s) for i, s in enumerate(plan) if s.get("mode", "value") != "value"]
+    batch_plan = [{k: v for k, v in s.items() if k != "mode"} for _, s in batched]
+
+    src = _FILL_JS.replace("__PLAN__", json.dumps(batch_plan))
     with tab.journal.call("fill_form", n=len(plan)):
         report = tab._world_js(src, timeout=timeout) or []
-        if recheck > 0:
+        if recheck > 0 and batch_plan:
             time.sleep(recheck)
-            settled = tab._world_js(_RECHECK_JS.replace("__PLAN__", json.dumps(plan)),
+            settled = tab._world_js(_RECHECK_JS.replace("__PLAN__", json.dumps(batch_plan)),
                                     timeout=timeout) or []
             for i, entry in enumerate(report):
                 if i >= len(settled) or settled[i] is None or "error" in entry:
@@ -296,16 +356,28 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
                         entry["ok"] = True
                         entry["normalized"] = True
                         entry["got"] = got
-    tally = Tally()
+        # After the batch: a mask reformats against the value its neighbours already hold.
+        typed_reports = {i: _typed_write(tab, s["ref"], s.get("value", s.get("label")),
+                                         s["mode"], timeout)
+                         for i, s in typed}
+
+    merged: list[dict[str, Any]] = []
+    slot_of = {i: slot for slot, (i, _) in enumerate(batched)}
     for i, step in enumerate(plan):
-        r = report[i] if i < len(report) else {"ref": step.get("ref"), "ok": False,
-                                               "error": "no report entry"}
+        if i in typed_reports:
+            merged.append(typed_reports[i])
+            continue
+        slot = slot_of.get(i, -1)
+        merged.append(report[slot] if 0 <= slot < len(report)
+                      else {"ref": step.get("ref"), "ok": False, "error": "no report entry"})
+
+    tally = Tally()
+    for r in merged:
         if r.get("ok"):
             tally.record(ok(r))
         else:
-            cls = _STEP_CLASS.get(r.get("error", ""), Class.JS_EXCEPTION)
-            tally.record(fail(cls, r.get("error", ""), **r))
-    return tally.outcome(value=report, fields=len(plan))     # value = the FULL report
+            tally.record(fail(_step_class(r), r.get("error") or "value did not stick", **r))
+    return tally.outcome(value=merged, fields=len(plan))     # value = the FULL report
 
 
 def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
@@ -331,32 +403,15 @@ def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
     """
     if keystrokes is not None:                    # back-compat for the bool spelling
         mode = "insert" if keystrokes else "value"
-    if mode not in ("value", "insert", "type"):
+    if mode not in MODES:
         raise ValueError(f"mode must be value|insert|type, got {mode!r}")
     if mode == "value":
         return fill_form(tab, [{"ref": ref, "value": value}], timeout=timeout,
                          recheck=recheck)
-    focused = tab._world_js(
-        f"(() => {{const el = window.__bh && __bh.refs[{json.dumps(ref)}]; if (!el) return false;"
-        " el.focus(); el.select && el.select(); return true;})()",
-        timeout=timeout)
-    if not focused:
+    entry = _typed_write(tab, ref, value, mode, timeout)
+    if entry.get("error") == "element_gone":
         return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
-    if mode == "insert":
-        tab.cdp("Input.insertText", {"text": str(value)}, timeout=timeout)
-    else:
-        for ch in str(value):
-            # keyDown carrying `text` is what makes the page see a real character; the
-            # matching keyUp is what a keystroke-driven typeahead listens for.
-            tab.cdp("Input.dispatchKeyEvent", {"type": "keyDown", "text": ch,
-                                               "key": ch, "unmodifiedText": ch},
-                    timeout=timeout)
-            tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch}, timeout=timeout)
-    got = tab._world_js(f"(() => {{const el = __bh.refs[{json.dumps(ref)}]; el.blur();"
-                 " return String(el.value).slice(0, 80);})()",
-                 timeout=timeout)
-    want = str(value)
-    if got == want[:80] or got == want or _digits(got) == _digits(want) != "":
-        return ok({"ref": ref, "got": got}, mode=mode)
-    return fail(Class.JS_EXCEPTION, "value did not stick", ref=ref, mode=mode,
-                want=want[:80], got=got)
+    if entry["ok"]:
+        return ok({"ref": ref, "got": entry["got"]}, mode=mode)
+    return fail(Class.VALUE_REJECTED, "value did not stick", ref=ref, mode=mode,
+                want=entry["want"], got=entry["got"])

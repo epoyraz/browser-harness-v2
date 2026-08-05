@@ -62,6 +62,11 @@ class Class(str, Enum):
     #: Distinct from NO_OPTION_MATCH because the recovery differs: click the control and
     #: pick from its popup, rather than supply a different label.
     NEEDS_INTERACTION = "needs_interaction"
+    #: The write executed cleanly and the control refused or rewrote it — a masked phone
+    #: field reverting to its `+41` prefix, a formatter normalising as you type. Reporting
+    #: this as JS_EXCEPTION sent readers hunting a stack trace that never existed; the
+    #: recovery is a different write mode, not a different script.
+    VALUE_REJECTED = "value_rejected"
     NOT_A_FORM = "not_a_form"                  # form-identity verdict failed (D15)
     ELEMENT_GONE = "element_gone"
 

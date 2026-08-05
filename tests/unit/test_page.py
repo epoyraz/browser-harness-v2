@@ -326,3 +326,72 @@ def test_a_dead_world_is_rebuilt_rather_than_failing_the_call(wired):
     assert tab._world_ctx is None
     tab.snapshot()
     assert len(browser.isolated_worlds) == before + 1
+
+
+# --- upload_file: the return must distinguish success from a wrong element ----
+
+def test_uploading_to_a_ref_that_is_not_a_file_input_is_refused(wired, tmp_path):
+    """The failure this exists to stop: snapshot() skipped a display:none CV input, so the
+    only file ref on the page was an unrelated control. Setting files on it reported
+    `attached: []` — byte-identical to the success case, where the page consumes the file
+    and clears the input. Silence there cost a real debugging session."""
+    browser, _conn, _reg = wired
+    t = _tab(wired)
+    doc = tmp_path / "cv.pdf"
+    doc.write_bytes(b"%PDF-1.4\n")
+
+    def hook(expr):
+        if "returnByValue" in expr or "__bh.refs[" in expr and "tagName" not in expr:
+            return {"__raw__": {"result": {"type": "object", "objectId": "obj-1"}}}
+        return {"tag": "div", "type": None, "name": "dropzone", "accept": ""}
+    browser.eval_hook = hook
+
+    with pytest.raises(ElementGone) as e:
+        t.upload_file("e7", str(doc))
+    assert e.value.observed["tag"] == "div"
+    assert not [c for c in browser.calls if c.get("method") == "DOM.setFileInputFiles"]
+
+
+def test_a_file_the_accept_filter_excludes_is_named_not_silently_empty(wired, tmp_path):
+    """`.txt` against an accept of pdf/doc/png attaches nothing and raises nothing. The
+    caller has to be told which file the filter dropped, or `attached: []` reads as the
+    ordinary consumed-by-the-page case."""
+    browser, _conn, _reg = wired
+    t = _tab(wired)
+    doc = tmp_path / "cv.txt"
+    doc.write_text("not a pdf")
+    accept = "application/pdf, application/msword, image/png"
+
+    def hook(expr):
+        if "tagName" in expr:
+            return {"tag": "input", "type": "file", "name": "cv", "accept": accept}
+        if "files" in expr:
+            return []
+        return {"__raw__": {"result": {"type": "object", "objectId": "obj-1"}}}
+    browser.eval_hook = hook
+
+    out = t.upload_file("e7", str(doc))
+    assert out["attached"] == []
+    assert out["accept_rejected"] == ["cv.txt"]
+
+
+def test_a_consumed_file_is_not_reported_as_an_accept_rejection(wired, tmp_path):
+    """The common success shape: the page's change handler moves the file into its own
+    state and clears the input. Empty here is normal and must not be blamed on `accept`."""
+    browser, _conn, _reg = wired
+    t = _tab(wired)
+    doc = tmp_path / "cv.pdf"
+    doc.write_bytes(b"%PDF-1.4\n")
+
+    def hook(expr):
+        if "tagName" in expr:
+            return {"tag": "input", "type": "file", "name": "cv",
+                    "accept": "application/pdf"}
+        if "files" in expr:
+            return []
+        return {"__raw__": {"result": {"type": "object", "objectId": "obj-1"}}}
+    browser.eval_hook = hook
+
+    out = t.upload_file("e7", str(doc))
+    assert out["consumed_or_rejected"] is True
+    assert "accept_rejected" not in out

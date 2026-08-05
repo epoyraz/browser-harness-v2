@@ -31,6 +31,8 @@ class FakeBrowser:
         #: Optional: expression → value for Runtime.evaluate. Return {"__raw__": {...}} to
         #: substitute the full CDP result payload (for exceptionDetails etc.).
         self.eval_hook = None
+        #: Paths seen by the last DOM.setFileInputFiles.
+        self.uploaded: list[str] = []
         #: Methods that never get a reply — simulates a renderer blocked by a JS dialog.
         self.hang_methods: set[str] = set()
         #: When set, Page.navigate reports this errorText (e.g. "net::ERR_CONNECTION_REFUSED").
@@ -166,6 +168,14 @@ class FakeBrowser:
             import base64
             return {"id": msg_id,
                     "result": {"data": base64.b64encode(b"fake-image-bytes").decode()}}
+
+        if method == "DOM.describeNode":
+            # upload_file bridges a JS handle to a backendNodeId through here.
+            return {"id": msg_id, "result": {"node": {"backendNodeId": 4242}}}
+
+        if method == "DOM.setFileInputFiles":
+            self.uploaded = list(params.get("files") or [])
+            return {"id": msg_id, "result": {}}
 
         if method == "Runtime.evaluate":
             if self.eval_hook is not None:

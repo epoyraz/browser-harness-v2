@@ -49,8 +49,12 @@ except HarnessError as e:
 ```
 
 Classes you will actually see: `navigation_failed`, `js_exception`, `not_serializable`,
-`element_gone`, `no_option_match`, `needs_interaction`, `not_a_form`, `http_error`,
-`timeout`, `target_gone`, `session_stale`, `partial`.
+`element_gone`, `no_option_match`, `needs_interaction`, `value_rejected`, `not_a_form`,
+`http_error`, `timeout`, `target_gone`, `session_stale`, `partial`.
+
+`value_rejected` is the one people misread: nothing threw. The write executed and the
+control refused or rewrote it — a phone mask snapping back to `+41`. The fix is a
+different write `mode`, not a different script. (`js_exception` means a real throw.)
 
 ## Read the page
 
@@ -65,11 +69,16 @@ capture_screenshot("shot.jpeg", max_dim=800)
 over writing your own selectors. Screenshots are a last resort: a schema is ~175 tokens
 where a screenshot of the same form is ~3,200.
 
+Invisible elements are skipped — **except file inputs**, which carry `hidden_control:
+true` instead. A file input is never clicked (that opens a native picker with no CDP way
+back out), so visibility says nothing about whether it is usable, and every dropzone UI
+hides the real one. Take the `hidden_control` ref, not the visible decoy beside it.
+
 ## Act
 
 ```python
 click_ref(ref) / click_at(x, y)      # coordinate clicks pass through iframes + shadow DOM
-press_key("Enter") / scroll(600)
+press_key("Enter") / scroll(600)      # named keys; for text use set_value
 set_value(ref, text)                  # one round trip, any length
 upload_file(ref, "/path/cv.pdf")      # no OS picker
 js("await fetch('/api').then(r=>r.json())")   # replMode: top-level await works
@@ -89,6 +98,10 @@ A one-shot write left a keystroke typeahead's dropdown **empty**; so did `insert
 `type` opened it. If a field has an autocomplete dropdown or formats as you type, use
 `mode="type"`.
 
+`insert` and `type` focus the field themselves — they go to whatever the renderer
+considers focused, so an unfocused write lands somewhere else entirely and reports
+nothing. You do not need to click first.
+
 ## Fill a whole form in one decision
 
 The biggest win available. Read the schema once, decide once, write once — 45 fields across
@@ -101,11 +114,18 @@ by = {f["label"]: f for f in s["fields"]}
 out = fill_form([
     {"ref": by["First name *"]["ref"], "value": "Enes"},
     {"ref": by["Country"]["ref"],      "label": "Schweiz"},   # selects take a LABEL
+    {"ref": by["Phone *"]["ref"], "value": "+41 79 …", "mode": "insert"},  # see below
 ])
 if not out.ok:
     for f in out.failures:
         print(f.cls.value, f.observed)
 ```
+
+A step may carry its own **`mode`** (`value` default, `insert`, `type`). The batch stays
+one write; the moded fields cost a round trip each and run after it, but they travel in
+the same plan and come back in the same plan-ordered report. Without this, one masked
+field forced you to abandon `fill_form` and hand-roll `set_value` per field — the batching
+win discarded on exactly the forms that need it.
 
 Things the schema tells you that matter:
 

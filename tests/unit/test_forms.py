@@ -95,6 +95,87 @@ def test_empty_plan_is_ok_zero(tab):
     assert fill_form(t, []).ok is True
 
 
+def test_a_value_the_control_refused_is_value_rejected_not_a_js_exception(tab):
+    """The in-page pass throws nothing here — it wrote, and the control rewrote it back.
+    Calling that JS_EXCEPTION sent readers hunting a stack trace that never existed, and
+    hid the fact that the recovery is a different write mode."""
+    browser, t = tab
+    browser.eval_hook = lambda e: [
+        {"ref": "e1", "ok": False, "want": "00 000 00 00", "got": "+41"}]
+    out = fill_form(t, [{"ref": "e1", "value": "00 000 00 00"}], recheck=0)
+    assert out.failures[0].cls is Class.VALUE_REJECTED
+    assert out.failures[0].observed["got"] == "+41"
+
+
+def test_a_thrown_step_is_still_a_js_exception(tab):
+    """The other side of the split: an actual throw keeps its class."""
+    browser, t = tab
+    browser.eval_hook = lambda e: [
+        {"ref": "e1", "ok": False, "error": "TypeError: el.focus is not a function"}]
+    out = fill_form(t, [{"ref": "e1", "value": "x"}], recheck=0)
+    assert out.failures[0].cls is Class.JS_EXCEPTION
+
+
+# --- per-field write modes inside one plan -----------------------------------
+
+def test_a_step_may_carry_its_own_write_mode(tab):
+    """Without this a form with one masked field had to abandon fill_form entirely and
+    hand-roll set_value per field — the batching win thrown away on exactly the forms
+    that need it most."""
+    browser, t = tab
+
+    def hook(expr):
+        # the batched writer inlines the plan array; the typed tier never does
+        if "([{" in expr:
+            return [{"ref": "e1", "ok": True, "want": "Test", "got": "Test"}]
+        if "el.select" in expr:
+            return True                      # the typed tier focuses first
+        return "+41 79 000 00 00"            # blur-and-read: what the mask settled on
+    browser.eval_hook = hook
+
+    out = fill_form(t, [
+        {"ref": "e1", "value": "Test"},
+        {"ref": "e2", "value": "+41 79 000 00 00", "mode": "insert"},
+    ], recheck=0)
+    assert out.ok is True and out.observed == {"attempted": 2, "succeeded": 2,
+                                               "failed": 0, "fields": 2}
+    assert [r["ref"] for r in out.value] == ["e1", "e2"]      # report keeps plan order
+    assert out.value[1]["mode"] == "insert"
+    assert any(c.get("method") == "Input.insertText" for c in browser.calls)
+
+
+def test_a_typed_step_does_not_ride_in_the_batched_write(tab):
+    """The batch JS must not receive the typed step, or it would set the value the
+    one-shot way first and the mask would already have rejected it."""
+    browser, t = tab
+    seen = []
+
+    def hook(expr):
+        seen.append(expr)
+        if "([{" in expr:
+            return [{"ref": "e1", "ok": True}]
+        if "el.select" in expr:
+            return True
+        return "x"
+    browser.eval_hook = hook
+    fill_form(t, [{"ref": "e1", "value": "a"}, {"ref": "e2", "value": "x", "mode": "type"}],
+              recheck=0)
+    batch = next(x for x in seen if "([{" in x)
+    assert '"e1"' in batch and '"e2"' not in batch
+
+
+def test_an_unknown_mode_is_refused_before_anything_is_written(tab):
+    browser, t = tab
+    browser.eval_hook = lambda e: []
+    with pytest.raises(ValueError, match="mode must be"):
+        fill_form(t, [{"ref": "e1", "value": "x", "mode": "telepathy"}])
+    # the world bootstrap may have run; no *write* may have — a plan half-applied and
+    # then rejected is worse than one refused outright
+    assert not [c for c in browser.calls
+                if "([{" in (c.get("params") or {}).get("expression", "")
+                or str(c.get("method", "")).startswith("Input.")]
+
+
 # --- set_value (item 25) ------------------------------------------------------
 
 def test_default_set_value_is_one_round_trip(tab):
