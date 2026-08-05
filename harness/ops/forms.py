@@ -21,10 +21,17 @@ Everything here was forced by a real form in the five-ATS run:
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 from harness.core.outcome import Class, NotAForm, Outcome, Tally, fail, ok
 from harness.ops.page import Tab
+
+
+def _digits(s: str) -> str:
+    """Compare phone-ish values by their digits: a control that reformats
+    `+41791234567` to `+41 79 123 45 67` accepted the value, it did not reject it."""
+    return "".join(c for c in str(s) if c.isdigit())
 
 _SCHEMA_JS = """(() => {
   const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
@@ -84,7 +91,17 @@ _SCHEMA_JS = """(() => {
     const type = (el.type || '').toLowerCase();
     if (['submit', 'button', 'reset', 'image', 'hidden'].includes(type)) continue;
     const r = el.getBoundingClientRect();
-    if (!r.width && !r.height) continue;
+    const cs = getComputedStyle(el);
+    // A control a human cannot see is a decoy, not a field. Select2 puts a 1x1
+    // clip-rect(0,0,0,0) "focusser" input where the real <select> was: writing to it
+    // sticks, submits nothing, and reads back as success — a false positive, which is
+    // worse than a failure. The real control is picked up by the hidden-select rule below.
+    const clipped = cs.clip === 'rect(0px, 0px, 0px, 0px)' || cs.clipPath === 'inset(50%)';
+    const decoy = clipped || (r.width <= 2 && r.height <= 2);
+    // ...but a hidden <select> IS the form's data, so keep it and say it is hidden.
+    const hiddenControl = tag === 'select' && (decoy || (!r.width && !r.height));
+    if (decoy && !hiddenControl) continue;
+    if (!r.width && !r.height && !hiddenControl) continue;
     if (furniture(el) || type === 'search') continue;
     if (type === 'file') { files.push(el.name || el.id || 'file'); continue; }
     let ref = el.__bhRef;
@@ -109,12 +126,20 @@ _SCHEMA_JS = """(() => {
            .test(first.text.trim()));
     }
     if (kind === 'combobox') f.needs_interaction = true;   // invisible to v1 entirely
+    if (hiddenControl) {
+      // Fillable (it is the real form control) but the widget painted over it will not
+      // redraw, so a human looking at the page still sees the old label.
+      f.hidden_control = true;
+      f.widget = !!el.closest('.select2-container, .chosen-container, [data-widget]')
+        || !!(el.parentElement
+              && el.parentElement.querySelector('.select2-container, .chosen-container'));
+    }
     if (type === 'checkbox' || type === 'radio') f.checked = el.checked;
     else if (el.value) f.value = String(el.value).slice(0, 60);
     fields.push(f);
   }
   const submits = [...document.querySelectorAll(
-    'button[type=submit],input[type=submit],button:not([type])')]
+    'button[type=submit],input[type=submit],input[type=button],button:not([type])')]
     .filter(b => !furniture(b))
     .map(b => (b.innerText || b.value || '').trim()).filter(Boolean);
   const verdict = {
@@ -146,6 +171,27 @@ _FILL_JS = """((plan) => {
     if (!el) { report.push({ref: step.ref, ok: false, error: 'element_gone'}); continue; }
     try {
       el.focus();
+      // A widget with no value property cannot be set at all. jobs.ch's phone-country
+      // control is a DIV[role=combobox]; calling HTMLInputElement's value setter on it
+      // throws "Illegal invocation". form_schema already flags these needs_interaction —
+      // refusing here with a typed error keeps the fill honest instead of crashing.
+      const settable = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement
+                    || el instanceof HTMLSelectElement;
+      if (!settable) {
+        if (el.isContentEditable) {                 // rich-text: value is meaningless
+          el.textContent = String(step.value ?? '');
+          fire(el, ['input', 'change', 'blur']);
+          report.push({ref: step.ref, ok: el.textContent === String(step.value ?? ''),
+                       want: String(step.value ?? '').slice(0, 80),
+                       got: String(el.textContent).slice(0, 80)});
+        } else {
+          report.push({ref: step.ref, ok: false, error: 'needs_interaction',
+                       tag: el.tagName.toLowerCase(),
+                       role: el.getAttribute('role') || null,
+                       want: String(step.label ?? step.value ?? '')});
+        }
+        continue;
+      }
       if (el.tagName === 'SELECT') {
         const want = norm(step.label ?? step.value ?? '');
         const opts = [...el.options];
@@ -182,7 +228,8 @@ _FILL_JS = """((plan) => {
   return report;
 })(__PLAN__)"""
 
-_STEP_CLASS = {"element_gone": Class.ELEMENT_GONE, "no_option_match": Class.NO_OPTION_MATCH}
+_STEP_CLASS = {"element_gone": Class.ELEMENT_GONE, "no_option_match": Class.NO_OPTION_MATCH,
+               "needs_interaction": Class.NEEDS_INTERACTION}
 
 
 def form_schema(tab: Tab, *, timeout: float = 20.0) -> dict[str, Any]:
@@ -200,14 +247,55 @@ def require_form(schema: dict[str, Any]) -> dict[str, Any]:
     return schema
 
 
-def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0) -> Outcome:
+_RECHECK_JS = """((plan) => {
+  const bh = window.__bh || {refs: {}};
+  return plan.map(step => {
+    const el = bh.refs[step.ref];
+    if (!el) return null;
+    if (el.tagName === 'SELECT')
+      return el.selectedOptions[0] ? el.selectedOptions[0].text.trim() : String(el.value);
+    if (el.type === 'checkbox' || el.type === 'radio') return el.checked;
+    if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement))
+      return el.isContentEditable ? String(el.textContent) : null;
+    return String(el.value);
+  });
+})(__PLAN__)"""
+
+
+def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
+              recheck: float = 0.15) -> Outcome:
     """One write for the whole plan. Rule 4: OK only when every field verified; PARTIAL
-    carries the full per-field report either way (`outcome.value`)."""
+    carries the full per-field report either way (`outcome.value`).
+
+    `recheck` re-reads every field after a settle, in **one** extra evaluate, because the
+    immediate `el.value === want` check is measured too early for framework-controlled
+    inputs. Measured on jobs.ch: a React phone field rejects `079 123 45 67` outright but
+    rewrites `+41791234567` to `+41 79 123 45 67` — so the write succeeded while the
+    immediate check said it failed, and a normalising field would otherwise be reported as
+    a failure forever. Set `recheck=0` to skip the settle when speed matters more.
+    """
     if not plan:
         return ok([], attempted=0, succeeded=0, failed=0)
     src = _FILL_JS.replace("__PLAN__", json.dumps(plan))
     with tab.journal.call("fill_form", n=len(plan)):
         report = tab.js(src, timeout=timeout) or []
+        if recheck > 0:
+            time.sleep(recheck)
+            settled = tab.js(_RECHECK_JS.replace("__PLAN__", json.dumps(plan)),
+                             timeout=timeout) or []
+            for i, entry in enumerate(report):
+                if i >= len(settled) or settled[i] is None or "error" in entry:
+                    continue
+                entry["settled"] = settled[i]
+                if not entry.get("ok"):
+                    # rule 3: success is "the field now holds a value the page accepted",
+                    # not "the string came back byte-identical".
+                    want = str(entry.get("want", ""))
+                    got = "" if settled[i] is None else str(settled[i])
+                    if got and (got == want or _digits(got) == _digits(want)):
+                        entry["ok"] = True
+                        entry["normalized"] = True
+                        entry["got"] = got
     tally = Tally()
     for i, step in enumerate(plan):
         r = report[i] if i < len(report) else {"ref": step.get("ref"), "ok": False,
@@ -221,13 +309,14 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0) ->
 
 
 def set_value(tab: Tab, ref: str, value: Any, *, keystrokes: bool = False,
-              timeout: float = 20.0) -> Outcome:
+              timeout: float = 20.0, recheck: float = 0.15) -> Outcome:
     """One field, one round trip (D3). `keystrokes=True` opts into real input via
     `Input.insertText` — the whole string in ONE command, for editors that ignore
     synthetic events. v1's per-character dispatch made a 20-char fill cost 61 round
     trips; a 2,000-char paste here is one call either way."""
     if not keystrokes:
-        return fill_form(tab, [{"ref": ref, "value": value}], timeout=timeout)
+        return fill_form(tab, [{"ref": ref, "value": value}], timeout=timeout,
+                         recheck=recheck)
     focused = tab.js(
         f"(() => {{const el = window.__bh && __bh.refs[{json.dumps(ref)}]; if (!el) return false;"
         " el.focus(); el.select && el.select(); return true;})()",

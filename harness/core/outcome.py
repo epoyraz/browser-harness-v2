@@ -58,6 +58,10 @@ class Class(str, Enum):
     JS_EXCEPTION = "js_exception"
     NOT_SERIALIZABLE = "not_serializable"      # v1 returned None here, silently
     NO_OPTION_MATCH = "no_option_match"        # 249 prefixes, none matched the label
+    #: A widget that cannot be set by value at all — an ARIA combobox built from divs.
+    #: Distinct from NO_OPTION_MATCH because the recovery differs: click the control and
+    #: pick from its popup, rather than supply a different label.
+    NEEDS_INTERACTION = "needs_interaction"
     NOT_A_FORM = "not_a_form"                  # form-identity verdict failed (D15)
     ELEMENT_GONE = "element_gone"
 
@@ -207,6 +211,7 @@ HttpError = _error("HttpError", Class.HTTP_ERROR)
 JsException = _error("JsException", Class.JS_EXCEPTION)
 NotSerializable = _error("NotSerializable", Class.NOT_SERIALIZABLE)
 NoOptionMatch = _error("NoOptionMatch", Class.NO_OPTION_MATCH)
+NeedsInteraction = _error("NeedsInteraction", Class.NEEDS_INTERACTION)
 NotAForm = _error("NotAForm", Class.NOT_A_FORM)
 ElementGone = _error("ElementGone", Class.ELEMENT_GONE)
 Partial = _error("Partial", Class.PARTIAL)
@@ -217,7 +222,8 @@ _BY_CLASS: dict[Class, type[HarnessError]] = {
         EndpointUnreachable, Endpoint404, NoBrowserWindow, PermissionPending,
         WsRejectedUpstream, BrowserDisconnected, ScopeRefused, TargetGone, SessionStale,
         RendererUnresponsive, CdpError, NavigationFailed, HttpError, JsException,
-        NotSerializable, NoOptionMatch, NotAForm, ElementGone, Partial, Timeout,
+        NotSerializable, NoOptionMatch, NeedsInteraction, NotAForm, ElementGone, Partial,
+        Timeout,
     )
 }
 

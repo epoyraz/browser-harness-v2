@@ -163,7 +163,8 @@ def main() -> int:
         # ---- Factorial: the modes v1 was blind to ---------------------------
         tab.goto(f"{base}/factorial.html")
         schema = form_schema(tab)
-        combo = [f for f in schema["fields"] if f["kind"] == "combobox"]
+        combo = [f for f in schema["fields"] if f["kind"] == "combobox"
+                 and "hear about us" in str(f["label"])]
         check("factorial: ARIA combobox visible to the schema",
               len(combo) == 1 and combo[0].get("needs_interaction") is True,
               str(combo[0].get("label") if combo else None))
@@ -207,6 +208,38 @@ def main() -> int:
         out = set_value(tab, moti["ref"], "via insertText", keystrokes=True)
         check("set_value keystrokes: one Input.insertText", out.ok,
               str(out.observed.get("mode")))
+
+        # ---- widgets: the two failure modes from the 2026-08-05 live run -----
+        tab.goto(f"{base}/widgets.html")
+        schema = form_schema(tab)
+        by_name = {f.get("name"): f for f in schema["fields"]}
+
+        dial = next(f for f in schema["fields"] if f["kind"] == "combobox")
+        check("widgets: combobox DIV is labelled and flagged",
+              dial["label"] == "Phone country code" and dial.get("needs_interaction"),
+              str(dial["label"]))
+        out = fill_form(tab, [{"ref": dial["ref"], "value": "+41"}], recheck=0)
+        check("widgets: filling a combobox DIV is needs_interaction, not a TypeError",
+              (not out.ok) and out.failures[0].cls is Class.NEEDS_INTERACTION,
+              f"{out.failures[0].cls.value} tag={out.failures[0].observed.get('tag')}")
+
+        check("widgets: the 1x1 clip-rect decoy input is excluded",
+              "s2id_autogen9" not in by_name and
+              not any(str(f.get("name") or "").startswith("s2id") for f in schema["fields"]),
+              f"{len(schema['fields'])} fields kept")
+
+        real = by_name.get("form.widgets.country:list")
+        check("widgets: the hidden real <select> is surfaced with its options",
+              real is not None and real.get("hidden_control") is True
+              and real["options_count"] == 3 and real["label"] == "Land *",
+              f"label={real['label'] if real else None} "
+              f"opts={real['options_count'] if real else None}")
+        out = fill_form(tab, [{"ref": real["ref"], "label": "Schweiz"}])
+        check("widgets: the real select takes the label the decoy would have swallowed",
+              out.ok and out.value[0]["got"] == "Schweiz", str(out.value[0].get("got")))
+        submitted = tab.js("document.getElementById('real-land').value")
+        check("widgets: the value is on the control that submits", submitted == "CH",
+              f"select.value={submitted!r}")
 
         # ---- notaform: the 404 trap (verdict) -------------------------------
         tab.goto(f"{base}/notaform.html")

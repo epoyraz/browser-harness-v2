@@ -1,0 +1,50 @@
+<!doctype html>
+<!-- Two failure modes measured in the wild on 2026-08-05 (jobs.ch + apply.refline.ch),
+     each of which cost a real bug:
+
+     (1) jobs.ch's phone-country control is a DIV[role=combobox]. fill_form treated it as
+         a text input and called HTMLInputElement's value setter on it →
+         "TypeError: Illegal invocation". form_schema had already flagged it
+         needs_interaction; the fill did not listen.
+
+     (2) Select2 (Refline) leaves a 1x1 clip-rect(0,0,0,0) "focusser" input where the real
+         <select> was, and keeps the real 250-option select 1x1-clipped IN PLACE (not
+         display:none — which is why proximity still labels it). Writing to the decoy
+         STICKS and reads back as success while submitting nothing: a false positive,
+         which is strictly worse than a failure.
+
+     Layout is deliberately roomy: crowded fixtures make the proximity labeller pick a
+     neighbour's text, which is a property of the fixture, not of the page under test. -->
+<html lang="de"><head><meta charset="utf-8"><title>Widget decoys</title>
+<style>
+  .row { position: relative; height: 40px; margin-bottom: 28px; }
+  .row > label { position: absolute; left: 0; top: 8px; width: 150px; }
+  .ctl { position: absolute; left: 200px; top: 8px; }
+  .select2-offscreen { width: 1px; height: 1px; clip: rect(0px, 0px, 0px, 0px); }
+</style>
+</head><body>
+<form>
+  <div class="row">
+    <label id="lbl-dial">Phone country code</label>
+    <div class="ctl" role="combobox" aria-labelledby="lbl-dial"
+         aria-haspopup="listbox" tabindex="0" style="width:90px">+41</div>
+  </div>
+
+  <div class="row">
+    <label id="lbl-land">Land *</label>
+    <input class="ctl select2-focusser select2-offscreen" id="s2id_autogen9">
+    <select class="ctl select2-offscreen" id="real-land" name="form.widgets.country:list">
+      <option value="">Bitte wählen</option>
+      <option value="CH">Schweiz</option>
+      <option value="DE">Deutschland</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label for="plain">Ort *</label>
+    <input class="ctl" id="plain" name="city" required>
+  </div>
+
+  <button type="submit">Absenden</button>
+</form>
+</body></html>
