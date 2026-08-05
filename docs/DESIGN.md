@@ -576,6 +576,11 @@ information still exists:
   reword freely. Distinct classes for `permission_pending` (requires an *observed* prompt),
   `endpoint_404`, `no_browser_window`, `ws_rejected_upstream`, `target_gone`,
   `session_stale`, `renderer_unresponsive`, `navigation_failed`.
+  Two members were added by implementation, each because a caller could now distinguish a
+  case it previously could not — the only admissible reason to widen a closed enum:
+  `http_error` (a 404 inside `fetch_all` is neither a navigation nor a JS throw) and
+  `needs_interaction` (below). One more, `cdp_error`, is the honest floor: an unrecognised
+  CDP error must not be reported as some *specific* cause we never verified.
 - **`observed`** carries the evidence, so a claim is auditable rather than asserted.
 - **`detail`** is for humans and is never parsed.
 - **`retryable`** is stated by the party that knows, not guessed by the caller.
@@ -588,6 +593,20 @@ discard** (both directions of one channel); **define success** (every operation 
 condition and returns evidence — `goto` succeeds only if the landed URL is not an error
 page, and returns *both* requested and landed, which on the four-hop redirect chain
 jobs.ch → career.ti8m.com → prospective.ch → abacuscity.ch is load-bearing).
+
+**"Define success" has a sharp edge that only production found.** The obvious definition
+for a write is `el.value === want` immediately afterwards. That is wrong for any
+framework-controlled input that *normalises*: jobs.ch's React phone field rejects
+`079 123 45 67` outright but rewrites `+41791234567` to `+41 79 123 45 67`. The write
+succeeded; the check was simply taken too early, and reported a working fill as a failure —
+permanently, since the value never becomes byte-identical. Success is therefore **"the
+field now holds a value the page accepted"**, verified after a settle, with the comparison
+tolerant of reformatting (digits-equal for phone-shaped values). The settle costs *one*
+extra evaluate for the whole form, not one per field.
+
+The symmetric error is worse and is covered under D15: a definition of success that a
+**decoy element** can satisfy. Both are the same lesson — the *definition* is the design
+surface, not the check.
 
 #### Actions return a *delta*, not just the absence of an exception
 
@@ -870,6 +889,126 @@ half: 19 fields filled one at a time is 19 model decisions (~4 min) against 4 (~
 A smaller run on httpbin (10 mixed fields) gave the same shape — schema in **175 tokens**
 versus ~3,180 for a screenshot of the same form, batch fill of 8 fields in 5 ms.
 
+#### Second live run: the implementation, against six forms it had never seen
+
+The table above was measured on a prototype. The built version was re-run end-to-end
+(2026-08-05) against a fresh search — jobs.ch, "AI Engineer" in Zürich, 469 hits — with
+**both harnesses driving one shared scratch-profile Chrome**, so cookie state and network
+were identical. Nothing submitted, nothing uploaded, no accounts.
+
+| Form | ATS | flds | v1 CDP | v1 ms | v2 CDP | v2 ms | CDP × | ms × |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| Pro Informatik | custom PHP | 5 | 158 | 259 | **2** | 16.3 | 79× | 15.9× |
+| Luware | FactorialHR | 6 | 507 | 763 | **2** | 17.3 | **254×** | 44.1× |
+| ZHAW | Prospective/Refline | 12 | 405 | 658 | **2** | 26.4 | 202× | 24.9× |
+| ZHdK | Refline | 12 | 404 | 630 | **2** | 25.8 | 202× | 24.4× |
+| Swisslinx | custom | 5 | 424 | 858 | **2** | 20.0 | 212× | 42.9× |
+| AutoForm | jobs.ch native | 5 | 423 | 1170 | **2** | 47.5 | 212× | 24.6× |
+| **total** | | **45** | **2,321** | **4,337** | **12** | **153** | **193×** | **28.3×** |
+
+Both filled 45/45. The honest caveats, stated because they change how the numbers read:
+v1 was **handed v2's selectors** — the primitive it does not have — so this measures
+mechanics, not the discovery work v1 would additionally owe; and v2's default settle-recheck
+adds a fixed 150 ms per form, making the true end-to-end **1,001 ms / 4.3×** rather than
+28×. The structural result is the durable one:
+
+> **v1's round trips scale with *characters*; v2's are constant per form.** 2,321 calls for
+> 691 characters, 95% of them `Input.dispatchKeyEvent`. Luware needed **507 calls for six
+> fields** purely because its text was long. v2 is 2 (schema + write), regardless of field
+> count or text length.
+
+#### What six unseen forms broke that four fixtures could not
+
+Both bugs were **false success**, the mode D11 calls the expensive one, and neither is
+reachable from a synthetic fixture:
+
+1. **A widget with no `value` property at all.** jobs.ch's phone-country control is a
+   `DIV[role=combobox]`. The writer treated it as a text input and invoked
+   `HTMLInputElement`'s value setter on a DIV → `TypeError: Illegal invocation`. The
+   damning part: `form_schema` had **already** flagged it `needs_interaction` and the
+   writer did not read its own schema's finding. Hence `Class.NEEDS_INTERACTION` — kept
+   distinct from `no_option_match` because the recovery differs (click the popup and pick
+   vs. supply a different label), and a shared class would collapse two different repairs.
+
+2. **A decoy that satisfies the success check.** Select2 leaves a **1×1 pixel,
+   `clip: rect(0,0,0,0)` "focusser" input** where the real control was, and keeps the real
+   250-option `<select>` clipped *in place*. The schema picked the decoy; writing `"CH"` to
+   it **stuck, read back byte-identical, and verified** — while the element that actually
+   submits stayed empty. This is the worst possible outcome: not a failure, a *confirmed*
+   success that is false. Two rules follow. **A control a human cannot see is not a field**
+   (clipped or ≤2 px ⇒ excluded). **A hidden `<select>` is still the form's data** ⇒
+   surfaced as `hidden_control`, because it is the element the browser will submit.
+
+The general principle both share, and the reason a fixture suite cannot replace a live run:
+*verification is only as good as its notion of identity.* Read-back proves a value landed
+somewhere; it cannot prove it landed on the control that matters. That is now the fourth
+independent instance of **read-back verifies the write, not the intent** — after the submit
+button, the ref misalignment, and the +34 prefix.
+
+#### Attrition is the real cost of an apply pipeline, not fill speed
+
+Of 21 postings, **six were fillable**. The other fifteen (measured, not estimated):
+
+| Cause | n | Note |
+|---|---:|---|
+| Account wall / non-form landing | 5 | SuccessFactors, gohiring, Outlook safelink, solique, aerztekasse |
+| Redirected away to another portal | 3 | ContactRH → careers.snb.ch |
+| **Bot protection** | 2 | SmartRecruiters behind DataDome: body `innerText.length === 0`, 10 DOM nodes, all real content inside a `geo.captcha-delivery.com` iframe |
+| Duplicate flow | 4 | same jobs.ch native form |
+
+Two consequences for the design. First, **`form_schema`'s verdict is load-bearing at
+pipeline scale**: it is what turns "0 fields on a page that renders fine" into a typed
+`not_a_form` instead of a silent no-op — and it correctly refused all four non-forms here.
+Second, **bot protection is an endpoint property, not a form property**: the DataDome page
+is indistinguishable from a slow SPA by any DOM measure, which is the strongest argument
+for the managed-IP cloud browsers in D12 rather than for more retry logic.
+
+#### Why v1 is slow, and what its slowness was buying
+
+*The 193× invites a bad conclusion — that v1 was simply doing it wrong. It was not, and
+this table is the counterweight D0 demands. v2 is fast because it does **less**, and the
+"less" is not free.*
+
+v1 types **character by character** via `Input.dispatchKeyEvent`. That is 3N round trips
+per field and it is why Luware cost 507 calls. Measured on a page instrumented to count
+what each write actually triggers:
+
+| Write mode | round trips | `isTrusted` | keydowns | typeahead opened | dropdown |
+|---|---:|---|---:|---:|---|
+| v2 `value` (default, one-shot) | 1 | **false** | 0 | **0** | *empty* |
+| v2 `insert` (`Input.insertText`) | 2 | true | 0 | **0** | *empty* |
+| v2 `type` / **v1's model** (`dispatchKeyEvent`) | ~3N | true | 18 | **3** | `"suggestions for zur"` |
+
+Three things v1's cost buys, none of which a one-shot write provides:
+
+1. **Trusted events.** v2's default fires `new InputEvent(...)` from page script, which is
+   `isTrusted: false`. Any page that checks it — some payment and anti-fraud flows do —
+   rejects the value.
+2. **Per-keystroke side effects.** Typeahead pickers (location, school, skills), masks that
+   format incrementally, character counters, validate-as-you-type. The measurement is
+   unambiguous: the one-shot write left the typeahead's dropdown **empty**.
+3. **A plausible interaction shape.** 45 fields written in 16 ms with zero keydowns and no
+   pointer movement is itself a bot signal.
+
+**The finding that changed the design:** `insert` does **not** subsume `type`.
+`Input.insertText` produces *trusted* events yet still zero keydowns, so it fixes (1) and
+does nothing for (2). Two tiers were therefore not enough, and `set_value` now has three —
+`value` / `insert` / `type` — with `type` reproducing v1's model exactly, for the fields
+that need it.
+
+So the honest statement of the trade is not "v2 is 193× faster." It is:
+
+> **v1 pays the faithful-simulation cost on every field; v2 pays it only where a field
+> demands it.** The default is a *bet* that most fields are ordinary inputs. That bet held
+> on 45/45 fields across six production ATS forms — but it is a bet, and the escape hatch
+> is part of the design, not an afterthought.
+
+The same asymmetry runs through D0: batching converts *walk-the-loop* decisions into
+*debug-the-batch* decisions. Both bugs above are exactly that — a batch that hit one
+unusual widget, and had to be debugged as a batch. What makes the trade pay is not that
+batching never fails; it is that **the failure is typed, per-field, and does not stop the
+other 44**.
+
 **Note what carried across four unrelated ATSs**: all four expose first name, last name and
 email under different labels and languages (`First`/`Last`, `Vorname`/`Nachname`,
 `first_name`, `customeraddressshoppervorname`). Four recipes covered four employers — and
@@ -1039,11 +1178,11 @@ Proposed additions, each justified by a measurement:
 
 | Helper | Why |
 |---|---|
-| `form_schema(scope=None)` | D15. Whole form as **175 tokens** vs ~3,180 for a screenshot: label, type, required, valid `options`, constraints, `autocomplete`. Turns an N-decision form into a 1-decision form. Returns a **form-identity verdict** — 3 of 5 live apply links were dead and two passed a naive has-inputs check. Label resolution needs a **proximity fallback**; a real ATS resolved *nothing* through the standard chain. Excludes buttons, file inputs, and cookie/search furniture at extraction; marks **placeholder options** (7 of 8 selects lead with a non-answer) and enumerates **ARIA combobox widgets**, which have no `<select>` and are otherwise invisible. Must share its extraction routine with `fill_form` — two filters is how refs drift. |
-| `fill_form(plan)` | D15. **1 CDP round trip vs 137** across four live ATS platforms (28 ms vs 965 ms, 19/19 verified, identical state), each field with focus→input→change→blur and per-field `ok` + `got`/`want`. Accepts a **label** for long option lists and resolves it in-page (`no_option_match` when it cannot) — truncating 249 options made the right answer unreachable and silently selected Spain. Verifies the *write*, not the *intent*, and never runs until `form_schema` has identified the page. |
+| `form_schema(scope=None)` | D15. Whole form as **175 tokens** vs ~3,180 for a screenshot: label, type, required, valid `options`, constraints, `autocomplete`. Turns an N-decision form into a 1-decision form. Returns a **form-identity verdict** — 3 of 5 live apply links were dead and two passed a naive has-inputs check. Label resolution needs a **proximity fallback**; a real ATS resolved *nothing* through the standard chain. Excludes buttons, file inputs, and cookie/search furniture at extraction; marks **placeholder options** (7 of 8 selects lead with a non-answer) and enumerates **ARIA combobox widgets**, which have no `<select>` and are otherwise invisible. Excludes **clipped/≤2 px decoys** — Select2's 1×1 `clip-rect(0,0,0,0)` focusser accepted a write, verified, and submitted nothing — while surfacing the **hidden real `<select>`** behind them as `hidden_control`, since that is the element the browser submits. Must share its extraction routine with `fill_form` — two filters is how refs drift. |
+| `fill_form(plan)` | D15. **2 CDP round trips vs 2,321** across six live ATS platforms (45/45 verified; v1's calls scale with *characters*, v2's are constant per form), each field with focus→input→change→blur and per-field `ok` + `got`/`want`. Accepts a **label** for long option lists and resolves it in-page (`no_option_match` when it cannot) — truncating 249 options made the right answer unreachable and silently selected Spain. Refuses a widget with no `value` property as `needs_interaction` rather than throwing `Illegal invocation` on it. Verifies after a **settle**, because a normalising control rewrites the value it accepted; verifies the *write*, not the *intent*, and never runs until `form_schema` has identified the page. |
 | `click_ref(n)` / `click_at_xy` | D11. Returns a **change delta** — url, new tab, DOM node count, dialog opened + its text. A click's effect is not a readable value, so "no exception" says nothing. Cost ~1 ms; not having it cost a minute and a wrong diagnosis on jobs.ch. |
 | `fetch_all(urls, concurrency)` | D0's primary instrument. In-page, session-authenticated: **6.1×** on pagination (95.2 s → 15.6 s) and **12.5×** fanning out over 7 candidate pages (35 CDP round trips → 1, 7 decisions → 1). Hand-written twice in one session and wrong twice — unbounded fan-out silently returned 163 of ~300 results with no error. Bounds concurrency, retries throttling, and returns **attempted / succeeded / failed** rather than just results. Silent data loss is the strongest argument for code over prose. |
-| `set_value(target, text)` | D3. One round trip instead of 3N. The single-field primitive `fill_form` is built on. |
+| `set_value(target, text, mode=)` | D3. **Three tiers, because two were measurably not enough**: `value` (1 round trip, `isTrusted: false`), `insert` (trusted, still no keydowns), `type` (~3N, trusted, per-keystroke — v1's model, kept for typeaheads and incremental masks, which the first two leave *untouched*). The single-field primitive `fill_form` is built on. |
 | `use_tab(target_id)` | D1. The client-side half of session pinning. |
 
 Note the shape these share: **each collapses a round trip that costs a model decision**, and
@@ -1124,6 +1263,13 @@ Scar tissue that looks like cruft and is not — each was paid for in a real fai
   machine's default profile.)
 - **Stale `DevToolsActivePort`** from a closed browser must not count as a live instance.
 - Per-profile discovery paths across macOS/Linux/Windows and Chrome/Edge/Brave/Chromium.
+- **Per-character `Input.dispatchKeyEvent` typing.** The most expensive thing v1 does
+  (3N round trips per field; 95% of its 2,321 calls in the six-form run) and the easiest to
+  mistake for waste. Measured, it is the *only* write mode that fires keydowns, so it is
+  the only one a typeahead or an incremental mask can see — `Input.insertText` produces
+  trusted events and still zero keydowns. Kept verbatim as `set_value(mode="type")`.
+  **Demoted from default to opt-in, not deleted**: the mistake would have been assuming a
+  cost is unnecessary because its benefit is invisible on the forms you happened to test.
 
 Do not start from a blank file. The core worth carrying is ~1,500 lines
 (`helpers` + `daemon` + `_ipc` + `run` + `paths`); the other ~3,000 (`admin`, `auth`,

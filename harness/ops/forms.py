@@ -308,13 +308,32 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
     return tally.outcome(value=report, fields=len(plan))     # value = the FULL report
 
 
-def set_value(tab: Tab, ref: str, value: Any, *, keystrokes: bool = False,
-              timeout: float = 20.0, recheck: float = 0.15) -> Outcome:
-    """One field, one round trip (D3). `keystrokes=True` opts into real input via
-    `Input.insertText` — the whole string in ONE command, for editors that ignore
-    synthetic events. v1's per-character dispatch made a 20-char fill cost 61 round
-    trips; a 2,000-char paste here is one call either way."""
-    if not keystrokes:
+def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
+              keystrokes: bool | None = None, timeout: float = 20.0,
+              recheck: float = 0.15) -> Outcome:
+    """One field. Three tiers, because measurement showed two were not enough (D3).
+
+    | mode      | round trips | `isTrusted` | per-key handlers | use when |
+    |-----------|-------------|-------------|------------------|----------|
+    | `value`   | 1           | **false**   | no               | the default; most fields |
+    | `insert`  | 2           | true        | no               | the page checks `isTrusted` |
+    | `type`    | ~3N         | true        | **yes**          | typeahead / incremental mask |
+
+    Measured on a page instrumented to count them: a one-shot write opened a keystroke
+    typeahead **0 times** and left its dropdown empty; `Input.insertText` also opened it
+    **0 times** despite producing trusted events; only per-character `dispatchKeyEvent`
+    opened it (5 times) and populated the dropdown. So `insert` does *not* subsume `type` —
+    which is exactly why v1 types character by character, and why deleting that capability
+    rather than demoting it would have been a regression.
+
+    `type` is the slow tier on purpose: it is v1's cost model, kept for the cases that
+    genuinely need it rather than paid by default on every field.
+    """
+    if keystrokes is not None:                    # back-compat for the bool spelling
+        mode = "insert" if keystrokes else "value"
+    if mode not in ("value", "insert", "type"):
+        raise ValueError(f"mode must be value|insert|type, got {mode!r}")
+    if mode == "value":
         return fill_form(tab, [{"ref": ref, "value": value}], timeout=timeout,
                          recheck=recheck)
     focused = tab.js(
@@ -323,12 +342,21 @@ def set_value(tab: Tab, ref: str, value: Any, *, keystrokes: bool = False,
         timeout=timeout)
     if not focused:
         return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
-    tab.cdp("Input.insertText", {"text": str(value)}, timeout=timeout)
+    if mode == "insert":
+        tab.cdp("Input.insertText", {"text": str(value)}, timeout=timeout)
+    else:
+        for ch in str(value):
+            # keyDown carrying `text` is what makes the page see a real character; the
+            # matching keyUp is what a keystroke-driven typeahead listens for.
+            tab.cdp("Input.dispatchKeyEvent", {"type": "keyDown", "text": ch,
+                                               "key": ch, "unmodifiedText": ch},
+                    timeout=timeout)
+            tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch}, timeout=timeout)
     got = tab.js(f"(() => {{const el = __bh.refs[{json.dumps(ref)}]; el.blur();"
                  " return String(el.value).slice(0, 80);})()",
                  timeout=timeout)
     want = str(value)
-    if got == want[:80] or got == want:
-        return ok({"ref": ref, "got": got}, mode="keystrokes")
-    return fail(Class.JS_EXCEPTION, "value did not stick", ref=ref,
+    if got == want[:80] or got == want or _digits(got) == _digits(want) != "":
+        return ok({"ref": ref, "got": got}, mode=mode)
+    return fail(Class.JS_EXCEPTION, "value did not stick", ref=ref, mode=mode,
                 want=want[:80], got=got)

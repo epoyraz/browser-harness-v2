@@ -107,22 +107,48 @@ def test_default_set_value_is_one_round_trip(tab):
     assert len(_evaluates(browser)) - before == 1            # 2,000 chars, one call
 
 
-def test_keystroke_mode_is_one_inserttext_for_the_whole_string(tab):
-    """The opt-in (D3): real input events, still not per-character. v1 spent 61 round
-    trips on a 20-char fill."""
+def test_insert_mode_is_one_inserttext_for_the_whole_string(tab):
+    """Tier 2 (D3): trusted input events, still not per-character. v1 spent 61 round trips
+    on a 20-char fill; this is one command."""
     browser, t = tab
     text = "long text " * 20
     browser.eval_hook = lambda e: (True if "focus" in e else text[:80])
-    out = set_value(t, "e1", text, keystrokes=True)
+    out = set_value(t, "e1", text, mode="insert")
     inserts = [c for c in browser.calls if c.get("method") == "Input.insertText"]
     assert len(inserts) == 1 and inserts[0]["params"]["text"] == text
-    assert out.ok is True and out.observed["mode"] == "keystrokes"
+    assert out.ok is True and out.observed["mode"] == "insert"
+
+
+def test_type_mode_dispatches_a_key_pair_per_character(tab):
+    """Tier 3, and the reason it must exist: measured on an instrumented page, a one-shot
+    write and Input.insertText BOTH opened a keystroke typeahead zero times. Only
+    per-character key events did. `insert` does not subsume `type`."""
+    browser, t = tab
+    browser.eval_hook = lambda e: (True if "focus" in e else "zur")
+    out = set_value(t, "e1", "zur", mode="type")
+    keys = [c for c in browser.calls if c.get("method") == "Input.dispatchKeyEvent"]
+    assert [k["params"]["type"] for k in keys] == ["keyDown", "keyUp"] * 3
+    assert [k["params"].get("text") for k in keys if k["params"]["type"] == "keyDown"] \
+        == ["z", "u", "r"]
+    assert out.ok is True and out.observed["mode"] == "type"
+
+
+def test_the_bool_spelling_still_selects_insert(tab):
+    browser, t = tab
+    browser.eval_hook = lambda e: (True if "focus" in e else "x")
+    assert set_value(t, "e1", "x", keystrokes=True).observed["mode"] == "insert"
+
+
+def test_an_unknown_mode_is_rejected_loudly(tab):
+    _, t = tab
+    with pytest.raises(ValueError):
+        set_value(t, "e1", "x", mode="telepathy")
 
 
 def test_keystroke_mode_on_a_vanished_ref_fails_typed(tab):
     browser, t = tab
     browser.eval_hook = lambda e: False
-    out = set_value(t, "e9", "x", keystrokes=True)
+    out = set_value(t, "e9", "x", mode="insert")
     assert out.ok is False and out.cls is Class.ELEMENT_GONE
 
 
