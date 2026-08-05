@@ -1,0 +1,23 @@
+[project]
+name = "browser-harness-v2"
+version = "0.0.1"
+description = "Agent-facing browser control over CDP. Fewer decisions, typed outcomes, replayable."
+requires-python = ">=3.11"
+dependencies = ["websockets==15.0.1"]
+
+[project.scripts]
+bh = "harness.cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["harness"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
