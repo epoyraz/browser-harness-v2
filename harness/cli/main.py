@@ -13,6 +13,12 @@ def main() -> int:
         except PackageNotFoundError:
             print("0.0.1+src")
         return 0
+    if args and args[0] == "--doctor":
+        from harness.connect.doctor import diagnose, render
+        outcome = diagnose()
+        for line in render(outcome):
+            print(line)
+        return 0 if outcome.ok else 1
     print("bh — browser-harness v2 (scaffolding; see TODO.md)", file=sys.stderr)
     return 0
 

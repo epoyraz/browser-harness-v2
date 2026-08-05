@@ -76,9 +76,13 @@ def test_classify_covers_the_wordings_that_cost_v1_bugs():
     assert classify({"message": "Could not find node with given id"}) is Class.ELEMENT_GONE
 
 
-def test_timeout_is_typed_and_names_the_method(conn):
-    with pytest.raises(Timeout) as e:
-        conn.request("Runtime.evaluate", timeout=0.0)
+def test_timeout_is_typed_and_names_the_method():
+    # The fake must be genuinely slower than the timeout: with `timeout=0.0` against a
+    # zero-latency fake, the reply can land between send and wait, and no timeout fires.
+    browser = FakeBrowser("a", latency=0.5)
+    with Connection(browser) as c:
+        with pytest.raises(Timeout) as e:
+            c.request("Runtime.evaluate", timeout=0.05)
     assert e.value.observed["method"] == "Runtime.evaluate"
     assert e.value.retryable is True
 

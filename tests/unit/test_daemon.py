@@ -143,6 +143,21 @@ def test_many_sequential_requests_reuse_one_session(runtime):
     assert browser.attach_count["a"] == 1          # not one attach per call, as v1's js() did
 
 
+def test_recovery_never_reaches_an_unrelated_tab(runtime):
+    """TODO 13's done-when. v1's `attach_first_page()` substituted `pages[0]` when its
+    target was gone — which, against a daily-driver Chrome, is someone's real tab."""
+    browser = FakeBrowser("mine", "daily_driver")
+    daemon = _serve("fc", browser)
+    request("fc", {"method": "Runtime.evaluate", "target_id": "mine"})
+    browser.destroy("mine")
+    _settle(lambda: "mine" not in daemon.sessions.live_targets)
+    with pytest.raises(HarnessError) as e:
+        request("fc", {"method": "Runtime.evaluate", "target_id": "mine"})
+    daemon.stop()
+    assert e.value.observed.get("target_id") == "mine"     # the error names the dead target
+    assert browser.attach_count["daily_driver"] == 0       # and nothing touched the other tab
+
+
 def test_raw_attach_is_routed_through_the_one_producer(runtime):
     """The escape hatch must not be a second way to make a session.
 

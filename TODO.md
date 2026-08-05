@@ -3,9 +3,11 @@
 Every item cites the decision it implements (`docs/DESIGN.md`) and states how you know it is
 done. Ordered so each phase unblocks the next; within a phase, items are mostly parallel.
 
-**Budget target: ~1,600 lines of core.** v1 is 5,736 across 13 modules. If an item cannot be
-expressed in tens of lines, re-read §5 — every superseded PR in v1's history lost to a
-version 5×–60× smaller.
+**Budget target: ~1,600 lines of core *code*.** Restated after Phase 1: measured by AST
+(code lines only — docstrings and comments excluded, since they carry the why that stops
+v1's regressions from being re-litigated). v1 is 5,736 raw across 13 modules. If an item
+cannot be expressed in tens of lines, re-read §5 — every superseded PR in v1's history lost
+to a version 5×–60× smaller.
 
 ---
 
@@ -57,19 +59,37 @@ version 5×–60× smaller.
 
 ## Phase 2 — connection lifecycle (where v1's complexity actually lives)
 
-- [ ] **11. Endpoint discovery as a ranked strategy list** (D8) — explicit URL, then
+- [x] **11. Endpoint discovery as a ranked strategy list** (D8) — explicit URL, then
       liveness-probed profile candidates. Not a nested fallback ladder.
       *Done when:* each strategy reports which one won and why the others declined.
-- [ ] **12. Endpoint binding with trust mode** (D10) — `pinned` never widens scope, ever;
+      *Met, validated live:* on this machine `/json/*` is 404 (M147) and the profile
+      strategy still resolved `ws://…9222/devtools/browser/…` from `DevToolsActivePort`
+      with no HTTP at all; `--doctor` printed all three verdicts. Probes are
+      websocket-free — a ws "liveness check" would cost a consent prompt per probe (M144).
+- [x] **12. Endpoint binding with trust mode** (D10) — `pinned` never widens scope, ever;
       `discover` is opportunistic. *Done when:* a pinned daemon respawned without its env
       **refuses** rather than attaching to the user's daily-driver Chrome (#479).
-- [ ] **13. Recovery fails closed** (D10, observed live) — a dead pinned target returns an
+      *Met:* an explicit env URL *is* a pin, pins persist per daemon name so a respawn
+      without env stays pinned, and the #479 test plants a live discoverable "daily driver"
+      next to a dead pin — resolution raises naming the pin and never touches the live one.
+      `BH_TRUST=discover` is the one deliberate way out.
+- [x] **13. Recovery fails closed** (D10, observed live) — a dead pinned target returns an
       error naming it; never silently substitutes `pages[0]`.
       *Done when:* the stale-session path cannot reach an unrelated tab.
-- [ ] **14. Chrome compatibility, carried over intact** (§7) — M144 per-connection consent
+      *Met:* mostly by construction — there is no `attach_first_page()` and no fallback
+      path to hold wrong. The daemon test destroys the named target with a second tab
+      present and asserts the error names the dead target and the other tab's attach
+      count stays zero.
+- [x] **14. Chrome compatibility, carried over intact** (§7) — M144 per-connection consent
       (one held connection, never a retry loop — D7), M147 `/json/*` 404 → `DevToolsActivePort`
       fallback, stale-port liveness check, profile enumeration + override instead of 30
       hardcoded vendor paths. *Done when:* `--doctor` classifies each failure by type (D11).
+      *Met, two caveats:* (1) doctor classifies `endpoint_unreachable` / `endpoint_404` /
+      `no_browser_window` / `scope_refused`, and reports an M147-hidden window count as
+      *unknown* instead of guessing — `permission_pending` still requires an observed
+      prompt, which only the daemon's own connect can observe (rule 1). (2) v1's Chrome
+      auto-launch and chrome://inspect auto-open are NOT carried into core; doctor prints
+      the instruction instead. Revisit at item 34 if the install story needs it.
 
 ## Phase 3 — primitives (the agent-facing surface)
 
@@ -106,6 +126,15 @@ version 5×–60× smaller.
       *Done when:* 249 phone prefixes cannot silently select Spain.
 - [ ] **25. `set_value()` + keystroke opt-in** (D3) — one round trip by default.
       *Done when:* a 2,000-char field is one call, not 6,000.
+- [ ] **25b. Output budget + reversible elision** (D0/D4; headroom-style, see
+      github.com/headroomlabs-ai/headroom) — every agent-facing surface (REPL stdout,
+      `cdp()`/`js()` returns, console/network reads) is capped; an over-budget payload is
+      spilled to a content-addressed store and replaced by digest + head/tail preview;
+      `fetch(digest)` returns the original in one call. Adopt the *reversible* pattern,
+      not the middleware compressor: shaping output at the source stays lossless, and a
+      heuristic compressor rewriting page data would reintroduce silent-wrong-value bugs.
+      *Done when:* an accidental `print(getFullAXTree)` cannot flood a transcript — the
+      preview + digest lands instead, and the full payload is one call away.
 
 ## Phase 5 — observability, replay, regression tests
 
