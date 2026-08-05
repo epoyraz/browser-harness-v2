@@ -122,12 +122,17 @@ version 5×–60× smaller.
 
 ---
 
-## Open questions to resolve before Phase 2 and Phase 6
+## Open questions
 
-See `docs/DESIGN.md` §9. The two that block work: **process model** (one daemon multiplexing
-N clients vs one per client — decides items 7–8) and **the gating layer** (arbitrary code
-cannot be approved; if v2 wants human-in-the-loop, it needs a declarable action layer above
-the REPL — decides whether Phase 3 grows an approval seam).
+**Resolved:** the process model. Measured (D7): a second connection to an *already
+authorised* Chrome is denied a fresh consent prompt every time — 0/6 succeeded, and Chrome
+serialises the prompts. So **one daemon per browser endpoint, multiplexing N clients**;
+items 7–8 are unblocked. Per-client daemons would put a modal in front of every subagent.
+
+**Still open, blocking Phase 3's shape:** the gating layer. Arbitrary code cannot be
+approved, so if v2 wants human-in-the-loop for hard-to-reverse actions it needs a
+*declarable* action layer above the REPL. "Containerize it" is v1's answer, not a design.
+See `docs/DESIGN.md` §9.
 
 ## Not doing
 

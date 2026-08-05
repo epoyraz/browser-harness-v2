@@ -260,6 +260,9 @@ design in **#119**.
 **Measured, today, on Chrome 151:**
 - Two `Target.attachToTarget(flatten=True)` sessions over **one** websocket drive two tabs
   concurrently. No second port, no second browser, no cloud browser needed.
+- And the alternative is not merely worse but unusable: a second connection to an
+  already-authorised Chrome is **denied a fresh consent prompt every time** (D7), so
+  multiplexing is the only design that scales past one client.
 - A **backgrounded** tab accepts synthetic mouse input addressed to its session
   (`click B while A is foreground → B's handler fires, A untouched`).
 
@@ -434,6 +437,34 @@ scarce resource.** One held connection, patiently. Never a retry loop. This is a
 D5's single-websocket model is load-bearing rather than merely tidy — and why D1's
 "N sessions over one connection" is the only concurrency design that doesn't multiply
 consent prompts.
+
+#### Measured: consent is per *connection*, not per browser instance
+
+This was the one assumption the whole concurrency design rested on, so it was tested rather
+than inherited. Against a Chrome **already authorised** and actively driving this session,
+six fresh websockets were opened to the browser endpoint:
+
+```
+sequential  0/3 succeeded   — TimeoutError during opening handshake, ~8000 ms each
+concurrent  0/3 succeeded   — TimeoutError during opening handshake, ~8000 ms each
+```
+
+Every one stalled on a **new** consent prompt (*"An external app wants full control over
+this Chrome session to debug it… access to your saved data, cookies and site data"*), while
+the daemon's existing connection kept working throughout. Prior authorisation buys nothing
+for the next connection.
+
+Two consequences, one of them not obvious:
+
+- **Per-client daemons are not viable on local Chrome.** N clients would put a modal between
+  the user and every subagent — issue #375's 20-parallel-agent case becomes 20 prompts
+  before any work begins.
+- **Chrome queues one sheet for six connections**, so the prompts are *serialised*. N daemons
+  cost N sequential clicks, each blocking a handshake for up to the 45 s timeout — the cost
+  is not N × one click, it is N clicks in series.
+
+This retroactively justifies v1's strangest-looking constant, `LOCAL_HANDSHAKE_TIMEOUT = 45`.
+It reads as defensive padding and is in fact the only workable shape.
 
 ### D8 — WS-URL discovery cannot assume the filesystem
 
@@ -1117,8 +1148,12 @@ Do not start from a blank file. The core worth carrying is ~1,500 lines
 
 ## 9. Open questions
 
-1. Process model — one daemon multiplexing N clients (D1), or one daemon per client?
-   D1 makes the first viable; the second is simpler but costs a websocket and an attach per agent.
+1. ~~Process model — one daemon multiplexing N clients, or one per client?~~
+   **Resolved by measurement (D7): one daemon per browser endpoint, multiplexing N clients.**
+   Consent is per-connection, so per-client daemons put a serialised modal in front of every
+   subagent. The daemon is a property of the *browser*, not the client — so process isolation
+   follows browser isolation, which is also how this composes with #454's explicit
+   browser-selection model rather than competing with it.
 2. How does a pinned client recover when its tab is closed by the user?
 3. Do we take #454's explicit browser-selection model (`browser_new` / `browser(id)`) for
    *browser* isolation on top of D1's *tab* isolation? They are orthogonal and compose.
