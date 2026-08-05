@@ -20,12 +20,17 @@ from __future__ import annotations
 import json
 import os
 import re
+import secrets
 import socket
 import sys
 from pathlib import Path
 from typing import Any
 
 IS_WINDOWS = sys.platform == "win32"
+
+#: Set by `bind()` on Windows: the token the daemon bound in this process will accept.
+#: Stays None on POSIX, where AF_UNIX + 0600 is the boundary.
+_server_token: str | None = None
 
 #: Endpoint names must be filesystem- and path-traversal-safe.
 _NAME = re.compile(r"\A[A-Za-z0-9_-]{1,64}\Z")
@@ -91,6 +96,11 @@ def write_port(name: str, port: int, token: str) -> None:
     tmp = p.with_suffix(".port.tmp")
     tmp.write_text(json.dumps({"port": port, "token": token}), encoding="utf-8")
     os.replace(tmp, p)
+
+
+def expected_token() -> str | None:
+    """The token the daemon bound in this process will accept, or None on POSIX."""
+    return _server_token
 
 
 def connect(name: str, timeout: float = 5.0) -> tuple[socket.socket, str | None]:
@@ -192,13 +202,23 @@ def bind(name: str) -> socket.socket:
 
     POSIX: `umask 0077` around `bind()` so the socket is never briefly world-writable —
     a `chmod` afterwards leaves a window an attacker can win.
+
+    Windows: the port is ephemeral, so the port file is the *only* way a client can find
+    this daemon. Writing it is part of binding, not a separate step a caller may forget —
+    a bound daemon whose port was never recorded is one nobody can reach.
     """
+    global _server_token
     if IS_WINDOWS:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # No SO_REUSEADDR here: on Windows it lets a second process bind this exact
+        # addr:port and race us for client connections, which would hand a hijacker the
+        # very socket the token is meant to protect. POSIX's SO_REUSEADDR is not this.
         s.bind(("127.0.0.1", 0))
         s.listen(64)
+        _server_token = secrets.token_hex(32)
+        write_port(name, s.getsockname()[1], _server_token)
         return s
+    _server_token = None
     path = sock_path(name)
     try:
         path.unlink()

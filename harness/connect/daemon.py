@@ -82,6 +82,10 @@ class Daemon:
         self.conn.subscribe(self._broadcast)
         self.sessions.discover()
         self._server = ipc.bind(self.name)
+        # On Windows `bind()` mints the token it published in the port file; adopting it is
+        # what makes `_answer`'s check a real boundary rather than a no-op. None on POSIX.
+        if self._token is None:
+            self._token = ipc.expected_token()
         self._server.settimeout(0.5)
         return self
 
