@@ -1,0 +1,67 @@
+<!doctype html><meta charset=utf-8><title>Combobox forms</title>
+<style>
+ body{font:14px system-ui;padding:24px} .row{margin:18px 0;position:relative}
+ label{display:block;margin-bottom:4px}
+ .combo{border:1px solid #999;padding:8px;width:280px;cursor:pointer;background:#fff}
+ .pop{position:absolute;z-index:10;background:#fff;border:1px solid #999;width:280px;
+      max-height:160px;overflow:auto}
+ .pop[hidden]{display:none} .opt{padding:6px 8px} .opt:hover{background:#eef}
+</style>
+<body>
+<h1>Apply</h1>
+
+<!-- 1. Plain ARIA combobox, popup portalled to <body> (the SmartRecruiters shape) -->
+<div class="row">
+  <label id="l1">How did you hear about us?</label>
+  <div class="combo" id="c1" role="combobox" aria-labelledby="l1"
+       aria-haspopup="listbox" aria-controls="lb1" aria-expanded="false" tabindex="0">Select…</div>
+</div>
+
+<!-- 2. Typeahead: renders NO options until filtered (the Workday shape) -->
+<div class="row">
+  <label id="l2">Country</label>
+  <div class="combo" id="c2" role="combobox" aria-labelledby="l2"
+       aria-haspopup="listbox" aria-controls="lb2" aria-expanded="false">
+    <input id="i2" style="border:0;outline:0;width:100%" placeholder="Type to search">
+  </div>
+</div>
+
+<button type="submit">Send application</button>
+
+<div class="pop" id="lb1" role="listbox" hidden></div>
+<div class="pop" id="lb2" role="listbox" hidden></div>
+<script>
+const SRC = ["LinkedIn","Referral from a friend","Company website","Job board","Other"];
+const COUNTRIES = ["Schweiz","Deutschland","Österreich","Frankreich","Italien","Spanien"];
+function wire(comboId, popId, items, filtered) {
+  const combo = document.getElementById(comboId), pop = document.getElementById(popId);
+  const input = combo.querySelector('input');
+  const render = (q) => {
+    pop.innerHTML = '';
+    const list = filtered && !q ? [] : items.filter(t => !q || t.toLowerCase().includes(q.toLowerCase()));
+    for (const t of list) {
+      const d = document.createElement('div');
+      d.className = 'opt'; d.setAttribute('role','option'); d.textContent = t;
+      d.onclick = (e) => {
+        e.stopPropagation();
+        if (input) input.value = t; else combo.textContent = t;
+        combo.setAttribute('aria-expanded','false'); pop.hidden = true;
+      };
+      pop.appendChild(d);
+    }
+  };
+  const open = () => {
+    const r = combo.getBoundingClientRect();
+    pop.style.left = r.left + 'px'; pop.style.top = (r.bottom + window.scrollY) + 'px';
+    pop.hidden = false; combo.setAttribute('aria-expanded','true');
+    render(input ? input.value : '');
+  };
+  combo.addEventListener('mousedown', open);
+  if (input) input.addEventListener('keyup', () => { open(); render(input.value); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { pop.hidden = true; combo.setAttribute('aria-expanded','false'); }
+  });
+}
+wire('c1','lb1',SRC,false);
+wire('c2','lb2',COUNTRIES,true);
+</script>

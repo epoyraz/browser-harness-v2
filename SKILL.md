@@ -172,8 +172,8 @@ Things the schema tells you that matter:
 - **selects take `label`, not an index.** 249-option country lists are common and picking
   by position silently selected the wrong country. No match returns `no_option_match` with
   candidates and leaves the field untouched.
-- **`needs_interaction`** — an ARIA combobox built from divs. It has no value to set: click
-  it and pick from the popup.
+- **`needs_interaction`** — an ARIA combobox built from divs. It has no value to set;
+  use `select_option(ref, label)` (below), not `fill_form`.
 - **`hidden_control`** — the real `<select>` behind a widget. Fill this one; the visible
   1×1 decoy accepts writes and submits nothing.
 - **`verdict.is_form`** — a page can render fine and be a cookie banner plus a site search.
@@ -242,6 +242,26 @@ unchanged, and the video's timing is the real measured gap between actions, clam
 
 `bh stats` reads those journals and ranks failures by outcome class. It carries no URLs, no
 arguments and no JS source — only helper name, class, duration and round-trip count.
+
+## Comboboxes
+
+```python
+select_option(ref, "Schweiz")     # ARIA combobox OR native <select> — same call
+```
+
+`form_schema` marks div-based widgets `needs_interaction` and `fill_form` refuses them —
+a div has no value to set, and writing one throws `Illegal invocation`. `select_option`
+is the way through: it opens the widget, finds the option, clicks it, and **verifies the
+widget changed** rather than merely that something was clicked.
+
+It handles the shapes real ATSs use: popups portalled to `<body>` far from the combobox,
+and typeaheads that render **no options at all** until you type (it detects that and types
+the label to filter first). A native `<select>` is delegated to `fill_form`, so you never
+have to branch on `kind`.
+
+No match returns `no_option_match` **with candidates** and leaves the widget untouched —
+never "the first option", which is how the wrong country gets selected. It also closes the
+popup on failure, so a failed selection does not swallow your next click.
 
 ## Tabs
 

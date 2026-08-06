@@ -27,7 +27,7 @@ from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
 from harness.ops.batch import fetch_all
-from harness.ops.forms import fill_form, form_schema, require_form, set_value
+from harness.ops.forms import fill_form, form_schema, require_form, select_option, set_value
 from harness.ops.page import Tab
 
 CHROME = (os.environ.get("BH_CHROME")
@@ -244,6 +244,41 @@ def main() -> int:
         submitted = tab.js("document.getElementById('real-land').value")
         check("widgets: the value is on the control that submits", submitted == "CH",
               f"select.value={submitted!r}")
+
+        # ---- combobox: the dead end that select_option closes ----------------
+        tab.goto(f"{base}/combobox.html")
+        schema = form_schema(tab)
+        combos = [f for f in schema["fields"] if f["kind"] == "combobox"]
+        check("widgets flagged needs_interaction are now actionable",
+              len(combos) == 2, str([c["label"] for c in combos])[:60])
+
+        c1 = next(c for c in combos if "hear about" in str(c["label"]))
+        out = select_option(tab, c1["ref"], "Referral from a friend")
+        shown = tab.js("document.getElementById('c1').textContent")
+        check("portalled popup: option chosen and the widget verified",
+              out.ok and shown == "Referral from a friend", shown[:40])
+
+        c2 = next(c for c in combos if "Country" in str(c["label"]))
+        out = select_option(tab, c2["ref"], "Schweiz")
+        check("typeahead renders nothing until typed, then selects",
+              out.ok and tab.js("document.getElementById('i2').value") == "Schweiz",
+              f"got={out.value.get('got') if out.ok else out.detail}"[:50])
+
+        bad = select_option(tab, c1["ref"], "Atlantis")
+        check("no match is no_option_match with candidates, never a guess",
+              (not bad.ok) and bad.cls is Class.NO_OPTION_MATCH
+              and bool(bad.observed.get("candidates")),
+              str(bad.observed.get("candidates", []))[:52])
+        check("a failed select leaves the widget alone and closes the popup",
+              tab.js("document.getElementById('c1').textContent")
+              == "Referral from a friend"
+              and tab.js("document.getElementById('lb1').hidden") is True, "")
+
+        tab.goto(f"{base}/abacus.html")
+        sel = next(f for f in form_schema(tab)["fields"] if f["kind"] == "select")
+        out = select_option(tab, sel["ref"], "Herr")
+        check("a native <select> is delegated, not rejected",
+              out.ok, f"{sel['label']} -> {out.value[0]['got'] if out.ok else out.detail}"[:46])
 
         # ---- notaform: the 404 trap (verdict) -------------------------------
         tab.goto(f"{base}/notaform.html")

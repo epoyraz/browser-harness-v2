@@ -156,6 +156,7 @@ class Session:
             "form_schema": with_tab(forms.form_schema),
             "fill_form": with_tab(forms.fill_form),
             "set_value": with_tab(forms.set_value),
+            "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
         }

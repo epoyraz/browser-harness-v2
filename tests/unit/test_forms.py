@@ -6,7 +6,7 @@ import pytest
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
-from harness.ops.forms import fill_form, form_schema, require_form, set_value
+from harness.ops.forms import fill_form, form_schema, require_form, select_option, set_value
 from harness.ops.page import Tab
 from tests.fake_browser import FakeBrowser
 
@@ -18,6 +18,41 @@ def tab():
     t = Tab(conn, SessionRegistry(conn), "a")
     yield browser, t
     conn.close()
+
+
+
+def combo_hook(*, tag="div", options=None, has_input=False, state=None,
+               batch=None, typed_value=None):
+    """One hook that answers every probe `select_option` makes, dispatched on JS shape.
+
+    Written once rather than per test: five ad-hoc lambdas each forgot a different probe.
+    `click_at` asks for `[location.href, mutations]` and indexes it positionally, so a hook
+    that returns a dict there fails with `KeyError: 0` from three frames away — which is
+    exactly what happened.
+    """
+    seen = {"options": 0}
+
+    def hook(expr):
+        # Dispatch on the explicit marker: _FILL_JS contains `el.tagName.toLowerCase()`
+        # too, so every looser token also matched the batch write and `report` came back
+        # as the string "select".
+        if "bh-probe:kind" in expr:
+            return tag
+        if "role=option" in expr:
+            seen["options"] += 1
+            opts = options(seen["options"]) if callable(options) else (options or [])
+            return {"scope": "aria-controls", "options": opts}
+        if "location.href" in expr:
+            return ["https://a.test/", 0]          # click_at's before/after probe
+        if "([{" in expr:                          # fill_form's batched write
+            return batch if batch is not None else []
+        if "el.select" in expr:
+            return True
+        if state is not None:
+            return state(seen["options"]) if callable(state) else state
+        return {"x": 5, "y": 5, "text": "", "value": typed_value,
+                "hasInput": has_input, "inputX": 5, "inputY": 5}
+    return hook
 
 
 def _evaluates(browser):
@@ -296,3 +331,66 @@ def test_require_form_raises_not_a_form_with_the_verdict(tab):
                                   "fields": 0}})
     assert e.value.cls is Class.NOT_A_FORM
     assert "furniture" in str(e.value)
+
+
+# --- select_option: the combobox dead end, closed -----------------------------
+
+def test_a_native_select_is_delegated_not_rejected(tab):
+    """One call handles both kinds, so a caller never has to branch on `kind` first."""
+    browser, t = tab
+    browser.eval_hook = combo_hook(tag="select",
+                                   batch=[{"ref": "e1", "ok": True, "got": "Herr"}])
+    out = select_option(t, "e1", "Herr")
+    assert out.ok
+    assert not [c for c in browser.calls if c.get("method") == "Input.dispatchMouseEvent"]
+
+
+def test_no_match_returns_candidates_and_never_guesses(tab):
+    """Same contract as a native select: 'the first one' is how v1 chose Spain."""
+    browser, t = tab
+    browser.eval_hook = combo_hook(options=[{"text": "LinkedIn", "x": 10, "y": 40},
+                                            {"text": "Referral", "x": 10, "y": 60}])
+    out = select_option(t, "e1", "Atlantis", settle=0.01)
+    assert out.ok is False and out.cls is Class.NO_OPTION_MATCH
+    assert out.observed["candidates"] == ["LinkedIn", "Referral"]
+
+
+def test_a_failed_select_closes_the_popup(tab):
+    """A listbox left open covers the page and swallows the next click, so a failed
+    selection must not also break whatever is attempted afterwards."""
+    browser, t = tab
+    browser.eval_hook = combo_hook(options=[{"text": "A", "x": 1, "y": 2}])
+    select_option(t, "e1", "nope", settle=0.01)
+    keys = [c for c in browser.calls if c.get("method") == "Input.dispatchKeyEvent"]
+    assert any(k["params"].get("key") == "Escape" for k in keys)
+
+
+def test_an_empty_popup_is_needs_interaction_not_no_match(tab):
+    """Different repairs: 'the widget did not open' is not 'your label was wrong'."""
+    browser, t = tab
+    browser.eval_hook = combo_hook(options=[])
+    out = select_option(t, "e1", "x", settle=0.01)
+    assert out.ok is False and out.cls is Class.NEEDS_INTERACTION
+
+
+def test_a_typeahead_is_typed_into_before_options_are_read(tab):
+    """A Workday-shaped widget renders NO options until filtered, so reading once and
+    giving up would report an empty list for a list that is merely unqueried."""
+    browser, t = tab
+    browser.eval_hook = combo_hook(
+        has_input=True,
+        options=lambda n: [] if n == 1 else [{"text": "Schweiz", "x": 10, "y": 40}],
+        state=lambda n: {"x": 5, "y": 5, "text": "", "hasInput": True,
+                         "inputX": 5, "inputY": 5,
+                         "value": "Schweiz" if n > 1 else ""})
+    out = select_option(t, "e1", "Schweiz", settle=0.01)
+    typed = [c for c in browser.calls if c.get("method") == "Input.dispatchKeyEvent"
+             and c["params"].get("type") == "keyDown" and c["params"].get("text")]
+    assert out.ok and "".join(k["params"]["text"] for k in typed) == "Schweiz"
+
+
+def test_a_vanished_ref_is_element_gone(tab):
+    browser, t = tab
+    browser.eval_hook = lambda e: None
+    out = select_option(t, "e9", "x")
+    assert out.ok is False and out.cls is Class.ELEMENT_GONE

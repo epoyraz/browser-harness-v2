@@ -46,6 +46,7 @@ by = {{f["label"]: f for f in s["fields"]}}
 out = fill_form([{{"ref": by["Vorname *"]["ref"], "value": "Enes"}},
                  {{"ref": by["Anrede *"]["ref"], "label": "Herr"}}])
 print(out.ok, out.observed["succeeded"])''',
+      "combobox": f'goto("{base}/combobox.html")\ns = form_schema()\nc = [f for f in s["fields"] if f["kind"]=="combobox"][0]\no = select_option(c["ref"], "Referral from a friend")\nprint(o.ok, js("document.getElementById(\'c1\').textContent"))',
       "tabs": f'''t = new_tab("{base}/personio.html")
 use_tab(t.target_id); print(len(targets())>=1, t.target_id[:4]!=""); close_tab()''',
       "fetch_all": f'goto("{base}/abacus.html")\no=fetch_all(["{base}/personio.html","{base}/abacus.html"])\nprint(o.ok, o.observed["succeeded"])',

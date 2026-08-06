@@ -228,6 +228,61 @@ _FILL_JS = """((plan) => {
   return report;
 })(__PLAN__)"""
 
+#: Read a combobox's current rendering. `innerText` rather than `value`, because a div
+#: widget has no value — what it *shows* is the only thing a user or a check can compare.
+_COMBO_STATE_JS = """((ref) => {
+  const el = window.__bh && window.__bh.refs[ref];
+  if (!el) return null;
+  const inner = el.querySelector('input, [contenteditable=true]');
+  return {text: (el.innerText || '').replace(/\\s+/g, ' ').trim().slice(0, 120),
+          value: inner ? (inner.value ?? inner.textContent) : null,
+          expanded: el.getAttribute('aria-expanded'),
+          active: el.getAttribute('aria-activedescendant'),
+          hasInput: !!inner,
+          inputX: inner ? Math.round(inner.getBoundingClientRect().x +
+                                     inner.getBoundingClientRect().width / 2) : null,
+          inputY: inner ? Math.round(inner.getBoundingClientRect().y +
+                                     inner.getBoundingClientRect().height / 2) : null,
+          x: Math.round(el.getBoundingClientRect().x + el.getBoundingClientRect().width / 2),
+          y: Math.round(el.getBoundingClientRect().y + el.getBoundingClientRect().height / 2)};
+})(__REF__)"""
+
+#: The open popup's options, with click coordinates.
+#:
+#: Scope matters and is not cosmetic. Real widgets portal their listbox to `document.body`,
+#: far from the combobox in the DOM, so "search inside the element" finds nothing; but
+#: searching the whole document finds every OTHER combobox's options too, and picking one
+#: of those silently fills the wrong field. So: the listbox this combobox declares via
+#: `aria-controls`/`aria-owns` first, then the single visible listbox, then the document.
+_COMBO_OPTIONS_JS = """((ref) => {
+  const el = window.__bh && window.__bh.refs[ref];
+  if (!el) return {scope: 'none', options: []};
+  const visible = (n) => {
+    const r = n.getBoundingClientRect();
+    if (!r.width || !r.height) return false;
+    const cs = getComputedStyle(n);
+    return cs.visibility !== 'hidden' && cs.display !== 'none';
+  };
+  const id = el.getAttribute('aria-controls') || el.getAttribute('aria-owns');
+  let root = id ? document.getElementById(id) : null;
+  let scope = root ? 'aria-controls' : '';
+  if (!root) {
+    const boxes = [...document.querySelectorAll('[role=listbox],[role=menu]')].filter(visible);
+    if (boxes.length === 1) { root = boxes[0]; scope = 'sole-listbox'; }
+  }
+  if (!root) { root = document; scope = 'document'; }
+  const out = [];
+  for (const o of root.querySelectorAll('[role=option],[role=menuitem],li[data-value]')) {
+    if (!visible(o)) continue;
+    const r = o.getBoundingClientRect();
+    out.push({text: (o.innerText || o.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 80),
+              x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+              selected: o.getAttribute('aria-selected') === 'true'});
+  }
+  return {scope, options: out};
+})(__REF__)"""
+
+
 _STEP_CLASS = {"element_gone": Class.ELEMENT_GONE, "no_option_match": Class.NO_OPTION_MATCH,
                "needs_interaction": Class.NEEDS_INTERACTION}
 
@@ -378,6 +433,111 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         else:
             tally.record(fail(_step_class(r), r.get("error") or "value did not stick", **r))
     return tally.outcome(value=merged, fields=len(plan))     # value = the FULL report
+
+
+def select_option(tab: Tab, ref: str, label: str, *, timeout: float = 10.0,
+                  type_to_filter: bool | None = None,
+                  settle: float = 0.25) -> Outcome:
+    """Operate an ARIA combobox: open it, find the option, click it, verify.
+
+    The gap this closes. `form_schema` flags a `role=combobox` widget
+    `needs_interaction` and `fill_form` refuses it — correctly, since a div has no value
+    to set and writing one throws `Illegal invocation`. But nothing could then *act* on
+    it, so the harness diagnosed a dead end and offered no way through. Whole forms on
+    SmartRecruiters, Workday and Ashby are built this way.
+
+    A native `<select>` is delegated to `fill_form`, so one call handles both kinds and a
+    caller does not have to branch on `kind` first.
+
+    `type_to_filter` types the label into the widget's inner input before reading options —
+    which is how a typeahead with thousands of entries renders any at all. Auto-detected
+    when the popup opens empty and the widget has an input; pass it explicitly to force.
+    """
+    # The marker makes this probe identifiable. Without it no substring is unique —
+    # `_FILL_JS` also contains `el.tagName.toLowerCase()` in its combobox branch, so a
+    # test double dispatching on the obvious token answered the batch write with a tag
+    # name and `report` came back as a string.
+    probe = tab._world_js(
+        f"/* bh-probe:kind */ (() => {{const e = window.__bh && __bh.refs[{ref!r}];"
+        " return e ? e.tagName.toLowerCase() : null;})()", timeout=timeout)
+    if probe is None:
+        return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
+    if probe == "select":
+        return fill_form(tab, [{"ref": ref, "label": label}], timeout=timeout)
+
+    with tab.journal.call("select_option", ref=ref, label=label):
+        before = tab._world_js(_COMBO_STATE_JS.replace("__REF__", json.dumps(ref)),
+                               timeout=timeout) or {}
+        # A coordinate click, not `el.click()`: these widgets listen for pointer events and
+        # many ignore a synthetic click entirely (the same reason D4 makes clicks
+        # compositor-level so they pass through shadow roots).
+        tab.click_at(before.get("x", 0), before.get("y", 0), settle=settle, timeout=timeout)
+
+        found = tab._world_js(_COMBO_OPTIONS_JS.replace("__REF__", json.dumps(ref)),
+                              timeout=timeout) or {"options": [], "scope": "none"}
+        wants_typing = type_to_filter
+        if wants_typing is None:
+            wants_typing = not found["options"] and bool(before.get("hasInput"))
+        if wants_typing and before.get("hasInput"):
+            # Typeahead: the list is empty until it is filtered. Real key events, because
+            # that is the only write mode a keystroke-driven typeahead can see (D3).
+            for ch in str(label):
+                tab.cdp("Input.dispatchKeyEvent",
+                        {"type": "keyDown", "text": ch, "key": ch, "unmodifiedText": ch},
+                        timeout=timeout)
+                tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch},
+                        timeout=timeout)
+            time.sleep(settle)
+            found = tab._world_js(_COMBO_OPTIONS_JS.replace("__REF__", json.dumps(ref)),
+                                  timeout=timeout) or {"options": [], "scope": "none"}
+
+        options = found.get("options") or []
+        if not options:
+            _dismiss(tab, timeout)
+            return fail(Class.NEEDS_INTERACTION,
+                        "the popup exposed no options to choose from",
+                        ref=ref, want=label, scope=found.get("scope"),
+                        typed=bool(wants_typing))
+
+        want = " ".join(str(label).split()).lower()
+        def norm(t: str) -> str:
+            return " ".join(str(t).split()).lower()
+        hit = (next((o for o in options if norm(o["text"]) == want), None)
+               or next((o for o in options if norm(o["text"]).startswith(want)), None)
+               or next((o for o in options if want in norm(o["text"])), None))
+        if hit is None:
+            # Same contract as a native select: never fall back to "the first one".
+            _dismiss(tab, timeout)
+            return fail(Class.NO_OPTION_MATCH,
+                        f"no option matching {label!r} among {len(options)}",
+                        ref=ref, want=label,
+                        candidates=[o["text"] for o in options[:8]],
+                        options_count=len(options), scope=found.get("scope"))
+
+        tab.click_at(hit["x"], hit["y"], settle=settle, timeout=timeout)
+        after = tab._world_js(_COMBO_STATE_JS.replace("__REF__", json.dumps(ref)),
+                              timeout=timeout) or {}
+
+    # Verify the WIDGET changed, not that we clicked something: a click that missed and a
+    # click that landed look identical without this.
+    shown = str(after.get("value") or after.get("text") or "")
+    changed = shown != str(before.get("value") or before.get("text") or "")
+    matched = norm(shown) == norm(hit["text"]) or norm(hit["text"]) in norm(shown)
+    if changed or matched:
+        return ok({"ref": ref, "want": label, "got": hit["text"], "shown": shown[:80]},
+                  options_count=len(options))
+    return fail(Class.NEEDS_INTERACTION,
+                "the option was clicked but the widget still shows its old value",
+                ref=ref, want=label, clicked=hit["text"], shown=shown[:80])
+
+
+def _dismiss(tab: Tab, timeout: float) -> None:
+    """Close an open popup. A listbox left open covers the page and swallows the next
+    click, so failing to select must not also break whatever is attempted afterwards."""
+    try:
+        tab.press_key("Escape", timeout=timeout)
+    except Exception:  # noqa: BLE001, S110 — best effort; the real failure is the caller's
+        pass
 
 
 def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
