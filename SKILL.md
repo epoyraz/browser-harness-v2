@@ -1,3 +1,8 @@
+---
+name: browser-harness-v2
+description: "Browser control over CDP via `bh` — typed outcomes, one-pass form fill, snapshot+vision perception, recording and video. Use for web interaction, scraping, testing, or filling application forms."
+---
+
 # browser-harness v2
 
 Direct browser control over CDP. You write Python; it runs in a live session with helpers
