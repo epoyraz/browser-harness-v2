@@ -15,10 +15,11 @@ from __future__ import annotations
 import os
 from typing import Any, Self
 
+from harness import extend
 from harness.connect.client import RemoteConnection, RemoteRegistry, ensure_daemon
 from harness.core.journal import Journal
 from harness.core.outcome import HarnessError, TargetGone
-from harness.ops import batch, forms
+from harness.ops import batch, forms, record
 from harness.ops.page import Tab
 
 #: A tab we may drive. `about:blank` counts; chrome:// internals and devtools do not.
@@ -39,6 +40,10 @@ class Session:
         self.accept_dialogs = accept_dialogs
         self._tabs: dict[str, Tab] = {}
         self._current: str | None = None
+        self._recorder: record.Recorder | None = None
+        self.extensions: list[dict[str, Any]] = []
+        if os.environ.get("BH_RECORD", "").strip().lower() not in ("", "0", "false", "no"):
+            self.start_recording()
 
     # -- tabs --------------------------------------------------------------
 
@@ -91,7 +96,30 @@ class Session:
         except HarnessError:
             pass                      # already gone is the outcome we wanted
 
+    # -- recording ---------------------------------------------------------
+
+    def start_recording(self, name: str | None = None, title: str | None = None) -> str:
+        """One frame per state-changing action, written beside the journal that explains it.
+
+        Turning it on *moves* the journal into the recording directory: the frames and the
+        calls that produced them become one artifact instead of two to correlate.
+        """
+        if self._recorder is not None:
+            return str(self._recorder.dir)
+        self._recorder = record.start(lambda: self._current and self._tabs.get(self._current),
+                                      self.journal, name=name, title=title)
+        record.prune()
+        return str(self._recorder.dir)
+
+    def stop_recording(self) -> str | None:
+        if self._recorder is None:
+            return None
+        directory = self._recorder.stop()
+        self._recorder = None
+        return str(directory)
+
     def close(self) -> None:
+        self.stop_recording()
         for tab in self._tabs.values():
             tab.close()
         self._tabs.clear()
@@ -132,9 +160,15 @@ class Session:
             "fetch_all": with_tab(batch.fetch_all),
         }
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
-                     "capture_screenshot", "wait_lifecycle", "page_text", "press_key",
-                     "scroll", "upload_file"):
+                     "capture_screenshot", "wait_lifecycle", "wait_for", "frames",
+                     "page_text", "press_key", "scroll", "upload_file"):
             ns[name] = on_tab(name)
+        ns["start_recording"] = self.start_recording
+        ns["stop_recording"] = self.stop_recording
+        # Agent-written helpers load LAST and are executed with this namespace as their
+        # globals, so an extension calls goto()/snapshot()/fill_form() exactly as a script
+        # does — and its own functions are in scope for every script from the next run on.
+        self.extensions = extend.load_into(ns)
         return ns
 
 

@@ -174,6 +174,44 @@ ANNOTATE_JS = """((els) => {
 })(__ELS__)"""
 
 
+#: Name of the isolated-world binding a watcher calls when its condition becomes true.
+#: Scoped to WORLD via `executionContextName`, NOT global: an unscoped `Runtime.addBinding`
+#: puts a function on the page's own `window`, which is the exact detectability leak the
+#: isolated world was introduced to close.
+BINDING = "__bhNotify"
+
+#: Wait for a selector without polling (D13). Evaluates once, and only if that misses does
+#: it arm a MutationObserver that re-checks and fires the binding. My own live checks are
+#: littered with `time.sleep(1.0)` because this did not exist — a guessed sleep is both
+#: slower than it needs to be and wrong when the page is slower than the guess.
+WATCH_JS = """((sel, state, token) => {
+  const ok = () => {
+    const e = document.querySelector(sel);
+    if (state === 'gone') return !e;
+    if (!e) return false;
+    if (state === 'visible') {
+      const r = e.getBoundingClientRect();
+      const cs = getComputedStyle(e);
+      return !!(r.width && r.height) && cs.visibility !== 'hidden' && cs.display !== 'none';
+    }
+    return true;
+  };
+  if (ok()) return {matched: true, immediate: true};
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  bh.watch = bh.watch || {};
+  const obs = new MutationObserver(() => {
+    if (!ok()) return;
+    obs.disconnect();
+    delete bh.watch[token];
+    __bhNotify(token);
+  });
+  obs.observe(document.documentElement || document,
+    {subtree: true, childList: true, attributes: true, characterData: true});
+  bh.watch[token] = obs;
+  return {matched: false, immediate: false};
+})(__SEL__, __STATE__, __TOKEN__)"""
+
+
 def _unwrap_eval(r: dict[str, Any]) -> Any:
     """`Runtime.evaluate` result → a Python value, or the typed error. One implementation,
     shared by the main-world and isolated-world paths."""
@@ -250,6 +288,7 @@ class Tab:
         self._dialog: dict[str, Any] | None = None
         self._created: deque[dict[str, Any]] = deque(maxlen=16)
         self._world_ctx: int | None = None
+        self._bound = False
         conn.subscribe(self._on_event)
         self._install_runtime()
 
@@ -298,6 +337,16 @@ class Tab:
         self._conn.request("Runtime.evaluate",
                            {"expression": RUNTIME_JS, "contextId": ctx},
                            session_id=sid, timeout=10.0)
+        if not self._bound:
+            try:
+                # executionContextName scopes the binding to the isolated world, so the
+                # page's own `window` never gains a `__bhNotify` to detect.
+                self._conn.request("Runtime.addBinding",
+                                   {"name": BINDING, "executionContextName": WORLD},
+                                   session_id=sid, timeout=10.0)
+                self._bound = True
+            except HarnessError:
+                pass                  # waits fall back to their timeout, nothing else breaks
         self._world_ctx = ctx
         return ctx
 
@@ -486,6 +535,112 @@ class Tab:
             "dialog": dialog,
         }
 
+    # -- waiting on a condition, not on a guess ----------------------------
+
+    def wait_for(self, selector: str, *, state: str = "visible", timeout: float = 10.0,
+                 settle: float = 0.0) -> dict[str, Any]:
+        """Wait for `selector` to be present / visible / gone. Event-driven, never polled.
+
+        The reliability primitive v2 was missing. `wait_lifecycle` answers "the document
+        loaded", which an SPA satisfies long before the thing you need exists — so every
+        script (mine included: 16 of them across the live checks) fell back to
+        `time.sleep(1.2)`, which is simultaneously too slow when the page is fast and wrong
+        when the page is slow.
+
+        `state` is `visible` by default rather than `present`: a node that exists but has
+        no box is the failure mode that produced a verified write to a 1x1 decoy.
+        """
+        if state not in ("present", "visible", "gone"):
+            raise ValueError(f"state must be present|visible|gone, got {state!r}")
+        token = f"w{id(self)}:{time.perf_counter_ns()}"
+        with self._j.call("wait_for", selector=selector, state=state):
+            # Arm the Python-side waiter BEFORE evaluating: a fast page can satisfy the
+            # condition and fire the binding between the evaluate and the wait.
+            with self._armed(lambda m: m.get("method") == "Runtime.bindingCalled") as w:
+                probe = self._world_js(
+                    WATCH_JS.replace("__SEL__", json.dumps(selector))
+                            .replace("__STATE__", json.dumps(state))
+                            .replace("__TOKEN__", json.dumps(token)),
+                    timeout=timeout) or {}
+                if not probe.get("matched"):
+                    hit = w.wait_match(
+                        lambda m: (m.get("params") or {}).get("payload") == token, timeout)
+                    if hit is None:
+                        self._unwatch(token)
+                        raise Timeout(
+                            f"{selector!r} was not {state} within {timeout}s",
+                            selector=selector, state=state, timeout=timeout)
+            if settle:
+                time.sleep(settle)
+        return {"selector": selector, "state": state,
+                "immediate": bool(probe.get("immediate"))}
+
+    def _unwatch(self, token: str) -> None:
+        """Drop an abandoned observer. A MutationObserver left armed on a busy page runs
+        its callback on every DOM change for the life of the document."""
+        try:
+            self._world_js(
+                f"(() => {{const w = window.__bh && __bh.watch;"
+                f" if (w && w[{json.dumps(token)}]) {{w[{json.dumps(token)}].disconnect();"
+                f" delete w[{json.dumps(token)}];}} return true;}})()", timeout=5.0)
+        except HarnessError:
+            pass
+
+    def frames(self) -> list[dict[str, Any]]:
+        """Cross-origin iframes as attachable targets.
+
+        Same-origin iframes are reachable from `js()` through `contentDocument`; a
+        cross-origin one is a separate CDP target and is invisible to every DOM call on the
+        parent. Measured live: a SmartRecruiters posting behind DataDome had
+        `body.innerText.length === 0` and 10 nodes, with the entire real page inside a
+        `geo.captcha-delivery.com` iframe. Without this the page reads as broken rather
+        than as bot-walled.
+
+        Attach with `session.tab(target_id)`.
+        """
+        # Auto-attach is the ONLY way an OOPIF becomes reachable: `Target.getTargets`
+        # never lists one (measured: types are page/tab/service_worker/background_page
+        # only, even with an explicit filter and --site-per-process), and
+        # `attachToTarget` rejects its frame id. Turning it on makes the browser announce
+        # each child via `Target.attachedToTarget`, which the registry books.
+        def announce(retoggle: bool) -> list[dict[str, Any]]:
+            got: list[dict[str, Any]] = []
+            with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
+                if retoggle:
+                    # Enabling auto-attach when it is ALREADY on is a no-op, so a second
+                    # call in the same daemon-backed session announces nothing and the
+                    # page reads as frameless. Toggling forces a full re-announcement.
+                    self.cdp("Target.setAutoAttach",
+                             {"autoAttach": False, "waitForDebuggerOnStart": False,
+                              "flatten": True}, timeout=10.0)
+                self.cdp("Target.setAutoAttach",
+                         {"autoAttach": True, "waitForDebuggerOnStart": False,
+                          "flatten": True}, timeout=10.0)
+                w.wait_match(lambda m: True, 0.6)      # let the announcements arrive
+                for _, msg in w.hits:
+                    info = (msg.get("params") or {}).get("targetInfo") or {}
+                    if info.get("type") == "iframe":
+                        got.append({"target_id": info["targetId"],
+                                    "url": info.get("url", ""), "kind": "oopif",
+                                    "reachable": "session.tab(target_id)"})
+            return got
+
+        out = announce(False) or announce(True)
+        # Same-site iframes stay in the parent process and never become targets, so
+        # getTargets alone reads as "no iframes" on a page that plainly has one.
+        try:
+            same = self._world_js(
+                "[...document.querySelectorAll('iframe')].map(f => ({src: f.src || '',"
+                " same: (() => {try { return !!f.contentDocument; } catch (e) "
+                "{ return false; }})()}))", timeout=10.0) or []
+        except HarnessError:
+            same = []
+        for f in same:
+            if f.get("same"):
+                out.append({"target_id": None, "url": f.get("src", ""),
+                            "kind": "same-document", "reachable": "js/contentDocument"})
+        return out
+
     # -- vision: the other half of perception ------------------------------
 
     def see(self, path: str | Path | None = None, *, marks: bool = True,
@@ -546,16 +701,18 @@ class Tab:
         down = {**base, "type": "keyDown"}
         if text and not modifiers:
             down["text"] = text
-        self.cdp("Input.dispatchKeyEvent", down, timeout=timeout)
-        self.cdp("Input.dispatchKeyEvent", {**base, "type": "keyUp"}, timeout=timeout)
+        with self._j.call("press_key", key=key):
+            self.cdp("Input.dispatchKeyEvent", down, timeout=timeout)
+            self.cdp("Input.dispatchKeyEvent", {**base, "type": "keyUp"}, timeout=timeout)
 
     def scroll(self, dy: int = 600, dx: int = 0, *, x: int = 400, y: int = 300,
                timeout: float = 10.0) -> dict[str, Any]:
         """Wheel event at a point, so it scrolls whatever container is under the cursor —
         an overflow pane, a virtualised list — not just the document."""
-        self.cdp("Input.dispatchMouseEvent",
-                 {"type": "mouseWheel", "x": x, "y": y, "deltaX": dx, "deltaY": dy},
-                 timeout=timeout)
+        with self._j.call("scroll", dy=dy, dx=dx):
+            self.cdp("Input.dispatchMouseEvent",
+                     {"type": "mouseWheel", "x": x, "y": y, "deltaX": dx, "deltaY": dy},
+                     timeout=timeout)
         return self._world_js(
             "({y: Math.round(scrollY), height: document.documentElement.scrollHeight,"
             " atBottom: Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight})",

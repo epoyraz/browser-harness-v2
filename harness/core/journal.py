@@ -25,7 +25,7 @@ import json
 import os
 import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
@@ -69,6 +69,12 @@ class Journal:
     """Append-only JSONL. Thread-safe; every write is one line, flushed."""
 
     def __init__(self, path: str | os.PathLike[str] | None, *, session: str = ""):
+        #: Called as the span closes, before its entry is written, with (span, payload).
+        #: Whatever it returns is merged into the entry — which is how a recording adds
+        #: `frame` to the very call it belongs to instead of writing a second file that
+        #: has to be joined back later (v1 kept a parallel events.jsonl for exactly this
+        #: and paid for the duplication).
+        self.on_call: Callable[[Span, dict[str, Any]], dict[str, Any] | None] | None = None
         self.path = Path(path) if path else None
         self.session = session or f"s{int(time.time())}"
         self._n = 0
@@ -168,5 +174,12 @@ class _CallCtx:
                                         "detail": str(exc)[:200]})
         else:
             payload["outcome"] = {"ok": True}
+        if self.j.on_call is not None:
+            try:
+                extra = self.j.on_call(span, payload)
+            except Exception:  # noqa: BLE001 — observability must never break the run
+                extra = None
+            if extra:
+                payload.update(extra)
         self.j.write("call", id=span.id, **payload)
         return False          # never swallow

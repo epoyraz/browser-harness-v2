@@ -89,6 +89,13 @@ class SessionRegistry:
         self._j = journal or Journal(None)
         self._domains = domains
         self._sessions: dict[str, Session] = {}
+        #: targetId -> sessionId for children the BROWSER attached (OOPIFs, under
+        #: Target.setAutoAttach). Out-of-process iframes are never listed by
+        #: `Target.getTargets` and `attachToTarget` rejects their id, so auto-attach is
+        #: the only way to reach one — which makes the browser a session producer we do
+        #: not control. Booking it here keeps `ready_session()` the only place that turns
+        #: a session into a *usable* one, which is what item 9 was actually protecting.
+        self._adopted: dict[str, str] = {}
         self._by_session: dict[str, str] = {}      # sessionId → targetId, for event routing
         self._locks: dict[str, threading.Lock] = {}
         self._guard = threading.Lock()
@@ -110,6 +117,19 @@ class SessionRegistry:
             existing = self._sessions.get(target_id)
             if existing is not None and existing.live:
                 return existing
+
+            with self._guard:
+                adopted = self._adopted.pop(target_id, None)
+            if adopted is not None:
+                # The browser already handed us this one; enabling domains is what makes
+                # it a session by our definition, and it still happens here and nowhere else.
+                session = Session(target_id=target_id, session_id=adopted,
+                                  domains=self._enable_domains(adopted))
+                with self._guard:
+                    self._sessions[target_id] = session
+                    self._by_session[adopted] = target_id
+                self._j.write("daemon", event="adopted", **session.to_json())
+                return session
 
             try:
                 result = self._conn.request(
@@ -196,6 +216,14 @@ class SessionRegistry:
         """
         method = msg.get("method")
         params = msg.get("params") or {}
+        if method == "Target.attachedToTarget":
+            info = params.get("targetInfo") or {}
+            sid = params.get("sessionId")
+            if sid and info.get("targetId") and info.get("type") == "iframe":
+                # Record only. Enabling domains needs a round trip, and this runs on the
+                # reader thread — which cannot dispatch the reply it would wait for.
+                with self._guard:
+                    self._adopted[info["targetId"]] = sid
         if method == "Target.detachedFromTarget":
             target = self._target_for(params.get("sessionId"))
             if target:

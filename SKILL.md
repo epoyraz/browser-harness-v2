@@ -173,6 +173,71 @@ Things the schema tells you that matter:
   1×1 decoy accepts writes and submits nothing.
 - **`verdict.is_form`** — a page can render fine and be a cookie banner plus a site search.
 
+## Wait for a condition, never for a guess
+
+```python
+wait_for("#results", state="visible", timeout=15)   # present | visible | gone
+wait_lifecycle("networkIdle")                        # document-level events
+```
+
+`wait_for` arms a MutationObserver in the isolated world and wakes on the mutation — an
+element that appears at 1800 ms returns at ~1720 ms, and one that never appears is a typed
+`timeout`, not a silent pass. **Reach for this instead of `time.sleep`**: a guessed sleep is
+slower than it needs to be when the page is fast and wrong when the page is slow.
+
+`state="visible"` is the default on purpose — a node that exists with no box is exactly the
+decoy that produced a verified write to nothing.
+
+## Cross-origin iframes
+
+```python
+for f in frames():
+    t = session.tab(f["target_id"])     # attach to the iframe itself
+    print(t.page_text()[:200])
+```
+
+An out-of-process iframe is a separate CDP target: no DOM call on the parent can see into
+it, and `Target.getTargets` does not even list it. Measured live — a SmartRecruiters posting
+behind DataDome had `body.innerText.length === 0` and 10 nodes, with the whole real page
+inside a `geo.captcha-delivery.com` iframe. Without `frames()` that page reads as broken
+rather than as bot-walled. Same-site iframes stay in the parent and are reported as
+`kind: "same-document"` — reach those through `js()` and `contentDocument`.
+
+## Write your own helpers
+
+The harness is meant to be extended by whoever is using it. Put functions in
+`~/.browser-harness/helpers.py` (or `./bh_helpers.py`, or `$BH_HELPERS`) and they are in
+scope in every script from the next run on:
+
+```python
+# ~/.browser-harness/helpers.py — no imports needed
+def apply_and_verify(url, plan):
+    goto(url)
+    out = fill_form(plan)
+    return {"ok": out.ok, "landed": js("location.href")}
+```
+
+The file runs with the script namespace as its globals, so `goto()`, `snapshot()`,
+`fill_form()`, `see()` are all already there. `bh helpers --init` writes a starter.
+A broken helper file warns on stderr and is skipped — it never costs you the browser.
+
+## Recording and video
+
+```bash
+BH_RECORD=1 bh <<'PY' ... PY     # a frame per state-changing action
+bh recordings                     # newest first
+bh video                          # render the newest to mp4
+bh stats                          # what you use, and what fails
+```
+
+A recording is a folder with `session.jsonl` — **the journal itself**, with `frame` added to
+the calls that produced one — plus the JPEGs. So `bh trace <recording>/session.jsonl` works
+unchanged, and the video's timing is the real measured gap between actions, clamped to
+0.6–3 s and reported when it was.
+
+`bh stats` reads those journals and ranks failures by outcome class. It carries no URLs, no
+arguments and no JS source — only helper name, class, duration and round-trip count.
+
 ## Tabs
 
 ```python
