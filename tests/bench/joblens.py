@@ -42,15 +42,16 @@ from harness.core.bench import render, rollup
 CV_DEFAULT = "/Users/rebourne/Desktop/Bewerbung 2026/Lebenslauf – Enes Poyraz.pdf"
 URL = "https://joblens.ch/suche"
 
-#: Conservative. A short agent turn is rarely under this once the model has to read a page
-#: dump and write the next script; the real session's turns were visibly longer.
-THINK_MS_DEFAULT = 8000.0
+#: Measured, not guessed: p50 of the real gaps between harness calls in the agent session
+#: that produced jobs.txt, via `bh bench --from-transcript` (n=13, mean 15.9s). The old
+#: 8000 placeholder understated the delta by roughly half.
+THINK_MS_DEFAULT = 15500.0
 
 CHROME = (os.environ.get("BH_CHROME")
           or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 
 
-def launch_chrome(profile: Path) -> subprocess.Popen:
+def launch_chrome(profile: Path) -> None:
     """A scratch-profile browser of our own.
 
     Not the daily driver: Chrome M144 grants consent PER WEBSOCKET and refuses a second
@@ -59,23 +60,53 @@ def launch_chrome(profile: Path) -> subprocess.Popen:
     every step on exactly that handshake. A scratch profile also makes the numbers
     reproducible instead of depending on what happens to be open.
     """
-    proc = subprocess.Popen(
-        [CHROME, f"--user-data-dir={profile}", "--remote-debugging-port=0",
-         "--no-first-run", "--no-default-browser-check", "--window-size=1280,900",
-         "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    downloads = profile / "downloads"
+    downloads.mkdir(parents=True, exist_ok=True)
+    flags = [f"--user-data-dir={profile}", "--remote-debugging-port=0",
+             "--no-first-run", "--no-default-browser-check", "--window-size=1280,900",
+             f"--download-directory={downloads}", "--disable-features=DefaultBrowserSetting",
+             "about:blank"]
+    # Launched through `open`, so **launchd** is the responsible process rather than the
+    # terminal that started us. This is not cosmetic: launching Chrome as our own child
+    # made macOS attribute Chrome's file access to the terminal app, Chrome reached for
+    # ~/Downloads on startup, and the resulting TCC prompt appeared *behind* the Chrome
+    # window. Unanswered reads as denied, so the terminal lost Desktop access — and this
+    # benchmark then could not read its own virtualenv. It happened twice before the
+    # cause was clear. The explicit download directory removes the trigger as well.
+    subprocess.run(["/usr/bin/open", "-na", CHROME, "--args", *flags],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     deadline = time.monotonic() + 25
     while not (profile / "DevToolsActivePort").exists():
         if time.monotonic() > deadline:
             raise RuntimeError("Chrome never wrote DevToolsActivePort")
         time.sleep(0.1)
     time.sleep(0.4)
-    return proc
+
+
+def kill_chrome(profile: Path) -> None:
+    """`open -na` detaches the process, so there is no handle to terminate — find it by
+    the scratch profile it was told to use, which no other Chrome can be holding."""
+    with contextlib.suppress(Exception):
+        subprocess.run(["/usr/bin/pkill", "-f", f"--user-data-dir={profile}"],
+                       check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(1.0)
 
 
 def _bh(script: str, env: dict, timeout: float = 180) -> subprocess.CompletedProcess:
     return subprocess.run([sys.executable, "-m", "harness.cli.main", "-"],
                           input=script, capture_output=True, text=True, check=False,
                           cwd=str(ROOT), env=env, timeout=timeout)
+
+
+# Every `bh` run is its own process with its own (empty) current tab, so each step after
+# the first has to find the page again. That is not benchmark ceremony — it is the tax a
+# real agent pays per step, and it belongs in the exploratory column.
+#
+# Omitting it does not fail loudly, which is the trap: `tab()` falls back to the first
+# drivable page, which is Chrome's original about:blank, so the probes quietly answer
+# questions about a blank document. The first run of this file scored 60.9x that way.
+REATTACH = '''use_tab(next(t for t in targets() if "joblens" in t.get("url",""))["targetId"])
+'''
 
 
 # --------------------------------------------------------------------------
@@ -88,9 +119,7 @@ def exploratory(env: dict, cv: str) -> list[str]:
 import time; time.sleep(2)
 print(js("document.title"), len(page_text()))''',
         # 2. a fresh process has no current tab — find it again, then look at the text
-        '''tgt = next((t for t in targets() if "joblens" in t.get("url","")), None)
-use_tab(tgt["targetId"])
-print(page_text()[:400])''',
+        '''print(page_text()[:400])''',
         # 3. what does the search form look like?
         '''print(js("""JSON.stringify([...document.querySelectorAll('input')]
   .map(e => ({t: e.type, ph: e.placeholder||''})))"""))''',
@@ -120,7 +149,7 @@ raw = js("""(() => JSON.stringify([...document.querySelectorAll('ol > li')]
             company:comp?comp.innerText.trim():''};})))()""")
 print(len(json.loads(raw)))''',
     ]
-    return steps
+    return [steps[0]] + [REATTACH + s for s in steps[1:]]
 
 
 # --------------------------------------------------------------------------
@@ -188,7 +217,7 @@ def main() -> int:
     work = Path(tempfile.mkdtemp(prefix="bh-bench-"))
     profile = Path(tempfile.mkdtemp(prefix="bh-benchprof-"))
     runtime = Path(tempfile.mkdtemp(prefix="bhb-", dir="/tmp"))
-    chrome = launch_chrome(profile)
+    launch_chrome(profile)
     env = {**os.environ, "PYTHONPATH": str(ROOT), "BU_NAME": "bench",
            "BH_RECORD": "0", "BH_RUNTIME_DIR": str(runtime),
            "BH_PROFILE_DIRS": str(profile), "BU_CDP_URL": "", "BU_CDP_WS": ""}
@@ -224,9 +253,7 @@ def main() -> int:
         (work / "bench.json").write_text(json.dumps(results, indent=2, default=str))
         print(f"\n  raw: {work}/bench.json")
     finally:
-        chrome.terminate()
-        with contextlib.suppress(Exception):
-            chrome.wait(5)
+        kill_chrome(profile)
         shutil.rmtree(profile, ignore_errors=True)
         shutil.rmtree(runtime, ignore_errors=True)
         # journals stay in `work` — the report is the product
