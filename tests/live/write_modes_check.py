@@ -1,7 +1,5 @@
 """Does v2's one-shot write differ observably from v1's keystrokes? Measure, don't assert."""
 import json
-import os
-import subprocess
 import sys
 import tempfile
 import threading
@@ -11,11 +9,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-CHROME = (os.environ.get("BH_CHROME")
-          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+import _browser
+
 #: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
-FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
@@ -57,9 +55,7 @@ class H(BaseHTTPRequestHandler):
 
 site = HTTPServer(("127.0.0.1",0), H); threading.Thread(target=site.serve_forever,daemon=True).start()
 scratch = Path(tempfile.mkdtemp(prefix="bh-trust-"))
-ch = subprocess.Popen([CHROME,
-  f"--user-data-dir={scratch}","--remote-debugging-port=0","--no-first-run",
-  "--no-default-browser-check",*FLAGS,"about:blank"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+_browser.launch(scratch)
 try:
     while not (scratch/"DevToolsActivePort").exists(): time.sleep(0.1)
     time.sleep(0.4)
@@ -87,4 +83,4 @@ try:
         print("  ", json.dumps(log, ensure_ascii=False))
     conn.close()
 finally:
-    ch.terminate(); site.shutdown()
+    _browser.kill(scratch); site.shutdown()

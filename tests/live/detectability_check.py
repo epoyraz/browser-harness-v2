@@ -1,6 +1,5 @@
 """Isolate WHAT sets navigator.webdriver: the flag, or the CDP attach? The page reports
 back over plain HTTP, so no CDP is involved in the measurement itself."""
-import os
 import queue
 import subprocess
 import sys
@@ -12,9 +11,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-CHROME = (os.environ.get("BH_CHROME")
-          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
+import _browser
 
 results = queue.Queue()
 PROBE = """<!doctype html><meta charset=utf-8><body><script>
@@ -40,24 +39,33 @@ site = HTTPServer(("127.0.0.1",0), H); threading.Thread(target=site.serve_foreve
 URL = f"http://127.0.0.1:{site.server_port}/"
 
 def launch(extra):
+    """Its own launcher, because this suite is the one case `_browser.launch` cannot
+    serve: the whole point is to compare a Chrome *without* --remote-debugging-port
+    against one with it, and without that flag there is no DevToolsActivePort to wait on.
+
+    Still detached via `open`, for the same reason everything else here is: launching
+    Chrome as a child makes macOS attribute its file access to the terminal, and the
+    unanswered TCC prompt that follows revokes the terminal's Desktop permission.
+    """
     scratch = Path(tempfile.mkdtemp(prefix="bh-det3-"))
-    args = [CHROME,
-            f"--user-data-dir={scratch}", "--no-first-run",
-            "--no-default-browser-check"] + extra + [URL]
-    return subprocess.Popen(args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL), scratch
+    args = [f"--user-data-dir={scratch}", "--no-first-run",
+            f"--download-directory={scratch}", "--no-default-browser-check", *extra, URL]
+    subprocess.run(["/usr/bin/open", "-na", _browser.CHROME, "--args", *args],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return scratch
 
 for label, extra in [("no remote debugging at all", []),
                      ("--remote-debugging-port only (nobody attached)",
                       ["--remote-debugging-port=0"])]:
     while not results.empty(): results.get()
-    ch, scratch = launch(extra)
+    scratch = launch(extra)
     try:
         r = results.get(timeout=25)
         print(f"{label:<48} webdriver={r['webdriver']:<6} globals={r.get('globals','')!r}")
     except queue.Empty:
         print(f"{label:<48} NO REPORT")
     finally:
-        ch.terminate(); time.sleep(0.5)
+        _browser.kill(scratch)
 
 # now: attach with v2 and re-probe the SAME page after attach
 from harness.connect.cdp import Connection, WebSocketTransport
@@ -65,7 +73,7 @@ from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
 
 while not results.empty(): results.get()
-ch, scratch = launch(["--remote-debugging-port=0"])
+scratch = launch(["--remote-debugging-port=0"])
 try:
     first = results.get(timeout=25)
     while not (scratch/"DevToolsActivePort").exists(): time.sleep(0.1)
@@ -78,4 +86,4 @@ try:
     print(f"{'v2 attached (page reports itself, 3s later)':<48} webdriver={after['webdriver']:<6} globals={after.get('globals','')!r}")
     conn.close()
 finally:
-    ch.terminate(); site.shutdown()
+    _browser.kill(scratch); site.shutdown()

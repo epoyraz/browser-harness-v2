@@ -8,12 +8,9 @@ and the cassette bytes/call figure on real traffic. Not collected by pytest.
 """
 from __future__ import annotations
 
-import contextlib
 import json
-import os
 import shutil
 import socket
-import subprocess
 import sys
 import tempfile
 import threading
@@ -22,6 +19,9 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import _browser
 
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
@@ -31,13 +31,10 @@ from harness.core.outcome import HarnessError, NavigationFailed, NotSerializable
 from harness.ops.page import Tab
 
 #: Override with BH_CHROME to run these checks off macOS.
-CHROME = (os.environ.get("BH_CHROME")
-          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 
 #: Windows marks a non-foreground window occluded and throttles its renderer, which drops
 #: Input.dispatchMouseEvent silently — every click delta reads as "nothing happened".
 #: macOS has no equivalent, so this is Windows-only.
-FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 
 _SOF = {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
 
@@ -97,18 +94,8 @@ def main() -> int:
     threading.Thread(target=site.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{site.server_port}"
 
-    chrome = subprocess.Popen(
-        [CHROME, f"--user-data-dir={scratch}", "--remote-debugging-port=0",
-         "--no-first-run", "--no-default-browser-check", "--window-size=1200,800",
-         *FLAGS, "about:blank"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    _browser.launch(scratch, window="1200,800")
     try:
-        deadline = time.monotonic() + 15
-        while not (scratch / "DevToolsActivePort").exists():
-            if time.monotonic() > deadline:
-                print("Chrome never wrote DevToolsActivePort")
-                return 1
-            time.sleep(0.1)
         time.sleep(0.3)
 
         # our own discovery, against the scratch profile (endpoint.py live)
@@ -231,9 +218,7 @@ def main() -> int:
               f"{size}B / {sends} calls = {size // max(sends, 1)}B/call")
 
     finally:
-        chrome.terminate()
-        with contextlib.suppress(Exception):
-            chrome.wait(5)
+        _browser.kill(scratch)
         site.shutdown()
         shutil.rmtree(scratch, ignore_errors=True)
 

@@ -8,7 +8,6 @@ Run manually: `.venv/bin/python tests/live/record_check.py`
 """
 from __future__ import annotations
 
-import contextlib
 import json
 import os
 import shutil
@@ -23,8 +22,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+import _browser
+
 FIXTURES = ROOT / "tests" / "fixtures"
 results: list[tuple[str, bool, str]] = []
 
@@ -76,13 +77,9 @@ def main() -> int:
         '    return {"title": js("document.title"), "elements": len(snapshot())}\n',
         encoding="utf-8")
 
-    chrome = subprocess.Popen(
-        [CHROME, f"--user-data-dir={scratch}", "--remote-debugging-port=0",
-         "--no-first-run", "--no-default-browser-check", "--window-size=1100,760",
-         # Two loopback ports are the SAME site, so an iframe between them stays
-         # in-process. Force site isolation to get a real OOPIF to test against.
-         "--site-per-process",
-         "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    # Two loopback ports are the SAME site, so an iframe between them stays in-process.
+    # Force site isolation to get a real OOPIF to test against.
+    _browser.launch(scratch, window="1100,760", extra=["--site-per-process"])
     env = {**os.environ, "PYTHONPATH": str(ROOT), "BH_RUNTIME_DIR": str(runtime),
            "BH_PROFILE_DIRS": str(scratch), "BU_CDP_URL": "", "BU_CDP_WS": "",
            "BH_RECORDINGS": str(recs), "BH_HELPERS": str(helpers),
@@ -249,9 +246,7 @@ print("done")
               f"{roll.get('calls', 0)} calls, {len(roll.get('helpers', []))} helpers")
 
     finally:
-        chrome.terminate()
-        with contextlib.suppress(Exception):
-            chrome.wait(5)
+        _browser.kill(scratch)
         origin_a.shutdown(); origin_b.shutdown()
         for d in (scratch, runtime, recs, slow_dir, helpers.parent):
             shutil.rmtree(d, ignore_errors=True)

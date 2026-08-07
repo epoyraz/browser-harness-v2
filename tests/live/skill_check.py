@@ -11,19 +11,17 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _browser
+
 site = ThreadingHTTPServer(("127.0.0.1",0), partial(SimpleHTTPRequestHandler, directory=str(ROOT/"tests"/"fixtures")))
 threading.Thread(target=site.serve_forever, daemon=True).start()
 base = f"http://127.0.0.1:{site.server_port}"
-CHROME = (os.environ.get("BH_CHROME")
-          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 #: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
-FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 scratch = Path(tempfile.mkdtemp(prefix="bh-skill-"))
 # /tmp keeps the AF_UNIX sun_path inside its 104-byte budget; Windows has no such limit.
 runtime = Path(tempfile.mkdtemp(prefix="bhs-", dir=None if os.name == "nt" else "/tmp"))
-ch = subprocess.Popen([CHROME,
-  f"--user-data-dir={scratch}","--remote-debugging-port=0","--no-first-run",
-  "--no-default-browser-check",*FLAGS,"about:blank"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+_browser.launch(scratch)
 env={**os.environ,"PYTHONPATH":str(ROOT),"BH_RUNTIME_DIR":str(runtime),
      "BH_PROFILE_DIRS":str(scratch),"BU_CDP_URL":"","BU_CDP_WS":"","BU_NAME":"skillcheck"}
 def bh(s): return subprocess.run([sys.executable,"-m","harness.cli.main","-"],input=s,
@@ -70,4 +68,4 @@ use_tab(t.target_id); print(len(targets())>=1, t.target_id[:4]!=""); close_tab()
     print(f"\n{len(cases)+1-bad}/{len(cases)+1} SKILL.md examples run")
     sys.exit(1 if bad else 0)
 finally:
-    ch.terminate(); site.shutdown(); shutil.rmtree(scratch,ignore_errors=True); shutil.rmtree(runtime,ignore_errors=True)
+    _browser.kill(scratch); site.shutdown(); shutil.rmtree(scratch,ignore_errors=True); shutil.rmtree(runtime,ignore_errors=True)

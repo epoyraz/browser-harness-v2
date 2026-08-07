@@ -25,13 +25,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import _browser
 
 from harness.core import ipc
 
-CHROME = (os.environ.get("BH_CHROME")
-          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 #: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
-FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 FIXTURES = ROOT / "tests" / "fixtures"
 results: list[tuple[str, bool, str]] = []
 
@@ -57,10 +57,7 @@ def main() -> int:
     threading.Thread(target=site.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{site.server_port}"
 
-    chrome = subprocess.Popen(
-        [CHROME, f"--user-data-dir={scratch}", "--remote-debugging-port=0",
-         "--no-first-run", "--no-default-browser-check", "--window-size=1200,900",
-         *FLAGS, "about:blank"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    _browser.launch(scratch, window="1200,900")
     env = {**os.environ, "PYTHONPATH": str(ROOT),
            "BH_RUNTIME_DIR": str(runtime),
            "BH_PROFILE_DIRS": str(scratch), "BU_CDP_URL": "", "BU_CDP_WS": ""}
@@ -207,9 +204,7 @@ print(json.dumps(upload_file(inp["ref"], {str(sample)!r})))
         for f in runtime.glob("*.sock"):
             with contextlib.suppress(Exception):
                 f.unlink()
-        chrome.terminate()
-        with contextlib.suppress(Exception):
-            chrome.wait(5)
+        _browser.kill(scratch)
         site.shutdown()
         shutil.rmtree(scratch, ignore_errors=True)
         shutil.rmtree(runtime, ignore_errors=True)

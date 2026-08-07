@@ -11,11 +11,8 @@ count on the line is TODO 26's done-when, demonstrated on real traffic.
 """
 from __future__ import annotations
 
-import contextlib
-import os
 import shutil
 import statistics
-import subprocess
 import sys
 import tempfile
 import threading
@@ -26,6 +23,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import _browser
 
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
@@ -36,10 +36,7 @@ from harness.ops.batch import fetch_all
 from harness.ops.forms import fill_form, form_schema
 from harness.ops.page import Tab
 
-CHROME = (os.environ.get("BH_CHROME")
-          or "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome")
 #: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
-FLAGS = ["--disable-features=CalculateNativeWinOcclusion"] if os.name == "nt" else []
 FIXTURES = ROOT / "tests" / "fixtures"
 
 results: list[tuple[str, bool, str]] = []
@@ -80,18 +77,8 @@ def main() -> int:
     threading.Thread(target=site.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{site.server_port}"
 
-    chrome = subprocess.Popen(
-        [CHROME, f"--user-data-dir={scratch}", "--remote-debugging-port=0",
-         "--no-first-run", "--no-default-browser-check", "--window-size=1200,900",
-         *FLAGS, "about:blank"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    _browser.launch(scratch, window="1200,900")
     try:
-        deadline = time.monotonic() + 15
-        while not (scratch / "DevToolsActivePort").exists():
-            if time.monotonic() > deadline:
-                print("Chrome never wrote DevToolsActivePort")
-                return 1
-            time.sleep(0.1)
         time.sleep(0.3)
 
         journal_path = scratch / "session.jsonl"
@@ -176,9 +163,7 @@ def main() -> int:
                                               if fill_lines else "none"))
 
     finally:
-        chrome.terminate()
-        with contextlib.suppress(Exception):
-            chrome.wait(5)
+        _browser.kill(scratch)
         site.shutdown()
         shutil.rmtree(scratch, ignore_errors=True)
 
