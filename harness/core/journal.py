@@ -79,7 +79,12 @@ class Journal:
         self.session = session or f"s{int(time.time())}"
         self._n = 0
         self._lock = threading.Lock()
-        self._stack: list[Span] = []
+        # Per-thread, because span nesting is a property of one call chain, not of the
+        # process. With `parallel()` driving several tabs at once a shared stack would
+        # record thread A's js() as a child of thread B's goto(), and `cdp()` would bill
+        # round trips to whichever span happened to be globally innermost — turning the
+        # trace tree and the round-trip counts into fiction exactly when they matter most.
+        self._local = threading.local()
         if self.path:
             try:
                 self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -117,6 +122,15 @@ class Journal:
         daemon log line can finally be joined.
         """
         return _CallCtx(self, fn, args)
+
+    @property
+    def _stack(self) -> list[Span]:
+        """This thread's open spans. Created lazily: threading.local has no per-thread
+        default, and a worker thread must start with an empty stack, not inherit one."""
+        stack = getattr(self._local, "stack", None)
+        if stack is None:
+            stack = self._local.stack = []
+        return stack
 
     def cdp(self, method: str) -> None:
         """Count a CDP round trip against the innermost open span.

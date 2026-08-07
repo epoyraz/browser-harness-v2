@@ -13,6 +13,7 @@ D1 was after; the ergonomic convenience of "there is a current tab" was never th
 from __future__ import annotations
 
 import os
+import threading
 from typing import Any, Self
 
 from harness import extend
@@ -20,6 +21,7 @@ from harness.connect.client import RemoteConnection, RemoteRegistry, ensure_daem
 from harness.core.journal import Journal
 from harness.core.outcome import HarnessError, TargetGone
 from harness.ops import batch, forms, record
+from harness.ops import parallel as parallel_ops
 from harness.ops.page import Tab
 
 #: A tab we may drive. `about:blank` counts; chrome:// internals and devtools do not.
@@ -39,7 +41,14 @@ class Session:
         self.registry = RemoteRegistry(self.conn)
         self.accept_dialogs = accept_dialogs
         self._tabs: dict[str, Tab] = {}
-        self._current: str | None = None
+        self._tabs_lock = threading.Lock()
+        # The current tab is per-thread as well as per-client. Client-local already stops
+        # two *processes* fighting over one cursor (D1, v1 #375); making it thread-local
+        # extends the same property to `parallel()`, where N workers drive N tabs inside
+        # one process. A shared cursor there would mean worker A's goto() silently
+        # redirecting worker B's next js() — the exact bug D1 exists to prevent, moved
+        # one level in.
+        self._local = threading.local()
         self._recorder: record.Recorder | None = None
         self.extensions: list[dict[str, Any]] = []
         if os.environ.get("BH_RECORD", "").strip().lower() not in ("", "0", "false", "no"):
@@ -54,20 +63,54 @@ class Session:
     def drivable(self) -> list[dict[str, Any]]:
         return [t for t in self.targets() if str(t.get("url", "")).startswith(_DRIVABLE)]
 
+    @property
+    def _current(self) -> str | None:
+        return getattr(self._local, "current", None)
+
+    @_current.setter
+    def _current(self, value: str | None) -> None:
+        self._local.current = value
+
+    def _attach(self, tid: str) -> Tab:
+        with self._tabs_lock:
+            # Two workers claiming the same target must share one Tab, not race to build
+            # two: a Tab owns per-target state (isolated world, bindings) that would be
+            # created twice and half-forgotten.
+            existing = self._tabs.get(tid)
+        if existing is not None:
+            self._current = tid
+            return existing
+        # Built outside the lock — constructing a Tab installs its isolated world, which
+        # is a round trip; holding the lock across it would serialise every worker's first
+        # call to its own tab, which is precisely what parallelism is here to avoid.
+        tab = Tab(self.conn, self.registry, tid, journal=self.journal,
+                  accept_dialogs=self.accept_dialogs)
+        with self._tabs_lock:
+            tab = self._tabs.setdefault(tid, tab)
+        self._current = tid
+        return tab
+
     def tab(self, target_id: str | None = None) -> Tab:
         """The current tab, or a named one. Attaches to a real page if we have none yet —
         and creates one rather than seizing a `chrome://` internal, which is not a page a
-        caller ever meant."""
+        caller ever meant.
+
+        The fallback tries each drivable page rather than trusting the first. `getTargets`
+        happily lists a tab that is already closing, and `parallel()` closes a whole
+        worker pool's tabs at once — so the window where the first listed page is dead is
+        wide, and taking it on faith raised `target_gone` from a call that had asked for
+        nothing in particular.
+        """
         tid = target_id or self._current
-        if tid is None:
-            pages = self.drivable()
-            tid = pages[0]["targetId"] if pages else self.conn.request(
-                "Target.createTarget", {"url": "about:blank"})["targetId"]
-        if tid not in self._tabs:
-            self._tabs[tid] = Tab(self.conn, self.registry, tid, journal=self.journal,
-                                  accept_dialogs=self.accept_dialogs)
-        self._current = tid
-        return self._tabs[tid]
+        if tid is not None:
+            return self._attach(tid)
+        for page in self.drivable():
+            try:
+                return self._attach(page["targetId"])
+            except HarnessError:
+                continue          # closing, or gone between the listing and the attach
+        return self._attach(self.conn.request(
+            "Target.createTarget", {"url": "about:blank"})["targetId"])
 
     def new_tab(self, url: str = "about:blank") -> Tab:
         """Create, attach, and make current. Always `about:blank` first, then navigate:
@@ -86,7 +129,9 @@ class Session:
         tid = target_id or self._current
         if tid is None:
             return
-        if (tab := self._tabs.pop(tid, None)) is not None:
+        with self._tabs_lock:
+            tab = self._tabs.pop(tid, None)
+        if tab is not None:
             tab.close()
         self.registry.forget(tid)
         if self._current == tid:
@@ -120,9 +165,10 @@ class Session:
 
     def close(self) -> None:
         self.stop_recording()
-        for tab in self._tabs.values():
+        with self._tabs_lock:
+            tabs, self._tabs = list(self._tabs.values()), {}
+        for tab in tabs:
             tab.close()
-        self._tabs.clear()
         self.conn.close()
 
     def __enter__(self) -> Self:
@@ -159,6 +205,10 @@ class Session:
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
+            # Bound to this session, so a script writes parallel(urls, fn) and the bare
+            # helpers inside fn address that worker's own tab.
+            "parallel": lambda items, fn, **kw: parallel_ops.parallel(self, items, fn, **kw),
+            "summarise": parallel_ops.summarise,
         }
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "frames",

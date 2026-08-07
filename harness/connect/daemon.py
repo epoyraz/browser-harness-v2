@@ -17,8 +17,10 @@ from __future__ import annotations
 
 import contextlib
 import json
+import os
 import socket
 import threading
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Self
 
 from harness.connect.cdp import Connection
@@ -26,6 +28,10 @@ from harness.connect.session import SessionRegistry
 from harness.core import ipc
 from harness.core.journal import Journal
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError, fail, ok
+
+#: In-flight requests one client may have. Past this they queue — the same backpressure
+#: the old serial loop always had, but only once genuinely saturated.
+_CLIENT_WORKERS = int(os.environ.get("BH_DAEMON_WORKERS") or 16)
 
 #: Raw-CDP methods that would otherwise produce a session behind the registry's back.
 _SESSION_METHODS = frozenset({"Target.attachToTarget", "Target.detachFromTarget"})
@@ -179,13 +185,38 @@ class Daemon:
     # -- serving -----------------------------------------------------------
 
     def _serve_client(self, client: socket.socket) -> None:
-        """One thread per client connection, each request answered independently.
+        """One thread per client connection, and each request dispatched off that thread.
 
-        Threads are what make the done-when true: two clients issuing long CDP calls against
-        two tabs overlap in flight, rather than one waiting out the other.
+        Answering inline in the read loop was the original shape, and it made one client's
+        requests strictly serial: the loop could not read request N+1 until the CDP round
+        trip for N had returned. Two *clients* still overlapped, which is what the previous
+        comment claimed and measured — but `parallel()` is one client with N worker
+        threads, and it saw no speedup at all until this changed (12 pages across 6 workers
+        took as long as 12 pages one at a time).
+
+        Dispatching is safe because nothing here assumes reply order: every reply carries
+        the client's `rid`, `_Peer.send` is serialised by its own lock so replies and
+        pushed events cannot splice, and the CDP connection below already multiplexes.
         """
         peer = _Peer(client)
         buf = bytearray()
+        # Bounded: an unbounded thread-per-request would let a client with a runaway loop
+        # exhaust the daemon. Requests past the cap queue, which is the same backpressure
+        # the serial loop had, but only once genuinely saturated.
+        pool = ThreadPoolExecutor(max_workers=_CLIENT_WORKERS,
+                                  thread_name_prefix="bh-daemon-req")
+
+        def answer_and_send(line: bytes) -> None:
+            try:
+                reply = self._answer(line, peer)
+                # Echo the client's request id so a multiplexed client can match the
+                # reply to the call, the same way CDP's own `id` works.
+                if (rid := _rid_of(line)) is not None:
+                    reply = {**reply, "rid": rid}
+                peer.send(reply)
+            except OSError:
+                pass        # the peer went away mid-reply; the read loop will notice
+
         try:
             while not self._stop.is_set():
                 chunk = client.recv(1 << 16)
@@ -195,15 +226,13 @@ class Daemon:
                 while b"\n" in buf:
                     line, _, rest = bytes(buf).partition(b"\n")
                     buf = bytearray(rest)
-                    reply = self._answer(line, peer)
-                    # Echo the client's request id so a multiplexed client can match the
-                    # reply to the call, the same way CDP's own `id` works.
-                    if (rid := _rid_of(line)) is not None:
-                        reply = {**reply, "rid": rid}
-                    peer.send(reply)
+                    pool.submit(answer_and_send, line)
         except OSError:
             return          # a client that vanishes mid-request is normal, not an error
         finally:
+            # Do not wait: a client that disconnected is not owed its in-flight replies,
+            # and joining here would hold the connection thread open for a full timeout.
+            pool.shutdown(wait=False)
             with self._plock:
                 self._peers.discard(peer)
             peer.close()
