@@ -20,6 +20,11 @@ script (~670 ms cold, ~130 ms warm). Later scripts reuse it. Never open your own
 a second connection to an already-authorised Chrome is denied a consent prompt every time,
 so it would put a modal in front of every run.
 
+Keep long waits, pilot/full execution, validation, and the final compact result inside one
+tool call; never wake the model to poll or inspect partial logs. Stop on a technical failure
+with minimal evidence, and never auto-retry a semantic failure. This removed 37 polling
+decisions while preserving all four blockers on the 23-form corpus.
+
 ## When not to use it
 
 If a plain HTTP request can read it — a public page, an API, docs — use `curl`. Reach for
