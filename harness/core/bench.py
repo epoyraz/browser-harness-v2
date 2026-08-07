@@ -14,10 +14,16 @@ Four buckets, and the reason each is separate:
   connect  process start → session ready. Paid ONCE PER STEP, so it multiplies with step
            count: it is the hidden tax that makes an 11-step task worse than 11× a 1-step
            task's work.
-  harness  inside helper spans — our own CDP round trips and in-page JS. The bucket
-           everyone tries to optimise; usually the smallest.
-  wait     inside the script but outside any span — page loads, network, sleeps. Invisible
-           before this module, and often larger than `harness`.
+  harness  our own CDP round trips and in-page JS — the cost we could actually optimise
+           away. The bucket everyone tries to shrink; usually the smallest.
+  wait     waiting for the page: `goto`, `wait_for`, `wait_lifecycle`, plus sleeps and
+           network outside any span. Invisible before this module, and often larger than
+           `harness`.
+
+`wait` deliberately ignores whether the waiting happened inside a span. A blocking helper
+holds its span open while the page works, so billing span time to `harness` reported 20.6s
+of "harness cost" for a run that was idle almost throughout — while the same wait spelled
+`time.sleep()` landed in `wait`. Two spellings of one thing must not land in two buckets.
 
 `collapsible()` is the actionable half: consecutive steps that only *read* are exploration
 that a single richer call could have answered.
@@ -37,6 +43,22 @@ READ_ONLY = frozenset({
     "snapshot", "see", "page_text", "form_schema", "js", "screenshot",
     "capture_screenshot", "frames", "wait_for", "wait_lifecycle",
 })
+
+#: Helpers whose span time is dominated by *waiting for the page*, not by our own work.
+#:
+#: The buckets are only useful if `harness` means "cost we could optimise away". These
+#: three block on the page: `goto` until the load lifecycle fires, `wait_for` and
+#: `wait_lifecycle` until an event arrives. Because they wait *inside* their span, the
+#: original split billed all of it to `harness` — a collapsed joblens run reported 20.6s
+#: of "harness" that was almost entirely joblens computing CV matches, which reads as the
+#: harness being slow when it was idle. The equivalent `time.sleep(6)` in the exploratory
+#: run sat outside any span and landed in `wait`, so the same waiting was bucketed two
+#: different ways depending on how it was spelled.
+#:
+#: Attributing the whole span to `wait` slightly *understates* harness — a `wait_for` also
+#: installs a binding, and `goto` issues the navigate. That error is milliseconds against
+#: seconds, and in the direction that cannot flatter us.
+BLOCKING = frozenset({"goto", "wait_for", "wait_lifecycle"})
 
 
 def _entries(paths: Iterable[str | Path]) -> list[dict[str, Any]]:
@@ -75,15 +97,23 @@ def steps(paths: Iterable[str | Path]) -> list[dict[str, Any]]:
             pending.append(e)
         elif kind == "invoke":
             top = [c for c in pending if not c.get("parent")]
-            harness_ms = sum(float(c.get("ms") or 0) for c in top)
+            harness_ms = sum(float(c.get("ms") or 0) for c in top
+                             if c.get("fn") not in BLOCKING)
+            # Waiting is waiting whether the script spelled it `wait_for(...)` or
+            # `time.sleep(...)`: the first is inside a span, the second is not, and
+            # bucketing them apart made the harness look slow for being idle.
+            blocked_ms = sum(float(c.get("ms") or 0) for c in top
+                             if c.get("fn") in BLOCKING)
             total = float(e.get("ms_total") or 0)
             connect = float(e.get("ms_connect") or 0)
             out.append({
                 "ts": e.get("ts", 0), "ok": bool(e.get("ok", True)),
                 "ms_total": total, "ms_connect": connect,
                 "ms_harness": round(harness_ms, 1),
-                # Inside the script but inside no span: page loads, network, sleeps.
+                # Blocking helpers, plus everything inside the script but inside no span:
+                # page loads, network, sleeps.
                 "ms_wait": round(max(0.0, total - connect - harness_ms), 1),
+                "ms_blocked": round(blocked_ms, 1),
                 "cdp": sum(int(c.get("cdp") or 0) for c in pending),
                 "calls": len(pending),
                 "fns": [c.get("fn") for c in top],
@@ -134,7 +164,7 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None,
              "buckets": {"think": 0.0, "connect": 0.0, "harness": 0.0, "wait": 0.0},
              "total_ms": 0.0, "think_per_step_ms": think_ms or 0.0,
              "think_inferred": think_ms is None, "think_source": "none",
-             "think_matched": 0, "collapsible": [], "step_list": []}
+             "think_matched": 0, "blocked_ms": 0.0, "collapsible": [], "step_list": []}
     if not st:
         return empty          # full shape even when nothing ran, so callers cannot KeyError
     gaps: list[float] = []
@@ -167,6 +197,7 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None,
         "buckets": buckets, "total_ms": round(sum(buckets.values()), 1),
         "think_per_step_ms": per_think, "think_inferred": source == "inferred",
         "think_source": source, "think_matched": len(matched),
+        "blocked_ms": round(sum(s.get("ms_blocked", 0.0) for s in st), 1),
         "collapsible": collapsible(st), "step_list": st,
     }
 
@@ -181,7 +212,13 @@ def render(r: dict[str, Any], *, verbose: bool = False) -> list[str]:
     out.append(f"{'where the wall clock went':<26}{'ms':>10}{'share':>8}")
     for name in ("think", "connect", "harness", "wait"):
         bar = "#" * round(28 * b[name] / total)
-        out.append(f"  {name:<24}{b[name]:>10,.0f}{b[name] / total:>7.0%}  {bar}")
+        label = name
+        if name == "wait" and (blocked := r.get("blocked_ms", 0.0)):
+            # Say how much of `wait` the script asked for explicitly. Otherwise a large
+            # wait bucket reads as dead time when it is mostly goto/wait_for doing exactly
+            # what they were told to.
+            label = f"wait ({blocked / max(b['wait'], 1):.0%} in goto/wait_for)"
+        out.append(f"  {label:<24}{b[name]:>10,.0f}{b[name] / total:>7.0%}  {bar}")
     out.append(f"  {'TOTAL':<24}{total:>10,.0f}")
     src = {"inferred": "inferred from gaps between steps — meaningless for a scripted run",
            "supplied": "supplied",
