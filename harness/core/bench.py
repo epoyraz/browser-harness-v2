@@ -115,15 +115,26 @@ def collapsible(step_list: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return runs
 
 
-def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None) -> dict[str, Any]:
-    """Aggregate. `think_ms` overrides the inferred per-step thinking time — useful when
-    the journals come from a scripted benchmark, where the gaps are a harness driving
-    itself rather than a model deciding anything."""
+def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None,
+           think_by_step: list[float | None] | None = None) -> dict[str, Any]:
+    """Aggregate.
+
+    Three ways to price the think bucket, in descending order of honesty:
+
+      think_by_step  real per-step gaps, read from the agent's own transcript
+                     (`core.transcript`). Per-step rather than averaged, because the
+                     expensive steps are exactly the ones worth collapsing and a mean
+                     hides which those were.
+      think_ms       a flat figure supplied by the caller.
+      neither        inferred from journal timestamps — which in a scripted benchmark
+                     measures a shell loop, not a model, and is therefore ~0.
+    """
     st = steps(paths)
     empty = {"steps": 0, "failed": 0, "cdp": 0, "calls": 0,
              "buckets": {"think": 0.0, "connect": 0.0, "harness": 0.0, "wait": 0.0},
              "total_ms": 0.0, "think_per_step_ms": think_ms or 0.0,
-             "think_inferred": think_ms is None, "collapsible": [], "step_list": []}
+             "think_inferred": think_ms is None, "think_source": "none",
+             "think_matched": 0, "collapsible": [], "step_list": []}
     if not st:
         return empty          # full shape even when nothing ran, so callers cannot KeyError
     gaps: list[float] = []
@@ -132,8 +143,18 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None) -> dic
         if 0 < gap < 600_000:
             gaps.append(gap)
     inferred = round(sum(gaps) / len(gaps), 1) if gaps else 0.0
-    per_think = inferred if think_ms is None else think_ms
-    think_total = per_think * max(0, len(st) - 1)
+
+    matched = [v for v in (think_by_step or []) if v]
+    if matched:
+        # Sum what we actually matched; the per-step figure is reported alongside so a
+        # partial match (some steps aligned, some not) cannot masquerade as a full one.
+        think_total = sum(matched)
+        per_think = round(think_total / len(matched), 1)
+        source = "transcript"
+    else:
+        per_think = inferred if think_ms is None else think_ms
+        think_total = per_think * max(0, len(st) - 1)
+        source = "inferred" if think_ms is None else "supplied"
     buckets = {
         "think": round(think_total, 1),
         "connect": round(sum(s["ms_connect"] for s in st), 1),
@@ -144,7 +165,8 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None) -> dic
         "steps": len(st), "failed": sum(1 for s in st if not s["ok"]),
         "cdp": sum(s["cdp"] for s in st), "calls": sum(s["calls"] for s in st),
         "buckets": buckets, "total_ms": round(sum(buckets.values()), 1),
-        "think_per_step_ms": per_think, "think_inferred": think_ms is None,
+        "think_per_step_ms": per_think, "think_inferred": source == "inferred",
+        "think_source": source, "think_matched": len(matched),
         "collapsible": collapsible(st), "step_list": st,
     }
 
@@ -161,7 +183,11 @@ def render(r: dict[str, Any], *, verbose: bool = False) -> list[str]:
         bar = "#" * round(28 * b[name] / total)
         out.append(f"  {name:<24}{b[name]:>10,.0f}{b[name] / total:>7.0%}  {bar}")
     out.append(f"  {'TOTAL':<24}{total:>10,.0f}")
-    src = "inferred from gaps between steps" if r["think_inferred"] else "supplied"
+    src = {"inferred": "inferred from gaps between steps — meaningless for a scripted run",
+           "supplied": "supplied",
+           "transcript": f"measured from the agent transcript, {r.get('think_matched', 0)}"
+                         f"/{r['steps']} steps matched"}.get(r.get("think_source", "none"),
+                                                             "unknown")
     out.append(f"\nthink is {r['think_per_step_ms']:,.0f} ms/step ({src}); "
                f"connect is paid once per step, so both scale with STEP COUNT.")
 

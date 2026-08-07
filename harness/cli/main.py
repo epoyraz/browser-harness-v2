@@ -12,6 +12,7 @@ newlines and embedded JS, which is most of what a browser script contains.
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 __all__ = ["main"]
 
@@ -23,6 +24,7 @@ USAGE = """bh — browser-harness v2
   bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
   bh stats [path…]      what you actually use, and what actually fails
   bh bench <journal…>   steps taken and where the wall clock went (-v per step)
+                        --from-transcript [FILE] price think from the real agent session
   bh recordings         list recordings (newest first)
   bh video [<rec>]      render a recording to mp4 (default: the newest)
   bh helpers --init     create a file for your own helpers
@@ -81,7 +83,24 @@ def main() -> int:
         think = None
         if "--think" in args:
             think = float(args[args.index("--think") + 1])
-        r = rollup(rest or ["."], think_ms=think)
+            rest = [a for a in rest if a != args[args.index("--think") + 1]]
+        by_step = None
+        if "--from-transcript" in args:
+            # The one bucket the harness cannot see: `bh` is a subprocess the model
+            # spawns, so the gap between runs happens entirely outside this process.
+            # Claude Code's session transcript timestamps every tool_use and
+            # tool_result, which is exactly that gap.
+            from harness.core import transcript as tx
+            i = args.index("--from-transcript") + 1
+            given = args[i] if i < len(args) and not args[i].startswith("--") else None
+            if given:
+                rest = [a for a in rest if a != given]
+            found = [Path(given)] if given else tx.find()
+            if not found:
+                print("no transcript found for this project", file=sys.stderr)
+                return 1
+            by_step = tx.attach(rollup(rest or ["."])["step_list"], tx.gaps(found[0]))
+        r = rollup(rest or ["."], think_ms=think, think_by_step=by_step)
         if "--json" in args:
             print(_json.dumps({k: v for k, v in r.items() if k != "step_list"}, indent=2))
         else:
