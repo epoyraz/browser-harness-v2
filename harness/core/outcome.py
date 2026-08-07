@@ -40,6 +40,12 @@ class Class(str, Enum):
     WS_REJECTED_UPSTREAM = "ws_rejected_upstream"
     BROWSER_DISCONNECTED = "browser_disconnected"
     SCOPE_REFUSED = "scope_refused"            # a pinned binding declined to widen (#479)
+    SIDE_EFFECT_REFUSED = "side_effect_refused"  # default-deny irreversible browser action
+    RESOURCE_LIMIT = "resource_limit"          # a declared machine/session budget was exhausted
+    RESOURCE_CLEANUP_FAILED = "resource_cleanup_failed"  # owned resource could not be released
+    CANCELLED = "cancelled"                    # aggregate work stopped before this item began
+    PROTOCOL_MISMATCH = "protocol_mismatch"    # client and daemon cannot safely communicate
+    SKILL_INTEGRITY_FAILED = "skill_integrity_failed"  # body differs from indexed digest
 
     # session / target (D1, D11)
     TARGET_GONE = "target_gone"
@@ -207,6 +213,12 @@ PermissionPending = _error("PermissionPending", Class.PERMISSION_PENDING)
 WsRejectedUpstream = _error("WsRejectedUpstream", Class.WS_REJECTED_UPSTREAM)
 BrowserDisconnected = _error("BrowserDisconnected", Class.BROWSER_DISCONNECTED)
 ScopeRefused = _error("ScopeRefused", Class.SCOPE_REFUSED)
+SideEffectRefused = _error("SideEffectRefused", Class.SIDE_EFFECT_REFUSED)
+ResourceLimit = _error("ResourceLimit", Class.RESOURCE_LIMIT)
+ResourceCleanupFailed = _error("ResourceCleanupFailed", Class.RESOURCE_CLEANUP_FAILED)
+Cancelled = _error("Cancelled", Class.CANCELLED)
+ProtocolMismatch = _error("ProtocolMismatch", Class.PROTOCOL_MISMATCH)
+SkillIntegrityFailed = _error("SkillIntegrityFailed", Class.SKILL_INTEGRITY_FAILED)
 TargetGone = _error("TargetGone", Class.TARGET_GONE)
 SessionStale = _error("SessionStale", Class.SESSION_STALE)
 RendererUnresponsive = _error("RendererUnresponsive", Class.RENDERER_UNRESPONSIVE)
@@ -225,7 +237,10 @@ Timeout = _error("Timeout", Class.TIMEOUT)
 _BY_CLASS: dict[Class, type[HarnessError]] = {
     e.cls: e for e in (
         EndpointUnreachable, Endpoint404, NoBrowserWindow, PermissionPending,
-        WsRejectedUpstream, BrowserDisconnected, ScopeRefused, TargetGone, SessionStale,
+        WsRejectedUpstream, BrowserDisconnected, ScopeRefused, SideEffectRefused,
+        ResourceLimit, ResourceCleanupFailed, Cancelled, ProtocolMismatch,
+        SkillIntegrityFailed,
+        TargetGone, SessionStale,
         RendererUnresponsive, CdpError, NavigationFailed, HttpError, JsException,
         NotSerializable, NoOptionMatch, NeedsInteraction, NotAForm, ElementGone, Partial,
         Timeout,

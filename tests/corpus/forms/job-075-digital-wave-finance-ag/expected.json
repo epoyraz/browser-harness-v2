@@ -1,0 +1,144 @@
+{
+  "attempt": "job-075-digital-wave-finance-ag",
+  "number": 75,
+  "company": "DIGITAL WAVE FINANCE AG",
+  "title": "System Administrator",
+  "source_url": "https://apply.workable.com/dwf/j/5CBA6F4B69/apply/",
+  "landed_url": "https://apply.workable.com/dwf/j/5CBA6F4B69/apply/",
+  "original_context": "main",
+  "dry_run_filled_count": 5,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 18,
+      "required": 11,
+      "files": 0,
+      "submit_labels": [
+        "Submit application",
+        "Cookies settings",
+        "Accept all",
+        "Decline all",
+        "Cookie settings"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "text",
+        "label": "*\nFirst name",
+        "name": "firstname",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "*\nLast name",
+        "name": "lastname",
+        "required": true
+      },
+      {
+        "kind": "email",
+        "label": "*\nEmail",
+        "name": "email",
+        "required": true
+      },
+      {
+        "kind": "combobox",
+        "label": "*\nPhone\n+41",
+        "name": null,
+        "required": false,
+        "needs_interaction": true
+      },
+      {
+        "kind": "tel",
+        "label": "*\nPhone\n+41",
+        "name": "phone",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "*\nAddress",
+        "name": "address",
+        "required": true,
+        "value": "Zürich, Switzerland"
+      },
+      {
+        "kind": "text",
+        "label": null,
+        "name": "city",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": null,
+        "name": "postcode",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": null,
+        "name": "country",
+        "required": false
+      },
+      {
+        "kind": "textarea",
+        "label": "Summary (Optional)",
+        "name": "summary",
+        "required": false
+      },
+      {
+        "kind": "textarea",
+        "label": "Cover letter (Optional)",
+        "name": "cover_letter",
+        "required": false
+      },
+      {
+        "kind": "radio",
+        "label": "YES",
+        "name": "QA_11360443",
+        "required": true,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "NO",
+        "name": "QA_11360443",
+        "required": true,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "YES",
+        "name": "QA_11360444",
+        "required": true,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "NO",
+        "name": "QA_11360444",
+        "required": true,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "*\nWhat are your salary expectations for this role in CHF gross per year?",
+        "name": "QA_11360445",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "*\nWhat is your earliest possible start date?",
+        "name": "QA_11360446",
+        "required": true
+      },
+      {
+        "kind": "checkbox",
+        "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+        "name": "gdpr",
+        "required": false,
+        "checked": false
+      }
+    ],
+    "files": []
+  }
+}

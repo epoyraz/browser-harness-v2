@@ -1,0 +1,76 @@
+{
+  "attempt": "job-012-arqh",
+  "number": 12,
+  "company": "ARQH",
+  "title": "Senior Platform (Full-Stack) Engineer",
+  "source_url": "https://careers.arqh.ai/jobs/8021551-senior-platform-full-stack-engineer/applications/new",
+  "landed_url": "https://careers.arqh.ai/jobs/8021551-senior-platform-full-stack-engineer/applications/new",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 7,
+      "required": 0,
+      "files": 2,
+      "submit_labels": [
+        "Submit application"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "checkbox",
+        "label": "Arqh HQ",
+        "name": "candidate[location_ids][]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Remote work in Europe",
+        "name": "candidate[location_ids][]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "First name*\nRequired",
+        "name": "candidate[first_name]",
+        "required": false,
+        "autocomplete": "given-name"
+      },
+      {
+        "kind": "text",
+        "label": "Last name*\nRequired",
+        "name": "candidate[last_name]",
+        "required": false,
+        "autocomplete": "family-name"
+      },
+      {
+        "kind": "email",
+        "label": "Email*\nRequired",
+        "name": "candidate[email]",
+        "required": false,
+        "autocomplete": "email"
+      },
+      {
+        "kind": "tel",
+        "label": "Phone",
+        "name": "candidate[phone]",
+        "required": false,
+        "autocomplete": "tel"
+      },
+      {
+        "kind": "textarea",
+        "label": "Cover letter*\nRequired",
+        "name": "candidate[job_applications_attributes][0][cover_letter]",
+        "required": false
+      }
+    ],
+    "files": [
+      "candidate_resume_remote_url",
+      "candidate_file_remote_url"
+    ]
+  }
+}

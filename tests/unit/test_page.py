@@ -11,6 +11,7 @@ from harness.core.outcome import (
     JsException,
     NavigationFailed,
     NotSerializable,
+    SideEffectRefused,
     Timeout,
 )
 from harness.ops.page import ANNOTATE_JS, WORLD, Tab
@@ -292,7 +293,39 @@ def test_the_runtime_is_installed_into_an_isolated_world(wired):
     _tab(wired)
     installed = [c for c in browser.calls
                  if c.get("method") == "Page.addScriptToEvaluateOnNewDocument"]
-    assert installed[0]["params"]["worldName"] == WORLD    # survives every navigation
+    runtime = next(c for c in installed if c["params"].get("worldName") == WORLD)
+    assert runtime["params"]["worldName"] == WORLD    # survives every navigation
+
+
+def test_the_dry_run_guard_is_installed_in_the_main_world_before_page_script(wired):
+    browser, _, _ = wired
+    _tab(wired)
+    installed = [c for c in browser.calls
+                 if c.get("method") == "Page.addScriptToEvaluateOnNewDocument"]
+    safety = next(c for c in installed if "browser-harness.dry-run" in c["params"]["source"])
+    assert "worldName" not in safety["params"]
+    assert safety["params"]["runImmediately"] is True
+
+
+def test_submit_ref_is_refused_before_mouse_dispatch(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        [15.0, 25.0, "https://a.test/", 5,
+         {"danger": True, "tag": "button", "type": "submit", "action": "/apply"}]
+        if "__bh.refs" in e else ["https://a.test/", 5])
+    with pytest.raises(SideEffectRefused):
+        tab.click_ref("e1")
+    assert not any(c.get("method") == "Input.dispatchMouseEvent" for c in browser.calls)
+
+
+def test_enter_in_a_form_is_refused_before_key_dispatch(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: {"danger": True, "tag": "input", "action": "/apply"}
+    with pytest.raises(SideEffectRefused):
+        tab.press_key("Enter")
+    assert not any(c.get("method") == "Input.dispatchKeyEvent" for c in browser.calls)
     assert WORLD in browser.isolated_worlds                # and exists for this document
 
 

@@ -1,124 +1,188 @@
-"""`parallel()` — one script, many tabs.
+"""Bounded parallel work over tabs in one Chrome instance.
 
-D0 says the lever is fewer *decisions*, and this is the other half of that argument.
-Collapsing steps removes think time from a serial chain; parallelism removes wall clock
-from the work that remains. Both attack step count: visiting 100 pages one per `bh` run is
-100 decisions, visiting them in one `parallel()` call is one.
-
-Measured, on the task this was built for: 100 job pages, two loads each, across 10 workers
-took 131 seconds. Serially at the observed ~3s per load that is roughly 10 minutes, and as
-one-page-per-invocation it would additionally have cost 200 model decisions at ~15s each.
-
-**Why this is safe here and was not in v1.** v1's daemon held one shared `current_tab`, so
-two subagents fought over one browser (#375). v2 keeps no cursor in the daemon — every
-request names its target — and the client's cursor is now thread-local, so N workers can
-hold N tabs with no way to steal each other's. The transport underneath was already
-concurrent: `RemoteConnection` multiplexes over one websocket behind a lock with a
-dedicated reader thread, which is why this needs no second connection per worker.
-
-Failure policy follows D11 rule 2: a worker that raises does not cancel its siblings and
-does not lose its cause. Every item gets a result record, in input order, and the caller
-is told how many failed rather than having to compare list lengths.
+The hard ceilings are ten tabs and zero additional browsers. Optional browser contexts
+isolate worker cookies/storage without multiplying Chrome processes. A fixed worker loop
+claims items lazily, so cancellation prevents queued work from starting instead of merely
+setting a flag after an executor has already submitted the full input.
 """
 from __future__ import annotations
 
 import os
+import threading
+import time
 from collections.abc import Callable, Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
-from harness.core.outcome import HarnessError
+from harness.core.outcome import Class, HarnessError
+from harness.core.resources import ResourceLedger
 
-#: A hard tab ceiling, not just a default. `parallel()` uses tabs inside one Chrome
-#: instance; it never launches another browser. Ten still overlaps useful work without
-#: letting an explicit argument or env setting accidentally fan out dozens of renderers.
 MAX_WORKERS = 10
 DEFAULT_WORKERS = 8
 
 
-def parallel(session: Any, items: Iterable[Any],
-             fn: Callable[[Any], Any], *,
-             workers: int = 0,
-             reuse_tabs: bool = True) -> list[dict[str, Any]]:
-    """Run `fn(item)` for each item, each in its own tab, and return one record per item.
+class CancelToken:
+    """Shared cooperative cancellation with an optional whole-run deadline."""
 
-    Each record is `{"item", "ok", "value"}` or `{"item", "ok": False, "error", "class"}`.
-    Results come back in **input order**, not completion order — a caller almost always
-    wants to zip them against the input, and completion order would make that silently
-    wrong.
+    def __init__(self, *, timeout: float | None = None):
+        self._event = threading.Event()
+        self.deadline = None if timeout is None else time.monotonic() + max(0.0, timeout)
 
-    Inside `fn`, the bare helpers (`goto`, `js`, `see`, …) address *this worker's* tab:
-    the current-tab cursor is thread-local. Nothing needs to be threaded through.
+    def cancel(self) -> None:
+        self._event.set()
 
-    `reuse_tabs` keeps one tab per worker and reuses it across items, which is what makes
-    a 100-item sweep cost 8 tabs rather than 100. Pass False when a page poisons its tab
-    (a modal dialog, a permission prompt) and each item needs a clean one.
+    @property
+    def cancelled(self) -> bool:
+        return self._event.is_set() or (
+            self.deadline is not None and time.monotonic() >= self.deadline)
+
+
+def _failure(item: Any, error: Exception) -> dict[str, Any]:
+    if isinstance(error, HarnessError):
+        return {"item": item, "ok": False, "class": error.outcome.cls.value,
+                "error": str(error)[:200], "outcome": error.outcome.to_json()}
+    return {"item": item, "ok": False, "class": type(error).__name__,
+            "error": str(error)[:200]}
+
+
+def _cleanup_failed(record: dict[str, Any], failures: list[dict[str, Any]]) -> None:
+    if not failures:
+        return
+    record["cleanup_ok"] = False
+    record["cleanup_failures"] = failures
+    if record.get("ok"):
+        record["ok"] = False
+        record["class"] = Class.RESOURCE_CLEANUP_FAILED.value
+        record["error"] = "owned browser resources could not be released"
+
+
+def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
+             workers: int = 0, reuse_tabs: bool = True, isolated: bool = False,
+             timeout: float | None = None, token: CancelToken | None = None,
+             progress: Callable[[int, int, dict[str, Any]], None] | None = None,
+             ) -> list[dict[str, Any]]:
+    """Run ``fn(item)`` with at most ten worker tabs and return input-ordered records.
+
+    ``isolated=True`` gives every worker its own incognito browser context while still
+    using the same Chrome process. ``reuse_tabs=False`` closes each tab immediately after
+    its item; it no longer accumulates one tab per input. Cancellation is cooperative at
+    item boundaries: active CDP calls finish under their own timeout, but no queued item
+    starts after the token or whole-run deadline fires.
     """
     todo: Sequence[Any] = list(items)
     if not todo:
         return []
-    n = workers or int(os.environ.get("BH_WORKERS") or 0) or DEFAULT_WORKERS
-    n = max(1, min(n, len(todo), MAX_WORKERS))
+    worker_count = workers or int(os.environ.get("BH_WORKERS") or 0) or DEFAULT_WORKERS
+    worker_count = max(1, min(worker_count, len(todo), MAX_WORKERS))
+    cancel = token or CancelToken(timeout=timeout)
+    if token is not None and timeout is not None:
+        deadline = time.monotonic() + max(0.0, timeout)
+        cancel.deadline = deadline if cancel.deadline is None else min(cancel.deadline, deadline)
 
-    # One tab per worker thread, created on that thread's first item and reused after.
-    # Creating them up front would open tabs a short run never reaches.
-    worker_tabs: dict[int, str] = {}
-    owned_tabs: set[str] = set()
-    import threading
+    records: list[dict[str, Any] | None] = [None] * len(todo)
+    claim_lock = threading.Lock()
+    progress_lock = threading.Lock()
+    next_index = 0
+    completed = 0
 
-    lock = threading.Lock()
+    def claim() -> tuple[int, Any] | None:
+        nonlocal next_index
+        with claim_lock:
+            if cancel.cancelled or next_index >= len(todo):
+                return None
+            index = next_index
+            next_index += 1
+            return index, todo[index]
 
-    def run(index_item: tuple[int, Any]) -> tuple[int, dict[str, Any]]:
-        i, item = index_item
-        key = threading.get_ident()
+    def report(index: int, record: dict[str, Any]) -> None:
+        nonlocal completed
+        records[index] = record
+        if progress is None:
+            return
+        with progress_lock:
+            completed += 1
+            done = completed
         try:
-            with lock:
-                tid = worker_tabs.get(key)
-            if tid is None or not reuse_tabs:
-                tab = session.new_tab()
-                with lock:
-                    owned_tabs.add(tab.target_id)
-                    if reuse_tabs:
-                        worker_tabs[key] = tab.target_id
-            else:
-                session.use_tab(tid)      # rebind this thread's cursor to its own tab
-            return i, {"item": item, "ok": True, "value": fn(item)}
-        except HarnessError as e:
-            # A typed harness failure keeps its evidence: the outcome contract is only
-            # worth having if it survives a worker boundary.
-            return i, {"item": item, "ok": False, "class": e.outcome.cls.value,
-                       "error": str(e)[:200], "outcome": e.outcome.to_json()}
-        except Exception as e:            # noqa: BLE001 — one bad page must not stop 99 good ones
-            return i, {"item": item, "ok": False, "class": type(e).__name__,
-                       "error": str(e)[:200]}
+            progress(done, len(todo), record)
+        except Exception as error:  # noqa: BLE001 — reporting cannot break browser work
+            session.journal.write("note", event="parallel_progress_failed",
+                                  error=f"{type(error).__name__}: {str(error)[:200]}")
 
-    out: list[dict[str, Any] | None] = [None] * len(todo)
-    try:
-        with ThreadPoolExecutor(max_workers=n, thread_name_prefix="bh-par") as pool:
-            for i, record in pool.map(run, enumerate(todo)):
-                out[i] = record
-    finally:
-        # Tabs opened for the sweep are ours to clean up; a caller who wanted 100 tabs left
-        # open would have opened them. Track every tab, not merely each worker's latest one:
-        # `reuse_tabs=False` intentionally opens several tabs on the same thread.
-        for tid in owned_tabs:
-            try:
-                session.close_tab(tid)
-            except Exception:  # noqa: BLE001, S110 — teardown must not mask the results
-                pass
-    return [r for r in out if r is not None]
+    def worker() -> None:
+        ledger = ResourceLedger(journal=getattr(session, "journal", None))
+        worker_context: str | None = None
+        worker_tab: str | None = None
+        handled: list[int] = []
+        try:
+            while (claimed := claim()) is not None:
+                index, item = claimed
+                handled.append(index)
+                item_context: str | None = None
+                item_tab: str | None = None
+                record: dict[str, Any]
+                try:
+                    if isolated and (worker_context is None or not reuse_tabs):
+                        item_context = session.new_context()
+                        ledger.acquire("browser_context", item_context,
+                                       lambda cid=item_context: session.close_context(cid))
+                        if reuse_tabs:
+                            worker_context = item_context
+                    context_id = worker_context if reuse_tabs else item_context
+                    if worker_tab is None or not reuse_tabs:
+                        tab = session.new_tab(context_id=context_id)
+                        item_tab = tab.target_id
+                        ledger.acquire("tab", item_tab,
+                                       lambda tid=item_tab: session.close_tab(
+                                           tid, wait=not reuse_tabs))
+                        if reuse_tabs:
+                            worker_tab = item_tab
+                    else:
+                        session.use_tab(worker_tab)
+                    record = {"item": item, "ok": True, "value": fn(item)}
+                except Exception as error:  # noqa: BLE001 — one page must not erase siblings
+                    record = _failure(item, error)
+                finally:
+                    failures = []
+                    if (not reuse_tabs and item_tab is not None
+                            and (failure := ledger.release("tab", item_tab))):
+                        failures.append(failure)
+                    if (not reuse_tabs and item_context is not None
+                            and (failure := ledger.release("browser_context", item_context))):
+                        failures.append(failure)
+                    _cleanup_failed(record, failures)
+                report(index, record)
+        finally:
+            failures = ledger.cleanup()
+            if failures and handled:
+                record = records[handled[-1]]
+                if record is not None:
+                    _cleanup_failed(record, failures)
+
+    with ThreadPoolExecutor(max_workers=worker_count, thread_name_prefix="bh-par") as pool:
+        futures = [pool.submit(worker) for _ in range(worker_count)]
+        for future in futures:
+            future.result()
+
+    reason = "deadline" if cancel.deadline is not None and time.monotonic() >= cancel.deadline \
+        else "cancelled"
+    for index, record in enumerate(records):
+        if record is None:
+            records[index] = {"item": todo[index], "ok": False,
+                              "class": Class.CANCELLED.value,
+                              "error": f"parallel item did not start: {reason}"}
+    return [record for record in records if record is not None]
 
 
 def summarise(records: list[dict[str, Any]]) -> dict[str, Any]:
-    """Counts plus the distinct failure classes — enough to decide whether to retry.
-
-    Separate from `parallel()` so the records stay the primitive: a caller that wants to
-    inspect every outcome is not made to parse a summary string.
-    """
-    failed = [r for r in records if not r["ok"]]
+    """Counts plus distinct failure classes and cleanup failures."""
+    failed = [record for record in records if not record["ok"]]
     classes: dict[str, int] = {}
-    for r in failed:
-        classes[r.get("class", "Error")] = classes.get(r.get("class", "Error"), 0) + 1
+    cleanup_failures = []
+    for record in records:
+        if not record["ok"]:
+            cls = record.get("class", "Error")
+            classes[cls] = classes.get(cls, 0) + 1
+        cleanup_failures.extend(record.get("cleanup_failures") or [])
     return {"total": len(records), "ok": len(records) - len(failed), "failed": len(failed),
-            "classes": classes,
-            "values": [r["value"] for r in records if r["ok"]]}
+            "classes": classes, "cleanup_failures": cleanup_failures,
+            "values": [record["value"] for record in records if record["ok"]]}

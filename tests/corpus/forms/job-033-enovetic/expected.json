@@ -1,0 +1,98 @@
+{
+  "attempt": "job-033-enovetic",
+  "number": 33,
+  "company": "ENOVETIC",
+  "title": "Technical Lead (80-100%)",
+  "source_url": "https://enovetic.jobs.personio.de/job/2635570/apply",
+  "landed_url": "https://enovetic.jobs.personio.de/job/2635570/apply",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 9,
+      "required": 0,
+      "files": 0,
+      "submit_labels": [
+        "Bewerbung senden"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "select",
+        "label": null,
+        "name": null,
+        "required": false,
+        "options_count": 0,
+        "options_sample": [],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": null,
+        "required": false,
+        "options_count": 0,
+        "options_sample": [],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Vorname",
+        "name": "first_name",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Nachname",
+        "name": "last_name",
+        "required": false
+      },
+      {
+        "kind": "email",
+        "label": "E-Mail*\n(erforderlich)",
+        "name": "email",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": "Geschlecht*\n(erforderlich)",
+        "name": "gender",
+        "required": false,
+        "options_count": 5,
+        "options_sample": [
+          "Bitte auswählen",
+          "Männlich",
+          "Weiblich",
+          "Divers",
+          "Unbestimmt"
+        ],
+        "placeholder_first": true
+      },
+      {
+        "kind": "text",
+        "label": "LinkedIn*\n(erforderlich)",
+        "name": "custom_attribute_1324883",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Telefon*\n(erforderlich)",
+        "name": "phone",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Gehaltsvorstellung*\n(erforderlich)",
+        "name": "salary_expectations",
+        "required": false
+      }
+    ],
+    "files": []
+  }
+}

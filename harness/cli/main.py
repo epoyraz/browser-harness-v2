@@ -28,6 +28,10 @@ USAGE = """bh — browser-harness v2
   bh recordings         list recordings (newest first)
   bh video [<rec>]      render a recording to mp4 (default: the newest)
   bh helpers --init     create a file for your own helpers
+  bh skills which URL  explain offline skill resolution and trust
+  bh skills search Q   search configured skill indexes
+  bh skills show ID    verify and print a skill body
+  bh skills sync       refresh configured Git sources
   bh trace <file>       render a session journal as a span tree
   bh replay --diff A B  golden-file diff over two cassettes' request streams
   bh --version
@@ -42,7 +46,8 @@ def main() -> int:
         try:
             print(version("browser-harness-v2"))
         except PackageNotFoundError:
-            print("0.0.1+src")
+            from harness.version import VERSION
+            print(f"{VERSION}+src")
         return 0
 
     if args and args[0] in ("-h", "--help"):
@@ -132,6 +137,35 @@ def main() -> int:
         for p in found:
             print(p)
         return 0
+
+    if args and args[0] == "skills":
+        import json as _json
+
+        from harness.skills import Registry
+        registry = Registry()
+        command = args[1] if len(args) > 1 else ""
+        value = args[2] if len(args) > 2 else ""
+        if command == "which" and value:
+            found = registry.match(value)
+            print(_json.dumps([ref.to_json() for ref in found], indent=2))
+            return 0 if found else 1
+        if command == "search" and value:
+            print(_json.dumps([ref.to_json() for ref in registry.search(value)], indent=2))
+            return 0
+        if command == "show" and value:
+            found = registry.search(value)
+            exact = next((ref for ref in found if ref.id == value), None)
+            if exact is None:
+                print(f"bh skills: no skill {value!r}", file=sys.stderr)
+                return 1
+            print(registry.load(exact).for_model())
+            return 0
+        if command == "sync":
+            print(_json.dumps(registry.sync(value or None), indent=2))
+            return 0
+        print("usage: bh skills which URL | search Q | show ID | sync [SOURCE]",
+              file=sys.stderr)
+        return 2
 
     if args and args[0] == "video":
         from harness.ops.record import latest

@@ -31,6 +31,7 @@ from harness.connect.cdp import WebSocketTransport
 from harness.connect.daemon import Daemon
 from harness.connect.endpoint import discover
 from harness.core.journal import Journal
+from harness.core.outcome import SideEffectRefused
 from harness.ops.parallel import parallel, summarise
 from harness.session import Session
 
@@ -51,6 +52,7 @@ class _Site(BaseHTTPRequestHandler):
     active = 0
     peak = 0
     lock = threading.Lock()
+    posts = 0
 
     def do_GET(self):
         with self.lock:
@@ -59,8 +61,11 @@ class _Site(BaseHTTPRequestHandler):
         try:
             time.sleep(DELAY)
             n = self.path.strip("/") or "0"
+            form = ("<form id=application method=post action=/sent>"
+                    "<input name=name value=test><button id=submit type=submit>Send</button>"
+                    "</form>") if self.path.startswith("/safety") else ""
             body = (f"<!doctype html><title>page {n}</title>"
-                    f"<body><h1 id=n>{n}</h1></body>").encode()
+                    f"<body><h1 id=n>{n}</h1>{form}</body>").encode()
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
             self.end_headers()
@@ -71,6 +76,12 @@ class _Site(BaseHTTPRequestHandler):
         finally:
             with self.lock:
                 type(self).active -= 1
+
+    def do_POST(self):
+        with self.lock:
+            type(self).posts += 1
+        self.send_response(204)
+        self.end_headers()
 
     def log_message(self, *a):
         pass
@@ -147,10 +158,55 @@ def main() -> int:
         check("worker tabs cleaned up", tabs_returned_to_baseline(),
               f"baseline={len(baseline_targets)} now={len(target_ids())}")
 
-        clean = parallel(session, urls[:6], visit_serial, workers=3, reuse_tabs=False)
+        peak_tabs = 0
+        watching = threading.Event()
+
+        def watch_tabs():
+            nonlocal peak_tabs
+            while not watching.is_set():
+                peak_tabs = max(peak_tabs, len(target_ids() - baseline_targets))
+                time.sleep(0.01)
+
+        watcher = threading.Thread(target=watch_tabs, daemon=True)
+        watcher.start()
+        clean = parallel(session, urls, visit_serial, workers=3, reuse_tabs=False)
+        watching.set()
+        watcher.join(2)
         check("clean-tab mode succeeds", summarise(clean)["failed"] == 0)
+        check("clean-tab mode never exceeds worker tab budget", peak_tabs <= 3,
+              f"peak worker tabs={peak_tabs}")
         check("clean-tab mode closes every tab", tabs_returned_to_baseline(),
               f"baseline={len(baseline_targets)} now={len(target_ids())}")
+
+        contexts = [session.new_context(), session.new_context()]
+        context_tabs = [session.new_tab(context_id=context_id) for context_id in contexts]
+        for index, tab in enumerate(context_tabs):
+            tab.goto(f"{base}/context")
+            tab.js(f"localStorage.setItem('worker', '{index}')")
+        isolated_values = [tab.js("localStorage.getItem('worker')") for tab in context_tabs]
+        check("browser contexts isolate local storage", isolated_values == ["0", "1"],
+              str(isolated_values))
+        for context_id in contexts:
+            session.close_context(context_id)
+        check("isolated contexts return targets to baseline", tabs_returned_to_baseline())
+
+        safety = session.new_tab(f"{base}/safety")
+        submit = next(element for element in safety.snapshot()
+                      if element.get("name") == "Send")
+        refused = False
+        try:
+            safety.click_ref(submit["ref"])
+        except SideEffectRefused:
+            refused = True
+        fetch_blocked = safety.js(
+            "await fetch('/sent', {method:'POST', body:'x'}).then(() => false, () => true)")
+        safety.js("HTMLFormElement.prototype.submit.call(document.getElementById('application'))")
+        time.sleep(0.2)
+        check("submit click is refused before dispatch", refused)
+        check("mutating fetch and form.submit are blocked", fetch_blocked and _Site.posts == 0,
+              f"posts={_Site.posts}")
+        session.close_tab(safety.target_id)
+        check("safety tab cleaned up", tabs_returned_to_baseline())
 
         # A/B on the *same* workload. Comparing 12-parallel against 6-serial was the first
         # shape here and it is not a measurement: it mixes a throughput change with a

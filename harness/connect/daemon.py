@@ -28,10 +28,12 @@ from harness.connect.session import SessionRegistry
 from harness.core import ipc
 from harness.core.journal import Journal
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError, fail, ok
+from harness.version import PROTOCOL_VERSION, VERSION
 
 #: In-flight requests one client may have. Past this they queue — the same backpressure
 #: the old serial loop always had, but only once genuinely saturated.
-_CLIENT_WORKERS = int(os.environ.get("BH_DAEMON_WORKERS") or 16)
+_DAEMON_WORKERS = int(os.environ.get("BH_DAEMON_WORKERS") or 16)
+_DAEMON_QUEUE = max(_DAEMON_WORKERS, int(os.environ.get("BH_DAEMON_QUEUE") or 64))
 
 #: Raw-CDP methods that would otherwise produce a session behind the registry's back.
 _SESSION_METHODS = frozenset({"Target.attachToTarget", "Target.detachFromTarget"})
@@ -44,10 +46,11 @@ class _Peer:
     thread (events) — so an unguarded `sendall` would splice two JSON lines together.
     """
 
-    __slots__ = ("lock", "sock")
+    __slots__ = ("closed", "lock", "sock")
 
     def __init__(self, sock: socket.socket):
         self.sock, self.lock = sock, threading.Lock()
+        self.closed = threading.Event()
 
     def send(self, payload: dict[str, Any]) -> bool:
         line = (json.dumps(payload, default=str) + "\n").encode()
@@ -59,6 +62,7 @@ class _Peer:
             return False
 
     def close(self) -> None:
+        self.closed.set()
         try:
             self.sock.close()
         except OSError:
@@ -90,6 +94,9 @@ class Daemon:
         self._settled = threading.Event()
         self._connect_error = ""
         self._connect_started = False
+        self._request_pool = ThreadPoolExecutor(max_workers=_DAEMON_WORKERS,
+                                                thread_name_prefix="bh-daemon-req")
+        self._admission = threading.BoundedSemaphore(_DAEMON_QUEUE)
 
     # -- lifecycle ---------------------------------------------------------
 
@@ -160,6 +167,7 @@ class Daemon:
                 break
             thread = threading.Thread(target=self._serve_client, args=(client,), daemon=True)
             thread.start()
+            self._threads = [existing for existing in self._threads if existing.is_alive()]
             self._threads.append(thread)
 
     def stop(self) -> None:
@@ -173,6 +181,7 @@ class Daemon:
         # must not turn teardown into an exception.
         with contextlib.suppress(Exception):
             self.conn.close()
+        self._request_pool.shutdown(wait=False, cancel_futures=True)
         ipc.cleanup(self.name)
 
     def __enter__(self) -> Self:
@@ -200,14 +209,10 @@ class Daemon:
         """
         peer = _Peer(client)
         buf = bytearray()
-        # Bounded: an unbounded thread-per-request would let a client with a runaway loop
-        # exhaust the daemon. Requests past the cap queue, which is the same backpressure
-        # the serial loop had, but only once genuinely saturated.
-        pool = ThreadPoolExecutor(max_workers=_CLIENT_WORKERS,
-                                  thread_name_prefix="bh-daemon-req")
-
         def answer_and_send(line: bytes) -> None:
             try:
+                if peer.closed.is_set():
+                    return
                 reply = self._answer(line, peer)
                 # Echo the client's request id so a multiplexed client can match the
                 # reply to the call, the same way CDP's own `id` works.
@@ -216,6 +221,8 @@ class Daemon:
                 peer.send(reply)
             except OSError:
                 pass        # the peer went away mid-reply; the read loop will notice
+            finally:
+                self._admission.release()
 
         try:
             while not self._stop.is_set():
@@ -226,13 +233,24 @@ class Daemon:
                 while b"\n" in buf:
                     line, _, rest = bytes(buf).partition(b"\n")
                     buf = bytearray(rest)
-                    pool.submit(answer_and_send, line)
+                    if not self._admission.acquire(blocking=False):
+                        reply = fail(
+                            Class.RESOURCE_LIMIT,
+                            "daemon request admission queue is full",
+                            active_limit=_DAEMON_WORKERS, queue_limit=_DAEMON_QUEUE,
+                        ).to_json()
+                        if (rid := _rid_of(line)) is not None:
+                            reply["rid"] = rid
+                        peer.send(reply)
+                        continue
+                    try:
+                        self._request_pool.submit(answer_and_send, line)
+                    except RuntimeError:
+                        self._admission.release()
+                        return
         except OSError:
             return          # a client that vanishes mid-request is normal, not an error
         finally:
-            # Do not wait: a client that disconnected is not owed its in-flight replies,
-            # and joining here would hold the connection thread open for a full timeout.
-            pool.shutdown(wait=False, cancel_futures=True)
             with self._plock:
                 self._peers.discard(peer)
             peer.close()
@@ -253,7 +271,8 @@ class Daemon:
             # polling would reintroduce exactly the latency D13 removed.
             with self._plock:
                 self._peers.add(peer)
-            return _value(ok({"subscribed": True}))
+            return _value(ok({"subscribed": True, "protocol": PROTOCOL_VERSION,
+                              "version": VERSION}))
         return self.handle(request)
 
     def _broadcast(self, msg: dict[str, Any]) -> None:
@@ -333,6 +352,7 @@ class Daemon:
             settled = self._settled.is_set() or not self._connect_started
             live = settled and not self._connect_error and not self.conn._closed
             out: dict[str, Any] = {"pong": True, "browser": live,
+                                   "protocol": PROTOCOL_VERSION, "version": VERSION,
                                    "targets": self.sessions.live_targets}
             if not live:
                 out["connecting"] = not settled

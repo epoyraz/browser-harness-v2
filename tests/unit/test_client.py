@@ -7,9 +7,15 @@ import time
 
 import pytest
 
-from harness.connect.client import RemoteConnection, RemoteRegistry, ensure_daemon
+from harness.connect.client import (
+    RemoteConnection,
+    RemoteRegistry,
+    _validate_protocol,
+    ensure_daemon,
+)
 from harness.connect.daemon import Daemon
-from harness.core.outcome import BrowserDisconnected, Class, HarnessError
+from harness.core.outcome import BrowserDisconnected, Class, HarnessError, ProtocolMismatch
+from harness.version import PROTOCOL_VERSION
 from tests.fake_browser import FakeBrowser
 
 
@@ -145,7 +151,14 @@ def test_requesting_on_a_closed_client_fails_fast(served):
 
 
 def test_ensure_daemon_returns_the_pong_when_one_is_already_up(served):
-    assert ensure_daemon("clienttest")["pong"] is True
+    pong = ensure_daemon("clienttest")
+    assert pong["pong"] is True and pong["protocol"] == PROTOCOL_VERSION
+
+
+def test_protocol_mismatch_fails_before_browser_commands_are_sent():
+    with pytest.raises(ProtocolMismatch) as error:
+        _validate_protocol({"protocol": 999, "version": "old"})
+    assert error.value.observed["client_protocol"] == PROTOCOL_VERSION
 
 
 def test_ensure_daemon_reports_a_typed_failure_rather_than_hanging(runtime):

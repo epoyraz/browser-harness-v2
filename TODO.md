@@ -17,18 +17,18 @@ This is the canonical next-work queue. The phase plan below remains the build hi
 design evidence; open items repeated there are cross-referenced here rather than being a
 second priority list.
 
-- [ ] **1. Browser-context isolation and leases (D12)**
+- [x] **1. Browser-context isolation and leases (D12)**
 
       Tabs inside one Chrome context share cookies, local storage, permissions, caches, and
       service workers. That is useful when several workers should use the same login, but it is
       unsafe when independent tasks or accounts must not influence one another. Add
       `new_context()` and task-owned context leases over the existing single CDP connection,
-      including idle expiry and guaranteed disposal when the owner exits.
+      with guaranteed disposal when the worker or session exits.
 
       *Done when:* two parallel tasks can set the same cookie and local-storage key without
       observing each other's values, and both contexts disappear after their leases end.
 
-- [ ] **2. Browser-instance ownership and a hard five-instance budget**
+- [x] **2. Browser-instance ownership and a hard five-instance budget**
 
       A Chrome instance is far more expensive than a tab because it brings its own browser,
       GPU, network, storage, and renderer process tree. V2 should distinguish a user's attached
@@ -61,7 +61,7 @@ second priority list.
       *Done when:* cancelling a 100-item run stops every queued action, closes all owned
       resources, and returns within a documented teardown budget.
 
-- [ ] **5. Crash-safe resource accounting with visible cleanup failures**
+- [x] **5. Crash-safe resource accounting with visible cleanup failures**
 
       Browser resources can leak when creation succeeds but the next step—attach, navigation,
       runtime installation, or registration—fails before ownership is recorded. V2 should use a
@@ -171,7 +171,7 @@ second priority list.
       *Done when:* concurrent same-name downloads remain distinct, complete, attributable, and
       subject to an explicit retention and cleanup policy.
 
-- [ ] **15. Concurrency-safe recording**
+- [x] **15. Concurrency-safe recording**
 
       Recording currently hangs one callback off the shared journal, while frame numbering,
       recursion protection, and capture selection were originally designed for a serial call
@@ -204,7 +204,7 @@ second priority list.
       *Done when:* every injected fault yields a typed result, bounded recovery, complete item
       accounting, and proof that no unrelated tab received an action.
 
-- [ ] **18. Versioned skills distribution and trust (existing 31–32)**
+- [x] **18. Versioned skills distribution and trust (existing 31–32)**
 
       Domain-specific knowledge is valuable, but copying helper code from an unverified source
       directly into an agent session creates a supply-chain and authority problem. Implement

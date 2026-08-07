@@ -153,6 +153,39 @@ _SCHEMA_JS = """(() => {
   return {verdict, fields, files};
 })()"""
 
+_PREPARE_JS = """(() => {
+  const schema = __SCHEMA__;
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  const fileInputs = [...document.querySelectorAll('input[type=file]')].map(el => {
+    let ref = el.__bhRef;
+    if (!ref || bh.refs[ref] !== el) {
+      ref = 'e' + (++bh.n);
+      el.__bhRef = ref;
+      bh.refs[ref] = el;
+    }
+    const label = el.id ? document.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
+    return {ref, name: el.name || el.id || 'file',
+            label: (label && label.innerText || el.getAttribute('aria-label') || '').trim(),
+            accept: el.accept || '', multiple: !!el.multiple};
+  });
+  const apply = [...document.querySelectorAll('a[href]')].find(a =>
+    /^(apply|apply now|bewerben|jetzt bewerben|postuler|candidature|candida)/i
+      .test((a.innerText || '').trim()));
+  return {schema, url: location.href, title: document.title,
+          language: document.documentElement.lang || navigator.language || 'en',
+          file_inputs: fileInputs, apply_link: apply ? apply.href : null};
+})()""".replace("__SCHEMA__", _SCHEMA_JS)
+
+
+def prepare_document(tab: Tab, *, guard_submit: bool = True,
+                     timeout: float = 20.0) -> dict[str, Any]:
+    """Return all application perception data in one round trip.
+
+    ``guard_submit`` remains source-compatible, but cannot disable the session's automatic
+    dry-run boundary. Every document is guarded before page script in ``Tab``.
+    """
+    return tab._world_js(_PREPARE_JS, timeout=timeout)
+
 _FILL_JS = """((plan) => {
   const bh = window.__bh || {refs: {}};
   const report = [];

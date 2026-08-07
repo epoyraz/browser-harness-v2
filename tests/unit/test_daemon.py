@@ -128,6 +128,7 @@ def test_ping_reports_the_browser_not_just_the_daemon(runtime):
     daemon = _serve("ping", FakeBrowser("a"))
     reply = request("ping", {"meta": "ping"})
     assert reply["pong"] is True and reply["browser"] is True
+    assert reply["protocol"] >= 1 and reply["version"] == "0.1.0"
     daemon.stop()
 
 

@@ -1,0 +1,94 @@
+{
+  "attempt": "job-022-ansam-group",
+  "number": 22,
+  "company": "ANSAM GROUP",
+  "title": "Senior Artificial Intelligence Engineer",
+  "source_url": "https://carrieres.ansam.ch/jobs/8103917-senior-artificial-intelligence-engineer/applications/new",
+  "landed_url": "https://carrieres.ansam.ch/jobs/8103917-senior-artificial-intelligence-engineer/applications/new",
+  "original_context": "main",
+  "dry_run_filled_count": 6,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 10,
+      "required": 0,
+      "files": 2,
+      "submit_labels": [
+        "Envoyer ma candidature"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "date",
+        "label": "Quelle est votre date de naissance?*\nRequis",
+        "name": "candidate[answers_attributes][0][date]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Merci d'entrer votre adresse postale complète*\nRequis",
+        "name": "candidate[answers_attributes][1][text]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "À partir de quand êtes-vous disponible ?",
+        "name": "candidate[answers_attributes][2][text]",
+        "required": false
+      },
+      {
+        "kind": "radio",
+        "label": "OUI",
+        "name": "candidate[answers_attributes][3][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "NON",
+        "name": "candidate[answers_attributes][3][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "Prénom*\nRequis",
+        "name": "candidate[first_name]",
+        "required": false,
+        "autocomplete": "given-name"
+      },
+      {
+        "kind": "text",
+        "label": "Nom*\nRequis",
+        "name": "candidate[last_name]",
+        "required": false,
+        "autocomplete": "family-name"
+      },
+      {
+        "kind": "email",
+        "label": "E-mail*\nRequis",
+        "name": "candidate[email]",
+        "required": false,
+        "autocomplete": "email"
+      },
+      {
+        "kind": "tel",
+        "label": "Téléphone*\nRequis",
+        "name": "candidate[phone]",
+        "required": false,
+        "autocomplete": "tel"
+      },
+      {
+        "kind": "textarea",
+        "label": "Lettre de motivation",
+        "name": "candidate[job_applications_attributes][0][cover_letter]",
+        "required": false
+      }
+    ],
+    "files": [
+      "candidate_resume_remote_url",
+      "candidate_file_remote_url"
+    ]
+  }
+}

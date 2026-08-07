@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import threading
 import time
 from pathlib import Path
 from typing import Any
@@ -89,7 +90,8 @@ class Recorder:
         self._tab_for = tab_for
         self.max_dim, self.quality = max_dim, quality
         self.frames = 0
-        self._busy = False
+        self._local = threading.local()
+        self._capture_lock = threading.Lock()
         # Bind ONCE. `self._on_call` builds a fresh bound-method object on every access,
         # so the identity check in stop() could never match and the recorder went on
         # capturing after it was stopped.
@@ -104,22 +106,25 @@ class Recorder:
     # -- the hook ----------------------------------------------------------
 
     def _on_call(self, span: Span, payload: dict[str, Any]) -> dict[str, Any] | None:
-        if span.fn not in ACTIONS or self._busy:
+        if span.fn not in ACTIONS or getattr(self._local, "busy", False):
             return None
         # The capture opens spans of its own; without this guard the hook would fire on
         # its own screenshot and recurse until the stack gave out.
-        self._busy = True
+        self._local.busy = True
         try:
-            return self._capture()
+            tab = self._tab_for()
+            if tab is None:
+                return None
+            # Bind the tab before waiting: Session's current-tab cursor is thread-local,
+            # and looking it up from a different thread later would capture the wrong page.
+            with self._capture_lock:
+                return self._capture(tab)
         except Exception:      # noqa: BLE001 — a recording must never break the run
             return None
         finally:
-            self._busy = False
+            self._local.busy = False
 
-    def _capture(self) -> dict[str, Any] | None:
-        tab = self._tab_for()
-        if tab is None:
-            return None
+    def _capture(self, tab: Any) -> dict[str, Any] | None:
         time.sleep(SETTLE)
         self.frames += 1
         name = f"{self.frames:04d}.jpg"

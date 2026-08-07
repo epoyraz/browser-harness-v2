@@ -1,0 +1,222 @@
+{
+  "attempt": "job-043-helsana",
+  "number": 43,
+  "company": "HELSANA",
+  "title": "Full Stack Software Engineer C# / .NET / React (a) 80-100%   [NEU]",
+  "source_url": "https://ohws.prospective.ch/public/v1/redirect/71324d82-0065-4246-9fce-b490e927ad89/ats/",
+  "landed_url": "https://jobs.helsana.ch/successfactors/EMEA_STANDARD/Helsana/de/apply?id=34355&jobPipeline=helsanainternet&canalId=1002787&publishId=10140673&ohvk=71324d82-0065-4246-9fce-b490e927ad89",
+  "original_context": "main",
+  "dry_run_filled_count": 10,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 23,
+      "required": 9,
+      "files": 0,
+      "submit_labels": [
+        "Senden"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "select",
+        "label": null,
+        "name": "title",
+        "required": false,
+        "options_count": 3,
+        "options_sample": [
+          "Anrede",
+          "Frau",
+          "Herr"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "*Vorname",
+        "name": "name",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "*Nachname",
+        "name": "surname",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Geburtsdatum",
+        "name": "dateOfBirth",
+        "required": false
+      },
+      {
+        "kind": "tel",
+        "label": "*Tel.",
+        "name": "phoneNumber",
+        "required": true
+      },
+      {
+        "kind": "email",
+        "label": "*E-Mail",
+        "name": "email",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Strasse und Hausnummer",
+        "name": "address",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "PLZ",
+        "name": "postalCode",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Ort",
+        "name": "city",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": "country",
+        "required": false,
+        "options_count": 250,
+        "options_sample": [
+          "Land",
+          "Schweiz",
+          "Deutschland",
+          "Österreich",
+          "Italien",
+          "Frankreich",
+          "Liechtenstein",
+          "Andorra"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false,
+        "value": "CH"
+      },
+      {
+        "kind": "text",
+        "label": "Land",
+        "name": null,
+        "required": false,
+        "autocomplete": "fomantic-search"
+      },
+      {
+        "kind": "textarea",
+        "label": "Welches Pensum bevorzugst du?",
+        "name": "question_1",
+        "required": true
+      },
+      {
+        "kind": "textarea",
+        "label": "Welchen Brutto-Jahreslohn stellst du dir bei 100% vor?",
+        "name": "question_2",
+        "required": true
+      },
+      {
+        "kind": "textarea",
+        "label": "Wann kannst du die Stelle antreten?",
+        "name": "question_3",
+        "required": true
+      },
+      {
+        "kind": "textarea",
+        "label": "Welche Erfahrungen bringst du für diese Stelle mit?",
+        "name": "question_4",
+        "required": true
+      },
+      {
+        "kind": "textarea",
+        "label": "Was möchtest du uns sonst noch mitteilen?",
+        "name": "question_5",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Bitte lade deinen CV hier hoch",
+        "name": null,
+        "required": false,
+        "value": "Datei hinzufügen"
+      },
+      {
+        "kind": "textarea",
+        "label": "Datei hinzufügen",
+        "name": null,
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": "cust_nebenbeschaeftigung",
+        "required": false,
+        "options_count": 3,
+        "options_sample": [
+          "Bitte wählen",
+          "Ja",
+          "Nein"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": "cust_stelleerfahren",
+        "required": false,
+        "options_count": 29,
+        "options_sample": [
+          "Bitte wählen",
+          "Über externes Stellenportal/Stelleninser",
+          "Ictjobs.ch",
+          "Indeed.com",
+          "ITjobs.ch",
+          "Jobagent.ch",
+          "Jobroom.ch (RAV)",
+          "Jobs.ch"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Empfehlung Nachname / Vorname (optional)",
+        "name": "cust_referral",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": "cust_helsanaemployee",
+        "required": false,
+        "options_count": 3,
+        "options_sample": [
+          "Bitte wählen",
+          "Ja",
+          "Nein"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "*Ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+        "name": "disclaimerAcknowledge",
+        "required": true,
+        "checked": false
+      }
+    ],
+    "files": []
+  }
+}

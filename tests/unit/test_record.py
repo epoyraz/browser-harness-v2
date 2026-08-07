@@ -1,5 +1,6 @@
 """Recording hangs off the journal — no second capture path, no parallel events file."""
 import json
+import threading
 
 import pytest
 
@@ -67,6 +68,33 @@ def test_the_capture_cannot_recurse_into_itself(wired):
     with j.call("goto"):
         pass
     assert rec.frames == 1
+
+
+def test_parallel_actions_capture_each_worker_tab_once(tmp_path, monkeypatch):
+    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
+    monkeypatch.setattr("harness.ops.record.SETTLE", 0)
+    journal = Journal(tmp_path / "pre.jsonl", session="s")
+    local = threading.local()
+    tabs = [_FakeTab() for _ in range(6)]
+    recorder = start(lambda: local.tab, journal, name="parallel")
+    barrier = threading.Barrier(len(tabs), timeout=5)
+
+    def action(tab):
+        local.tab = tab
+        barrier.wait()
+        with journal.call("goto"):
+            pass
+
+    threads = [threading.Thread(target=action, args=(tab,)) for tab in tabs]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(5)
+
+    assert recorder.frames == len(tabs)
+    assert all(len(tab.shots) == 1 for tab in tabs)
+    assert sorted(path.name for path in recorder.dir.glob("*.jpg")) == [
+        f"{index:04d}.jpg" for index in range(1, len(tabs) + 1)]
 
 
 def test_url_secrets_are_scrubbed_before_they_reach_disk(wired):

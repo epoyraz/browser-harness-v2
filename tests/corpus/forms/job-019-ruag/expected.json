@@ -1,0 +1,107 @@
+{
+  "attempt": "job-019-ruag",
+  "number": 19,
+  "company": "RUAG",
+  "title": "Senior Software Engineer C5I   [NEU]",
+  "source_url": "https://jobs.ruag.ch/apply/ats/6d33c977-7809-4202-9a86-3f80e474104c",
+  "landed_url": "https://jobs.ruag.ch/umantis/2514/en/apply/18127?srcIDPMS=10136488&srcTextPMS=ruagextranet&source=ruagextranet&canalId=1004418&publishId=10136488&ohvk=6d33c977-7809-4202-9a86-3f80e474104c",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 9,
+      "required": 1,
+      "files": 0,
+      "submit_labels": [
+        "Apply Now"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "text",
+        "label": "First Name",
+        "name": "first_name",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Last Name",
+        "name": "last_name",
+        "required": false
+      },
+      {
+        "kind": "tel",
+        "label": "Phone Number",
+        "name": "phone",
+        "required": false
+      },
+      {
+        "kind": "email",
+        "label": "Email",
+        "name": "email",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": "user_language",
+        "required": false,
+        "options_count": 5,
+        "options_sample": [
+          "Select language",
+          "German",
+          "English",
+          "French",
+          "Italian"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "select",
+        "label": "How did you hear about us?",
+        "name": "recommendation_source",
+        "required": false,
+        "options_count": 24,
+        "options_sample": [
+          "Please select",
+          "Campus recruiting",
+          "Exhibition/Fair",
+          "Family/Friends",
+          "Google",
+          "Indeed",
+          "Internal job advertisement",
+          "LinkedIn"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "radio",
+        "label": "I agree that my data may be stored beyond the current job application process and that I may be informed of interesting job opportunities.",
+        "name": "data_release_agreed",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "I want my data to be deleted after the current application process.",
+        "name": "data_release_agreed",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "I have read and understood the privacy policy for applicants. *",
+        "name": "data_protection_accepted",
+        "required": true,
+        "checked": false
+      }
+    ],
+    "files": []
+  }
+}

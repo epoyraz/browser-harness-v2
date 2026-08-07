@@ -1,0 +1,233 @@
+{
+  "attempt": "job-086-helvetia",
+  "number": 86,
+  "company": "HELVETIA",
+  "title": "Senior Full-Stack Software Engineer Kotlin/Java (w/m/d) Vollzeit   [NEU]",
+  "source_url": "https://ohws.prospective.ch/public/v1/redirect/eb6060ff-bfe8-4159-883d-c17bf8034cbb/ats/",
+  "landed_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/Helvetia/switzerland/de/apply?id=18459&jobPipeline=helvetia-internet&canalId=1002532&publishId=10133500&ohvk=eb6060ff-bfe8-4159-883d-c17bf8034cbb",
+  "original_context": "main",
+  "dry_run_filled_count": 11,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 22,
+      "required": 14,
+      "files": 0,
+      "submit_labels": [
+        "Bewerbung abschicken"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "select",
+        "label": "Anrede",
+        "name": "cust_salutation",
+        "required": true,
+        "options_count": 3,
+        "options_sample": [
+          "Bitte auswählen",
+          "Herr",
+          "Frau"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "select",
+        "label": "Geschlecht",
+        "name": "cust_gender",
+        "required": true,
+        "options_count": 4,
+        "options_sample": [
+          "Bitte auswählen",
+          "Männlich",
+          "Weiblich",
+          "Divers"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Vorname",
+        "name": "name",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Nachname",
+        "name": "surname",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Geburtsdatum",
+        "name": "dateOfBirth",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Nationalität",
+        "name": "cust_nationality",
+        "required": true,
+        "options_count": 249,
+        "options_sample": [
+          "Bitte auswählen",
+          "Afghanistan",
+          "Ägypten",
+          "Åland",
+          "Albanien",
+          "Algerien",
+          "Amerik. Jungferninseln",
+          "Amerikanisch-Samoa"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Nationalität",
+        "name": null,
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": "Arbeitsgenehmigung",
+        "name": "cust_workPermit",
+        "required": true,
+        "options_count": 9,
+        "options_sample": [
+          "Bitte auswählen",
+          "Keine Arbeitsbewilligung",
+          "Schweizer/-in",
+          "B (Aufenthaltsbewilligung)",
+          "B (Aufenthaltsbewilligung - Student)",
+          "C (Niederlassungsbewilligung)",
+          "G (Grenzgängerbewilligung)",
+          "L (Kurzaufenthaltsbewilligung)"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "email",
+        "label": "E-Mail",
+        "name": "email",
+        "required": true
+      },
+      {
+        "kind": "tel",
+        "label": "Telefonnummer",
+        "name": "phoneNumber",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Strasse",
+        "name": "address",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Nr.",
+        "name": "cust_number",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Ort",
+        "name": "city",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Kanton / Bundesland",
+        "name": "state",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "PLZ",
+        "name": "postalCode",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Land",
+        "name": "country",
+        "required": true,
+        "options_count": 215,
+        "options_sample": [
+          "Bitte auswählen",
+          "Schweiz",
+          "Ägypten",
+          "Afghanistan",
+          "Albanien",
+          "Algerien",
+          "Andorra",
+          "Angola"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Land",
+        "name": null,
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "https://www.linkedin.com/in/anna-muster/",
+        "name": "cust_LinkedInURL",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": "Hier bin ich auf die Stelle aufmerksam geworden:",
+        "name": "cust_source",
+        "required": true,
+        "options_count": 8,
+        "options_sample": [
+          "Bitte auswählen",
+          "LinkedIn",
+          "Jobs.ch",
+          "Jobup",
+          "Ostjob.ch",
+          "Helvetia Webseite",
+          "Direktansprache Helvetia Recruiter",
+          "Sonstiges"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Falls Andere, hier habe ich die Stelle gefunden:",
+        "name": "referral",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Falls eine Mitarbeiterin/ein Mitarbeiter der Smile hat mich auf die Stelle aufmerksam gemacht, bitte Namen angeben",
+        "name": "cust_refname",
+        "required": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.",
+        "name": "disclaimerAcknowledge",
+        "required": true,
+        "checked": false
+      }
+    ],
+    "files": []
+  }
+}

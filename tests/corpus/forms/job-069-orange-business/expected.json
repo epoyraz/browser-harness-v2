@@ -1,0 +1,122 @@
+{
+  "attempt": "job-069-orange-business",
+  "number": 69,
+  "company": "ORANGE BUSINESS",
+  "title": "AI Engineer / Architect Consultant",
+  "source_url": "https://jobs.digital.orange-business.com/jobs/7748084-ai-engineer-architect-consultant/applications/new",
+  "landed_url": "https://jobs.digital.orange-business.com/jobs/7748084-ai-engineer-architect-consultant/applications/new",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 14,
+      "required": 0,
+      "files": 2,
+      "submit_labels": [
+        "Submit application"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "radio",
+        "label": "Yes",
+        "name": "candidate[answers_attributes][0][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "No",
+        "name": "candidate[answers_attributes][0][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Swiss citizen",
+        "name": "candidate[answers_attributes][1][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "EU/EFTA citizen without Swiss work permit",
+        "name": "candidate[answers_attributes][1][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Valid Swiss work permit",
+        "name": "candidate[answers_attributes][1][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Non-Swiss/EU/EFTA without Swiss work permit",
+        "name": "candidate[answers_attributes][1][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "When is your earliest starting date?*\nRequired",
+        "name": "candidate[answers_attributes][2][text]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "What are your salary expectations?*\nRequired",
+        "name": "candidate[answers_attributes][3][text]",
+        "required": false
+      },
+      {
+        "kind": "textarea",
+        "label": "Any other comments / feedback to the hiring team?",
+        "name": "candidate[answers_attributes][4][text]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "First name*\nRequired",
+        "name": "candidate[first_name]",
+        "required": false,
+        "autocomplete": "given-name"
+      },
+      {
+        "kind": "text",
+        "label": "Last name*\nRequired",
+        "name": "candidate[last_name]",
+        "required": false,
+        "autocomplete": "family-name"
+      },
+      {
+        "kind": "email",
+        "label": "Email*\nRequired",
+        "name": "candidate[email]",
+        "required": false,
+        "autocomplete": "email"
+      },
+      {
+        "kind": "tel",
+        "label": "Phone*\nRequired",
+        "name": "candidate[phone]",
+        "required": false,
+        "autocomplete": "tel"
+      },
+      {
+        "kind": "textarea",
+        "label": "Cover letter",
+        "name": "candidate[job_applications_attributes][0][cover_letter]",
+        "required": false
+      }
+    ],
+    "files": [
+      "candidate_resume_remote_url",
+      "candidate_file_remote_url"
+    ]
+  }
+}

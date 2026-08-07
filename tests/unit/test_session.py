@@ -7,6 +7,7 @@ import time
 import pytest
 
 from harness.connect.daemon import Daemon
+from harness.core.outcome import ScopeRefused
 from harness.session import Session, run_script
 from tests.fake_browser import FakeBrowser
 
@@ -107,6 +108,48 @@ def test_only_drivable_targets_are_auto_selected(served):
         s.close()
 
 
+def test_owned_browser_context_scopes_and_disposes_its_tabs(session, served):
+    browser, _ = served
+    context_id = session.new_context()
+    tab = session.new_tab(context_id=context_id)
+    assert browser.targets[tab.target_id]["browserContextId"] == context_id
+    session.close_context(context_id)
+    assert context_id not in browser.contexts
+    assert tab.target_id not in browser.targets
+
+
+def test_session_refuses_to_use_or_dispose_an_unowned_context(session):
+    with pytest.raises(ScopeRefused):
+        session.new_tab(context_id="someone-elses")
+    with pytest.raises(ScopeRefused):
+        session.close_context("someone-elses")
+
+
+def test_new_tab_rolls_back_target_when_attach_fails(session, served, monkeypatch):
+    browser, _ = served
+    original = session.tab
+
+    def fail_new(target_id=None):
+        if target_id and target_id.startswith("T"):
+            raise RuntimeError("attach failed")
+        return original(target_id)
+
+    monkeypatch.setattr(session, "tab", fail_new)
+    before = set(browser.targets)
+    with pytest.raises(RuntimeError, match="attach failed"):
+        session.new_tab()
+    assert set(browser.targets) == before
+
+
+def test_new_tab_rolls_back_target_when_navigation_fails(session, served):
+    browser, _ = served
+    browser.navigate_error = "net::ERR_FAILED"
+    before = set(browser.targets)
+    with pytest.raises(Exception, match="navigation_failed"):
+        session.new_tab("https://broken.test")
+    assert set(browser.targets) == before
+
+
 # --- namespace ----------------------------------------------------------------
 
 def test_the_namespace_covers_the_documented_surface(session):
@@ -114,9 +157,36 @@ def test_the_namespace_covers_the_documented_surface(session):
     for name in ("goto", "js", "cdp", "snapshot", "click_ref", "click_at", "page_text",
                  "press_key", "scroll", "upload_file", "capture_screenshot",
                  "wait_lifecycle", "form_schema", "fill_form", "set_value",
-                 "require_form", "fetch_all", "new_tab", "use_tab", "close_tab",
-                 "parallel", "summarise", "targets", "tab", "session", "journal"):
+                 "require_form", "prepare_application", "fetch_all", "new_tab", "use_tab", "close_tab",
+                 "new_context", "close_context", "parallel", "summarise", "targets",
+                 "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"
+
+
+def test_prepare_application_stops_before_frame_discovery_when_main_is_a_form(session, served):
+    browser, _ = served
+    payload = {"schema": {"verdict": {"is_form": True}, "fields": [{"ref": "e1"}]},
+               "url": "https://a.test/apply", "title": "Apply", "language": "en",
+               "file_inputs": [], "apply_link": None}
+    browser.eval_hook = lambda expression: (
+        True if "__bhDryRunGuardInstalled" in expression else payload)
+    prepared = session.prepare_application()
+    assert prepared["context"] == "main" and prepared["contexts_checked"] == 1
+    assert prepared["is_application"] is True
+    assert not any(call.get("method") == "Target.setAutoAttach" for call in browser.calls)
+
+
+def test_prepare_application_stops_for_a_substantial_js_button_form(session, served):
+    browser, _ = served
+    payload = {"schema": {"verdict": {"is_form": False},
+                          "fields": [{"ref": f"e{i}"} for i in range(8)]},
+               "url": "https://a.test/apply", "title": "Apply", "language": "en",
+               "file_inputs": [], "apply_link": None}
+    browser.eval_hook = lambda expression: (
+        True if "__bhDryRunGuardInstalled" in expression else payload)
+    prepared = session.prepare_application()
+    assert prepared["contexts_checked"] == 1 and prepared["is_application"] is True
+    assert not any(call.get("method") == "Target.setAutoAttach" for call in browser.calls)
 
 
 def test_helpers_keep_their_names_so_a_traceback_is_readable(session):

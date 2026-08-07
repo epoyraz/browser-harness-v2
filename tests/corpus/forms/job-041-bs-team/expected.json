@@ -1,0 +1,58 @@
+{
+  "attempt": "job-041-bs-team",
+  "number": 41,
+  "company": "BS-TEAM",
+  "title": "Développeur FullStack Java",
+  "source_url": "https://www.bs-team.ch/jobs/developpeur-fullstack-java-vue-js/",
+  "landed_url": "https://www.bs-team.ch/jobs/developpeur-fullstack-java-vue-js/",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 5,
+      "required": 5,
+      "files": 1,
+      "submit_labels": [
+        "Postuler"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Prénom et nom *",
+        "name": "awsm_applicant_name",
+        "required": true
+      },
+      {
+        "kind": "email",
+        "label": "Email *",
+        "name": "awsm_applicant_email",
+        "required": true
+      },
+      {
+        "kind": "tel",
+        "label": "Téléphone *",
+        "name": "awsm_applicant_phone",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Lieu de résidence (Code postal, ville) *",
+        "name": "awsm_text_1",
+        "required": true
+      },
+      {
+        "kind": "checkbox",
+        "label": "En utilisant ce formulaire, vous acceptez le stockage et le traitement de vos données par ce site web. *",
+        "name": "awsm_form_privacy_policy",
+        "required": true,
+        "checked": false
+      }
+    ],
+    "files": [
+      "awsm_file"
+    ]
+  }
+}

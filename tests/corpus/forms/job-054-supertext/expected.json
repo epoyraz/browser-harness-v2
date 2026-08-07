@@ -1,0 +1,120 @@
+{
+  "attempt": "job-054-supertext",
+  "number": 54,
+  "company": "SUPERTEXT",
+  "title": "DevOps Intern",
+  "source_url": "https://supertext.jobs.personio.com/job/2713922?language=de&apply",
+  "landed_url": "https://supertext.jobs.personio.com/job/2713922/apply?language=de",
+  "original_context": "main",
+  "dry_run_filled_count": 7,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 13,
+      "required": 0,
+      "files": 0,
+      "submit_labels": [
+        "Bewerbung senden"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "select",
+        "label": null,
+        "name": null,
+        "required": false,
+        "options_count": 0,
+        "options_sample": [],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": null,
+        "required": false,
+        "options_count": 0,
+        "options_sample": [],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "text",
+        "label": "Vorname",
+        "name": "first_name",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Nachname",
+        "name": "last_name",
+        "required": false
+      },
+      {
+        "kind": "email",
+        "label": "E-Mail*\n(erforderlich)",
+        "name": "email",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Telefon*\n(erforderlich)",
+        "name": "phone",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Verfügbar ab*\n(erforderlich)",
+        "name": "available_from",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Strasse*\n(erforderlich)",
+        "name": "custom_attribute_4271360",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Hausnummer",
+        "name": "custom_attribute_4271364",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Postleitzahl*\n(erforderlich)",
+        "name": "custom_attribute_4271365",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Ort*\n(erforderlich)",
+        "name": "custom_attribute_4271366",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": "Kannst du in der Schweiz arbeiten und hast du eine gültige Arbeitsbewilligung?*\n(erforderlich)",
+        "name": "custom_attribute_4271027",
+        "required": false,
+        "options_count": 3,
+        "options_sample": [
+          "Bitte auswählen",
+          "Ja",
+          "Nein"
+        ],
+        "placeholder_first": true
+      },
+      {
+        "kind": "text",
+        "label": "Gehaltsvorstellung*\n(erforderlich)",
+        "name": "salary_expectations",
+        "required": false
+      }
+    ],
+    "files": []
+  }
+}

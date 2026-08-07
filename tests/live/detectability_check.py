@@ -48,10 +48,15 @@ def launch(extra):
     unanswered TCC prompt that follows revokes the terminal's Desktop permission.
     """
     scratch = Path(tempfile.mkdtemp(prefix="bh-det3-"))
+    _browser.reserve(scratch)
     args = [f"--user-data-dir={scratch}", "--no-first-run",
             f"--download-directory={scratch}", "--no-default-browser-check", *extra, URL]
-    subprocess.run(["/usr/bin/open", "-na", _browser.CHROME, "--args", *args],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        subprocess.run(["/usr/bin/open", "-na", _browser.CHROME, "--args", *args],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception:
+        _browser.kill(scratch)
+        raise
     return scratch
 
 for label, extra in [("no remote debugging at all", []),

@@ -1,0 +1,217 @@
+{
+  "attempt": "job-023-sib-swiss-institute-of-bioinformatics",
+  "number": 23,
+  "company": "SIB SWISS INSTITUTE OF BIOINFORMATICS",
+  "title": "Software Developer",
+  "source_url": "https://apply.refline.ch/499599/0360/index.html?cid=1&lang=en",
+  "landed_url": "https://apply.refline.ch/499599/0360/IoZYdwV7jPIhO3TBQTk4s4xj4iwnucK39tJ2Kotv-1CY1FY6cP9v18/apply",
+  "original_context": "main",
+  "dry_run_filled_count": 10,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 21,
+      "required": 12,
+      "files": 6,
+      "submit_labels": [
+        "Submit",
+        "Apply later"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "radio",
+        "label": "Ms",
+        "name": "form.widgets.salutation",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Mr",
+        "name": "form.widgets.salutation",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "First Name *",
+        "name": "form.widgets.firstName",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Last Name *",
+        "name": "form.widgets.lastName",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Date of Birth (dd.mm.yyyy) *",
+        "name": "form.widgets.birthDate",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Work Permit (only if valid)",
+        "name": "form.widgets.permit:list",
+        "required": false,
+        "options_count": 14,
+        "options_sample": [
+          "No value",
+          "B EU/EFTA",
+          "C EU/EFTA",
+          "Ci EU/EFTA",
+          "G EU/EFTA",
+          "L EU/EFTA",
+          "B",
+          "C"
+        ],
+        "placeholder_first": false,
+        "value": "--NOVALUE--"
+      },
+      {
+        "kind": "text",
+        "label": "Nationalities *",
+        "name": "s2id_autogen1",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Nationalities *",
+        "name": "form.widgets.nationalities:list",
+        "required": true,
+        "options_count": 250,
+        "options_sample": [
+          "Afghanistan",
+          "Åland Islands",
+          "Albania",
+          "Algeria",
+          "American Samoa",
+          "Andorra",
+          "Angola",
+          "Anguilla"
+        ],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": true,
+        "value": "CHE"
+      },
+      {
+        "kind": "text",
+        "label": "Title",
+        "name": "form.widgets.title",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Street, House No. *",
+        "name": "form.widgets.street",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "ZIP *",
+        "name": "form.widgets.zip",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "City *",
+        "name": "form.widgets.city",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Country *",
+        "name": "form.widgets.country:list",
+        "required": true,
+        "options_count": 250,
+        "options_sample": [
+          "Afghanistan",
+          "Åland Islands",
+          "Albania",
+          "Algeria",
+          "American Samoa",
+          "Andorra",
+          "Angola",
+          "Anguilla"
+        ],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": true,
+        "value": "CHE"
+      },
+      {
+        "kind": "text",
+        "label": "E-mail *",
+        "name": "form.widgets.email",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Verify Email *",
+        "name": "form.widgets.email2",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Phone 1 *",
+        "name": "form.widgets.homePhone",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Phone 2",
+        "name": "form.widgets.mobilePhone",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Possible start date (dd.mm.yyyy)",
+        "name": "form.widgets.possibleStartDate",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": "How did you find us?",
+        "name": "form.widgets.contactType:list",
+        "required": false,
+        "options_count": 7,
+        "options_sample": [
+          "(No value)",
+          "Website",
+          "Employee recommendation",
+          "Internet job board",
+          "Newspaper/magazine",
+          "Xeebo",
+          "Other"
+        ],
+        "placeholder_first": false,
+        "value": "--NOVALUE--"
+      },
+      {
+        "kind": "textarea",
+        "label": "Comment",
+        "name": "form.widgets.contactComment",
+        "required": false
+      },
+      {
+        "kind": "checkbox",
+        "label": ".",
+        "name": "form.widgets.acceptedDataSecurity:list",
+        "required": false,
+        "checked": false
+      }
+    ],
+    "files": [
+      "qqfile",
+      "qqfile",
+      "qqfile",
+      "qqfile",
+      "qqfile",
+      "qqfile"
+    ]
+  }
+}

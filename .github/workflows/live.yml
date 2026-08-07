@@ -1,0 +1,20 @@
+name: live-browser
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"
+
+jobs:
+  parallel-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BH_HEADLESS: "1"
+      BH_CHROME: google-chrome
+      BH_BROWSER_LIMIT: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --dev
+      - name: Real Chrome parallelism, isolation, cleanup, and dry-run safety
+        run: uv run python tests/live/parallel_check.py

@@ -6,7 +6,14 @@ import pytest
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
-from harness.ops.forms import fill_form, form_schema, require_form, select_option, set_value
+from harness.ops.forms import (
+    fill_form,
+    form_schema,
+    prepare_document,
+    require_form,
+    select_option,
+    set_value,
+)
 from harness.ops.page import Tab
 from tests.fake_browser import FakeBrowser
 
@@ -322,6 +329,18 @@ def test_form_schema_returns_the_page_report(tab):
     payload = {"verdict": {"is_form": True}, "fields": [{"ref": "e1"}], "files": []}
     browser.eval_hook = lambda e: payload
     assert form_schema(t) == payload
+
+
+def test_prepare_document_batches_metadata_schema_and_file_refs(tab):
+    browser, t = tab
+    payload = {"schema": {"verdict": {"is_form": True}, "fields": [], "files": ["cv"]},
+               "url": "https://a.test/apply", "title": "Apply", "language": "en",
+               "file_inputs": [{"ref": "e1", "name": "cv", "accept": ".pdf"}],
+               "apply_link": None}
+    browser.eval_hook = lambda expression: payload
+    before = len(_evaluates(browser))
+    assert prepare_document(t) == payload
+    assert len(_evaluates(browser)) - before == 1
 
 
 def test_require_form_raises_not_a_form_with_the_verdict(tab):

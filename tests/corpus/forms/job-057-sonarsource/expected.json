@@ -1,0 +1,245 @@
+{
+  "attempt": "job-057-sonarsource",
+  "number": 57,
+  "company": "SONARSOURCE",
+  "title": "Graduate Software Engineer",
+  "source_url": "https://jobs.lever.co/sonarsource/dfb8492a-8d96-4033-9c7b-e87dfe1b07b0/apply",
+  "landed_url": "https://jobs.lever.co/sonarsource/dfb8492a-8d96-4033-9c7b-e87dfe1b07b0/apply",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 28,
+      "required": 5,
+      "files": 1,
+      "submit_labels": [
+        "deny",
+        "accept",
+        "Deny",
+        "Accept"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Full name\n✱",
+        "name": "name",
+        "required": true
+      },
+      {
+        "kind": "email",
+        "label": "Email\n✱",
+        "name": "email",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Phone\n✱",
+        "name": "phone",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Current location\n✱",
+        "name": "location",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Current company",
+        "name": "org",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "LinkedIn URL\n✱",
+        "name": "urls[LinkedIn]",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Gender\nSelect ...\nMale\nFemale\nDecline to self-identify",
+        "name": "eeo[gender]",
+        "required": false,
+        "options_count": 4,
+        "options_sample": [
+          "Select ...",
+          "Male",
+          "Female",
+          "Decline to self-identify"
+        ],
+        "placeholder_first": true
+      },
+      {
+        "kind": "select",
+        "label": "Race\nSelect ...\nHispanic or Latino\nWhite (Not Hispanic or Latino)\nBlack or African American (Not Hispanic or Latino)\nNative Hawaiian or Other Pacific Islander (Not Hispanic or Latino)\nAsian (Not Hispanic or Latino)\nAmerican Indian or Alaska Native (Not Hispanic or Latino)\nTwo or More Races (Not Hispanic or Latino)\nDecline to self-identify",
+        "name": "eeo[race]",
+        "required": false,
+        "options_count": 9,
+        "options_sample": [
+          "Select ...",
+          "Hispanic or Latino",
+          "White (Not Hispanic or Latino)",
+          "Black or African American (Not Hispanic ",
+          "Native Hawaiian or Other Pacific Islande",
+          "Asian (Not Hispanic or Latino)",
+          "American Indian or Alaska Native (Not Hi",
+          "Two or More Races (Not Hispanic or Latin"
+        ],
+        "placeholder_first": true
+      },
+      {
+        "kind": "select",
+        "label": "Veteran status\nSelect ...\nI am a veteran\nI am not a veteran\nDecline to self-identify",
+        "name": "eeo[veteran]",
+        "required": false,
+        "options_count": 4,
+        "options_sample": [
+          "Select ...",
+          "I am a veteran",
+          "I am not a veteran",
+          "Decline to self-identify"
+        ],
+        "placeholder_first": true
+      },
+      {
+        "kind": "radio",
+        "label": "18-20",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field0]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "21-29",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field0]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "30-39",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field0]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "40-49",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field0]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "50-59",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field0]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "60 or older",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field0]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "White / Caucasian",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Hispanic, Latino, or Spanish origin",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Black or African American",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Asian",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Native Hawaiian or other Pacific Islander",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Indigenous Peoples, First Nations, Native American, or Alaska Native",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Middle Eastern or North African",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Some other race, ethnicity, or origin",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field1]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Female",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Male",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Non-binary",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Prefer not to say",
+        "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Yes, Sonar can contact me about future job opportunities for up to 3 years\nPrivacy policy",
+        "name": "consent[marketing]",
+        "required": false,
+        "checked": false
+      }
+    ],
+    "files": [
+      "resume"
+    ]
+  }
+}

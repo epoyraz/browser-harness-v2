@@ -122,6 +122,12 @@ js("await fetch('/api').then(r=>r.json())")   # replMode: top-level await works
 cdp("Target.getTargets")              # raw escape hatch, always available
 ```
 
+The browser is **dry-run by default with no submit override**. Submit controls and Enter
+inside a form raise `side_effect_refused`; form methods, mutating `fetch`/XHR, and beacons
+are blocked before page script can use them. Normal GET navigation, inspection, filling,
+uploads, and read-only API calls still work. This is a safety boundary, not a prompt
+convention: an application cannot be sent through these helpers.
+
 **`set_value` has three tiers, and the default is a bet.** Measured on an instrumented
 page:
 
@@ -146,7 +152,10 @@ six production ATS forms cost **2 CDP calls**, where field-by-field cost 2,321.
 
 ```python
 goto(url)
-s = require_form(form_schema())          # raises NotAForm on a 404 / cookie-banner page
+prepared = prepare_application()         # guard + metadata + schema + file refs
+if not prepared["is_application"]:
+    raise RuntimeError("no application form found")
+s = prepared["schema"]
 by = {f["label"]: f for f in s["fields"]}
 out = fill_form([
     {"ref": by["First name *"]["ref"], "value": "Enes"},
@@ -157,6 +166,14 @@ if not out.ok:
     for f in out.failures:
         print(f.cls.value, f.observed)
 ```
+
+`prepare_application()` replaces separate URL, title, language, schema,
+file-input and apply-link calls. It returns `schema`, `url`, `title`, `language`,
+`file_inputs`, `apply_link`, `target_id`, `context`, and `contexts_checked`. A valid main
+form stops immediately; `is_application` also recognises substantial JavaScript-button
+forms. Iframe discovery runs only when the main document has no
+substantial form. On the 23-page offline production corpus this cut public helper calls
+from 184 to 23 and CDP calls from 322 to 92 with identical schemas on every page.
 
 A step may carry its own **`mode`** (`value` default, `insert`, `type`). The batch stays
 one write; the moded fields cost a round trip each and run after it, but they travel in
@@ -281,17 +298,24 @@ def inspect(url):
     goto(url)
     return {"url": url, "title": js("document.title")}
 
-records = parallel(urls, inspect, workers=6)
+records = parallel(urls, inspect, workers=5, isolated=True, timeout=120,
+                   progress=lambda done, total, record: print(done, total))
 print(summarise(records))
 ```
 
 `parallel()` uses worker tabs inside the **same Chrome instance**. It defaults to 8 tabs,
 never exceeds 10, returns one record per input in input order, and closes every tab it
-opened. Pass `reuse_tabs=False` when each item needs a fresh tab.
+opened. Pass `reuse_tabs=False` when each item needs a fresh tab; each old tab is closed
+before that worker claims another item, so a 100-item run still peaks at `workers` tabs.
+`timeout=` and `CancelToken` stop queued work at safe item boundaries. Active helpers keep
+their own explicit CDP timeout. A progress callback sees completions immediately without
+changing final input order.
 
-Tabs share the current browser context: cookies, local storage, permissions, and service
-workers are **not isolated**. Use this for concurrent work under one browser identity, not
-for independent accounts or tasks that require separate storage.
+By default, tabs share cookies, local storage, permissions, and service workers. Pass
+`isolated=True` to give each worker an owned incognito context while keeping one Chrome
+process; contexts and their tabs are disposed together. Scratch-browser launchers use a
+machine-wide ownership registry, refuse instance six, and a watchdog kills only their
+unique profile if the launcher crashes. Attached user browsers are never owned or killed.
 
 ## Batch network reads
 
@@ -310,6 +334,7 @@ BH_JOURNAL=/tmp/run.jsonl bh <<'PY' ... PY
 bh trace /tmp/run.jsonl            # span tree with CDP round-trip counts per call
 bh trace /tmp/run.jsonl --tail 20
 bh --doctor                        # why the browser can or cannot be reached
+bh skills which https://acme.jobs.personio.de/job/1
 ```
 
 `bh trace` puts `cdp=N` on every line. If a call shows a large count, it is doing work
@@ -326,6 +351,7 @@ per-item that could be batched.
 - **A click's DOM delta is `None` after a navigation** — the counter belongs to the old
   document, and a number spanning two documents would be a lie.
 - **Harness internals live in an isolated world**, so `window.__bh` is invisible to the
-  page. Your `js()` runs in the *main* world, where the page's globals are.
+  page. The main-world dry-run boundary uses a symbol rather than a named global. Your
+  `js()` runs in the *main* world, where the page's globals are.
 - **`navigator.webdriver` is `true`** whenever remote debugging is on. That is Chrome, not
   this harness, and nothing here can hide it.

@@ -1,0 +1,225 @@
+{
+  "attempt": "job-013-zhdk",
+  "number": 13,
+  "company": "ZHDK",
+  "title": "KI-Expert:in 80-100%, (w,m,d)",
+  "source_url": "https://apply.refline.ch/788531/1229/index.html?cid=1&lang=de",
+  "landed_url": "https://apply.refline.ch/788531/1229/IoZYdwV7jPIhO3TBQTk4s4xj4iwnucK39tJ2Kotv-1CY1FY6cP9v18/apply",
+  "original_context": "main",
+  "dry_run_filled_count": 10,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 22,
+      "required": 13,
+      "files": 6,
+      "submit_labels": [
+        "Abschicken",
+        "Später bewerben"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "radio",
+        "label": "Frau",
+        "name": "form.widgets.salutation",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Herr",
+        "name": "form.widgets.salutation",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Neutrale Anrede",
+        "name": "form.widgets.salutation",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "Vorname *",
+        "name": "form.widgets.firstName",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Nachname *",
+        "name": "form.widgets.lastName",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Geburtsdatum (TT.MM.JJJJ) *",
+        "name": "form.widgets.birthDate",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Nationalitäten *",
+        "name": "s2id_autogen1",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Nationalitäten *",
+        "name": "form.widgets.nationalities:list",
+        "required": true,
+        "options_count": 250,
+        "options_sample": [
+          "Afghanistan",
+          "Ägypten",
+          "Åland-Inseln",
+          "Albanien",
+          "Algerien",
+          "Amerikanisch-Samoa",
+          "Amerikanische Jungferninseln",
+          "Andorra"
+        ],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": true,
+        "value": "CHE"
+      },
+      {
+        "kind": "select",
+        "label": "Aufenthaltsbewilligung",
+        "name": "form.widgets.permit:list",
+        "required": false,
+        "options_count": 14,
+        "options_sample": [
+          "Kein Wert",
+          "B EU/EFTA",
+          "C EU/EFTA",
+          "Ci EU/EFTA",
+          "G EU/EFTA",
+          "L EU/EFTA",
+          "B",
+          "C"
+        ],
+        "placeholder_first": false,
+        "value": "--NOVALUE--"
+      },
+      {
+        "kind": "text",
+        "label": "c/o",
+        "name": "form.widgets.co",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Strasse, Nr *",
+        "name": "form.widgets.street",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "PLZ *",
+        "name": "form.widgets.zip",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Ort *",
+        "name": "form.widgets.city",
+        "required": true
+      },
+      {
+        "kind": "select",
+        "label": "Land *",
+        "name": "form.widgets.country:list",
+        "required": true,
+        "options_count": 250,
+        "options_sample": [
+          "Afghanistan",
+          "Ägypten",
+          "Åland-Inseln",
+          "Albanien",
+          "Algerien",
+          "Amerikanisch-Samoa",
+          "Amerikanische Jungferninseln",
+          "Andorra"
+        ],
+        "placeholder_first": false,
+        "hidden_control": true,
+        "widget": true,
+        "value": "CHE"
+      },
+      {
+        "kind": "text",
+        "label": "E-Mail *",
+        "name": "form.widgets.email",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "E-Mail bestätigen *",
+        "name": "form.widgets.email2",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Telefon (Privat/Mobile) *",
+        "name": "form.widgets.homePhone",
+        "required": true
+      },
+      {
+        "kind": "text",
+        "label": "Weiteres Telefon",
+        "name": "form.widgets.workPhone",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+        "name": "form.widgets.contactType:list",
+        "required": true,
+        "options_count": 7,
+        "options_sample": [
+          "(Kein Wert)",
+          "Homepage ZHdK",
+          "Empfehlung von ZHdK Mitarbeitenden",
+          "Online Stellenmarkt",
+          "Printmedien",
+          "Social Media",
+          "weitere: bitte angeben"
+        ],
+        "placeholder_first": false,
+        "value": "--NOVALUE--"
+      },
+      {
+        "kind": "textarea",
+        "label": "Kommentar",
+        "name": "form.widgets.contactComment",
+        "required": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "In Bezug auf die Bearbeitung von Personendaten wird auf die",
+        "name": "form.widgets.acceptedDataSecurity:list",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": null,
+        "name": "form.widgets.optin:list",
+        "required": false,
+        "checked": false
+      }
+    ],
+    "files": [
+      "qqfile",
+      "qqfile",
+      "qqfile",
+      "qqfile",
+      "qqfile",
+      "qqfile"
+    ]
+  }
+}

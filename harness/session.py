@@ -14,12 +14,13 @@ from __future__ import annotations
 
 import os
 import threading
+import time
 from typing import Any, Self
 
 from harness import extend
 from harness.connect.client import RemoteConnection, RemoteRegistry, ensure_daemon
 from harness.core.journal import Journal
-from harness.core.outcome import HarnessError, TargetGone
+from harness.core.outcome import Class, HarnessError, ScopeRefused, TargetGone
 from harness.ops import batch, forms, record
 from harness.ops import parallel as parallel_ops
 from harness.ops.page import Tab
@@ -43,6 +44,8 @@ class Session:
         self._tabs: dict[str, Tab] = {}
         self._tabs_lock = threading.Lock()
         self._attach_locks: dict[str, threading.Lock] = {}
+        self._contexts: set[str] = set()
+        self._tab_context: dict[str, str] = {}
         # The current tab is per-thread as well as per-client. Client-local already stops
         # two *processes* fighting over one cursor (D1, v1 #375); making it thread-local
         # extends the same property to `parallel()`, where N workers drive N tabs inside
@@ -111,25 +114,73 @@ class Session:
         return self._attach(self.conn.request(
             "Target.createTarget", {"url": "about:blank"})["targetId"])
 
-    def new_tab(self, url: str = "about:blank") -> Tab:
+    def new_context(self) -> str:
+        """Create an owned incognito browser context for cookie/storage isolation."""
+        context_id = self.conn.request("Target.createBrowserContext")["browserContextId"]
+        with self._tabs_lock:
+            self._contexts.add(context_id)
+        self.journal.write("note", event="resource_acquired", resource_kind="browser_context",
+                           identifier=context_id)
+        return context_id
+
+    def close_context(self, context_id: str) -> None:
+        """Dispose only a context this session created, including all of its tabs."""
+        with self._tabs_lock:
+            if context_id not in self._contexts:
+                raise ScopeRefused("refusing to dispose an unowned browser context",
+                                   context_id=context_id)
+            target_ids = [target_id for target_id, owned in self._tab_context.items()
+                          if owned == context_id]
+        self.conn.request("Target.disposeBrowserContext", {"browserContextId": context_id})
+        with self._tabs_lock:
+            self._contexts.remove(context_id)
+            for target_id in target_ids:
+                self._tab_context.pop(target_id, None)
+                tab = self._tabs.pop(target_id, None)
+                if tab is not None:
+                    tab.close()
+                self.registry.forget(target_id)
+        if self._current in target_ids:
+            self._current = None
+        self.journal.write("note", event="resource_released", resource_kind="browser_context",
+                           identifier=context_id)
+
+    def new_tab(self, url: str = "about:blank", *, context_id: str | None = None) -> Tab:
         """Create, attach, and make current. Always `about:blank` first, then navigate:
         passing a url to `createTarget` races the attach, so the brief blank page reads as
         'complete' and a wait returns before the real navigation starts (v1's comment)."""
-        tid = self.conn.request("Target.createTarget", {"url": "about:blank"})["targetId"]
-        tab = self.tab(tid)
-        if url and url != "about:blank":
-            tab.goto(url)
-        return tab
+        params = {"url": "about:blank"}
+        if context_id is not None:
+            with self._tabs_lock:
+                if context_id not in self._contexts:
+                    raise ScopeRefused("refusing to create a tab in an unowned context",
+                                       context_id=context_id)
+            params["browserContextId"] = context_id
+        tid = self.conn.request("Target.createTarget", params)["targetId"]
+        if context_id is not None:
+            with self._tabs_lock:
+                self._tab_context[tid] = context_id
+        try:
+            tab = self.tab(tid)
+            if url and url != "about:blank":
+                tab.goto(url)
+            return tab
+        except Exception:
+            self.journal.write("note", event="resource_rollback", resource_kind="tab",
+                               identifier=tid)
+            self.close_tab(tid)
+            raise
 
     def use_tab(self, target_id: str) -> Tab:
         return self.tab(target_id)
 
-    def close_tab(self, target_id: str | None = None) -> None:
+    def close_tab(self, target_id: str | None = None, *, wait: bool = True) -> None:
         tid = target_id or self._current
         if tid is None:
             return
         with self._tabs_lock:
             tab = self._tabs.pop(tid, None)
+            self._tab_context.pop(tid, None)
         if tab is not None:
             tab.close()
         self.registry.forget(tid)
@@ -137,8 +188,61 @@ class Session:
             self._current = None
         try:
             self.conn.request("Target.closeTarget", {"targetId": tid})
-        except HarnessError:
-            pass                      # already gone is the outcome we wanted
+        except HarnessError as error:
+            if error.cls not in (Class.TARGET_GONE, Class.SESSION_STALE):
+                self.journal.write("note", event="resource_cleanup_failed",
+                                   resource_kind="tab", identifier=tid,
+                                   error=str(error)[:200])
+                raise
+        # Chrome acknowledges closeTarget before the target always disappears from
+        # getTargets. Clean-tab workers must not open their replacement during that gap,
+        # or a declared three-tab run briefly becomes four renderers on a memory-bound Mac.
+        if not wait:
+            return
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline:
+            infos = self.conn.request("Target.getTargets").get("targetInfos") or []
+            if not any(info.get("targetId") == tid for info in infos):
+                break
+            time.sleep(0.01)
+
+    def prepare_application(self, *, timeout: float = 20.0) -> dict[str, Any]:
+        """Guard and inspect the current application, scanning frames only when needed."""
+        def is_application(data: dict[str, Any]) -> bool:
+            schema = data.get("schema") or {}
+            fields = schema.get("fields") or []
+            substantial = len(fields) >= 8 or (len(fields) >= 4 and data.get("file_inputs"))
+            return bool((schema.get("verdict") or {}).get("is_form") or substantial)
+
+        main = self.tab()
+        with self.journal.call("prepare_application"):
+            prepared = forms.prepare_document(main, timeout=timeout)
+            if is_application(prepared):
+                return {**prepared, "target_id": main.target_id, "context": "main",
+                        "contexts_checked": 1, "is_application": True}
+
+            candidates = [(main, prepared, "main")]
+            for frame in main.frames():
+                target_id = frame.get("target_id")
+                if not target_id:
+                    continue
+                try:
+                    frame_tab = self.tab(target_id)
+                    frame_data = forms.prepare_document(frame_tab, timeout=timeout)
+                    candidates.append((frame_tab, frame_data, str(frame.get("kind") or "frame")))
+                except HarnessError:
+                    continue
+            selected, prepared, context = max(
+                candidates,
+                key=lambda item: (
+                    bool(((item[1].get("schema") or {}).get("verdict") or {}).get("is_form")),
+                    len((item[1].get("schema") or {}).get("fields") or []),
+                ),
+            )
+            self.use_tab(selected.target_id)
+            return {**prepared, "target_id": selected.target_id, "context": context,
+                    "contexts_checked": len(candidates),
+                    "is_application": is_application(prepared)}
 
     # -- recording ---------------------------------------------------------
 
@@ -164,6 +268,15 @@ class Session:
 
     def close(self) -> None:
         self.stop_recording()
+        with self._tabs_lock:
+            contexts = list(self._contexts)
+        for context_id in contexts:
+            try:
+                self.close_context(context_id)
+            except HarnessError as error:
+                self.journal.write("note", event="resource_cleanup_failed",
+                                   resource_kind="browser_context", identifier=context_id,
+                                   error=str(error)[:200])
         with self._tabs_lock:
             tabs, self._tabs = list(self._tabs.values()), {}
         for tab in tabs:
@@ -197,6 +310,7 @@ class Session:
         ns: dict[str, Any] = {
             "session": self, "tab": self.tab, "new_tab": self.new_tab,
             "use_tab": self.use_tab, "close_tab": self.close_tab,
+            "new_context": self.new_context, "close_context": self.close_context,
             "targets": self.targets, "journal": self.journal,
             "form_schema": with_tab(forms.form_schema),
             "fill_form": with_tab(forms.fill_form),
@@ -204,10 +318,12 @@ class Session:
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
+            "prepare_application": self.prepare_application,
             # Bound to this session, so a script writes parallel(urls, fn) and the bare
             # helpers inside fn address that worker's own tab.
             "parallel": lambda items, fn, **kw: parallel_ops.parallel(self, items, fn, **kw),
             "summarise": parallel_ops.summarise,
+            "CancelToken": parallel_ops.CancelToken,
         }
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "frames",

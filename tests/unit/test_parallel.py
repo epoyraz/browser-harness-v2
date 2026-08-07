@@ -23,12 +23,18 @@ class FakeSession:
         self._lock = threading.Lock()
         self.created: list[str] = []
         self.closed: list[str] = []
+        self.contexts: list[str] = []
+        self.closed_contexts: list[str] = []
+        self.open_tabs: set[str] = set()
+        self.peak_tabs = 0
 
-    def new_tab(self, url="about:blank"):
+    def new_tab(self, url="about:blank", *, context_id=None):
         with self._lock:
             self._n += 1
             tid = f"T{self._n}"
             self.created.append(tid)
+            self.open_tabs.add(tid)
+            self.peak_tabs = max(self.peak_tabs, len(self.open_tabs))
         self._local.current = tid
         return FakeTab(tid)
 
@@ -36,9 +42,20 @@ class FakeSession:
         self._local.current = target_id
         return FakeTab(target_id)
 
-    def close_tab(self, target_id=None):
+    def close_tab(self, target_id=None, *, wait=True):
         with self._lock:
             self.closed.append(target_id)
+            self.open_tabs.discard(target_id)
+
+    def new_context(self):
+        with self._lock:
+            context_id = f"C{len(self.contexts) + 1}"
+            self.contexts.append(context_id)
+            return context_id
+
+    def close_context(self, context_id):
+        with self._lock:
+            self.closed_contexts.append(context_id)
 
     @property
     def current(self):
@@ -122,6 +139,54 @@ def test_reuse_tabs_false_gives_each_item_a_clean_tab():
     parallel(s, range(5), lambda i: i, workers=2, reuse_tabs=False)
     assert len(s.created) == 5
     assert set(s.closed) == set(s.created)
+    assert s.peak_tabs <= 2
+
+
+def test_clean_tab_mode_never_accumulates_the_full_input():
+    s = FakeSession()
+    parallel(s, range(100), lambda i: (time.sleep(0.002), i)[1], workers=5,
+             reuse_tabs=False)
+    assert len(s.created) == 100
+    assert s.peak_tabs <= 5
+
+
+def test_isolated_workers_use_contexts_not_more_browser_instances():
+    s = FakeSession()
+    parallel(s, range(20), lambda i: i, workers=4, isolated=True)
+    assert 1 <= len(s.contexts) <= 4
+    assert set(s.closed_contexts) == set(s.contexts)
+
+
+def test_cancellation_prevents_queued_items_from_starting():
+    from harness.ops.parallel import CancelToken
+
+    s = FakeSession()
+    token = CancelToken()
+    started = []
+
+    def fn(item):
+        started.append(item)
+        token.cancel()
+        time.sleep(0.01)
+        return item
+
+    out = parallel(s, range(20), fn, workers=1, token=token)
+    assert started == [0]
+    assert out[0]["ok"] is True
+    assert all(record["class"] == "cancelled" for record in out[1:])
+
+
+def test_cleanup_failure_is_not_silently_reported_as_success():
+    s = FakeSession()
+
+    def fail_close(target_id=None, *, wait=True):
+        raise RuntimeError("cannot close")
+
+    s.close_tab = fail_close
+    out = parallel(s, [1], lambda item: item, workers=1)
+    assert out[0]["ok"] is False
+    assert out[0]["class"] == "resource_cleanup_failed"
+    assert out[0]["cleanup_failures"][0]["identifier"] == "T1"
 
 
 def test_empty_input_opens_no_tabs():

@@ -1,0 +1,155 @@
+{
+  "attempt": "job-061-axpo",
+  "number": 61,
+  "company": "AXPO",
+  "title": "(Senior) AI Solutions & Enablement Engineer (f/m/d)",
+  "source_url": "https://careers.axpo.com/jobs/7958644-senior-ai-solutions-enablement-engineer-f-m-d/applications/new",
+  "landed_url": "https://careers.axpo.com/jobs/7958644-senior-ai-solutions-enablement-engineer-f-m-d/applications/new",
+  "original_context": "main",
+  "dry_run_filled_count": 5,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 19,
+      "required": 0,
+      "files": 2,
+      "submit_labels": [
+        "Submit application"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "radio",
+        "label": "Yes",
+        "name": "candidate[answers_attributes][0][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "No",
+        "name": "candidate[answers_attributes][0][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "number",
+        "label": "yearly salary expectations in CHF*\nRequired",
+        "name": "candidate[answers_attributes][2][number]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "A current Swiss residence permit is required for this role. What nationality or Swiss work permit do you have?*\nRequired",
+        "name": "candidate[answers_attributes][3][text]",
+        "required": false
+      },
+      {
+        "kind": "radio",
+        "label": "Female",
+        "name": "candidate[answers_attributes][4][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Male",
+        "name": "candidate[answers_attributes][4][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Diverse",
+        "name": "candidate[answers_attributes][4][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "What is your notice period or when would you be available?*\nRequired",
+        "name": "candidate[answers_attributes][5][text]",
+        "required": false
+      },
+      {
+        "kind": "radio",
+        "label": "A1/A2",
+        "name": "candidate[answers_attributes][6][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "B1/B2",
+        "name": "candidate[answers_attributes][6][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "C1/C2",
+        "name": "candidate[answers_attributes][6][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "None",
+        "name": "candidate[answers_attributes][6][choice]",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "text",
+        "label": "How many business trips per year are acceptable for you?*\nRequired",
+        "name": "candidate[answers_attributes][7][text]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "What is your motivation to apply for this position?",
+        "name": "candidate[answers_attributes][8][text]",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "First name*\nRequired",
+        "name": "candidate[first_name]",
+        "required": false,
+        "autocomplete": "given-name"
+      },
+      {
+        "kind": "text",
+        "label": "Last name*\nRequired",
+        "name": "candidate[last_name]",
+        "required": false,
+        "autocomplete": "family-name"
+      },
+      {
+        "kind": "email",
+        "label": "Email*\nRequired",
+        "name": "candidate[email]",
+        "required": false,
+        "autocomplete": "email"
+      },
+      {
+        "kind": "tel",
+        "label": "Phone*\nRequired",
+        "name": "candidate[phone]",
+        "required": false,
+        "autocomplete": "tel"
+      },
+      {
+        "kind": "textarea",
+        "label": "Cover letter",
+        "name": "candidate[job_applications_attributes][0][cover_letter]",
+        "required": false
+      }
+    ],
+    "files": [
+      "candidate_resume_remote_url",
+      "candidate_file_remote_url"
+    ]
+  }
+}

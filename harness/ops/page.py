@@ -38,6 +38,7 @@ from harness.core.outcome import (
     JsException,
     NavigationFailed,
     NotSerializable,
+    SideEffectRefused,
     Timeout,
 )
 
@@ -65,6 +66,86 @@ RUNTIME_JS = """(() => {
     {subtree: true, childList: true, attributes: true, characterData: true});
   document.documentElement ? arm() : document.addEventListener('DOMContentLoaded', arm);
 })()"""
+
+#: Installed in the page's main world before page script. This is deliberately separate
+#: from the isolated-world runtime: form handlers and network APIs live in the main world,
+#: and a guard in another JavaScript realm cannot interpose on them. The closure retains
+#: the native functions before application code can capture them, then makes the guarded
+#: replacements non-configurable. Filling and inspecting remain available; irreversible
+#: requests are default-denied and counted for the audit log.
+SAFETY_JS = """(() => {
+  const marker = Symbol.for('browser-harness.dry-run');
+  if (window[marker]) return true;
+  const attempts = [];
+  const record = (kind, detail = {}) => {
+    attempts.push({kind, detail, ts: Date.now()});
+    console.warn('browser-harness dry-run policy blocked', kind, detail);
+    return false;
+  };
+  Object.defineProperty(window, marker, {
+    value: {attempts}, configurable: false, writable: false});
+  document.addEventListener('submit', event => {
+    record('form.submit', {action: event.target && event.target.action || ''});
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+  const blockedSubmit = function() {
+    return record('form.method', {action: this && this.action || ''});
+  };
+  for (const name of ['submit', 'requestSubmit']) {
+    Object.defineProperty(HTMLFormElement.prototype, name, {
+      value: blockedSubmit, configurable: false, writable: false});
+  }
+  const mutating = method => !['GET', 'HEAD', 'OPTIONS'].includes(
+    String(method || 'GET').toUpperCase());
+  const nativeFetch = window.fetch && window.fetch.bind(window);
+  if (nativeFetch) Object.defineProperty(window, 'fetch', {
+    configurable: false, writable: false,
+    value: function(input, init = {}) {
+      const method = init.method || (input && input.method) || 'GET';
+      if (mutating(method)) {
+        record('fetch', {method: String(method).toUpperCase(), url: String(input && input.url || input)});
+        return Promise.reject(new DOMException('blocked by browser-harness dry-run policy', 'NotAllowedError'));
+      }
+      return nativeFetch(input, init);
+    }});
+  const nativeOpen = XMLHttpRequest.prototype.open;
+  const nativeSend = XMLHttpRequest.prototype.send;
+  Object.defineProperty(XMLHttpRequest.prototype, 'open', {
+    configurable: false, writable: false,
+    value: function(method, url, ...rest) {
+      this.__bhMethod = String(method || 'GET').toUpperCase();
+      this.__bhUrl = String(url || '');
+      return nativeOpen.call(this, method, url, ...rest);
+    }});
+  Object.defineProperty(XMLHttpRequest.prototype, 'send', {
+    configurable: false, writable: false,
+    value: function(body) {
+      if (mutating(this.__bhMethod)) {
+        record('xhr', {method: this.__bhMethod, url: this.__bhUrl});
+        throw new DOMException('blocked by browser-harness dry-run policy', 'NotAllowedError');
+      }
+      return nativeSend.call(this, body);
+    }});
+  if (navigator.sendBeacon) Object.defineProperty(navigator, 'sendBeacon', {
+    configurable: false, writable: false,
+    value: function(url) { return record('beacon', {url: String(url || '')}); }});
+  return true;
+})()"""
+
+_DANGER_JS = """(el => {
+  if (!el) return null;
+  const control = el.closest && el.closest('button,input');
+  if (!control) return {danger: false};
+  const tag = control.tagName.toLowerCase();
+  const type = String(control.type || '').toLowerCase();
+  const form = control.form || (control.closest && control.closest('form'));
+  const danger = tag === 'input' ? ['submit', 'image'].includes(type)
+    : tag === 'button' && !!form && (!type || type === 'submit');
+  return {danger, tag, type: type || null,
+          label: String(control.innerText || control.value || '').trim().slice(0, 100),
+          action: form && form.action || ''};
+})"""
 
 #: Extension -> MIME for reading a file input's `accept`. Only the types upload controls
 #: realistically advertise; anything else is treated as admissible, because the job here
@@ -307,7 +388,11 @@ class Tab:
         self._world_ctx: int | None = None
         self._bound = False
         conn.subscribe(self._on_event)
-        self._install_runtime()
+        try:
+            self._install_runtime()
+        except Exception:
+            conn.unsubscribe(self._on_event)
+            raise
 
     def close(self) -> None:
         self._conn.unsubscribe(self._on_event)
@@ -327,6 +412,10 @@ class Tab:
         ever load, so refs survive navigation by reinstallation, not by luck — and they
         live in an isolated world, so the page never sees them."""
         sid = self._sid()
+        self._conn.request(
+            "Page.addScriptToEvaluateOnNewDocument",
+            {"source": SAFETY_JS, "runImmediately": True},
+            session_id=sid, timeout=10.0)
         self._conn.request(
             "Page.addScriptToEvaluateOnNewDocument",
             {"source": RUNTIME_JS, "worldName": WORLD, "runImmediately": True},
@@ -426,6 +515,16 @@ class Tab:
 
     def cdp(self, method: str, params: dict[str, Any] | None = None, *,
             timeout: float = 20.0) -> dict[str, Any]:
+        if method == "Network.replayXHR":
+            raise SideEffectRefused(
+                "replaying an XHR may repeat an irreversible request",
+                method=method, target_id=self.target_id)
+        if method == "Fetch.continueRequest":
+            verb = str((params or {}).get("method") or "GET").upper()
+            if verb not in ("GET", "HEAD", "OPTIONS") or (params or {}).get("postData"):
+                raise SideEffectRefused(
+                    "continuing a mutating intercepted request is disabled",
+                    method=method, verb=verb, target_id=self.target_id)
         return self._conn.request(method, params, session_id=self._sid(), timeout=timeout)
 
     def js(self, expression: str, *, timeout: float = 10.0,
@@ -438,9 +537,14 @@ class Tab:
         `await (async()=>{...})()` instead; replMode handles the await natively.
         """
         with self._j.call("js", expression=expression[:200]):
-            r = self.cdp("Runtime.evaluate", {
-                "expression": expression, "replMode": True, "returnByValue": True,
-                "awaitPromise": await_promise}, timeout=timeout)
+            return self._main_js(expression, timeout=timeout, await_promise=await_promise)
+
+    def _main_js(self, expression: str, *, timeout: float = 10.0,
+                 await_promise: bool = True) -> Any:
+        """Main-world evaluation for composite helpers that own their outer span."""
+        r = self.cdp("Runtime.evaluate", {
+            "expression": expression, "replMode": True, "returnByValue": True,
+            "awaitPromise": await_promise}, timeout=timeout)
         return _unwrap_eval(r)
 
     # -- item 16 + 19: navigation and event-driven waits -------------------
@@ -491,19 +595,32 @@ class Tab:
             f"(() => {{const el = window.__bh && __bh.refs[{ref!r}]; if (!el) return null;"
             " el.scrollIntoView({block: 'center', inline: 'center'});"
             " const r = el.getBoundingClientRect();"
-            " return [r.x + r.width/2, r.y + r.height/2, location.href, __bh.mutations];})()", timeout=timeout)
+            f" return [r.x + r.width/2, r.y + r.height/2, location.href, __bh.mutations, ({_DANGER_JS})(el)];}})()",
+            timeout=timeout)
         if pre is None:
             raise ElementGone(f"no element registered for ref {ref!r}", ref=ref)
-        x, y, url_before, mut_before = pre
+        x, y, url_before, mut_before = pre[:4]
+        danger = pre[4] if len(pre) > 4 else None
+        self._refuse_danger(danger, ref=ref)
         return self._click(x, y, url_before, int(mut_before), settle, timeout, ref=ref)
 
     def click_at(self, x: float, y: float, *, settle: float = 0.15,
                  timeout: float = 10.0) -> dict[str, Any]:
         """Coordinate click — the default modality: compositor-level events pass through
         iframes and shadow roots that no selector can reach."""
-        before = self._world_js("[location.href, window.__bh ? __bh.mutations : 0]",
-                                timeout=timeout)
+        before = self._world_js(
+            f"[location.href, window.__bh ? __bh.mutations : 0,"
+            f" ({_DANGER_JS})(document.elementFromPoint({x!r}, {y!r}))]", timeout=timeout)
+        self._refuse_danger(before[2] if len(before) > 2 else None, x=x, y=y)
         return self._click(x, y, before[0], int(before[1]), settle, timeout)
+
+    def _refuse_danger(self, danger: Any, **observed: Any) -> None:
+        if not isinstance(danger, dict) or not danger.get("danger"):
+            return
+        evidence = {**observed, **danger, "target_id": self.target_id}
+        self._j.write("note", event="side_effect_refused", **evidence)
+        raise SideEffectRefused(
+            "submit controls are disabled by the browser-harness dry-run policy", **evidence)
 
     def _click(self, x: float, y: float, url_before: str, mut_before: int,
                settle: float, timeout: float, ref: str | None = None) -> dict[str, Any]:
@@ -714,6 +831,15 @@ class Tab:
         this with an uncleared field)."""
         spec = _KEYS.get(key)
         code, text = (spec if spec else (key, key if len(key) == 1 else ""))
+        if key == "Enter":
+            danger = self._world_js(
+                f"(() => {{const el = document.activeElement;"
+                " if (!el || el.tagName === 'TEXTAREA' || el.isContentEditable) return {danger:false};"
+                f" const direct = ({_DANGER_JS})(el); if (direct && direct.danger) return direct;"
+                " const form = el.form || (el.closest && el.closest('form'));"
+                " return {danger: !!form, tag: el.tagName.toLowerCase(), type: el.type || null,"
+                " action: form && form.action || ''};})()", timeout=timeout)
+            self._refuse_danger(danger, key=key)
         base: dict[str, Any] = {"key": key, "code": code, "modifiers": modifiers}
         down = {**base, "type": "keyDown"}
         if text and not modifiers:

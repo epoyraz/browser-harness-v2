@@ -1,0 +1,107 @@
+{
+  "attempt": "job-093-ruag",
+  "number": 93,
+  "company": "RUAG",
+  "title": "Software Engineer C5I",
+  "source_url": "https://jobs.ruag.ch/apply/ats/d4cff80d-97d5-4ef7-8460-fc72c54eb3be",
+  "landed_url": "https://jobs.ruag.ch/umantis/2514/de/apply/18168?srcIDPMS=10125800&srcTextPMS=ruagextranet&source=ruagextranet&canalId=1004418&publishId=10125800&ohvk=d4cff80d-97d5-4ef7-8460-fc72c54eb3be",
+  "original_context": "main",
+  "dry_run_filled_count": 4,
+  "schema": {
+    "verdict": {
+      "is_form": true,
+      "reason": "fields plus a submit control",
+      "fields": 9,
+      "required": 1,
+      "files": 0,
+      "submit_labels": [
+        "Jetzt bewerben"
+      ]
+    },
+    "fields": [
+      {
+        "kind": "text",
+        "label": "Vorname",
+        "name": "first_name",
+        "required": false
+      },
+      {
+        "kind": "text",
+        "label": "Nachname",
+        "name": "last_name",
+        "required": false
+      },
+      {
+        "kind": "tel",
+        "label": "Telefonnummer",
+        "name": "phone",
+        "required": false
+      },
+      {
+        "kind": "email",
+        "label": "E-Mail",
+        "name": "email",
+        "required": false
+      },
+      {
+        "kind": "select",
+        "label": null,
+        "name": "user_language",
+        "required": false,
+        "options_count": 5,
+        "options_sample": [
+          "Sprache auswählen",
+          "Deutsch",
+          "Englisch",
+          "Französisch",
+          "Italienisch"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "select",
+        "label": "Wie bist du auf uns aufmerksam geworden?",
+        "name": "recommendation_source",
+        "required": false,
+        "options_count": 24,
+        "options_sample": [
+          "Bitte auswählen",
+          "Familie/Freunde/Bekannte",
+          "RUAG Mitarbeitende",
+          "Ehemalige RUAG Mitarbeitende",
+          "Personalvermittlung",
+          "Hochschulmarketing",
+          "Messeauftritt",
+          "Interne Ausschreibung"
+        ],
+        "placeholder_first": true,
+        "hidden_control": true,
+        "widget": false
+      },
+      {
+        "kind": "radio",
+        "label": "Ich bin damit einverstanden, dass meine Daten bis zu drei Jahre nach der Stellenbesetzung gespeichert werden und ich auf Stellenangebote hingewiesen werde. Dieses Einverständnis kann ich jederzeit widerrufen.",
+        "name": "data_release_agreed",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "radio",
+        "label": "Ich möchte, dass meine Daten nach dem aktuellen Bewerbungsverfahren gelöscht werden.",
+        "name": "data_release_agreed",
+        "required": false,
+        "checked": false
+      },
+      {
+        "kind": "checkbox",
+        "label": "Ich habe die Datenschutzerklärung für Bewerbende gelesen und verstanden. *",
+        "name": "data_protection_accepted",
+        "required": true,
+        "checked": false
+      }
+    ],
+    "files": []
+  }
+}

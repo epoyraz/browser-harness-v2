@@ -28,12 +28,23 @@ from harness.core.outcome import (
     BrowserDisconnected,
     Class,
     HarnessError,
+    ProtocolMismatch,
     Timeout,
     fail,
 )
+from harness.version import PROTOCOL_VERSION, VERSION
 
 #: How long to wait for a freshly spawned daemon to answer `ping`.
 SPAWN_TIMEOUT = 30.0
+
+
+def _validate_protocol(reply: dict[str, Any]) -> None:
+    got = reply.get("protocol")
+    if got != PROTOCOL_VERSION:
+        raise ProtocolMismatch(
+            f"client protocol {PROTOCOL_VERSION} cannot use daemon protocol {got!r}",
+            client_protocol=PROTOCOL_VERSION, daemon_protocol=got,
+            client_version=VERSION, daemon_version=reply.get("version"))
 
 
 def _spawn_kwargs() -> dict[str, Any]:
@@ -62,6 +73,7 @@ def ensure_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> d
     to hold one browser connection across many short-lived client runs.
     """
     if (pong := ipc.ping(name)) is not None and pong.get("browser"):
+        _validate_protocol(pong)
         return pong
     if pong is None:
         log = ipc.ensure_private(ipc.runtime_dir()) / f"{ipc.check_name(name)}.log"
@@ -79,6 +91,7 @@ def ensure_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> d
     while time.monotonic() < deadline:
         if (pong := ipc.ping(name)) is not None:
             if pong.get("browser"):
+                _validate_protocol(pong)
                 return pong
             last = pong
         time.sleep(0.1)
@@ -122,7 +135,9 @@ class RemoteConnection:
         self._buf = bytearray()
         self._reader = threading.Thread(target=self._pump, name="bh-client", daemon=True)
         self._reader.start()
-        self._call({"meta": "subscribe"}, timeout=10.0)
+        subscribed = self._call({"meta": "subscribe"}, timeout=10.0)
+        value = subscribed.get("value") or {}
+        _validate_protocol(value)
 
     # -- the Connection interface -----------------------------------------
 

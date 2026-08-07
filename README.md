@@ -19,3 +19,8 @@ So the harness's job is to minimize *decisions*, not milliseconds.
 - `TODO.md` — the build plan
 
 Status: active development. See `TODO.md`.
+
+Release `0.1.0` adds a hard five-scratch-Chrome budget, a ten-tab ceiling, isolated worker
+contexts, cooperative cancellation, concurrency-safe recordings, automatic no-submit
+safety, protocol negotiation, and digest-verified path/Git skills. The scheduled real
+Chrome gate exercises parallel overlap, cleanup, context isolation, and dry-run blocking.

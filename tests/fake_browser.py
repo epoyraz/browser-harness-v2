@@ -22,6 +22,7 @@ class FakeBrowser:
             t: {"targetId": t, "type": "page", "url": f"https://{t}.test/"} for t in targets
         }
         self.sessions: dict[str, str] = {}                       # sessionId → targetId
+        self.contexts: set[str] = set()
         self.enabled: dict[str, list[str]] = defaultdict(list)   # sessionId → domains
         self.calls: list[dict[str, Any]] = []
         self.attach_count: dict[str, int] = defaultdict(int)
@@ -45,6 +46,8 @@ class FakeBrowser:
         self._ready = threading.Event()
         self._closed = False
         self._n = 0
+        self._target_n = 0
+        self._context_n = 0
         self._workers: list[threading.Thread] = []
 
     # -- transport interface ----------------------------------------------
@@ -129,6 +132,47 @@ class FakeBrowser:
             self.emit("Target.attachedToTarget",
                       {"sessionId": sid, "targetInfo": self.targets[target]})
             return {"id": msg_id, "result": {"sessionId": sid}}
+
+        if method == "Target.createBrowserContext":
+            with self._lock:
+                self._context_n += 1
+                context_id = f"C{self._context_n}"
+                self.contexts.add(context_id)
+            return {"id": msg_id, "result": {"browserContextId": context_id}}
+
+        if method == "Target.disposeBrowserContext":
+            context_id = params.get("browserContextId")
+            if context_id not in self.contexts:
+                return err(f"Failed to find context with id {context_id}")
+            doomed = [target_id for target_id, info in self.targets.items()
+                      if info.get("browserContextId") == context_id]
+            with self._lock:
+                self.contexts.remove(context_id)
+            for target_id in doomed:
+                self.destroy(target_id)
+            return {"id": msg_id, "result": {}}
+
+        if method == "Target.createTarget":
+            context_id = params.get("browserContextId")
+            if context_id is not None and context_id not in self.contexts:
+                return err(f"Failed to find context with id {context_id}")
+            with self._lock:
+                self._target_n += 1
+                target_id = f"T{self._target_n}"
+                info = {"targetId": target_id, "type": "page",
+                        "url": str(params.get("url") or "about:blank")}
+                if context_id is not None:
+                    info["browserContextId"] = context_id
+                self.targets[target_id] = info
+            self.emit("Target.targetCreated", {"targetInfo": info})
+            return {"id": msg_id, "result": {"targetId": target_id}}
+
+        if method == "Target.closeTarget":
+            target_id = params.get("targetId")
+            if target_id not in self.targets:
+                return err(f"No target with given id found: {target_id}")
+            self.destroy(target_id)
+            return {"id": msg_id, "result": {"success": True}}
 
         if method == "Target.getTargets":
             return {"id": msg_id, "result": {"targetInfos": list(self.targets.values())}}
