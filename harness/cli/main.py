@@ -22,6 +22,7 @@ USAGE = """bh — browser-harness v2
   bh --doctor           classify why the browser can or cannot be reached
   bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
   bh stats [path…]      what you actually use, and what actually fails
+  bh bench <journal…>   steps taken and where the wall clock went (-v per step)
   bh recordings         list recordings (newest first)
   bh video [<rec>]      render a recording to mp4 (default: the newest)
   bh helpers --init     create a file for your own helpers
@@ -68,6 +69,23 @@ def main() -> int:
             print(_json.dumps(r, indent=2))
         else:
             for line in render_stats(r):
+                print(line)
+        return 0
+
+    if args and args[0] == "bench":
+        import json as _json
+
+        from harness.core.bench import render as render_bench
+        from harness.core.bench import rollup
+        rest = [a for a in args[1:] if not a.startswith("--")]
+        think = None
+        if "--think" in args:
+            think = float(args[args.index("--think") + 1])
+        r = rollup(rest or ["."], think_ms=think)
+        if "--json" in args:
+            print(_json.dumps({k: v for k, v in r.items() if k != "step_list"}, indent=2))
+        else:
+            for line in render_bench(r, verbose=("-v" in args or "--verbose" in args)):
                 print(line)
         return 0
 

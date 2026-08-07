@@ -181,15 +181,21 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
     """
     import json
     import sys
+    import time
 
+    t0 = time.perf_counter()
+    connected = exec_start = None
     session = None
+    outcome: dict[str, Any] = {"ok": True}
     try:
         # Connecting is inside the try on purpose: "cannot reach the browser" is the most
         # likely failure of all, and it must reach the agent as a class with evidence, not
         # as a Python traceback from three frames deep in the client.
         session = Session(name)
+        connected = time.perf_counter()
         ns = session.namespace()
         ns["__name__"] = "__bh__"
+        exec_start = time.perf_counter()
         # bh's own argv must not leak into the script. Found the hard way: a live check
         # read `sys.argv[1]` and got `"-"` — bh's stdin flag — then asked the daemon to
         # attach to a target named "-". The daemon answered `target_gone` correctly, which
@@ -200,10 +206,26 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
         finally:
             sys.argv = argv
     except HarnessError as e:
-        print(json.dumps(e.outcome.to_json(), indent=2, default=str), file=sys.stderr)
+        outcome = e.outcome.to_json()
+        print(json.dumps(outcome, indent=2, default=str), file=sys.stderr)
         return 1
+    except BaseException as e:
+        outcome = {"ok": False, "class": type(e).__name__, "detail": str(e)[:200]}
+        raise
     finally:
         if session is not None:
+            # ONE `bh` run == ONE model decision, and that is the number worth minimising:
+            # a step costs seconds of model thinking against milliseconds of harness. The
+            # journal documented an `invoke` kind from the start and never wrote one, so
+            # step count — the dominant term — was the one thing it could not report.
+            end = time.perf_counter()
+            session.journal.write(
+                "invoke", ok=outcome.get("ok", True),
+                ms_total=round((end - t0) * 1000, 1),
+                ms_connect=round(((connected or t0) - t0) * 1000, 1),
+                ms_exec=round((end - (exec_start or end)) * 1000, 1),
+                source_lines=source.count("\n") + 1,
+                outcome=outcome)
             session.close()
     return 0
 
