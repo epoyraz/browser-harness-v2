@@ -465,3 +465,43 @@ def test_marks_can_be_turned_off_for_a_human_frame(wired, tmp_path):
     browser.eval_hook = lambda e: [] if "querySelectorAll" in e else 1
     out = tab.see(tmp_path / "s.jpg", marks=False)
     assert out["marked"] == 0
+
+
+def test_a_hidden_file_input_is_reachable_by_css_selector(wired, tmp_path):
+    """The bug this closes: refs come from snapshot(), snapshot only registers elements
+    with a box, and a file input almost never has one — the standard pattern is a
+    display:none input behind a styled dropzone. So upload_file was unreachable for
+    exactly the case it exists to serve, and driving joblens' own CV field meant dropping
+    to raw DOM.querySelector + DOM.setFileInputFiles by hand."""
+    browser, _conn, _reg = wired
+    t = _tab(wired)
+    doc = tmp_path / "cv.pdf"
+    doc.write_bytes(b"%PDF-1.4\n")
+    seen: list[str] = []
+
+    def hook(expr):
+        seen.append(expr)
+        if "tagName" in expr:
+            return {"tag": "input", "type": "file", "name": "cv", "accept": ".pdf"}
+        if "files" in expr:
+            return ["cv.pdf"]
+        return {"__raw__": {"result": {"type": "object", "objectId": "obj-1"}}}
+    browser.eval_hook = hook
+
+    out = t.upload_file("input[type=file]", str(doc))
+    assert out["attached"] == ["cv.pdf"]
+    # The registry is still consulted first, so a real ref keeps winning over a selector
+    # that happens to look like one.
+    assert any("__bh.refs[" in e and "querySelector" in e for e in seen)
+
+
+def test_an_unresolvable_ref_says_both_things_it_tried(wired, tmp_path):
+    browser, _conn, _reg = wired
+    t = _tab(wired)
+    doc = tmp_path / "cv.pdf"
+    doc.write_bytes(b"%PDF-1.4\n")
+    browser.eval_hook = lambda expr: {"__raw__": {"result": {"type": "undefined"}}}
+
+    with pytest.raises(ElementGone) as e:
+        t.upload_file("nope", str(doc))
+    assert "registered ref" in str(e.value) and "CSS selector" in str(e.value)

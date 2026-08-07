@@ -77,6 +77,23 @@ _MIME = {".pdf": "application/pdf", ".doc": "application/msword",
          ".gif": "image/gif", ".webp": "image/webp"}
 
 
+def _resolve_js(ref: str) -> str:
+    """JS that resolves `ref` as a snapshot ref, falling back to a CSS selector.
+
+    Refs come from `snapshot()`, which only registers elements that have a box. A file
+    input almost never does: the standard pattern is a `display:none` input behind a
+    styled dropzone, so `upload_file` was unreachable for exactly the case it exists to
+    serve — every ATS, and joblens' own CV field. Accepting a selector costs one `||` and
+    removes the need to drop to raw CDP.
+
+    `querySelector` throws on a non-selector string (a bare ref id like `e12`), so the
+    fallback is guarded — an unregistered ref must read as "not found", not as an error.
+    """
+    return (f"((window.__bh && window.__bh.refs && window.__bh.refs[{ref!r}])"
+            f" || (() => {{ try {{ return document.querySelector({ref!r}); }}"
+            f" catch (e) {{ return null; }} }})())")
+
+
 def _accepts(accept: str, path: str) -> bool:
     """Would this input's `accept` admit this file? An empty filter or an unknown
     extension admits — a false rejection would be worse than no check at all."""
@@ -722,6 +739,9 @@ class Tab:
                     timeout: float = 20.0) -> dict[str, Any]:
         """Set a file input's files without touching the OS picker.
 
+        `ref` is a snapshot ref **or** a CSS selector — hidden file inputs never reach the
+        snapshot registry, so a selector is usually the only way to name one.
+
         `DOM.setFileInputFiles` needs a backendNodeId, and the ref registry holds a JS
         handle — so the bridge is `Runtime.evaluate(returnByValue=false)` to get an object
         id, then `DOM.describeNode`. Clicking the input instead would open a native dialog
@@ -737,16 +757,18 @@ class Tab:
         missing = [f for f in files if not Path(f).is_file()]
         if missing:
             raise ElementGone(f"no such file(s): {missing}", files=missing)
+        resolve = _resolve_js(ref)
         ctx = self._ensure_world()
-        params: dict[str, Any] = {"expression": f"window.__bh.refs[{ref!r}]",
-                                  "returnByValue": False}
+        params: dict[str, Any] = {"expression": resolve, "returnByValue": False}
         if ctx is not None:
             params["contextId"] = ctx
         handle = self.cdp("Runtime.evaluate", params, timeout=timeout).get("result") or {}
         if not handle.get("objectId"):
-            raise ElementGone(f"no element registered for ref {ref!r}", ref=ref)
+            raise ElementGone(
+                f"no element for {ref!r} — not a registered ref, and no element matches it "
+                f"as a CSS selector", ref=ref)
         el = self._world_js(
-            f"(() => {{const e = window.__bh.refs[{ref!r}];"
+            f"(() => {{const e = {resolve}; if (!e) return null;"
             " return {tag: e.tagName.toLowerCase(), type: e.type || null,"
             "  name: e.name || e.id || null, accept: e.accept || ''};})()",
             timeout=timeout) or {}
@@ -766,7 +788,7 @@ class Tab:
                      {"files": [str(Path(f).resolve()) for f in files],
                       "backendNodeId": node["backendNodeId"]}, timeout=timeout)
         got = self._world_js(
-            f"(() => {{const e = window.__bh.refs[{ref!r}];"
+            f"(() => {{const e = {resolve}; if (!e) return [];"
             f" return [...(e.files||[])].map(f => f.name);}})()", timeout=timeout)
         out: dict[str, Any] = {"ref": ref, "attached": got or [], "requested": len(files),
                                "accept": el.get("accept") or ""}

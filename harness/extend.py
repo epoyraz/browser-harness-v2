@@ -43,9 +43,24 @@ def user_helpers_path() -> Path:
 
 
 def candidates() -> list[Path]:
-    """User file first, project file second — later wins, so a repo can override."""
-    found = [user_helpers_path(), Path.cwd() / "bh_helpers.py"]
-    return [p for p in found if p.is_file()]
+    """User file first, project file second — later wins, so a repo can override.
+
+    Every lookup here is best-effort. Loading optional helpers must never be able to stop
+    a script from running, and both halves can raise on a machine we do not control:
+    `Path.cwd()` raises `PermissionError` when the working directory is unreadable (macOS
+    revokes Desktop/Documents access per-app, and every `bh` run then died with a
+    traceback from three frames inside the loader), and `is_file()` raises on a path we
+    are not allowed to stat. Found the first one the hard way, mid-task.
+    """
+    found: list[Path] = []
+    for get in (user_helpers_path, lambda: Path.cwd() / "bh_helpers.py"):
+        try:
+            path = get()
+            if path.is_file():
+                found.append(path)
+        except OSError:
+            continue          # unreadable cwd, unstattable path: there is no helper here
+    return found
 
 
 def load_into(ns: dict[str, Any], *, paths: list[Path] | None = None,

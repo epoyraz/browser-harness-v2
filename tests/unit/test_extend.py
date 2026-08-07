@@ -1,5 +1,6 @@
 """Agent-writable helpers — the v1 capability v2 had dropped."""
 
+from harness import extend
 from harness.extend import PROTECTED, load_into, scaffold
 
 
@@ -57,3 +58,18 @@ def test_scaffold_creates_a_runnable_starter(tmp_path):
 
 def test_a_missing_file_is_simply_not_loaded(tmp_path):
     assert load_into({}, paths=[tmp_path / "nope.py"]) == []
+
+
+def test_an_unreadable_cwd_does_not_kill_the_session(monkeypatch):
+    """macOS revokes per-app access to Desktop/Documents, and `Path.cwd()` then raises
+    PermissionError. Because candidates() called it unguarded, *every* bh run died with a
+    traceback three frames inside the loader — before the script ran, over an optional
+    helper file that did not exist. Loading extensions must never be able to do that."""
+    def boom():
+        raise PermissionError(1, "Operation not permitted")
+    monkeypatch.setattr(extend.Path, "cwd", staticmethod(boom))
+    monkeypatch.setenv("BH_HELPERS", "/nonexistent/helpers.py")
+
+    assert extend.candidates() == []
+    ns: dict = {}
+    assert extend.load_into(ns) == []       # and the namespace still builds
