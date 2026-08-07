@@ -274,6 +274,25 @@ close_tab()
 
 Your current tab is client-local: two scripts running at once cannot steal each other's.
 
+## Parallel tab work
+
+```python
+def inspect(url):
+    goto(url)
+    return {"url": url, "title": js("document.title")}
+
+records = parallel(urls, inspect, workers=6)
+print(summarise(records))
+```
+
+`parallel()` uses worker tabs inside the **same Chrome instance**. It defaults to 8 tabs,
+never exceeds 10, returns one record per input in input order, and closes every tab it
+opened. Pass `reuse_tabs=False` when each item needs a fresh tab.
+
+Tabs share the current browser context: cookies, local storage, permissions, and service
+workers are **not isolated**. Use this for concurrent work under one browser identity, not
+for independent accounts or tasks that require separate storage.
+
 ## Batch network reads
 
 ```python

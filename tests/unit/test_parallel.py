@@ -121,6 +121,7 @@ def test_reuse_tabs_false_gives_each_item_a_clean_tab():
     s = FakeSession()
     parallel(s, range(5), lambda i: i, workers=2, reuse_tabs=False)
     assert len(s.created) == 5
+    assert set(s.closed) == set(s.created)
 
 
 def test_empty_input_opens_no_tabs():
@@ -133,6 +134,18 @@ def test_workers_never_exceed_the_item_count():
     s = FakeSession()
     parallel(s, [1, 2], lambda i: i, workers=16)
     assert len(s.created) <= 2
+
+
+def test_workers_are_capped_at_ten_tabs():
+    s = FakeSession()
+    barrier = threading.Barrier(10, timeout=5)
+
+    def fn(item):
+        barrier.wait()
+        return item
+
+    parallel(s, range(20), fn, workers=16)
+    assert len(s.created) == 10
 
 
 def test_summarise_counts_and_groups_failure_classes():

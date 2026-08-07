@@ -2,6 +2,7 @@
 behind it — the point is the wiring, and a mocked session would prove none of it."""
 import os
 import threading
+import time
 
 import pytest
 
@@ -53,6 +54,38 @@ def test_tabs_are_reused_not_rebuilt(session):
     assert session.tab("a") is session.tab("a")
 
 
+def test_two_threads_racing_one_target_construct_one_tab(session, monkeypatch):
+    created = []
+    created_lock = threading.Lock()
+
+    class SlowTab:
+        def __init__(self, conn, registry, target_id, **kwargs):
+            with created_lock:
+                created.append(target_id)
+            time.sleep(0.05)
+            self.target_id = target_id
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr("harness.session.Tab", SlowTab)
+    start = threading.Barrier(8, timeout=5)
+    tabs = []
+
+    def attach():
+        start.wait()
+        tabs.append(session.tab("a"))
+
+    threads = [threading.Thread(target=attach) for _ in range(8)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join(5)
+
+    assert created == ["a"]
+    assert len({id(tab) for tab in tabs}) == 1
+
+
 def test_switching_tabs_redirects_the_bare_helpers(session):
     """Helpers are late-bound, so a script reads top to bottom: use_tab() mid-script
     changes what goto()/js() act on."""
@@ -82,7 +115,7 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "press_key", "scroll", "upload_file", "capture_screenshot",
                  "wait_lifecycle", "form_schema", "fill_form", "set_value",
                  "require_form", "fetch_all", "new_tab", "use_tab", "close_tab",
-                 "targets", "tab", "session", "journal"):
+                 "parallel", "summarise", "targets", "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"
 
 

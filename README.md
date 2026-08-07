@@ -18,4 +18,4 @@ So the harness's job is to minimize *decisions*, not milliseconds.
 - `docs/skills-plugin-system.md` — site knowledge as versioned data, not pull requests
 - `TODO.md` — the build plan
 
-Status: scaffolding. See `TODO.md`.
+Status: active development. See `TODO.md`.

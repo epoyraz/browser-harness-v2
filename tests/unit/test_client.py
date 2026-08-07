@@ -81,6 +81,55 @@ def test_replies_and_events_never_splice_on_the_shared_socket(served):
     assert sorted(got) == sorted(f"e{i}" for i in range(40))
 
 
+def test_concurrent_client_requests_serialize_stream_writes(served):
+    """The client has one stream socket. Force sendall() to stay in progress long enough
+    for sibling threads to collide; a connection-level write lock must keep that from ever
+    reaching the transport."""
+    _, _ = served
+
+    class RejectConcurrentWrites:
+        def __init__(self, sock):
+            self.sock = sock
+            self.lock = threading.Lock()
+            self.active = False
+
+        def sendall(self, data):
+            with self.lock:
+                if self.active:
+                    raise OSError("concurrent stream write")
+                self.active = True
+            try:
+                time.sleep(0.02)
+                self.sock.sendall(data)
+            finally:
+                with self.lock:
+                    self.active = False
+
+        def __getattr__(self, name):
+            return getattr(self.sock, name)
+
+    got, errors = [], []
+    start = threading.Barrier(8, timeout=5)
+    with RemoteConnection("clienttest") as conn:
+        conn._sock = RejectConcurrentWrites(conn._sock)
+
+        def ask(i):
+            start.wait()
+            try:
+                got.append(conn.request("Runtime.evaluate", {"expression": f"e{i}"}))
+            except Exception as error:  # noqa: BLE001 — the assertion reports every failure
+                errors.append(error)
+
+        threads = [threading.Thread(target=ask, args=(i,)) for i in range(8)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join(10)
+
+    assert not errors
+    assert len(got) == 8
+
+
 def test_a_typed_failure_survives_the_ipc_hop(served):
     _, _ = served
     with RemoteConnection("clienttest") as conn, pytest.raises(HarnessError) as e:

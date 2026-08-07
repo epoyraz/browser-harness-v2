@@ -42,6 +42,7 @@ class Session:
         self.accept_dialogs = accept_dialogs
         self._tabs: dict[str, Tab] = {}
         self._tabs_lock = threading.Lock()
+        self._attach_locks: dict[str, threading.Lock] = {}
         # The current tab is per-thread as well as per-client. Client-local already stops
         # two *processes* fighting over one cursor (D1, v1 #375); making it thread-local
         # extends the same property to `parallel()`, where N workers drive N tabs inside
@@ -73,20 +74,18 @@ class Session:
 
     def _attach(self, tid: str) -> Tab:
         with self._tabs_lock:
-            # Two workers claiming the same target must share one Tab, not race to build
-            # two: a Tab owns per-target state (isolated world, bindings) that would be
-            # created twice and half-forgotten.
-            existing = self._tabs.get(tid)
-        if existing is not None:
-            self._current = tid
-            return existing
-        # Built outside the lock — constructing a Tab installs its isolated world, which
-        # is a round trip; holding the lock across it would serialise every worker's first
-        # call to its own tab, which is precisely what parallelism is here to avoid.
-        tab = Tab(self.conn, self.registry, tid, journal=self.journal,
-                  accept_dialogs=self.accept_dialogs)
-        with self._tabs_lock:
-            tab = self._tabs.setdefault(tid, tab)
+            attach_lock = self._attach_locks.setdefault(tid, threading.Lock())
+        # Per-target rather than global: different tabs still attach concurrently, while
+        # two workers racing the same target cannot both construct a Tab and install its
+        # isolated-world runtime twice.
+        with attach_lock:
+            with self._tabs_lock:
+                tab = self._tabs.get(tid)
+            if tab is None:
+                tab = Tab(self.conn, self.registry, tid, journal=self.journal,
+                          accept_dialogs=self.accept_dialogs)
+                with self._tabs_lock:
+                    self._tabs[tid] = tab
         self._current = tid
         return tab
 

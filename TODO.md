@@ -11,6 +11,233 @@ to a version 5×–60× smaller.
 
 ---
 
+## Top 20 impact backlog — execute in this order
+
+This is the canonical next-work queue. The phase plan below remains the build history and
+design evidence; open items repeated there are cross-referenced here rather than being a
+second priority list.
+
+- [ ] **1. Browser-context isolation and leases (D12)**
+
+      Tabs inside one Chrome context share cookies, local storage, permissions, caches, and
+      service workers. That is useful when several workers should use the same login, but it is
+      unsafe when independent tasks or accounts must not influence one another. Add
+      `new_context()` and task-owned context leases over the existing single CDP connection,
+      including idle expiry and guaranteed disposal when the owner exits.
+
+      *Done when:* two parallel tasks can set the same cookie and local-storage key without
+      observing each other's values, and both contexts disappear after their leases end.
+
+- [ ] **2. Browser-instance ownership and a hard five-instance budget**
+
+      A Chrome instance is far more expensive than a tab because it brings its own browser,
+      GPU, network, storage, and renderer process tree. V2 should distinguish a user's attached
+      browser from scratch browsers launched by tests or automation, and every launched instance
+      should have an owner, PID, lease, refcount, and explicit stop path. The machine-wide launch
+      budget should be five instances, while `parallel()` keeps its separate ten-tab ceiling.
+
+      *Done when:* a sixth harness launch fails with a typed resource outcome, attached user
+      browsers are never killed, and crashed clients leave no owned Chrome or daemon behind.
+
+- [ ] **3. Daemon/client protocol negotiation and upgrade handoff**
+
+      The daemon deliberately outlives individual `bh` commands, which means an upgraded client
+      can unknowingly connect to older daemon code with a different wire format. Without a
+      handshake, this appears as random missing fields or malformed outcomes rather than a clear
+      version problem. Add package and protocol versions to `ping`, capability negotiation, and
+      a safe replacement path that preserves the daemon's pinned browser endpoint.
+
+      *Done when:* a new client meeting an incompatible old daemon receives one deterministic
+      upgrade or restart outcome, and the replacement never discovers a different browser.
+
+- [ ] **4. Structured cancellation and total deadlines**
+
+      Per-CDP-call timeouts do not bound an entire parallel job: queued items can still start,
+      several slow steps can accumulate, and `KeyboardInterrupt` may wait for worker shutdown.
+      Add operation, item, and whole-run deadlines plus a shared cancellation token. Cancellation
+      should prevent queued work from starting, let active helpers stop at safe boundaries, and
+      always run owned tab and context teardown.
+
+      *Done when:* cancelling a 100-item run stops every queued action, closes all owned
+      resources, and returns within a documented teardown budget.
+
+- [ ] **5. Crash-safe resource accounting with visible cleanup failures**
+
+      Browser resources can leak when creation succeeds but the next step—attach, navigation,
+      runtime installation, or registration—fails before ownership is recorded. V2 should use a
+      small resource ledger that records targets and contexts immediately, then releases them in
+      `finally`. Cleanup errors should be journalled as evidence rather than silently discarded,
+      because a hidden teardown failure becomes memory pressure on the next run.
+
+      *Done when:* injected failures at create, attach, navigate, register, and close always
+      return the browser to its baseline target set and produce an auditable cleanup result.
+
+- [ ] **6. Real-browser regression gates**
+
+      Unit tests with a fake browser prove bookkeeping but cannot prove Chrome scheduling, CDP
+      event routing, background-tab behaviour, renderer lifecycle, or real process cleanup. The
+      live parallel test already catches bugs that the fake could not. Run a bounded smoke suite
+      on pull requests and the broader parallel, daemon, forms, recording, and write-mode suite
+      on a schedule against a pinned Chrome version.
+
+      *Done when:* cursor cross-routing, lost overlap, target leaks, or Chrome-version breakage
+      fails an automated required or scheduled check instead of a manual script.
+
+- [ ] **7. Resource-aware adaptive parallelism**
+
+      A fixed worker count behaves differently on a 2019 laptop, a modern workstation, and a
+      headless CI machine. More tabs can eventually make every task slower while consuming much
+      more memory. Keep ten as the absolute tab limit, but monitor renderer memory, live targets,
+      queue delay, and event-loop latency so new work pauses or the effective worker count falls
+      before the browser starts thrashing.
+
+      *Done when:* a repeatable pressure fixture makes concurrency scale down predictably,
+      preserves complete results, and never launches another Chrome instance as compensation.
+
+- [ ] **8. Fair global daemon admission control**
+
+      The current bounded request pool is created per client, so many clients can multiply the
+      daemon's total thread and in-flight request count. One noisy client can also occupy most of
+      the browser connection while a small interactive request waits. Replace this with a
+      daemon-wide scheduler that enforces a global ceiling, applies per-client fairness, and
+      cancels queued requests when their client disconnects.
+
+      *Done when:* a load test proves that total in-flight work never exceeds the configured
+      limit and a one-request client progresses while another client floods the daemon.
+
+- [ ] **9. Per-domain concurrency, retry, and circuit-breaker policy**
+
+      Browser-wide concurrency is not enough because ten tabs can still overload one website or
+      repeatedly hit a failing upload gateway. Add origin-level semaphores, `Retry-After`
+      handling, jittered retry budgets for safe 429/5xx operations, and a circuit breaker for
+      repeated infrastructure failures. Unsafe actions such as submissions must never be
+      retried automatically unless an idempotency guarantee is available.
+
+      *Done when:* deterministic server fixtures prove the origin cap, retry budget, breaker
+      opening and recovery, and the absence of duplicate side effects.
+
+- [ ] **10. Streaming progress with ordered final results**
+
+      `parallel()` correctly returns final records in input order, but waiting for that list
+      hides useful progress and makes a long first item look like a frozen run. Add progress
+      events, a callback, or an iterator for item start, completion, failure, and cancellation.
+      The final collected result must remain input-ordered so existing callers can safely match
+      records to their source items.
+
+      *Done when:* a fast later item becomes observable before a slow first item completes,
+      while every input still appears exactly once and in order in the final result.
+
+- [ ] **11. Explicit authentication bootstrap per context**
+
+      Isolated browser contexts solve storage leakage, but they also start logged out unless
+      authentication is transferred deliberately. Add storage-state import and export with
+      clear scope, then verify the expected identity inside every new context before protected
+      work begins. A copied cookie jar is not proof of authentication, so verification must use
+      an application-specific observable signal and fail closed when it is absent.
+
+      *Done when:* each isolated context either proves the expected signed-in identity or
+      returns a typed human-authentication handoff before touching protected pages.
+
+- [ ] **12. Checkpoint and blocker-only resume**
+
+      A browser run may finish many items before one task encounters MFA, CAPTCHA, missing user
+      data, or an infrastructure failure. Restarting the whole plan wastes time and risks
+      repeating completed actions. Persist completed items, remaining steps, typed blockers,
+      attempt counts, and artifact references so a resume contains only unfinished or explicitly
+      retryable work.
+
+      *Done when:* terminating and resuming a mixed run performs zero actions on completed
+      items and retries only the failures allowed by policy.
+
+- [ ] **13. Declarative side-effect gating and receipt verification**
+
+      Arbitrary `js()` is intentionally powerful, but that makes it unsuitable as the approval
+      boundary for submitting a form, buying something, sending a message, deleting data, or
+      accepting consent. Add a narrow declarative action layer whose requests can be reviewed,
+      scope-matched to an approval token, and paired with an observable receipt predicate. The
+      absence of an exception must never count as proof that the side effect happened.
+
+      *Done when:* irreversible actions cannot run without matching approval and cannot report
+      success without a captured confirmation, identifier, state change, or equivalent receipt.
+
+- [ ] **14. Task-owned download and upload artifacts**
+
+      Concurrent tasks can download identical filenames, observe partially written files, or
+      accidentally attribute one worker's artifact to another. Give each task or context its own
+      download directory and artifact registry, wait for completion events, hash final files, and
+      connect each artifact to its journal span. Upload inputs should likewise record exactly
+      which local file was sent without exposing its contents.
+
+      *Done when:* concurrent same-name downloads remain distinct, complete, attributable, and
+      subject to an explicit retention and cleanup policy.
+
+- [ ] **15. Concurrency-safe recording**
+
+      Recording currently hangs one callback off the shared journal, while frame numbering,
+      recursion protection, and capture selection were originally designed for a serial call
+      chain. Parallel actions can therefore race for a frame number, suppress one another, or
+      capture the wrong tab. Make recursion state thread-local, serialize file allocation, and
+      bind every capture to the tab and span that triggered it.
+
+      *Done when:* six simultaneous state-changing actions produce six unique frames attached
+      to the correct tab and journal span, with no dropped or overwritten image.
+
+- [ ] **16. Output budgets with reversible elision (existing 25b)**
+
+      A single DOM, network response, screenshot payload, or console history can produce
+      megabytes of output and overwhelm the agent context even when browser work succeeded.
+      Apply budgets to every agent-facing surface, store overflow in a content-addressed cache,
+      and return a digest with useful metadata and head/tail previews. Elision must be reversible
+      so large evidence is not silently destroyed.
+
+      *Done when:* multi-megabyte values cannot flood stdout or the journal and can be fetched
+      losslessly later by digest.
+
+- [ ] **17. Browser/daemon chaos suite**
+
+      The most expensive concurrency bugs happen between normal states: a target closes during
+      navigation, a renderer crashes after a request is sent, or the daemon disappears while
+      replies are in flight. Build deterministic fault injection for target destruction, session
+      detach, renderer and browser crashes, delayed or malformed frames, dropped IPC, and
+      navigation races. Check both the reported outcome and what the browser actually did.
+
+      *Done when:* every injected fault yields a typed result, bounded recovery, complete item
+      accounting, and proof that no unrelated tab received an action.
+
+- [ ] **18. Versioned skills distribution and trust (existing 31–32)**
+
+      Domain-specific knowledge is valuable, but copying helper code from an unverified source
+      directly into an agent session creates a supply-chain and authority problem. Implement
+      path and Git sources, URL matching, provenance, digest verification, trust tiers, and
+      `bh skills which`. A downloaded skill should contribute data or code only within its
+      declared authority, and the selection decision should be explainable.
+
+      *Done when:* a signed or digest-pinned Personio recipe matches multiple tenants and the
+      CLI reports exactly which source, version, matcher, and trust level selected it.
+
+- [ ] **19. V1 migration, packaging, and release proof (existing 33–34)**
+
+      V2 is not complete merely because it works from this checkout. Existing users need a
+      command and helper mapping, migration of useful domain skills, a real published version,
+      clean installation instructions, and a rollback path. The migration must preserve user
+      helpers and data while clearly identifying v1 behaviours that intentionally changed.
+
+      *Done when:* a clean machine installs v2, passes doctor and a live smoke test, migrates a
+      representative v1 workspace, and can roll back without losing user-owned artifacts.
+
+- [ ] **20. Operational status and privacy-safe SLOs**
+
+      When a parallel run slows down, operators need to distinguish browser memory pressure,
+      daemon queueing, a stale client version, blocked domains, and leaked resources without
+      opening logs full of sensitive URLs or form data. Add `bh status` with browser identity,
+      protocol versions, clients, queues, tabs, contexts, memory pressure, and recent typed
+      failures. Define a few measurable service objectives for startup, requests, and cleanup.
+
+      *Done when:* one command explains saturation, leaks, and version skew, while redaction
+      tests prove it never exposes URLs, secrets, JavaScript source, or form values.
+
+---
+
 ## Phase 0 — foundation (nothing works until these do)
 
 - [x] **1. Repo scaffold + `pyproject.toml`** — `harness/{core,connect,cli,ops}`, `uv` install,

@@ -110,6 +110,11 @@ class RemoteConnection:
         self._sock, self._token = ipc.connect(name, timeout=timeout)
         self._sock.settimeout(None)
         self._lock = threading.Lock()
+        # AF_UNIX and TCP are byte streams: concurrent sendall() calls aren't message
+        # boundaries and may interleave when either call needs more than one write. Reads
+        # have a dedicated pump; writes need the same single-owner rule so newline-delimited
+        # JSON remains one request per line under parallel().
+        self._send_lock = threading.Lock()
         self._next_id = 0
         self._pending: dict[int, dict[str, Any]] = {}
         self._events: list[Callable[[dict[str, Any]], None]] = []
@@ -177,7 +182,8 @@ class RemoteConnection:
         if self._token:
             body["token"] = self._token
         try:
-            self._sock.sendall((json.dumps(body, default=str) + "\n").encode())
+            with self._send_lock:
+                self._sock.sendall((json.dumps(body, default=str) + "\n").encode())
         except OSError as e:
             with self._lock:
                 self._pending.pop(rid, None)

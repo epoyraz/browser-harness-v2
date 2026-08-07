@@ -232,7 +232,7 @@ class Daemon:
         finally:
             # Do not wait: a client that disconnected is not owed its in-flight replies,
             # and joining here would hold the connection thread open for a full timeout.
-            pool.shutdown(wait=False)
+            pool.shutdown(wait=False, cancel_futures=True)
             with self._plock:
                 self._peers.discard(peer)
             peer.close()

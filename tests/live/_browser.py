@@ -66,6 +66,12 @@ def kill(profile: Path) -> None:
         subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], check=False,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
-        subprocess.run(["/usr/bin/pkill", "-f", f"--user-data-dir={profile}"],
+        subprocess.run(["/usr/bin/pkill", "-f", "--", f"--user-data-dir={profile}"],
                        check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    time.sleep(0.8)
+        time.sleep(0.8)
+        # Chrome sometimes keeps its process tree alive after TERM while renderers wind
+        # down. A live check owns this unique scratch profile, so escalation cannot touch
+        # the user's daily browser and is preferable to accumulating hidden instances.
+        subprocess.run(["/usr/bin/pkill", "-9", "-f", "--", f"--user-data-dir={profile}"],
+                       check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    time.sleep(0.2)

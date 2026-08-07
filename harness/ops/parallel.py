@@ -29,9 +29,10 @@ from typing import Any
 
 from harness.core.outcome import HarnessError
 
-#: Chrome renders every visible tab. Past roughly this many the tabs contend for the
-#: compositor and each one gets slower, so more workers stop buying wall clock. Tunable
-#: because a headless run with light pages can go wider.
+#: A hard tab ceiling, not just a default. `parallel()` uses tabs inside one Chrome
+#: instance; it never launches another browser. Ten still overlaps useful work without
+#: letting an explicit argument or env setting accidentally fan out dozens of renderers.
+MAX_WORKERS = 10
 DEFAULT_WORKERS = 8
 
 
@@ -57,11 +58,12 @@ def parallel(session: Any, items: Iterable[Any],
     if not todo:
         return []
     n = workers or int(os.environ.get("BH_WORKERS") or 0) or DEFAULT_WORKERS
-    n = max(1, min(n, len(todo)))
+    n = max(1, min(n, len(todo), MAX_WORKERS))
 
     # One tab per worker thread, created on that thread's first item and reused after.
     # Creating them up front would open tabs a short run never reaches.
-    owned: dict[int, str] = {}
+    worker_tabs: dict[int, str] = {}
+    owned_tabs: set[str] = set()
     import threading
 
     lock = threading.Lock()
@@ -69,15 +71,17 @@ def parallel(session: Any, items: Iterable[Any],
     def run(index_item: tuple[int, Any]) -> tuple[int, dict[str, Any]]:
         i, item = index_item
         key = threading.get_ident()
-        with lock:
-            tid = owned.get(key)
-        if tid is None or not reuse_tabs:
-            tab = session.new_tab()
-            with lock:
-                owned[key] = tab.target_id
-        else:
-            session.use_tab(tid)          # rebind this thread's cursor to its own tab
         try:
+            with lock:
+                tid = worker_tabs.get(key)
+            if tid is None or not reuse_tabs:
+                tab = session.new_tab()
+                with lock:
+                    owned_tabs.add(tab.target_id)
+                    if reuse_tabs:
+                        worker_tabs[key] = tab.target_id
+            else:
+                session.use_tab(tid)      # rebind this thread's cursor to its own tab
             return i, {"item": item, "ok": True, "value": fn(item)}
         except HarnessError as e:
             # A typed harness failure keeps its evidence: the outcome contract is only
@@ -89,17 +93,19 @@ def parallel(session: Any, items: Iterable[Any],
                        "error": str(e)[:200]}
 
     out: list[dict[str, Any] | None] = [None] * len(todo)
-    with ThreadPoolExecutor(max_workers=n, thread_name_prefix="bh-par") as pool:
-        for i, record in pool.map(run, enumerate(todo)):
-            out[i] = record
-
-    # Tabs opened for the sweep are ours to clean up; a caller who wanted 100 tabs left
-    # open would have opened them.
-    for tid in set(owned.values()):
-        try:
-            session.close_tab(tid)
-        except Exception:  # noqa: BLE001, S110 — teardown must not mask the results
-            pass
+    try:
+        with ThreadPoolExecutor(max_workers=n, thread_name_prefix="bh-par") as pool:
+            for i, record in pool.map(run, enumerate(todo)):
+                out[i] = record
+    finally:
+        # Tabs opened for the sweep are ours to clean up; a caller who wanted 100 tabs left
+        # open would have opened them. Track every tab, not merely each worker's latest one:
+        # `reuse_tabs=False` intentionally opens several tabs on the same thread.
+        for tid in owned_tabs:
+            try:
+                session.close_tab(tid)
+            except Exception:  # noqa: BLE001, S110 — teardown must not mask the results
+                pass
     return [r for r in out if r is not None]
 
 
