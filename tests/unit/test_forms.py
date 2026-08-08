@@ -114,6 +114,20 @@ def test_one_bad_field_makes_the_whole_fill_partial_with_the_report_kept(tab):
     assert "Suisse (+41)" in out.failures[0].observed["candidates"]
 
 
+def test_ordered_select_candidates_are_serialized_for_exact_in_page_matching(tab):
+    browser, t = tab
+    seen = {}
+
+    def hook(expr):
+        seen["expr"] = expr
+        return [{"ref": "e1", "ok": True, "want": "7+ Jahre", "got": "7+ Jahre"}]
+
+    browser.eval_hook = hook
+    out = fill_form(t, [{"ref": "e1", "labels": ["8+", "7+ Jahre"]}], recheck=0)
+    assert out.ok is True
+    assert '"labels": ["8+", "7+ Jahre"]' in seen["expr"]
+
+
 def test_a_vanished_ref_is_element_gone_in_the_tally(tab):
     browser, t = tab
     browser.eval_hook = lambda e: [{"ref": "e9", "ok": False, "error": "element_gone"}]
@@ -351,6 +365,13 @@ def test_prepare_document_batches_metadata_schema_and_file_refs(tab):
     assert len(_evaluates(browser)) - before == 1
 
 
+def test_prepare_source_has_a_bounded_structured_application_route_tier():
+    from harness.ops.forms import _PREPARE_JS
+
+    assert "applicationUrls.slice(0, 12)" in _PREPARE_JS
+    assert "visited++ > 5000" in _PREPARE_JS
+
+
 def test_require_form_raises_not_a_form_with_the_verdict(tab):
     with pytest.raises(NotAForm) as e:
         require_form({"verdict": {"is_form": False,
@@ -380,6 +401,36 @@ def test_no_match_returns_candidates_and_never_guesses(tab):
     out = select_option(t, "e1", "Atlantis", settle=0.01)
     assert out.ok is False and out.cls is Class.NO_OPTION_MATCH
     assert out.observed["candidates"] == ["LinkedIn", "Referral"]
+
+
+def test_combobox_accepts_ordered_exact_semantic_candidates(tab):
+    browser, t = tab
+    browser.eval_hook = combo_hook(
+        options=[{"text": "7+ Jahre", "x": 10, "y": 40}],
+        state=lambda n: {"x": 5, "y": 5, "text": "7+ Jahre" if n else "",
+                         "value": "7+ Jahre" if n else "", "hasInput": False})
+    out = select_option(t, "e1", ["8+", "7+ Jahre"], settle=0.01)
+    assert out.ok and out.value["got"] == "7+ Jahre"
+
+
+def test_fill_form_routes_declared_interactive_widgets_through_select_option(tab):
+    browser, t = tab
+    browser.eval_hook = combo_hook(
+        options=[{"text": "LinkedIn", "x": 10, "y": 40}],
+        state=lambda n: {"x": 5, "y": 5, "text": "LinkedIn" if n else "",
+                         "value": "LinkedIn" if n else "", "hasInput": False})
+    out = fill_form(t, [{"ref": "e1", "labels": ["Joblens", "LinkedIn"],
+                         "interaction": "select"}], recheck=0)
+    assert out.ok and out.observed["succeeded"] == 1
+
+
+def test_fill_form_accepts_native_selects_returning_a_list_report(tab):
+    browser, t = tab
+    browser.eval_hook = combo_hook(
+        tag="select", batch=[{"ref": "e1", "ok": True, "want": "Herr", "got": "Herr"}])
+    out = fill_form(t, [{"ref": "e1", "labels": ["Herr", "Mr"],
+                         "interaction": "select"}], recheck=0)
+    assert out.ok and out.value[0]["got"] == "Herr"
 
 
 def test_a_failed_select_closes_the_popup(tab):

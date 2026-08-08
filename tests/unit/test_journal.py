@@ -66,6 +66,30 @@ def test_cdp_outside_a_span_is_not_an_error(j):
     assert j.current is None
 
 
+def test_bound_context_correlates_calls_and_cdp_without_accepting_arbitrary_values(
+        tmp_path, monkeypatch):
+    monkeypatch.setenv("BH_CDP_TRACE", "1")
+    j = Journal(tmp_path / "context.jsonl", session="s1")
+    with j.bind(item_id="job-7", worker_id=2, stage="navigate", secret="never"), \
+            j.call("goto"):
+        marker = j.cdp_start("Page.navigate", {"url": "https://secret.test"})
+        j.cdp_end(marker, "Page.navigate", result={})
+    entries = list(j.entries())
+    assert all(e["item_id"] == "job-7" and e["worker_id"] == 2 for e in entries)
+    assert all(e["stage"] == "navigate" and "secret" not in e for e in entries)
+    assert "secret.test" not in (tmp_path / "context.jsonl").read_text()
+
+
+def test_nested_context_restores_the_outer_values(j):
+    with j.bind(item_id="a", stage="outer"):
+        with j.bind(stage="inner", hop=1):
+            j.write("note", event="inside")
+        j.write("note", event="outside")
+    inside, outside = list(j.entries())
+    assert inside["stage"] == "inner" and inside["hop"] == 1
+    assert outside["stage"] == "outer" and "hop" not in outside
+
+
 def test_opt_in_cdp_trace_records_shape_timing_and_no_values(tmp_path, monkeypatch):
     monkeypatch.setenv("BH_CDP_TRACE", "1")
     path = tmp_path / "protocol.jsonl"

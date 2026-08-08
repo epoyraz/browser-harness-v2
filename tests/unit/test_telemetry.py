@@ -24,6 +24,18 @@ def test_rollup_counts_calls_failures_and_round_trips(tmp_path):
     assert goto["calls"] == 2 and goto["cdp_per_call"] == 1.0 and goto["failed"] == 0
 
 
+def test_rollup_reports_recovered_protocol_failures_separately(tmp_path):
+    j = _journal(tmp_path, [
+        {"kind": "call", "fn": "click", "outcome": {"ok": True}},
+        {"kind": "cdp", "method": "Page.handleJavaScriptDialog", "ok": False,
+         "error_class": "cdp_error", "error_code": -32602},
+        {"kind": "cdp", "method": "Runtime.evaluate", "ok": True},
+    ])
+    protocol = rollup([j])["protocol"]
+    assert protocol["calls"] == 2 and protocol["failed"] == 1
+    assert protocol["failure_codes"] == [("-32602", 1)]
+
+
 def test_the_failure_histogram_is_the_prioritisation_signal(tmp_path):
     """v1 could not produce this: every failure was a `str`, so "which mode dominates"
     had no answer. With a closed enum it is a Counter."""

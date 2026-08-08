@@ -76,6 +76,24 @@ def _calls(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
             yield row
 
 
+def _protocol(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
+    """Sanitized protocol outcome only; request and response values are never selected."""
+    for f in files:
+        try:
+            lines = f.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if entry.get("kind") == "cdp":
+                yield {"ok": bool(entry.get("ok")),
+                       "class": entry.get("error_class"),
+                       "code": entry.get("error_code")}
+
+
 def _pct(values: list[float], q: float) -> float:
     if not values:
         return 0.0
@@ -115,12 +133,21 @@ def rollup(paths: Iterable[str | Path] | None = None) -> dict[str, Any]:
         })
     helpers.sort(key=lambda h: -h["calls"])
     total = sum(h["calls"] for h in helpers)
+    protocol_rows = list(_protocol(files))
+    protocol_failed = [row for row in protocol_rows if not row["ok"]]
     return {
         "journals": len(files),
         "calls": total,
         "failed": sum(h["failed"] for h in helpers),
         "helpers": helpers,
         "failure_classes": classes.most_common(),
+        "protocol": {
+            "calls": len(protocol_rows), "failed": len(protocol_failed),
+            "failure_classes": Counter(str(row.get("class") or "unknown")
+                                       for row in protocol_failed).most_common(),
+            "failure_codes": Counter(str(row.get("code")) for row in protocol_failed
+                                     if row.get("code") is not None).most_common(),
+        },
     }
 
 
@@ -132,6 +159,10 @@ def render(r: dict[str, Any], *, top: int = 12) -> list[str]:
     rate = r["failed"] / r["calls"]
     out = [(f"{r['calls']:,} calls across {r['journals']} session(s) · "
             f"{r['failed']:,} failed ({rate:.1%})"), ""]
+    protocol = r.get("protocol") or {}
+    if protocol.get("calls"):
+        out.insert(1, (f"{protocol['calls']:,} sanitized CDP round trips · "
+                       f"{protocol['failed']:,} failed or recovered"))
     if r["failure_classes"]:
         out.append("failure classes — what to fix, in order:")
         width = max(len(c) for c, _ in r["failure_classes"])

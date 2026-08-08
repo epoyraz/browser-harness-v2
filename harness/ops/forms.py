@@ -299,10 +299,36 @@ _PREPARE_JS = """(() => {
     applyControl = {ref, label: labelOf(ctl).slice(0, 60), score: ctlScore,
                     tag: ctl.tagName.toLowerCase()};
   }
+  // Read-only structured-data tier. SPA shells often carry their routes in JSON-LD,
+  // __NEXT_DATA__, or another application/json bootstrap even when no clickable control
+  // has rendered yet. Walk bounded JSON and return only URL-shaped application routes;
+  // never return the JSON body itself, which may contain unrelated page data.
+  const applicationUrls = [];
+  const seenObjects = new Set(); let visited = 0;
+  const route = value => {
+    if (typeof value !== 'string' || value.length > 2000
+        || !/(apply|application|bewerb|postul|candidat)/i.test(value)) return;
+    try {
+      const url = new URL(value, location.href);
+      if (/^https?:$/.test(url.protocol) && !applicationUrls.includes(url.href))
+        applicationUrls.push(url.href);
+    } catch (e) {}
+  };
+  const walk = value => {
+    if (visited++ > 5000 || value == null) return;
+    if (typeof value === 'string') { route(value); return; }
+    if (typeof value !== 'object' || seenObjects.has(value)) return;
+    seenObjects.add(value);
+    for (const child of Array.isArray(value) ? value : Object.values(value)) walk(child);
+  };
+  for (const script of document.querySelectorAll(
+       'script[type="application/ld+json"],script[type="application/json"],script#__NEXT_DATA__')) {
+    try { walk(JSON.parse(script.textContent || 'null')); } catch (e) {}
+  }
   return {schema, url: location.href, title: document.title,
           language: document.documentElement.lang || navigator.language || 'en',
           file_inputs: fileInputs, apply_link: apply ? apply.href : null,
-          apply_control: applyControl};
+          apply_control: applyControl, application_urls: applicationUrls.slice(0, 12)};
 })()""".replace("__SCHEMA__", _SCHEMA_JS)
 
 
@@ -355,21 +381,29 @@ _FILL_JS = """((plan) => {
         continue;
       }
       if (el.tagName === 'SELECT') {
-        const want = norm(step.label ?? step.value ?? '');
+        const requested = Array.isArray(step.labels) ? step.labels
+                        : [step.label ?? step.value ?? ''];
+        const wants = requested.map(norm).filter(Boolean);
         const opts = [...el.options];
-        const hit = opts.find(o => norm(o.text) === want || norm(o.value) === want)
-                 || opts.find(o => norm(o.text).startsWith(want))
-                 || opts.find(o => norm(o.text).includes(want));
+        // Ordered candidate lists are exact-only.  They express semantic equivalence,
+        // not permission to choose a vaguely similar option.  The legacy single-label
+        // spelling keeps its starts/includes fallback for compatibility.
+        const exact = want => opts.find(o => norm(o.text) === want || norm(o.value) === want);
+        let hit = wants.map(exact).find(Boolean);
+        if (!hit && !Array.isArray(step.labels) && wants.length) {
+          hit = opts.find(o => norm(o.text).startsWith(wants[0]))
+             || opts.find(o => norm(o.text).includes(wants[0]));
+        }
         if (!hit) {
           report.push({ref: step.ref, ok: false, error: 'no_option_match',
-                       want: String(step.label ?? step.value ?? ''),
+                       want: requested.map(String).join(' | '),
                        candidates: opts.slice(0, 8).map(o => o.text.trim().slice(0, 40))});
           continue;
         }
         el.value = hit.value;
         fire(el, ['input', 'change', 'blur']);
         report.push({ref: step.ref, ok: el.value === hit.value,
-                     want: String(step.label ?? step.value ?? ''),
+                     want: hit.text.trim(), requested: requested.map(String),
                      got: el.selectedOptions[0] ? el.selectedOptions[0].text.trim() : el.value});
       } else if (el.type === 'checkbox' || el.type === 'radio') {
         el.checked = !!step.value;
@@ -555,8 +589,11 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
     bad = [s.get("mode") for s in plan if s.get("mode") and s.get("mode") not in MODES]
     if bad:
         raise ValueError(f"mode must be one of {MODES}, got {bad!r}")
-    batched = [(i, s) for i, s in enumerate(plan) if s.get("mode", "value") == "value"]
-    typed = [(i, s) for i, s in enumerate(plan) if s.get("mode", "value") != "value"]
+    interactive = [(i, s) for i, s in enumerate(plan) if s.get("interaction") == "select"]
+    batched = [(i, s) for i, s in enumerate(plan)
+               if s.get("mode", "value") == "value" and not s.get("interaction")]
+    typed = [(i, s) for i, s in enumerate(plan)
+             if s.get("mode", "value") != "value" and not s.get("interaction")]
     batch_plan = [{k: v for k, v in s.items() if k != "mode"} for _, s in batched]
 
     src = _FILL_JS.replace("__PLAN__", json.dumps(batch_plan))
@@ -583,10 +620,28 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         typed_reports = {i: _typed_write(tab, s["ref"], s.get("value", s.get("label")),
                                          s["mode"], timeout)
                          for i, s in typed}
+        interactive_reports = {}
+        for i, step in interactive:
+            outcome = select_option(tab, step["ref"], step.get("labels") or
+                                    step.get("label") or step.get("value"), timeout=timeout)
+            if outcome.ok:
+                value = outcome.value
+                if isinstance(value, list):
+                    value = next((entry for entry in value if isinstance(entry, dict)), {})
+                interactive_reports[i] = {"ref": step["ref"], "ok": True,
+                                          "interaction": "select", **(value or {})}
+            else:
+                interactive_reports[i] = {
+                    "ref": step["ref"], "ok": False,
+                    "error": outcome.cls.value, **outcome.observed,
+                }
 
     merged: list[dict[str, Any]] = []
     slot_of = {i: slot for slot, (i, _) in enumerate(batched)}
     for i, step in enumerate(plan):
+        if i in interactive_reports:
+            merged.append(interactive_reports[i])
+            continue
         if i in typed_reports:
             merged.append(typed_reports[i])
             continue
@@ -603,7 +658,7 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
     return tally.outcome(value=merged, fields=len(plan))     # value = the FULL report
 
 
-def select_option(tab: Tab, ref: str, label: str, *, timeout: float = 10.0,
+def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float = 10.0,
                   type_to_filter: bool | None = None,
                   settle: float = 0.25) -> Outcome:
     """Operate an ARIA combobox: open it, find the option, click it, verify.
@@ -630,8 +685,10 @@ def select_option(tab: Tab, ref: str, label: str, *, timeout: float = 10.0,
         " return e ? e.tagName.toLowerCase() : null;})()", timeout=timeout)
     if probe is None:
         return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
+    requested = [str(item) for item in label] if isinstance(label, list) else [str(label)]
     if probe == "select":
-        return fill_form(tab, [{"ref": ref, "label": label}], timeout=timeout)
+        key = "labels" if isinstance(label, list) else "label"
+        return fill_form(tab, [{"ref": ref, key: label}], timeout=timeout)
 
     with tab.journal.call("select_option", ref=ref, label=label):
         before = tab._world_js(_COMBO_STATE_JS.replace("__REF__", json.dumps(ref)),
@@ -649,7 +706,7 @@ def select_option(tab: Tab, ref: str, label: str, *, timeout: float = 10.0,
         if wants_typing and before.get("hasInput"):
             # Typeahead: the list is empty until it is filtered. Real key events, because
             # that is the only write mode a keystroke-driven typeahead can see (D3).
-            for ch in str(label):
+            for ch in requested[0]:
                 tab.cdp("Input.dispatchKeyEvent",
                         {"type": "keyDown", "text": ch, "key": ch, "unmodifiedText": ch},
                         timeout=timeout)
@@ -664,21 +721,23 @@ def select_option(tab: Tab, ref: str, label: str, *, timeout: float = 10.0,
             _dismiss(tab, timeout)
             return fail(Class.NEEDS_INTERACTION,
                         "the popup exposed no options to choose from",
-                        ref=ref, want=label, scope=found.get("scope"),
+                        ref=ref, want=requested, scope=found.get("scope"),
                         typed=bool(wants_typing))
 
-        want = " ".join(str(label).split()).lower()
         def norm(t: str) -> str:
             return " ".join(str(t).split()).lower()
-        hit = (next((o for o in options if norm(o["text"]) == want), None)
-               or next((o for o in options if norm(o["text"]).startswith(want)), None)
-               or next((o for o in options if want in norm(o["text"])), None))
+        wants = [norm(item) for item in requested]
+        hit = next((option for want in wants for option in options
+                    if norm(option["text"]) == want), None)
+        if hit is None and not isinstance(label, list):
+            hit = (next((o for o in options if norm(o["text"]).startswith(wants[0])), None)
+                   or next((o for o in options if wants[0] in norm(o["text"])), None))
         if hit is None:
             # Same contract as a native select: never fall back to "the first one".
             _dismiss(tab, timeout)
             return fail(Class.NO_OPTION_MATCH,
-                        f"no option matching {label!r} among {len(options)}",
-                        ref=ref, want=label,
+                        f"no option matching {requested!r} among {len(options)}",
+                        ref=ref, want=requested,
                         candidates=[o["text"] for o in options[:8]],
                         options_count=len(options), scope=found.get("scope"))
 
@@ -692,11 +751,11 @@ def select_option(tab: Tab, ref: str, label: str, *, timeout: float = 10.0,
     changed = shown != str(before.get("value") or before.get("text") or "")
     matched = norm(shown) == norm(hit["text"]) or norm(hit["text"]) in norm(shown)
     if changed or matched:
-        return ok({"ref": ref, "want": label, "got": hit["text"], "shown": shown[:80]},
+        return ok({"ref": ref, "want": requested, "got": hit["text"], "shown": shown[:80]},
                   options_count=len(options))
     return fail(Class.NEEDS_INTERACTION,
                 "the option was clicked but the widget still shows its old value",
-                ref=ref, want=label, clicked=hit["text"], shown=shown[:80])
+                ref=ref, want=requested, clicked=hit["text"], shown=shown[:80])
 
 
 def _dismiss(tab: Tab, timeout: float) -> None:

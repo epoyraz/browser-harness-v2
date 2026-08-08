@@ -231,6 +231,24 @@ if not prepared["is_application"]:
     prepared = prepare_application()
 ```
 
+For a complete bounded discovery-and-fill workflow, keep navigation, terminal-state
+reconciliation, target following, cycle detection and planning inside one call:
+
+```python
+result = session.run_application(
+    url,
+    planner=lambda schema, language: (plan, audit),
+    hop_budget=6,
+)
+print(result["stage"], result["fill"])
+```
+
+The planner may return a plan or `(plan, audit)`. There is no submit operation in this
+workflow and the browser dry-run boundary remains active. Select steps may use ordered
+exact semantic equivalents: `{"ref": ref, "labels": ["8+", "7+ Jahre"]}`. Add
+`"interaction": "select"` for an ARIA combobox; `fill_form()` routes it through the
+verified widget interaction while keeping one aggregate typed outcome.
+
 `follow_application()` makes a newly opened browser target current before returning and
 falls back to a discovered application URL when a click is observably inert.
 
@@ -327,6 +345,11 @@ records = parallel(urls, inspect, workers=5, isolated=True, timeout=120,
 print(summarise(records))
 ```
 
+Each record also carries privacy-safe `telemetry`: item/worker identity, target/context,
+queue time, duration, completion offset and active-worker counts. `events=` receives
+start/completion events immediately; `item_id=` supplies a stable safe identifier. These
+same fields correlate helper and sanitized CDP journal events without recording item data.
+
 `parallel()` uses worker tabs inside the **same Chrome instance**. It defaults to 8 tabs,
 never exceeds 10, returns one record per input in input order, and closes every tab it
 opened. Pass `reuse_tabs=False` when each item needs a fresh tab; each old tab is closed
@@ -361,6 +384,12 @@ bh trace /tmp/run.jsonl --tail 20
 bh --doctor                        # why the browser can or cannot be reached
 bh skills which https://acme.jobs.personio.de/job/1
 ```
+
+For failure-focused runs, call `start_diagnostics()` before navigation and
+`diagnostics()` at the terminal state. The bounded result contains HTTP failure shape,
+console/exception hashes, target/frame lifecycle, selected renderer metrics, resource
+counts and event-loop delay. It excludes URLs, headers, bodies, console text and form
+values. `bh stats` reports recovered CDP failures separately from failed helpers.
 
 `bh trace` puts `cdp=N` on every line. If a call shows a large count, it is doing work
 per-item that could be batched.

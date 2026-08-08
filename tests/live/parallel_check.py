@@ -198,6 +198,10 @@ def main() -> int:
             safety.click_ref(submit["ref"])
         except SideEffectRefused:
             refused = True
+        # Read-only boot-time POSTs are deliberately allowed so modern ATS SPAs can
+        # render. Once applicant data is present the form helpers arm this boundary;
+        # model that state explicitly before testing mutating network calls.
+        safety.arm_dry_run()
         fetch_blocked = safety.js(
             "await fetch('/sent', {method:'POST', body:'x'}).then(() => false, () => true)")
         safety.js("HTMLFormElement.prototype.submit.call(document.getElementById('application'))")

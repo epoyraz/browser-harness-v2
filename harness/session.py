@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from collections.abc import Callable
 from typing import Any, Self
 
 from harness import extend
@@ -291,6 +292,126 @@ class Session:
                 "target_id": selected.target_id,
                 "target_changed": selected.target_id != origin.target_id}
 
+    def locate_application(self, url: str, *, timeout: float = 25.0,
+                           transition_timeout: float = 15.0,
+                           hop_budget: int = 6,
+                           candidates: list[str] | None = None) -> dict[str, Any]:
+        """Navigate to and locate an application UI without encoding ATS-specific steps.
+
+        Every transition shape is handled by :meth:`follow_application`.  The state
+        returned by that transition is reused by the following hop, avoiding the duplicate
+        wait that dominated the 100-job trace.  A structural fingerprint stops cycles;
+        ``hop_budget`` is only the final safety ceiling, not the workflow definition.
+        The final form verdict wins over a stale ``usable_ui``/``account_wall`` probe and
+        the disagreement is retained as evidence.
+        """
+        if hop_budget < 1:
+            raise ValueError("hop_budget must be positive")
+        started = time.perf_counter()
+        hops: list[dict[str, Any]] = []
+        seen: set[tuple[Any, ...]] = set()
+        route_candidates = list(candidates or forms.application_route_candidates(url))
+        with self.journal.bind(stage="navigate"):
+            navigation = self.tab().goto(url, timeout=timeout)
+        pending_state: dict[str, Any] | None = None
+        prepared: dict[str, Any] = {}
+        terminal = "budget_exhausted"
+
+        for hop in range(hop_budget):
+            with self.journal.bind(stage="inspect", hop=hop):
+                state = pending_state or self.tab().wait_for_application_state(
+                    timeout=min(timeout, 12.0))
+                pending_state = None
+                prepared = self.prepare_application(timeout=timeout)
+            verdict = (prepared.get("schema") or {}).get("verdict") or {}
+            is_application = bool(prepared.get("is_application"))
+            observed_state = str(state.get("state") or "stable_failure")
+            reconciled = "form" if is_application else observed_state
+            fingerprint = (
+                prepared.get("target_id"), prepared.get("url"), reconciled,
+                verdict.get("fields"), prepared.get("apply_link"),
+                (prepared.get("apply_control") or {}).get("ref"),
+            )
+            row = {
+                "hop": hop, "url": prepared.get("url"), "title": prepared.get("title"),
+                "target_id": prepared.get("target_id"),
+                "is_application": is_application, "context": prepared.get("context"),
+                "contexts_checked": prepared.get("contexts_checked"),
+                "apply_link": prepared.get("apply_link"),
+                "apply_control": prepared.get("apply_control"),
+                "application_urls": prepared.get("application_urls") or [],
+                "application_state": state, "reconciled_state": reconciled,
+                "state_conflict": is_application and observed_state != "form",
+                "verdict": verdict,
+            }
+            hops.append(row)
+            if is_application:
+                terminal = "form"
+                break
+            if fingerprint in seen:
+                terminal = "cycle"
+                break
+            seen.add(fingerprint)
+            for discovered in prepared.get("application_urls") or []:
+                if discovered != prepared.get("url") and discovered not in route_candidates:
+                    route_candidates.append(discovered)
+            if not (prepared.get("apply_control") or prepared.get("apply_link")
+                    or route_candidates):
+                terminal = reconciled
+                break
+            with self.journal.bind(stage="transition", hop=hop):
+                followed = self.follow_application(
+                    prepared, timeout=transition_timeout, candidates=route_candidates)
+            if followed["transition"].get("kind") == "candidate_link":
+                route_candidates = []
+            row["transition"] = followed["transition"]
+            row["transition_state"] = followed["state"]
+            row["target_id_after"] = followed["target_id"]
+            row["target_changed"] = followed["target_changed"]
+            pending_state = followed["state"]
+
+        return {
+            "navigation": navigation, "hops": hops, "prepared": prepared,
+            "terminal_state": terminal,
+            "wall_ms": round((time.perf_counter() - started) * 1000, 1),
+        }
+
+    def run_application(self, url: str, *,
+                        planner: Callable[[dict[str, Any], str], Any] | None = None,
+                        timeout: float = 25.0, transition_timeout: float = 15.0,
+                        fill_timeout: float = 30.0, hop_budget: int = 6,
+                        candidates: list[str] | None = None) -> dict[str, Any]:
+        """Locate and optionally fill an application as one typed, non-submitting flow.
+
+        ``planner`` receives the final schema and language.  It may return a plan or
+        ``(plan, audit)``.  The browser's dry-run boundary remains the authority: this
+        workflow has no submit operation and cannot weaken the guard.
+        """
+        located = self.locate_application(
+            url, timeout=timeout, transition_timeout=transition_timeout,
+            hop_budget=hop_budget, candidates=candidates)
+        prepared = located["prepared"]
+        result: dict[str, Any] = {
+            "stage": located["terminal_state"], "location": located,
+            "prepared": prepared, "plan": [], "audit": [], "fill": None,
+        }
+        if not prepared.get("is_application") or planner is None:
+            return result
+        planned = planner(prepared.get("schema") or {}, str(prepared.get("language") or "en"))
+        if isinstance(planned, tuple) and len(planned) == 2:
+            plan, audit = planned
+        else:
+            plan, audit = planned, []
+        result["plan"] = list(plan or [])
+        result["audit"] = list(audit or [])
+        started = time.perf_counter()
+        with self.journal.bind(stage="fill"):
+            outcome = forms.fill_form(self.tab(), result["plan"], timeout=fill_timeout)
+        result["fill"] = outcome.to_json()
+        result["fill_ms"] = round((time.perf_counter() - started) * 1000, 1)
+        result["stage"] = "filled" if outcome.ok else "partial"
+        return result
+
     # -- recording ---------------------------------------------------------
 
     def start_recording(self, name: str | None = None, title: str | None = None) -> str:
@@ -372,6 +493,8 @@ class Session:
             "application_route_candidates": forms.application_route_candidates,
             "prepare_application": self.prepare_application,
             "follow_application": self.follow_application,
+            "locate_application": self.locate_application,
+            "run_application": self.run_application,
             # Bound to this session, so a script writes parallel(urls, fn) and the bare
             # helpers inside fn address that worker's own tab.
             "parallel": lambda items, fn, **kw: parallel_ops.parallel(self, items, fn, **kw),
@@ -381,6 +504,7 @@ class Session:
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "wait_for_form",
                      "wait_for_application_state",
+                     "start_diagnostics", "diagnostics",
                      "frames",
                      "page_text", "press_key", "scroll", "upload_file", "arm_dry_run"):
             ns[name] = on_tab(name)

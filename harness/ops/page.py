@@ -20,6 +20,7 @@ dialog is auto-dismissed (accept=False by default) and reported in the delta.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import threading
 import time
@@ -557,6 +558,9 @@ class Tab:
         self._waiters: list[_Waiter] = []
         self._dialog: dict[str, Any] | None = None
         self._created: deque[dict[str, Any]] = deque(maxlen=16)
+        self._diagnostic_events: deque[dict[str, Any]] = deque(maxlen=128)
+        self._diagnostics_enabled = False
+        self._diagnostics_started = 0.0
         self._world_ctx: int | None = None
         self._bound = False
         conn.subscribe(self._on_event)
@@ -673,6 +677,10 @@ class Tab:
             return                                     # another tab's event
         method = msg.get("method", "")
         params = msg.get("params") or {}
+        if self._diagnostics_enabled:
+            diagnostic = self._sanitize_diagnostic_event(method, params)
+            if diagnostic is not None:
+                self._diagnostic_events.append(diagnostic)
         if method in ("Runtime.executionContextsCleared", "Page.frameNavigated"):
             self._world_ctx = None            # the world died with its document
         if method == "Page.javascriptDialogOpening":
@@ -686,6 +694,101 @@ class Tab:
             waiters = list(self._waiters)
         for w in waiters:
             w.offer(msg)
+
+    def _sanitize_diagnostic_event(self, method: str,
+                                   params: dict[str, Any]) -> dict[str, Any] | None:
+        """Keep failure shape and lifecycle, never URLs, text, headers, or bodies."""
+        out: dict[str, Any] = {"method": method, "offset_ms": round(
+            (time.time() - self._diagnostics_started) * 1000, 1)}
+        if method == "Network.loadingFailed":
+            text = str(params.get("errorText") or "")
+            out.update({"type": params.get("type"), "cancelled": bool(params.get("canceled")),
+                        "blocked_reason": params.get("blockedReason"),
+                        "error_sha256": hashlib.sha256(text.encode()).hexdigest()[:16]})
+        elif method == "Network.responseReceived":
+            response = params.get("response") or {}
+            status = int(response.get("status") or 0)
+            if status < 400:
+                return None
+            out.update({"type": params.get("type"), "status": status,
+                        "mime_type": response.get("mimeType")})
+        elif method == "Runtime.exceptionThrown":
+            detail = params.get("exceptionDetails") or {}
+            text = str(detail.get("text") or (detail.get("exception") or {}).get("className") or "")
+            out.update({"line": detail.get("lineNumber"), "column": detail.get("columnNumber"),
+                        "exception_sha256": hashlib.sha256(text.encode()).hexdigest()[:16]})
+        elif method == "Log.entryAdded":
+            entry = params.get("entry") or {}
+            text = str(entry.get("text") or "")
+            out.update({"level": entry.get("level"), "source": entry.get("source"),
+                        "text_sha256": hashlib.sha256(text.encode()).hexdigest()[:16]})
+        elif method in {"Inspector.targetCrashed", "Target.targetCrashed",
+                        "Target.detachedFromTarget", "Page.frameDetached",
+                        "Page.frameNavigated"}:
+            out["reason"] = params.get("reason")
+        else:
+            return None
+        return out
+
+    def start_diagnostics(self) -> dict[str, Any]:
+        """Enable bounded, privacy-safe evidence before a navigation."""
+        self._diagnostic_events.clear()
+        self._diagnostics_started = time.time()
+        enabled = []
+        for method in ("Runtime.enable", "Network.enable", "Log.enable", "Performance.enable"):
+            try:
+                self.cdp(method, timeout=5.0)
+                enabled.append(method.split(".", 1)[0])
+            except HarnessError:
+                pass
+        self._diagnostics_enabled = True
+        return {"enabled": enabled, "event_limit": self._diagnostic_events.maxlen}
+
+    def diagnostics(self) -> dict[str, Any]:
+        """Snapshot lifecycle, failures, resources, performance, and event-loop delay."""
+        started = time.perf_counter()
+        metrics: dict[str, float] = {}
+        try:
+            raw = self.cdp("Performance.getMetrics", timeout=5.0).get("metrics") or []
+            keep = {"Timestamp", "Documents", "Frames", "JSEventListeners", "Nodes",
+                    "LayoutCount", "RecalcStyleCount", "ScriptDuration", "TaskDuration",
+                    "JSHeapUsedSize", "JSHeapTotalSize"}
+            metrics = {str(row.get("name")): float(row.get("value") or 0)
+                       for row in raw if row.get("name") in keep}
+        except HarnessError:
+            pass
+        try:
+            resources = self._world_js("""(() => {
+              const rows = performance.getEntriesByType('resource');
+              const kinds = {}; let transfer = 0; let longest = 0;
+              for (const r of rows) { const k = r.initiatorType || 'other';
+                kinds[k] = (kinds[k] || 0) + 1; transfer += r.transferSize || 0;
+                longest = Math.max(longest, r.duration || 0); }
+              return {count: rows.length, by_type: kinds, transfer_bytes: transfer,
+                      longest_ms: Math.round(longest)};
+            })()""", timeout=5.0) or {}
+        except HarnessError:
+            resources = {}
+        try:
+            event_loop_ms = float(self._world_js("""await new Promise(resolve => {
+              const start = performance.now(); setTimeout(() => resolve(performance.now()-start), 0);
+            })""", timeout=5.0) or 0)
+        except (HarnessError, TypeError, ValueError):
+            event_loop_ms = 0.0
+        try:
+            frame_tree = self.cdp("Page.getFrameTree", timeout=5.0).get("frameTree") or {}
+            def count_frames(node: dict[str, Any]) -> int:
+                return 1 + sum(count_frames(child) for child in node.get("childFrames") or [])
+            frame_count = count_frames(frame_tree) if frame_tree else 0
+        except HarnessError:
+            frame_count = 0
+        return {
+            "events": list(self._diagnostic_events), "events_dropped":
+                len(self._diagnostic_events) == self._diagnostic_events.maxlen,
+            "metrics": metrics, "resources": resources, "frame_count": frame_count,
+            "event_loop_delay_ms": round(event_loop_ms, 1),
+            "capture_ms": round((time.perf_counter() - started) * 1000, 1),
+        }
 
     @contextmanager
     def _armed(self, pred):
@@ -897,8 +1000,20 @@ class Tab:
         with self._wlock:
             pending, self._dialog = self._dialog, None
         if pending is not None:
-            self.cdp("Page.handleJavaScriptDialog", {"accept": self.accept_dialogs},
-                     timeout=timeout)
+            try:
+                self.cdp("Page.handleJavaScriptDialog", {"accept": self.accept_dialogs},
+                         timeout=timeout)
+            except HarnessError as error:
+                # A page can close its own dialog between javascriptDialogOpening and
+                # our dismissal command. Chrome then says "No dialog is showing". The
+                # click still happened and the desired terminal state may already exist;
+                # turning this harmless race into a navigation failure lost two forms in
+                # the 100-job run.
+                if not (error.cls is Class.CDP_ERROR
+                        and error.observed.get("code") == -32602):
+                    raise
+                self._j.write("note", event="dialog_already_closed",
+                              target_id=self.target_id)
             dialog = {"type": pending.get("type"), "message": pending.get("message")}
 
         post: list[Any] | None = None

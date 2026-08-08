@@ -26,6 +26,7 @@ import os
 import threading
 import time
 from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
@@ -34,6 +35,14 @@ from typing import Any
 #: Payloads above this are replaced by {"_elided": n, "_sha256": "..."}.
 #: A single screenshot response was 51 KB of a 54 KB session.
 ELIDE_OVER = 2048
+
+# Correlation is deliberately an allow-list.  A caller cannot accidentally put a URL,
+# form answer, selector, or JavaScript source onto every protocol event by binding an
+# arbitrary dictionary.
+CONTEXT_KEYS = frozenset({
+    "task_id", "item_id", "item_index", "worker_id", "target_id",
+    "browser_context_id", "stage", "hop", "run_id",
+})
 
 
 def _elide(value: Any) -> Any:
@@ -100,7 +109,7 @@ class Journal:
         if not self.path:
             return
         entry = {"ts": round(time.time(), 3), "id": id or self.session, "kind": kind,
-                 **_elide(payload)}
+                 **self.context, **_elide(payload)}
         line = json.dumps(entry, default=str, ensure_ascii=False)
         try:
             with self._lock, self.path.open("a", encoding="utf-8") as fh:
@@ -133,6 +142,28 @@ class Journal:
         if stack is None:
             stack = self._local.stack = []
         return stack
+
+    @property
+    def context(self) -> dict[str, Any]:
+        """Privacy-safe correlation fields bound to this worker thread."""
+        return dict(getattr(self._local, "context", {}))
+
+    @contextmanager
+    def bind(self, **fields: Any) -> Iterator[None]:
+        """Attach safe task/stage identity to calls and CDP events in this thread.
+
+        Bindings nest and restore exactly, so a hop can add ``stage`` without losing the
+        worker and item identity installed by :func:`parallel`.
+        """
+        previous = self.context
+        current = dict(previous)
+        current.update({key: value for key, value in fields.items()
+                        if key in CONTEXT_KEYS and value is not None})
+        self._local.context = current
+        try:
+            yield
+        finally:
+            self._local.context = previous
 
     def cdp(self, method: str) -> None:
         """Count a CDP round trip against the innermost open span.
@@ -180,7 +211,17 @@ class Journal:
         if isinstance(result, dict):
             payload["result_keys"] = sorted(str(k) for k in result)
         if error is not None:
-            payload["error_class"] = type(error).__name__
+            outcome = getattr(error, "outcome", None)
+            detail = str(getattr(outcome, "detail", "") or "")
+            observed = getattr(outcome, "observed", {}) or {}
+            payload["error_class"] = (
+                getattr(getattr(outcome, "cls", None), "value", None)
+                or type(error).__name__
+            )
+            if observed.get("code") is not None:
+                payload["error_code"] = observed["code"]
+            if detail:
+                payload["error_detail_sha256"] = sha256(detail.encode()).hexdigest()[:16]
         self.write("cdp", id=event_id, **payload)
 
     @property

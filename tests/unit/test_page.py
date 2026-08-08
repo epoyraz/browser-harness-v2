@@ -8,6 +8,7 @@ import pytest
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import (
+    CdpError,
     Class,
     ElementGone,
     JsException,
@@ -516,6 +517,26 @@ def test_the_dialog_dance_a_blocked_dispatch_is_a_click_that_opened_a_dialog(wir
     assert delta["dialog"] == {"type": "confirm", "message": "Sure?"}
     handled = [c for c in browser.calls if c.get("method") == "Page.handleJavaScriptDialog"]
     assert handled and handled[0]["params"]["accept"] is False   # dismissed by default
+
+
+def test_a_dialog_that_closes_before_dismissal_does_not_erase_the_click(wired, monkeypatch):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+    real_cdp = tab.cdp
+
+    def raced(method, *args, **kwargs):
+        if method == "Page.handleJavaScriptDialog":
+            raise CdpError("No dialog is showing", code=-32602)
+        return real_cdp(method, *args, **kwargs)
+
+    monkeypatch.setattr(tab, "cdp", raced)
+    browser.emit("Page.javascriptDialogOpening", {"type": "alert", "message": "gone"},
+                 session_id=tab._session_id)
+    time.sleep(0.05)
+    delta = tab.click_ref("e1", settle=0.01)
+    assert delta["dialog"] == {"type": "alert", "message": "gone"}
 
 
 def test_a_genuinely_hung_dispatch_still_raises(wired):

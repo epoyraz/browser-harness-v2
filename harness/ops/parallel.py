@@ -60,6 +60,8 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
              workers: int = 0, reuse_tabs: bool = True, isolated: bool = False,
              timeout: float | None = None, token: CancelToken | None = None,
              progress: Callable[[int, int, dict[str, Any]], None] | None = None,
+             events: Callable[[dict[str, Any]], None] | None = None,
+             item_id: Callable[[Any], str] | None = None,
              ) -> list[dict[str, Any]]:
     """Run ``fn(item)`` with at most ten worker tabs and return input-ordered records.
 
@@ -84,6 +86,26 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
     progress_lock = threading.Lock()
     next_index = 0
     completed = 0
+    active = 0
+    run_started = time.perf_counter()
+
+    def identity(index: int, item: Any) -> str:
+        if item_id is not None:
+            return str(item_id(item))
+        if isinstance(item, dict):
+            for key in ("job_id", "id", "key"):
+                if item.get(key) is not None:
+                    return str(item[key])
+        return str(index)
+
+    def emit(event: dict[str, Any]) -> None:
+        session.journal.write("note", event=f"parallel_item_{event['state']}", **event)
+        if events is not None:
+            try:
+                events(dict(event))
+            except Exception as error:  # noqa: BLE001 — reporting cannot break work
+                session.journal.write("note", event="parallel_event_failed",
+                                      error=f"{type(error).__name__}: {str(error)[:200]}")
 
     def claim() -> tuple[int, Any] | None:
         nonlocal next_index
@@ -108,7 +130,8 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
             session.journal.write("note", event="parallel_progress_failed",
                                   error=f"{type(error).__name__}: {str(error)[:200]}")
 
-    def worker() -> None:
+    def worker(worker_id: int) -> None:
+        nonlocal active
         ledger = ResourceLedger(journal=getattr(session, "journal", None))
         worker_context: str | None = None
         worker_tab: str | None = None
@@ -116,10 +139,18 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
         try:
             while (claimed := claim()) is not None:
                 index, item = claimed
+                claimed_at = time.perf_counter()
+                safe_id = identity(index, item)
                 handled.append(index)
                 item_context: str | None = None
                 item_tab: str | None = None
                 record: dict[str, Any]
+                with progress_lock:
+                    active += 1
+                    active_at_start = active
+                emit({"state": "started", "item_id": safe_id, "item_index": index,
+                      "worker_id": worker_id, "active": active_at_start,
+                      "offset_ms": round((claimed_at - run_started) * 1000, 1)})
                 try:
                     if isolated and (worker_context is None or not reuse_tabs):
                         item_context = session.new_context()
@@ -138,7 +169,11 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                             worker_tab = item_tab
                     else:
                         session.use_tab(worker_tab)
-                    record = {"item": item, "ok": True, "value": fn(item)}
+                    target_id = worker_tab or item_tab
+                    with session.journal.bind(
+                            item_id=safe_id, item_index=index, worker_id=worker_id,
+                            target_id=target_id, browser_context_id=context_id):
+                        record = {"item": item, "ok": True, "value": fn(item)}
                 except Exception as error:  # noqa: BLE001 — one page must not erase siblings
                     record = _failure(item, error)
                 finally:
@@ -150,6 +185,24 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                             and (failure := ledger.release("browser_context", item_context))):
                         failures.append(failure)
                     _cleanup_failed(record, failures)
+                completed_at = time.perf_counter()
+                with progress_lock:
+                    active -= 1
+                    active_after = active
+                record["telemetry"] = {
+                    "item_id": safe_id, "item_index": index, "worker_id": worker_id,
+                    "target_id": worker_tab or item_tab,
+                    "browser_context_id": worker_context if reuse_tabs else item_context,
+                    "queued_ms": round((claimed_at - run_started) * 1000, 1),
+                    "duration_ms": round((completed_at - claimed_at) * 1000, 1),
+                    "completed_ms": round((completed_at - run_started) * 1000, 1),
+                    "active_at_start": active_at_start, "active_after": active_after,
+                }
+                emit({"state": "completed", "item_id": safe_id, "item_index": index,
+                      "worker_id": worker_id, "active": active_after,
+                      "offset_ms": record["telemetry"]["completed_ms"],
+                      "duration_ms": record["telemetry"]["duration_ms"],
+                      "ok": bool(record.get("ok"))})
                 report(index, record)
         finally:
             failures = ledger.cleanup()
@@ -159,7 +212,7 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                     _cleanup_failed(record, failures)
 
     with ThreadPoolExecutor(max_workers=worker_count, thread_name_prefix="bh-par") as pool:
-        futures = [pool.submit(worker) for _ in range(worker_count)]
+        futures = [pool.submit(worker, worker_id) for worker_id in range(worker_count)]
         for future in futures:
             future.result()
 

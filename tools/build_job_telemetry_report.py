@@ -5,16 +5,24 @@ from __future__ import annotations
 import html
 import json
 import math
+import os
 import statistics
 from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "outputs" / "job-form-telemetry-2026-08-08"
+OUT = Path(os.environ.get(
+    "BH_APPLICATION_TELEMETRY_OUT",
+    ROOT / "outputs" / "job-form-telemetry-2026-08-08",
+))
 RESULTS = json.loads((OUT / "results.json").read_text(encoding="utf-8"))
 JOBS_DOC = json.loads((ROOT / "jobs.json").read_text(encoding="utf-8"))
 JOBS = {job["job_id"]: job for job in JOBS_DOC["jobs"]}
 JOURNAL = [json.loads(line) for line in (OUT / "journal.jsonl").read_text(encoding="utf-8").splitlines() if line]
+COMPLETIONS = [json.loads(line) for line in (OUT / "results-completion-order.jsonl").read_text(
+    encoding="utf-8").splitlines() if line]
+REPEAT_PATH = OUT / "repeat-analysis.json"
+REPEAT = json.loads(REPEAT_PATH.read_text(encoding="utf-8")) if REPEAT_PATH.exists() else None
 VALUES = [record["value"] for record in RESULTS["records"] if record.get("ok")]
 FORMS = [value for value in VALUES if value.get("status") == "form_processed"]
 
@@ -46,6 +54,10 @@ def compact_reason(reason: str) -> str:
 
 
 calls = [entry for entry in JOURNAL if entry.get("kind") == "call"]
+child_ms = defaultdict(float)
+for call in calls:
+    if call.get("parent"):
+        child_ms[call["parent"]] += float(call.get("ms") or 0)
 by_fn: dict[str, list[dict]] = defaultdict(list)
 for call in calls:
     by_fn[call.get("fn", "unknown")].append(call)
@@ -57,6 +69,8 @@ for fn, entries in by_fn.items():
         "fn": fn, "calls": len(entries),
         "failures": sum(not (entry.get("outcome") or {}).get("ok", False) for entry in entries),
         "total_ms": sum(durations), "p50": statistics.median(durations),
+        "self_ms": sum(max(0.0, float(entry.get("ms") or 0) - child_ms[entry.get("id")])
+                       for entry in entries),
         "p95": percentile(durations, .95),
         "cdp": sum(int(entry.get("cdp") or 0) for entry in entries),
     })
@@ -73,11 +87,14 @@ for entry in JOURNAL:
     ended = float(entry.get("ts") or 0) * 1000
     started = ended - duration
     if kind == "invoke":
-        lane, name = "Model", "bh invocation"
+        scripted = bool((RESULTS.get("meta") or {}).get("model_boundary", {}).get("scripted"))
+        lane, name = ("Script", "bh scripted invocation") if scripted else ("Model", "bh invocation")
         detail = {
             "lane": lane, "name": name, "duration_ms": duration,
             "source_lines": entry.get("source_lines"), "outcome": entry.get("outcome"),
-            "note": "The journal records the invocation boundary, not prompt text or stdout.",
+            "model_boundary": (RESULTS.get("meta") or {}).get("model_boundary"),
+            "note": "No per-job model call occurred." if scripted else
+                    "The journal records the invocation boundary, not prompt text or stdout.",
         }
         cdp_count = ""
         size = ""
@@ -90,6 +107,9 @@ for entry in JOURNAL:
             "parent": entry.get("parent"), "duration_ms": duration,
             "argument_keys": sorted((entry.get("args") or {}).keys()),
             "cdp_round_trips": entry.get("cdp", 0), "outcome": outcome,
+            "correlation": {key: entry.get(key) for key in (
+                "task_id", "item_id", "item_index", "worker_id", "target_id",
+                "browser_context_id", "stage", "hop") if entry.get(key) is not None},
         }
         cdp_count = entry.get("cdp", 0)
         size = ""
@@ -105,6 +125,11 @@ for entry in JOURNAL:
             "parameter_keys": entry.get("param_keys") or [],
             "result_keys": entry.get("result_keys") or [],
             "ok": bool(entry.get("ok")), "error_class": entry.get("error_class"),
+            "error_code": entry.get("error_code"),
+            "error_detail_sha256": entry.get("error_detail_sha256"),
+            "correlation": {key: entry.get(key) for key in (
+                "item_id", "item_index", "worker_id", "target_id",
+                "browser_context_id", "stage", "hop") if entry.get(key) is not None},
             "values_recorded": False,
         }
         cdp_count = 1
@@ -150,6 +175,8 @@ for form in FORMS:
             row["examples"].add(str(field["label"]).replace("\n", " "))
 missing_rows = sorted(missing_by_semantic.values(), key=lambda row: (-len(row["jobs"]), -row["required"]))
 
+known_absent = [field for field in fields if field.get("status") == "known_absent"]
+
 unclassified = [field for field in fields if field.get("status") == "unclassified"]
 required_unclassified = [field for field in unclassified if field.get("required")]
 no_form_reasons = Counter(compact_reason((value.get("schema") or {}).get("verdict", {}).get("reason", ""))
@@ -170,48 +197,77 @@ for form in FORMS:
     for failure in ((form.get("fill") or {}).get("failures") or []):
         fill_failure_classes[failure.get("class") or "unknown"] += 1
 
+fully_fillable = []
+for form in FORMS:
+    audit = form.get("field_audit") or []
+    blocking = [field for field in audit if field.get("required")
+                and field.get("status") in {"missing_profile", "known_absent", "unclassified"}]
+    failed = int(((form.get("fill") or {}).get("observed") or {}).get("failed") or 0)
+    if not blocking and not failed and not form.get("errors"):
+        fully_fillable.append(form)
+
+diagnostic_events = [event for value in VALUES
+                     for event in ((value.get("diagnostics") or {}).get("events") or [])]
+diagnostic_methods = Counter(event.get("method") or "unknown" for event in diagnostic_events)
+parallel_events = [entry for entry in JOURNAL if str(entry.get("event", "")).startswith(
+    "parallel_item_")]
+completion_ids = [str((entry.get("telemetry") or {}).get("item_id") or
+                      (entry.get("value") or {}).get("job_id") or "") for entry in COMPLETIONS]
+consistency = {
+    "records_100": len(RESULTS.get("records") or []) == 100,
+    "completion_records_100": len(COMPLETIONS) == 100 and len(set(completion_ids)) == 100,
+    "parallel_starts_100": sum(entry.get("event") == "parallel_item_started"
+                               for entry in parallel_events) == 100,
+    "parallel_completions_100": sum(entry.get("event") == "parallel_item_completed"
+                                    for entry in parallel_events) == 100,
+    "profile_loaded": bool((RESULTS.get("meta") or {}).get("profile_sources")),
+    "submissions_zero": (RESULTS.get("meta") or {}).get("submissions") == 0,
+}
+if REPEAT is not None:
+    consistency["repeat_analysis_present"] = int(REPEAT.get("runs") or 0) >= 2
+parallel_telemetry = [record.get("telemetry") or {} for record in RESULTS.get("records") or []]
+item_durations = [float(row.get("duration_ms") or 0) for row in parallel_telemetry
+                  if row.get("duration_ms") is not None]
+active_peak = max((int(row.get("active_at_start") or 0) for row in parallel_telemetry), default=0)
+repeat_summary = REPEAT or {}
+repeat_note = (
+    f"Across {REPEAT.get('runs')} runs, {repeat_summary.get('deterministic', 0)}/"
+    f"{repeat_summary.get('jobs', 0)} jobs were deterministic and "
+    f"{repeat_summary.get('transient', 0)} changed terminal state."
+    if REPEAT else
+    "Run the repeat command to classify deterministic and transient terminal states."
+)
+
 recommendations = [
-    ("Introduce one typed application workflow",
-     f"The run was one model step but still orchestrated {len(calls)} helper calls. Add a general "
-     "run_application(url, profile, policy) primitive that returns explicit NAVIGATED, FORM, "
-     "ACCOUNT_REQUIRED, BOT_WALL, FILLED, and MISSING_INFO stages without submitting."),
-    ("Resolve direct routes before opening Chrome",
-     "This corpus originally sent 66 jobs through Joblens pages because only 34 had direct URLs. "
-     "The MCP preflight now resolves 100/100 employer URLs, eliminating a whole navigation and "
-     "discovery branch for those 66 items on the next run."),
-    ("Keep state handling inside the application workflow",
-     f"wait_for_application_state ran {len(by_fn.get('wait_for_application_state', []))} times and now distinguishes form, usable UI, account wall, bot wall, and stable failure. "
-     "Keep this as one shared transition contract so future ATS shapes do not recreate load-event and target-switching races."),
-    ("Make applicant profiles a first-class abstraction",
-     f"The forms exposed {len(fields)} controls; a small ontology planned {planned}, while "
-     f"{len(unclassified)} remained unclassified. A typed ApplicantProfile should carry value, "
-     "source evidence, aliases, sensitivity, confidence, and an explicit unknown state."),
-    ("Support semantic option candidates, not one literal label",
-     f"{fill_failure_classes.get('no_option_match', 0)} fills failed because correct facts such "
-     "as 8+ years or fluent English used different option wording. Let a plan supply ordered "
-     "candidate labels and return candidates on ambiguity; never silently choose the first option."),
-    ("Batch interactive widgets inside fill_form",
-     f"fill_form used {sum(c['cdp'] for c in by_fn.get('fill_form', []))} CDP calls across "
-     f"{len(by_fn.get('fill_form', []))} forms because trusted writes and widgets escape the one-shot "
-     "batch. Extend the plan to native selects, comboboxes, masks, dates, and verification under "
-     "one typed outcome."),
-    ("Cache structural strategies, never live refs",
-     f"prepare_application ran {len(by_fn.get('prepare_application', []))} times at "
-     f"{(sum(c['cdp'] for c in by_fn.get('prepare_application', []))/max(len(by_fn.get('prepare_application', [])),1)):.1f} CDP calls each. Cache stable ATS/form capabilities and field semantics by "
-     "structural fingerprint, while regenerating document-bound refs on every page."),
-    ("Add a read-only network/API perception tier",
-     f"{no_form_reasons.get('Empty DOM / bot wall / app boot failure', 0)} jobs produced an empty DOM. "
-     "Where public JSON or HTML exists, obtain route and schema metadata without a renderer, then "
-     "use the browser only for interaction. Keep this capability-based rather than host-specific."),
-    ("Autotune concurrency against measured saturation",
-     f"Ten tabs achieved {effective_parallelism:.2f} effective concurrent job-seconds with no worker "
-     "or cleanup failures. Instead of raising the hard cap to 15 blindly, measure renderer memory, "
-     "CDP queue latency, and host throttling, then select 6–10 workers dynamically per machine."),
-    ("Make telemetry concurrency-aware and stage-aware",
-     f"Summed helper time is {sum(s['total_ms'] for s in call_stats)/1000:.1f}s while wall time is "
-     f"{wall_ms/1000:.1f}s, so serial percentage accounting is invalid. Record a per-item root span, "
-     "critical path, queue time, stage outcome, and active-worker curve; classify wait_for_form as "
-     "blocking so 'harness' does not absorb page waiting."),
+    ("Typed applicant profile",
+     "CV facts, questionnaire answers, user choices, and known absence now retain provenance; "
+     "a supplied answer is no longer counted as missing."),
+    ("One application workflow",
+     "Navigation, state waiting, target following, cycle detection, frame inspection, and final "
+     "form reconciliation now share one bounded workflow."),
+    ("Ordered semantic option candidates",
+     "Select plans can carry exact ordered equivalents. Ambiguity still fails closed and never "
+     "falls back to the first option."),
+    ("Correlated helper and protocol traces",
+     "Task, item, worker, target, context, stage, and hop now follow helper and sanitized CDP events."),
+    ("Concurrency timeline",
+     "Every item records queue, start, duration, completion, worker, and active-worker counts while "
+     "the final result remains input ordered."),
+    ("Non-overlapping timing",
+     "The report separates helper inclusive time from self time and uses item start/completion "
+     "events for critical-path analysis."),
+    ("Failure diagnostics",
+     f"The run captured {len(diagnostic_events)} bounded diagnostic events: public HTTP failures, "
+     "console/exception hashes, lifecycle, performance, resource timing, and event-loop delay."),
+    ("Honest model boundary",
+     "Scripted runs identify themselves as scripted with zero model calls and a hashed packet shape; "
+     "future model-backed runs have explicit token-count fields."),
+    ("Repeatability and ground truth",
+     f"The repeat runner compares deterministic and transient outcomes and optionally scores them "
+     f"against human-labelled terminal states. {repeat_note}"),
+    ("Internal consistency gates",
+     f"{sum(consistency.values())}/{len(consistency)} artifact checks currently pass; report claims "
+     "are separated from worker completion and zero-submission evidence."),
 ]
 
 
@@ -234,7 +290,8 @@ missing_table = "".join(
 
 call_table = "".join(
     f"<tr><td><code>{esc(row['fn'])}</code></td><td>{row['calls']}</td><td>{row['failures']}</td>"
-    f"<td>{row['total_ms']/1000:.1f}s</td><td>{row['p50']:.0f}ms</td><td>{row['p95']:.0f}ms</td>"
+    f"<td>{row['total_ms']/1000:.1f}s</td><td>{row['self_ms']/1000:.1f}s</td>"
+    f"<td>{row['p50']:.0f}ms</td><td>{row['p95']:.0f}ms</td>"
     f"<td>{row['cdp']}</td><td>{row['cdp']/row['calls']:.1f}</td></tr>" for row in call_stats)
 
 job_rows = []
@@ -269,6 +326,22 @@ route_html = "".join(
     f'<tr><td>{esc(mode)}</td><td>{found}</td><td>{total}</td><td>{pct(found,total)}</td></tr>'
     for mode, (found, total) in form_by_declared.items())
 
+diagnostic_html = "".join(
+    f"<tr><td><code>{esc(method)}</code></td><td>{count}</td></tr>"
+    for method, count in diagnostic_methods.most_common()) or "<tr><td>None</td><td>0</td></tr>"
+consistency_html = "".join(
+    f"<tr><td>{esc(name.replace('_', ' '))}</td><td><span class=\"pill "
+    f"{'good' if passed else 'muted'}\">{'pass' if passed else 'fail'}</span></td></tr>"
+    for name, passed in consistency.items())
+concurrency_summary = repeat_summary.get("concurrency") or {}
+concurrency_html = "".join(
+    f"<tr><td>{row.get('workers')}</td><td>{row.get('wall_ms', 0)/1000:.1f}s</td>"
+    f"<td>{row.get('jobs_per_second', 0):.3f}</td><td>{row.get('forms', 0)}</td>"
+    f"<td>{row.get('workflow_failures', 0)}</td>"
+    f"<td>{row.get('event_loop_p95_ms', 0):.1f}ms</td></tr>"
+    for row in concurrency_summary.get("runs") or []
+)
+
 document = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>browser-harness · 100-job telemetry</title>
@@ -291,7 +364,7 @@ details{{background:var(--card);border:1px solid var(--line);border-radius:8px;m
 .devtools{{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);padding:0;min-height:440px}} .protocol-list{{overflow:auto;max-height:560px;border-right:1px solid var(--line)}}
 .protocol-list table{{font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace}} .protocol-list tr{{cursor:pointer}} .protocol-list tr.selected{{background:#dceee5}} .protocol-list td{{white-space:nowrap;padding:7px 8px}}
 .detail-pane{{background:#172126;color:#e9eee9;padding:16px;overflow:auto}} .detail-pane h3{{font:600 13px/1.4 ui-sans-serif,system-ui;margin:0 0 10px}} .detail-pane pre{{margin:0;padding:0;max-height:none}}
-.lane{{display:inline-block;min-width:52px;font:700 10px/1 ui-sans-serif,system-ui;text-transform:uppercase}} .lane.model{{color:#7b4d16}} .lane.harness{{color:var(--accent)}} .lane.cdp{{color:var(--blue)}}
+.lane{{display:inline-block;min-width:52px;font:700 10px/1 ui-sans-serif,system-ui;text-transform:uppercase}} .lane.model,.lane.script{{color:#7b4d16}} .lane.harness{{color:var(--accent)}} .lane.cdp{{color:var(--blue)}}
 @media(max-width:800px){{.metrics{{grid-template-columns:1fr 1fr}}.grid2{{grid-template-columns:1fr}}.devtools{{grid-template-columns:1fr}}.protocol-list{{border-right:0;border-bottom:1px solid var(--line);max-height:360px}}}} @media(max-width:480px){{.metrics{{grid-template-columns:1fr}}}}
 </style></head><body><main>
 <div class="eyebrow">browser-harness v2 · live dry run · 8 August 2026</div>
@@ -302,11 +375,14 @@ details{{background:var(--card);border:1px solid var(--line);border-radius:8px;m
 {metric('Jobs processed','100','100 worker records; no worker or cleanup failure')}
 {metric('Wall time',f'{wall_ms/1000:.1f}s',f'{effective_parallelism:.2f} effective concurrent job-seconds across 10 tabs')}
 {metric('Forms reached',f'{len(FORMS)}/100',f'{len(VALUES) - len(FORMS)} routes ended at account, bot-wall, listing, or no-form states')}
+{metric('Fully fillable',f'{len(fully_fillable)}/{len(FORMS)}','No required unknown, known-absent value, typed fill failure, or workflow error')}
 {metric('Verified fills',f'{filled}/{planned}',f'{pct(filled,planned)} of CV-backed planned fields; {fill_failed} typed failures')}
 {metric('CV uploads',f'{upload_ok}/{len(uploads)}','Local file-control verification only; not server receipt')}
 {metric('Fields observed',str(len(fields)),f'{sum(bool(f.get("required")) for f in fields)} inferred required controls')}
 {metric('Missing profile controls',str(sum(r["controls"] for r in missing_rows)),f'{sum(r["required"] for r in missing_rows)} required; user choices are kept separate')}
+{metric('Consistency checks',f'{sum(consistency.values())}/{len(consistency)}','Records, completion stream, trace events, profile sources, and zero submissions')}
 {metric('Direct URLs',f'{JOBS_DOC["direct_url_resolution"]["resolved"]}/100','Resolved through Joblens MCP; jobs.json contains zero Joblens links')}
+{metric('Repeatable outcomes',f'{repeat_summary.get("deterministic", 0)}/{repeat_summary.get("jobs", 0)}' if REPEAT else 'not run',repeat_note)}
 </section>
 
 <h2>Reachability and route quality</h2><div class="grid2">
@@ -317,18 +393,26 @@ details{{background:var(--card);border:1px solid var(--line);border-radius:8px;m
 
 <h2>What is missing from the CV/profile</h2>
 <section class="panel"><table><thead><tr><th>Information or choice</th><th>Jobs</th><th>Controls</th><th>Required</th><th>Examples</th></tr></thead><tbody>{missing_table}</tbody></table></section>
-<p><strong>Interpretation:</strong> salary, start date, LinkedIn, GitHub, and portfolio are true reusable profile gaps. Consent, gender/salutation, demographics, and referral source are user choices or application context—not facts the harness should infer. There were also {len(required_unclassified)} required unclassified controls, dominated by bespoke questions and widget structures; these need a richer ontology or human input.</p>
+<p><strong>Interpretation:</strong> supplied questionnaire answers are planned with their source, while {len(known_absent)} controls reference information explicitly marked absent. There are {len(required_unclassified)} required unclassified controls; these remain manual-review items rather than guessed answers.</p>
 
 <h2>Raw helper telemetry</h2>
-<section class="panel"><table><thead><tr><th>Helper</th><th>Calls</th><th>Fail</th><th>Sum</th><th>p50</th><th>p95</th><th>CDP</th><th>CDP/call</th></tr></thead><tbody>{call_table}</tbody></table></section>
-<p>Helper durations overlap across tabs. Their summed {sum(s['total_ms'] for s in call_stats)/1000:.1f}s is work-in-flight, not wall time. The current serial bench rollup incorrectly treats that sum as a percentage of one wall-clock critical path; this report keeps both quantities explicit.</p>
+<section class="panel"><table><thead><tr><th>Helper</th><th>Calls</th><th>Fail</th><th>Inclusive</th><th>Self</th><th>p50</th><th>p95</th><th>CDP</th><th>CDP/call</th></tr></thead><tbody>{call_table}</tbody></table></section>
+<p>Inclusive helper durations overlap across tabs and include nested helpers. Self time removes nested child spans; neither is confused with the {wall_ms/1000:.1f}s run critical path, which comes from the parallel item timeline.</p>
+
+<h2>Run integrity and bounded diagnostics</h2><div class="grid2">
+<section class="panel"><h3>Artifact consistency</h3><table><tbody>{consistency_html}</tbody></table></section>
+<section class="panel"><h3>Diagnostic event classes</h3><table><thead><tr><th>Event</th><th>Count</th></tr></thead><tbody>{diagnostic_html}</tbody></table></section>
+</div>
+<p>Parallel timeline: peak {active_peak} active workers; item p50 {statistics.median(item_durations) if item_durations else 0:.0f}ms and p95 {percentile(item_durations,.95):.0f}ms. Diagnostics retain status, type, timing and hashes—never URLs, headers, bodies, console text, form values, or JavaScript source.</p>
+<p><strong>Repeatability:</strong> {esc(repeat_note)} Human ground-truth accuracy is intentionally omitted until labels exist.</p>
+<section class="panel"><h3>Measured concurrency pilots</h3><table><thead><tr><th>Tabs</th><th>Wall</th><th>Jobs/s</th><th>Forms</th><th>Workflow failures</th><th>Event-loop p95</th></tr></thead><tbody>{concurrency_html or '<tr><td colspan="6">No multi-count pilot yet.</td></tr>'}</tbody></table><p><strong>Decision:</strong> {esc(concurrency_summary.get('reason') or 'No recommendation without measurements.')}</p></section>
 
 <h2>Communication Explorer</h2>
 <p>A Chrome DevTools Protocol Monitor-style view of the Model boundary, harness helpers, and sanitized CDP round trips. Protocol values are never recorded; select a row to inspect its shape, parent helper, sizes, timing, and outcome.</p>
 <input class="filter" id="protocol-filter" placeholder="Filter lane, helper, or CDP method…">
 <section class="panel devtools"><div class="protocol-list"><table id="protocol-events"><thead><tr><th>Time</th><th>Lane</th><th>Name</th><th>Duration</th><th>CDP</th><th>Req→res</th><th>Status</th></tr></thead><tbody>{explorer_rows}</tbody></table></div><aside class="detail-pane"><h3>Request / response details</h3><pre id="protocol-detail">Select an event.</pre></aside></section>
 
-<h2>10 general next steps</h2>{recommendation_html}
+<h2>10 implemented improvements</h2>{recommendation_html}
 
 <h2>Every job</h2>
 <input class="filter" id="filter" placeholder="Filter company, title, ATS, or status…">
@@ -338,6 +422,7 @@ details{{background:var(--card);border:1px solid var(--line);border-radius:8px;m
 <a href="results.json">Input-ordered results.json</a><a href="results-completion-order.jsonl">Completion-order JSONL</a>
 <a href="journal.jsonl">Harness journal</a><a href="trace.txt">Trace</a><a href="stats.txt">Stats</a>
 <a href="bench.txt">Bench rollup</a><a href="joblens-mcp-details.jsonl">Raw MCP details</a><a href="../../jobs.json">Direct jobs.json</a>
+{'<a href="repeat-analysis.json">Repeat-run analysis</a>' if REPEAT else ''}
 </div>
 <p>The embedded records below are the raw per-job browser results, including hops, schema verdicts, field audit, typed fill outcomes, upload evidence, and durations.</p>
 <section>{''.join(raw_details)}</section>

@@ -18,6 +18,7 @@ class FakeSession:
     """Only what parallel() touches. The cursor is thread-local, exactly like Session."""
 
     def __init__(self):
+        self.journal = Journal(None)
         self._local = threading.local()
         self._n = 0
         self._lock = threading.Lock()
@@ -74,6 +75,17 @@ def test_results_come_back_in_input_order_not_completion_order():
     out = parallel(s, range(8), fn, workers=4)
     assert [r["item"] for r in out] == list(range(8))
     assert [r["value"] for r in out] == [i * 10 for i in range(8)]
+    assert all(r["telemetry"]["completed_ms"] >= r["telemetry"]["queued_ms"] for r in out)
+
+
+def test_parallel_emits_start_and_completion_events_with_safe_identity():
+    s = FakeSession()
+    events = []
+    out = parallel(s, [{"job_id": "a"}, {"job_id": "b"}], lambda item: item["job_id"],
+                   workers=2, events=events.append)
+    assert [(e["state"], e["item_id"]) for e in events].count(("started", "a")) == 1
+    assert [(e["state"], e["item_id"]) for e in events].count(("completed", "a")) == 1
+    assert {r["telemetry"]["item_id"] for r in out} == {"a", "b"}
 
 
 def test_one_failing_item_does_not_cancel_its_siblings():

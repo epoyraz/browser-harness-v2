@@ -1,5 +1,35 @@
 # browser-harness v2 — build plan
 
+## 100-job telemetry follow-up — 2026-08-08
+
+Evidence source: `outputs/job-form-telemetry-2026-08-08/`.  These items correct the
+observability and application-workflow gaps found in the first 100-job dry run.  They are
+kept together so a regenerated report can close every item with before/after evidence.
+
+- [x] Load `required.txt` into a typed applicant profile, preserve source provenance and
+      known-absent values, and stop reporting supplied answers as missing.
+- [x] Replace literal select answers with ordered, exact semantic candidates; reject
+      ambiguity and prevent values from crossing incompatible field kinds.
+- [x] Replace the collector's duplicate wait/prepare/follow loop and fixed hop count with
+      one cycle-detected, budgeted application workflow whose terminal state is reconciled
+      with the final form verdict.
+- [x] Correlate every helper and sanitized CDP event with task, item, worker, target,
+      browser context, stage, and hop without recording form values.
+- [x] Record parallel queue/start/completion timing, active-worker samples, cleanup, and a
+      non-overlapping per-item critical path; keep final results input ordered.
+- [x] Preserve sanitized CDP error class, code, and message category so recovered protocol
+      failures remain diagnosable and agree with helper-level totals.
+- [x] Capture bounded failure diagnostics: target/frame lifecycle, public network failures,
+      console exception categories, renderer performance metrics, and event-loop delay.
+- [x] Record the model boundary honestly: decision-packet shape/hash, token counts when a
+      model exists, and `scripted=true` when no per-job model call occurred.
+- [x] Make completion JSONL crash-safe and test that it contains every completed item even
+      when progress rendering fails.
+- [x] Add optional human ground-truth labels for form/no-form outcomes and a repeat-run
+      command that reports deterministic versus transient results.
+- [x] Regenerate the 100-job dry-run report (zero submissions) and require internal count,
+      trace, profile-source, completion-order, and repeatability consistency checks.
+
 Every item cites the decision it implements (`docs/DESIGN.md`) and states how you know it is
 done. Ordered so each phase unblocks the next; within a phase, items are mostly parallel.
 

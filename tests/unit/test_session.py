@@ -157,7 +157,10 @@ def test_the_namespace_covers_the_documented_surface(session):
     for name in ("goto", "js", "cdp", "snapshot", "click_ref", "click_at", "page_text",
                  "press_key", "scroll", "upload_file", "capture_screenshot",
                  "wait_lifecycle", "wait_for_application_state", "form_schema", "fill_form",
+                 "start_diagnostics", "diagnostics",
                  "set_value", "require_form", "prepare_application", "follow_application",
+                 "locate_application",
+                 "run_application",
                  "application_route_candidates", "fetch_all", "new_tab", "use_tab", "close_tab",
                  "new_context", "close_context", "parallel", "summarise", "targets",
                  "tab", "session", "journal"):
@@ -242,6 +245,50 @@ def test_follow_application_uses_an_ats_route_candidate(session, monkeypatch):
          "apply_link": None}, candidates=[candidate])
     assert visited == [candidate]
     assert result["transition"]["kind"] == "candidate_link"
+
+
+def test_locate_application_reuses_transition_state_and_reconciles_form(
+        session, monkeypatch):
+    tab = session.use_tab("a")
+    waits = []
+    monkeypatch.setattr(tab, "goto", lambda url, **kw: {
+        "requested": url, "landed": url, "lifecycle": "load"})
+    monkeypatch.setattr(tab, "wait_for_application_state", lambda **kw: (
+        waits.append("wait") or {"state": "usable_ui"}))
+    prepared = iter([
+        {"url": "https://a.test/job", "target_id": "a", "is_application": False,
+         "schema": {"verdict": {"is_form": False, "fields": 0}},
+         "apply_control": {"ref": "e1"}, "apply_link": None,
+         "context": "main", "contexts_checked": 1},
+        {"url": "https://a.test/apply", "target_id": "a", "is_application": True,
+         "schema": {"verdict": {"is_form": True, "fields": 8}},
+         "apply_control": None, "apply_link": None,
+         "context": "main", "contexts_checked": 1},
+    ])
+    monkeypatch.setattr(session, "prepare_application", lambda **kw: next(prepared))
+    monkeypatch.setattr(session, "follow_application", lambda *a, **kw: {
+        "transition": {"kind": "control"}, "state": {"state": "account_wall"},
+        "target_id": "a", "target_changed": False})
+
+    result = session.locate_application("https://a.test/job")
+    assert waits == ["wait"]  # the second hop reuses follow_application's observation
+    assert result["terminal_state"] == "form"
+    assert result["hops"][-1]["reconciled_state"] == "form"
+    assert result["hops"][-1]["state_conflict"] is True
+
+
+def test_run_application_plans_and_fills_without_a_submit_operation(session, monkeypatch):
+    monkeypatch.setattr(session, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "schema": {"fields": [{"ref": "e1"}]},
+            "language": "en"}, "hops": [], "navigation": {}, "wall_ms": 1})
+    monkeypatch.setattr("harness.session.forms.fill_form", lambda tab, plan, **kw: type(
+        "Filled", (), {"ok": True, "to_json": lambda self: {"ok": True}})())
+    result = session.run_application(
+        "https://a.test", planner=lambda schema, language: (
+            [{"ref": "e1", "value": "Enes"}], [{"status": "planned"}]))
+    assert result["stage"] == "filled" and result["fill"] == {"ok": True}
+    assert result["audit"] == [{"status": "planned"}]
 
 
 def test_helpers_keep_their_names_so_a_traceback_is_readable(session):

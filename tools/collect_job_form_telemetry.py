@@ -14,7 +14,9 @@ inventing it. Results are crash-safe JSONL plus one input-ordered JSON document.
 # ruff: noqa: F821, BLE001
 from __future__ import annotations
 
+import hashlib
 import json
+import os
 import re
 import threading
 import time
@@ -22,14 +24,19 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+from harness.ops.profile import ApplicantProfile, ProfileValue, load_answer_file
+
 ROOT = Path.cwd()
 INPUT = ROOT / "jobs.json"
-OUT = ROOT / "outputs" / "job-form-telemetry-2026-08-08"
+OUT = Path(os.environ.get(
+    "BH_APPLICATION_TELEMETRY_OUT",
+    ROOT / "outputs" / "job-form-telemetry-2026-08-08",
+))
 CV = Path(
     "/Users/rebourne/Desktop/Dev/jobsuche-101/Bewerbung2026/"
     "Lebenslauf/Lebenslauf – Enes Poyraz.pdf"
 )
-WORKERS = 10  # parallel() deliberately caps one Chrome at ten worker tabs.
+WORKERS = int(os.environ.get("BH_APPLICATION_WORKERS", "10"))
 MAX_HOPS = 2
 
 PROFILE = {
@@ -69,6 +76,21 @@ PROFILE = {
     ),
 }
 
+REQUIRED = ROOT / "required.txt"
+APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=str(CV))
+if REQUIRED.is_file():
+    APPLICANT = APPLICANT.merged(load_answer_file(REQUIRED))
+
+ANSWER_KEYS = {
+    "salary_expectation": "salary_expectation_chf_gross_per_year",
+    "availability": "availability",
+    "linkedin_url": "linkedin_url",
+    "github_url": "github_url",
+    "portfolio_url": "portfolio_url",
+    "consent": "required_privacy_consent",
+    "referral_source": "referral_source_priority",
+}
+
 
 def norm(value: Any) -> str:
     raw = unicodedata.normalize("NFKD", str(value or ""))
@@ -86,7 +108,12 @@ def inferred_required(field: dict[str, Any]) -> bool:
                 or "erforderlich" in label or "requis" in label)
 
 
-def semantic(field: dict[str, Any]) -> str:
+SEMANTIC_CACHE: dict[tuple[Any, ...], str] = {}
+SEMANTIC_CACHE_HITS = 0
+SEMANTIC_CACHE_LOCK = threading.Lock()
+
+
+def _semantic_uncached(field: dict[str, Any]) -> str:
     """A deliberately small, cross-ATS ontology. Specific patterns win first."""
     text = field_text(field)
     label = norm(field.get("label"))
@@ -144,14 +171,14 @@ def semantic(field: dict[str, Any]) -> str:
         return "postal_code"
     if any(x in text for x in ("house number", "hausnummer", " nr ", "cust number")):
         return "house_number"
-    if any(x in text for x in ("street", "strasse", "address", "adresse postale")):
-        return "street"
+    if name == "country" or any(x in label for x in ("country", "land", "pays")):
+        return "country"
     if any(x in text for x in ("current location", "residence", "wohnort", "lieu de residence")):
         return "location"
     if name == "city" or any(x in label for x in ("city", "ort", "ville")):
         return "city"
-    if name == "country" or any(x in label for x in ("country", "land", "pays")):
-        return "country"
+    if any(x in text for x in ("street", "strasse", "address", "adresse postale")):
+        return "street"
     if any(x in text for x in ("current company", "current employer")) or name == "org":
         return "current_company"
     if any(x in text for x in ("current title", "current role", "job title", "headline")):
@@ -182,10 +209,59 @@ def semantic(field: dict[str, Any]) -> str:
     return "unclassified"
 
 
-MISSING_PROFILE = {
+def semantic(field: dict[str, Any]) -> str:
+    """Cache structural meaning, never document-bound refs or current values."""
+    global SEMANTIC_CACHE_HITS
+    key = (norm(field.get("label")), norm(field.get("name")), field.get("kind"),
+           tuple(norm(option) for option in (field.get("options_sample") or [])))
+    with SEMANTIC_CACHE_LOCK:
+        if key in SEMANTIC_CACHE:
+            SEMANTIC_CACHE_HITS += 1
+            return SEMANTIC_CACHE[key]
+    result = _semantic_uncached(field)
+    with SEMANTIC_CACHE_LOCK:
+        SEMANTIC_CACHE.setdefault(key, result)
+    return result
+
+
+EXTRA_PROFILE = {
     "salary_expectation", "availability", "linkedin_url", "github_url", "portfolio_url",
     "tailored_response", "referral_source", "gender_or_salutation", "demographic", "consent",
 }
+
+
+def profile_value(semantic_name: str, language: str) -> ProfileValue | None:
+    key = ANSWER_KEYS.get(semantic_name, semantic_name)
+    if semantic_name == "gender_or_salutation":
+        key = "salutation_de" if norm(language).startswith("de") else "salutation_en"
+    return APPLICANT.get(key)
+
+
+def option_candidates(semantic_name: str, value: Any, language: str,
+                      item: ProfileValue | None) -> list[str]:
+    """Ordered exact labels expressing the same supported fact."""
+    if item and item.candidates:
+        return list(item.candidates)
+    lang = norm(language)
+    candidates: dict[str, list[str]] = {
+        "experience_years": ["8+", "8+ years", "7+ years", "7+ Jahre", "5+ Jahre"],
+        "english_level": ["C1/C2", "C2", "C1", "Fluent", "Native or bilingual"],
+        "german_level": ["Native", "Muttersprache", "C2", "C1/C2"],
+        "work_authorization": ["Schweizer/-in", "Swiss citizen", "Ja", "Yes"],
+        "country": ["Schweiz", "Switzerland", "Suisse"],
+        "nationality": ["Schweizer/-in", "Swiss", "Schweiz", "Suisse"],
+        "timezone": ["Europe/Zurich", "UTC+1", "CET"],
+        "consent": ["Ja", "Yes", "Oui"],
+    }
+    answer = str(value)
+    out = [answer, *candidates.get(semantic_name, [])]
+    if semantic_name == "availability":
+        out.extend(["Per sofort", "Immediately", "Immédiatement"])
+    if semantic_name == "gender_or_salutation":
+        out.extend(["Herr", "Mr", "Monsieur"])
+    if lang.startswith("de") and semantic_name == "referral_source":
+        out.extend(["Unternehmenswebsite", "LinkedIn"])
+    return list(dict.fromkeys(part for part in out if part))
 
 
 def localized(semantic_name: str, language: str, field: dict[str, Any]) -> Any:
@@ -224,6 +300,9 @@ def localized(semantic_name: str, language: str, field: dict[str, Any]) -> Any:
         return ("Schweizer Bürger" if lang.startswith("de") else
                 "Citoyen suisse" if lang.startswith("fr") else "Swiss citizen")
     if semantic_name == "work_authorization_option": return True
+    item = profile_value(semantic_name, language)
+    if item is not None and not item.known_absent:
+        return item.value
     return None
 
 
@@ -244,22 +323,31 @@ def plan_for(schema: dict[str, Any], language: str) -> tuple[list[dict[str, Any]
             if group in seen_radio_groups:
                 continue
             seen_radio_groups.add(group)
-        if sem in MISSING_PROFILE:
-            audit.append({**base, "status": "missing_profile"})
+        item = profile_value(sem, language)
+        if item is not None and item.known_absent:
+            audit.append({**base, "status": "known_absent", "value_source": item.source})
             continue
         value = localized(sem, language, field)
+        if value is None and sem in EXTRA_PROFILE:
+            audit.append({**base, "status": "missing_profile"})
+            continue
         if value is None or not field.get("ref"):
             audit.append({**base, "status": "unclassified"})
             continue
         step: dict[str, Any] = {"ref": field["ref"]}
         if field.get("kind") == "select":
-            step["label"] = value
+            step["labels"] = option_candidates(sem, value, language, item)
         else:
             step["value"] = value
+        if field.get("widget") or field.get("needs_interaction"):
+            step["interaction"] = "select"
+            step["labels"] = option_candidates(sem, value, language, item)
+            step.pop("value", None)
         if sem == "phone" and field.get("kind") != "select":
             step["mode"] = "insert"
         plan.append(step)
-        audit.append({**base, "status": "planned", "value_source": "cv"})
+        source = item.source if item is not None else str(CV)
+        audit.append({**base, "status": "planned", "value_source": source})
     return plan, audit
 
 
@@ -284,6 +372,14 @@ def compact_error(error: Exception) -> dict[str, Any]:
     }
 
 
+def add_diagnostics(result: dict[str, Any]) -> None:
+    try:
+        with session.journal.bind(stage="diagnostics"):
+            result["diagnostics"] = session.tab().diagnostics()
+    except Exception as error:
+        result["diagnostics"] = {"error": compact_error(error)}
+
+
 def one_job(job: dict[str, Any]) -> dict[str, Any]:
     started = time.perf_counter()
     apply = job.get("apply") or {}
@@ -294,54 +390,27 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
         "ats": apply.get("ats"), "declared_mode": apply.get("mode"),
         "start_url": start_url, "hops": [], "errors": [],
     }
-    route_candidates = application_route_candidates(start_url)
+    with session.journal.bind(stage="diagnostics"):
+        result["diagnostics_started"] = session.tab().start_diagnostics()
     try:
-        t0 = time.perf_counter()
-        result["navigation"] = goto(start_url, timeout=25)
-        result["navigate_ms"] = round((time.perf_counter() - t0) * 1000, 1)
+        application = session.run_application(
+            start_url, timeout=25, transition_timeout=15, hop_budget=6,
+            candidates=application_route_candidates(start_url), planner=plan_for)
     except Exception as error:
-        result["status"] = "navigation_failed"
+        error_class = getattr(getattr(error, "cls", None), "value", type(error).__name__)
+        result["status"] = ("navigation_failed" if error_class == "navigation_failed"
+                            else "workflow_failed")
         result["errors"].append(compact_error(error))
+        add_diagnostics(result)
         result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
         return result
 
-    prepared: dict[str, Any] = {}
-    for hop in range(MAX_HOPS + 1):
-        try:
-            state = wait_for_application_state(timeout=10)
-            t0 = time.perf_counter()
-            prepared = session.prepare_application(timeout=18)
-            result.setdefault("prepare_ms", []).append(round((time.perf_counter() - t0) * 1000, 1))
-        except Exception as error:
-            result["errors"].append(compact_error(error))
-            break
-        result["hops"].append({
-            "hop": hop, "url": prepared.get("url"), "title": prepared.get("title"),
-            "is_application": prepared.get("is_application"),
-            "context": prepared.get("context"), "contexts_checked": prepared.get("contexts_checked"),
-            "apply_link": prepared.get("apply_link"), "apply_control": prepared.get("apply_control"),
-            "application_state": state,
-            "verdict": (prepared.get("schema") or {}).get("verdict"),
-        })
-        if prepared.get("is_application"):
-            break
-        if hop >= MAX_HOPS:
-            break
-        try:
-            if not (prepared.get("apply_control") or prepared.get("apply_link")
-                    or route_candidates):
-                break
-            followed = session.follow_application(
-                prepared, timeout=15, candidates=route_candidates)
-            if followed["transition"].get("kind") == "candidate_link":
-                route_candidates = []
-            result["hops"][-1]["transition"] = followed["transition"]
-            result["hops"][-1]["transition_state"] = followed["state"]
-            result["hops"][-1]["target_id_after"] = followed["target_id"]
-            result["hops"][-1]["target_changed"] = followed["target_changed"]
-        except Exception as error:
-            result["errors"].append(compact_error(error))
-            break
+    workflow = application["location"]
+    prepared = application["prepared"]
+    result["navigation"] = workflow["navigation"]
+    result["navigate_ms"] = workflow["wall_ms"]
+    result["workflow_terminal"] = workflow["terminal_state"]
+    result["hops"] = workflow["hops"]
 
     schema = prepared.get("schema") or {}
     result["landed_url"] = prepared.get("url") or result.get("navigation", {}).get("landed")
@@ -352,20 +421,15 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     result["is_application"] = bool(prepared.get("is_application"))
     if not result["is_application"]:
         result["status"] = "no_application_form"
+        add_diagnostics(result)
         result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
         return result
 
-    plan, audit = plan_for(schema, str(prepared.get("language") or "en"))
+    plan, audit = application["plan"], application["audit"]
     result["field_audit"] = audit
     result["fill_plan_count"] = len(plan)
-    if plan:
-        try:
-            t0 = time.perf_counter()
-            outcome = fill_form(plan, timeout=30)
-            result["fill_ms"] = round((time.perf_counter() - t0) * 1000, 1)
-            result["fill"] = outcome.to_json()
-        except Exception as error:
-            result["errors"].append(compact_error(error))
+    result["fill_ms"] = application.get("fill_ms")
+    result["fill"] = application.get("fill")
 
     file_inputs = prepared.get("file_inputs") or []
     chosen, ambiguous = cv_inputs(file_inputs)
@@ -382,6 +446,7 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
             uploads.append({"input": item, "error": compact_error(error)})
     result["uploads"] = uploads
     result["status"] = "form_processed"
+    add_diagnostics(result)
     result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return result
 
@@ -398,16 +463,22 @@ def main() -> None:
     write_lock = threading.Lock()
     run_started = time.time()
 
+    completion_sequence = 0
+
     def progress(done: int, total: int, record: dict[str, Any]) -> None:
+        nonlocal completion_sequence
         with write_lock:
+            completion_sequence += 1
             with completed_path.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(record, ensure_ascii=False, default=str) + "\n")
-            if done == 1 or done % 5 == 0 or done == total:
-                value = record.get("value") or {}
-                print(f"progress {done}/{total} rank={value.get('rank')} status={value.get('status')}", flush=True)
+                fh.write(json.dumps({"sequence": completion_sequence, **record},
+                                    ensure_ascii=False, default=str) + "\n")
+        if done == 1 or done % 5 == 0 or done == total:
+            value = record.get("value") or {}
+            print(f"progress {done}/{total} rank={value.get('rank')} status={value.get('status')}", flush=True)
 
     records = parallel(jobs, one_job, workers=WORKERS, reuse_tabs=True, isolated=False,
-                       timeout=30 * 60, progress=progress)
+                       timeout=30 * 60, progress=progress,
+                       item_id=lambda job: job["job_id"])
     summary = summarise(records)
     summary.pop("values", None)  # records below are authoritative; do not duplicate them.
     payload = {
@@ -416,6 +487,15 @@ def main() -> None:
             "input": str(INPUT), "cv": str(CV), "workers_requested": WORKERS,
             "workers_effective": min(WORKERS, 10), "dry_run": True,
             "submissions": 0, "wall_ms": round((time.time() - run_started) * 1000, 1),
+            "profile_sources": sorted({item.source for item in APPLICANT.values.values()}),
+            "model_boundary": {
+                "scripted": True, "model_calls": 0, "input_tokens": 0,
+                "output_tokens": 0, "decision_packet_fields": sorted(APPLICANT.values),
+                "decision_packet_sha256": hashlib.sha256("\n".join(
+                    sorted(APPLICANT.values)).encode()).hexdigest()[:16],
+            },
+            "semantic_cache": {"strategies": len(SEMANTIC_CACHE),
+                               "hits": SEMANTIC_CACHE_HITS, "stores_live_refs": False},
         },
         "parallel_summary": summary,
         "records": records,
