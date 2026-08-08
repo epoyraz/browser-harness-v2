@@ -406,7 +406,7 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
         return result
 
     workflow = application["location"]
-    prepared = application["prepared"]
+    prepared = workflow["prepared"]
     result["navigation"] = workflow["navigation"]
     result["navigate_ms"] = workflow["wall_ms"]
     result["workflow_terminal"] = workflow["terminal_state"]

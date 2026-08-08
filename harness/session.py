@@ -393,7 +393,7 @@ class Session:
         prepared = located["prepared"]
         result: dict[str, Any] = {
             "stage": located["terminal_state"], "location": located,
-            "prepared": prepared, "plan": [], "audit": [], "fill": None,
+            "plan": [], "audit": [], "fill": None,
         }
         if not prepared.get("is_application") or planner is None:
             return result

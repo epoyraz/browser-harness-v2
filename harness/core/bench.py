@@ -31,10 +31,11 @@ that a single richer call could have answered.
 from __future__ import annotations
 
 import itertools
-import json
 from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
+
+from harness.core import jsonl
 
 #: Helpers that only observe. A run of these across steps is exploration — the model
 #: looking around because one call did not tell it enough — and exploration is the
@@ -66,24 +67,8 @@ BLOCKING = frozenset({
 
 
 def _entries(paths: Iterable[str | Path]) -> list[dict[str, Any]]:
-    out: list[dict[str, Any]] = []
-    for raw in paths:
-        p = Path(raw).expanduser()
-        files = sorted(p.rglob("*.jsonl")) if p.is_dir() else [p]
-        for f in files:
-            try:
-                text = f.read_text(encoding="utf-8")
-            except OSError:
-                continue
-            for line in text.splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    out.append(json.loads(line))
-                except json.JSONDecodeError:
-                    continue      # a run killed mid-write loses its last line, not the file
-    return sorted(out, key=lambda e: e.get("ts", 0))
+    entries = (entry for path in jsonl.files(paths) for entry in jsonl.read(path))
+    return sorted(entries, key=lambda entry: entry.get("ts", 0))
 
 
 def steps(paths: Iterable[str | Path]) -> list[dict[str, Any]]:

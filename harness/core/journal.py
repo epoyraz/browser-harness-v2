@@ -32,6 +32,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
+from harness.core import jsonl
+
 #: Payloads above this are replaced by {"_elided": n, "_sha256": "..."}.
 #: A single screenshot response was 51 KB of a 54 KB session.
 ELIDE_OVER = 2048
@@ -126,13 +128,43 @@ class Journal:
 
     # -- spans ------------------------------------------------------------
 
-    def call(self, fn: str, **args: Any) -> _CallCtx:
+    @contextmanager
+    def call(self, fn: str, **args: Any) -> Iterator[Span]:
         """Context manager recording one helper call and its outcome.
 
         The id it allocates is what the daemon echoes back, so a client failure and a
         daemon log line can finally be joined.
         """
-        return _CallCtx(self, fn, args)
+        span = Span(id=self.next_id(), fn=fn, started=time.perf_counter())
+        self._stack.append(span)
+        error: BaseException | None = None
+        try:
+            yield span
+        except BaseException as caught:
+            error = caught
+            raise
+        finally:
+            self._stack.pop()
+            payload: dict[str, Any] = {
+                "fn": fn, "args": args, "ms": round(span.ms, 1), "cdp": span.cdp_calls,
+            }
+            if self._stack:
+                payload["parent"] = self._stack[-1].id
+            if error is None:
+                payload["outcome"] = {"ok": True}
+            else:
+                outcome = getattr(error, "outcome", None)
+                payload["outcome"] = (outcome.to_json() if outcome is not None else {
+                    "ok": False, "class": type(error).__name__, "detail": str(error)[:200],
+                })
+            if self.on_call is not None:
+                try:
+                    extra = self.on_call(span, payload)
+                except Exception:  # noqa: BLE001 — observability must never break the run
+                    extra = None
+                if extra:
+                    payload.update(extra)
+            self.write("call", id=span.id, **payload)
 
     @property
     def _stack(self) -> list[Span]:
@@ -234,49 +266,4 @@ class Journal:
         """Read back. A truncated final line is skipped, not fatal."""
         if not self.path or not self.path.exists():
             return
-        with self.path.open(encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if not line:
-                    continue
-                try:
-                    yield json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-
-
-class _CallCtx:
-    def __init__(self, journal: Journal, fn: str, args: dict[str, Any]):
-        self.j, self.fn, self.args = journal, fn, args
-        self.span: Span | None = None
-
-    def __enter__(self) -> Span:
-        self.span = Span(id=self.j.next_id(), fn=self.fn, started=time.perf_counter())
-        self.j._stack.append(self.span)
-        return self.span
-
-    def __exit__(self, exc_type, exc, tb) -> bool:
-        span = self.span
-        assert span is not None
-        self.j._stack.pop()
-        payload: dict[str, Any] = {"fn": self.fn, "args": self.args,
-                                   "ms": round(span.ms, 1), "cdp": span.cdp_calls}
-        if self.j._stack:
-            payload["parent"] = self.j._stack[-1].id      # lets --trace render the tree
-        if exc is not None:
-            # rule 2: never discard a cause you were handed
-            outcome = getattr(exc, "outcome", None)
-            payload["outcome"] = (outcome.to_json() if outcome is not None
-                                  else {"ok": False, "class": type(exc).__name__,
-                                        "detail": str(exc)[:200]})
-        else:
-            payload["outcome"] = {"ok": True}
-        if self.j.on_call is not None:
-            try:
-                extra = self.j.on_call(span, payload)
-            except Exception:  # noqa: BLE001 — observability must never break the run
-                extra = None
-            if extra:
-                payload.update(extra)
-        self.j.write("call", id=span.id, **payload)
-        return False          # never swallow
+        yield from jsonl.read(self.path)

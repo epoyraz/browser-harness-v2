@@ -58,10 +58,7 @@ def _digits(s: str) -> str:
     return "".join(c for c in str(s) if c.isdigit())
 
 _SCHEMA_JS = """(() => {
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
-  const furniture = el => !!el.closest(
-    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
-    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header aside');
+  const bh = window.__bh;
   const labelFor = el => {
     if (el.id) {
       const l = document.querySelector('label[for="' + CSS.escape(el.id) + '"]');
@@ -126,10 +123,9 @@ _SCHEMA_JS = """(() => {
     const hiddenControl = tag === 'select' && (decoy || (!r.width && !r.height));
     if (decoy && !hiddenControl) continue;
     if (!r.width && !r.height && !hiddenControl) continue;
-    if (furniture(el) || type === 'search') continue;
+    if (bh.furniture(el) || type === 'search') continue;
     if (type === 'file') { files.push(el.name || el.id || 'file'); continue; }
-    let ref = el.__bhRef;
-    if (!ref || bh.refs[ref] !== el) { ref = 'e' + (++bh.n); el.__bhRef = ref; bh.refs[ref] = el; }
+    const ref = bh.ref(el);
     const label = labelFor(el) || nearText(el);
     const kind = el.getAttribute('role') === 'combobox' && tag !== 'select' ? 'combobox'
       : el.isContentEditable && tag !== 'input' && tag !== 'textarea' ? 'richtext'
@@ -164,7 +160,7 @@ _SCHEMA_JS = """(() => {
   }
   const submits = [...document.querySelectorAll(
     'button[type=submit],input[type=submit],input[type=button],button:not([type])')]
-    .filter(b => !furniture(b))
+    .filter(b => !bh.furniture(b))
     .map(b => (b.innerText || b.value || '').trim()).filter(Boolean);
   // "fewer than 2 real fields" is true of a bot wall, an unbooted SPA and a form whose
   // controls are all hidden — three different problems with three different fixes. Say
@@ -227,14 +223,9 @@ _SCHEMA_JS = """(() => {
 
 _PREPARE_JS = """(() => {
   const schema = __SCHEMA__;
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  const bh = window.__bh;
   const fileInputs = [...document.querySelectorAll('input[type=file]')].map(el => {
-    let ref = el.__bhRef;
-    if (!ref || bh.refs[ref] !== el) {
-      ref = 'e' + (++bh.n);
-      el.__bhRef = ref;
-      bh.refs[ref] = el;
-    }
+    const ref = bh.ref(el);
     const label = el.id ? document.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
     return {ref, name: el.name || el.id || 'file',
             label: (label && label.innerText || el.getAttribute('aria-label') || '').trim(),
@@ -292,10 +283,7 @@ _PREPARE_JS = """(() => {
   }
   let applyControl = null;
   if (ctl) {
-    let ref = ctl.__bhRef;
-    if (!ref || bh.refs[ref] !== ctl) {
-      ref = 'e' + (++bh.n); ctl.__bhRef = ref; bh.refs[ref] = ctl;
-    }
+    const ref = bh.ref(ctl);
     applyControl = {ref, label: labelOf(ctl).slice(0, 60), score: ctlScore,
                     tag: ctl.tagName.toLowerCase()};
   }
@@ -456,25 +444,20 @@ _COMBO_STATE_JS = """((ref) => {
 #: of those silently fills the wrong field. So: the listbox this combobox declares via
 #: `aria-controls`/`aria-owns` first, then the single visible listbox, then the document.
 _COMBO_OPTIONS_JS = """((ref) => {
-  const el = window.__bh && window.__bh.refs[ref];
+  const bh = window.__bh;
+  const el = bh && bh.refs[ref];
   if (!el) return {scope: 'none', options: []};
-  const visible = (n) => {
-    const r = n.getBoundingClientRect();
-    if (!r.width || !r.height) return false;
-    const cs = getComputedStyle(n);
-    return cs.visibility !== 'hidden' && cs.display !== 'none';
-  };
   const id = el.getAttribute('aria-controls') || el.getAttribute('aria-owns');
   let root = id ? document.getElementById(id) : null;
   let scope = root ? 'aria-controls' : '';
   if (!root) {
-    const boxes = [...document.querySelectorAll('[role=listbox],[role=menu]')].filter(visible);
+    const boxes = [...document.querySelectorAll('[role=listbox],[role=menu]')].filter(bh.visible);
     if (boxes.length === 1) { root = boxes[0]; scope = 'sole-listbox'; }
   }
   if (!root) { root = document; scope = 'document'; }
   const out = [];
   for (const o of root.querySelectorAll('[role=option],[role=menuitem],li[data-value]')) {
-    if (!visible(o)) continue;
+    if (!bh.visible(o)) continue;
     const r = o.getBoundingClientRect();
     out.push({text: (o.innerText || o.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 80),
               x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),

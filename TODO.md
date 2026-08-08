@@ -33,11 +33,28 @@ kept together so a regenerated report can close every item with before/after evi
 Every item cites the decision it implements (`docs/DESIGN.md`) and states how you know it is
 done. Ordered so each phase unblocks the next; within a phase, items are mostly parallel.
 
-**Budget target: ~1,600 lines of core *code*.** Restated after Phase 1: measured by AST
-(code lines only — docstrings and comments excluded, since they carry the why that stops
-v1's regressions from being re-litigated). v1 is 5,736 raw across 13 modules. If an item
-cannot be expressed in tens of lines, re-read §5 — every superseded PR in v1's history lost
-to a version 5×–60× smaller.
+**Current runtime budget: 5,560 code lines / 7,942 raw lines.** The original 1,600-line
+rewrite target stopped describing the shipped scope once contexts, browser ownership,
+recording, forms, replay, diagnostics and parallel application workflows were added. The
+near-term target is below 5,000 code lines through deletion and shared mechanisms—not
+compressed formatting or capability loss. New runtime code should normally pay for itself
+by removing an older path.
+
+## Simplification pass — 2026-08-09
+
+- [x] One navigation-safe observer engine serves form readiness and application terminal
+      states; timeouts always disconnect abandoned observers.
+- [x] One JSONL reader serves journals, telemetry, benchmarks, transcripts, cassettes and
+      recording video plans while preserving strict missing-file behavior where required.
+- [x] Journal spans use one context-manager lifecycle instead of a wrapper class.
+- [x] Isolated-world DOM helpers own visibility, furniture exclusion and stable refs once;
+      snapshot, schema, waits and combobox handling reuse them.
+- [x] `run_application` keeps one authoritative prepared-document payload instead of
+      returning the same object both directly and inside its location result.
+
+Measured with the same AST-based counter: 5,654 → 5,560 code lines and 8,042 → 7,942 raw
+runtime lines. The full unit suite, 45/45 live form checks, 17/17 parallel/safety checks,
+and the late-form observer benchmark preserve behavior with zero submissions.
 
 ---
 

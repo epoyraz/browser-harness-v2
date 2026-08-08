@@ -156,9 +156,9 @@ def main() -> int:
         t0 = time.perf_counter()
         els = tab.snapshot()
         rt_ms = (time.perf_counter() - t0) * 1000
-        timed = tab.js("(() => {const t0 = performance.now();"
-                       f"const r = {SNAPSHOT_JS};"
-                       "return {ms: performance.now() - t0, n: r.length};})()")
+        timed = tab._world_js("(() => {const t0 = performance.now();"
+                               f"const r = {SNAPSHOT_JS};"
+                               "return {ms: performance.now() - t0, n: r.length};})()")
         check("snapshot ~450 elements", len(els) in range(440, 460), f"{len(els)} elements")
         check("snapshot in-page < 10ms", timed["ms"] < 10,
               f"{timed['ms']:.1f}ms in-page, {rt_ms:.1f}ms round trip")

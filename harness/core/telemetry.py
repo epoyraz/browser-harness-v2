@@ -21,12 +21,13 @@ With a closed enum it is a `Counter`.
 """
 from __future__ import annotations
 
-import json
 import os
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Iterator
 from pathlib import Path
 from typing import Any
+
+from harness.core import jsonl
 
 #: Fields copied out of a journal entry. Everything else — args, urls, expressions,
 #: values — is deliberately not read. Widening this list is a privacy decision.
@@ -54,19 +55,8 @@ def find_journals(paths: Iterable[str | Path] | None = None) -> list[Path]:
 
 def _calls(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
     """Every `call` entry across the journals, reduced to KEEP + its outcome class."""
-    for f in files:
-        try:
-            text = f.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        for line in text.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                e = json.loads(line)
-            except json.JSONDecodeError:
-                continue          # a run killed mid-write loses its last line, not the file
+    for file in files:
+        for e in jsonl.read(file):
             if e.get("kind") != "call":
                 continue
             outcome = e.get("outcome") or {}
@@ -78,16 +68,8 @@ def _calls(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
 
 def _protocol(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
     """Sanitized protocol outcome only; request and response values are never selected."""
-    for f in files:
-        try:
-            lines = f.read_text(encoding="utf-8").splitlines()
-        except OSError:
-            continue
-        for line in lines:
-            try:
-                entry = json.loads(line)
-            except json.JSONDecodeError:
-                continue
+    for file in files:
+        for entry in jsonl.read(file):
             if entry.get("kind") == "cdp":
                 yield {"ok": bool(entry.get("ok")),
                        "class": entry.get("error_class"),

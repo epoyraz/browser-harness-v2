@@ -32,12 +32,13 @@ Three corrections that separate a real measurement from a plausible one:
 from __future__ import annotations
 
 import bisect
-import json
 import re
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+
+from harness.core import jsonl
 
 #: Where Claude Code keeps transcripts, one directory per project.
 PROJECTS = Path.home() / ".claude" / "projects"
@@ -62,18 +63,6 @@ def _epoch(stamp: str | None) -> float | None:
         return datetime.fromisoformat(stamp).timestamp()
     except ValueError:
         return None
-
-
-def _entries(path: str | Path) -> Iterator[dict[str, Any]]:
-    with Path(path).expanduser().open(encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                yield json.loads(line)
-            except json.JSONDecodeError:
-                continue      # a session killed mid-write loses its last line, not the file
 
 
 def _is_prompt(entry: dict[str, Any]) -> bool:
@@ -103,7 +92,7 @@ def gaps(path: str | Path, *, include_sidechain: bool = False) -> list[dict[str,
     timestamp and their results return interleaved, so file order is not time order.
     """
     timeline: list[tuple[float, int, dict[str, Any]]] = []
-    for entry in _entries(path):
+    for entry in jsonl.read(path, missing_ok=False):
         if entry.get("isSidechain") and not include_sidechain:
             continue
         when = _epoch(entry.get("timestamp"))

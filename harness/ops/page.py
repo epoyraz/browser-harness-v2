@@ -25,6 +25,7 @@ import json
 import threading
 import time
 from collections import deque
+from collections.abc import Callable
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -71,8 +72,24 @@ FRAMES_MAX_WAIT = 0.8
 #: delta counter, `__bh.refs` the snapshot ref registry. Lives in the isolated world, so
 #: `__bh` is reachable from harness JS and invisible to the page.
 RUNTIME_JS = """(() => {
-  if (window.__bh) return;
-  const bh = window.__bh = {refs: {}, n: 0, mutations: 0};
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  if (bh.runtime) return;
+  bh.runtime = true;
+  bh.visible = el => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return !!(r.width && r.height) && cs.visibility !== 'hidden' && cs.display !== 'none';
+  };
+  bh.furniture = el => !!el.closest(
+    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
+    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header,aside');
+  bh.ref = el => {
+    let ref = el.__bhRef;
+    if (!ref || bh.refs[ref] !== el) {
+      ref = 'e' + (++bh.n); el.__bhRef = ref; bh.refs[ref] = el;
+    }
+    return ref;
+  };
   const obs = new MutationObserver(list => { bh.mutations += list.length; });
   const arm = () => obs.observe(document.documentElement || document,
     {subtree: true, childList: true, attributes: true, characterData: true});
@@ -255,9 +272,7 @@ SNAPSHOT_JS = """(() => {
   const out = [];
   for (const el of document.querySelectorAll(sel)) {
     const r = el.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    const invisible = !r.width || !r.height
-      || cs.visibility === 'hidden' || cs.display === 'none';
+    const invisible = !bh.visible(el);
     // A file input is never clicked — clicking opens a native picker that blocks the
     // renderer with no CDP way back out — so upload_file() always drives it
     // programmatically. Visibility therefore says nothing about whether it is reachable,
@@ -266,8 +281,7 @@ SNAPSHOT_JS = """(() => {
     // nearest visible file input instead.
     const isFile = el.tagName === 'INPUT' && el.type === 'file';
     if (invisible && !isFile) continue;
-    let ref = el.__bhRef;
-    if (!ref || bh.refs[ref] !== el) { ref = 'e' + (++bh.n); el.__bhRef = ref; bh.refs[ref] = el; }
+    const ref = bh.ref(el);
     const it = {ref, tag: el.tagName.toLowerCase(),
       name: (el.getAttribute('aria-label') || el.innerText || el.value || el.placeholder
              || el.name || '').trim().slice(0, 80),
@@ -332,19 +346,14 @@ BINDING = "__bhNotify"
 #: littered with `time.sleep(1.0)` because this did not exist — a guessed sleep is both
 #: slower than it needs to be and wrong when the page is slower than the guess.
 WATCH_JS = """((sel, state, token) => {
+  const bh = window.__bh;
   const ok = () => {
     const e = document.querySelector(sel);
     if (state === 'gone') return !e;
     if (!e) return false;
-    if (state === 'visible') {
-      const r = e.getBoundingClientRect();
-      const cs = getComputedStyle(e);
-      return !!(r.width && r.height) && cs.visibility !== 'hidden' && cs.display !== 'none';
-    }
-    return true;
+    return state !== 'visible' || bh.visible(e);
   };
   if (ok()) return {matched: true, immediate: true};
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
   bh.watch = bh.watch || {};
   const obs = new MutationObserver(() => {
     if (!ok()) return;
@@ -372,15 +381,13 @@ WATCH_JS = """((sel, state, token) => {
 #: `_SCHEMA_JS`, deliberately — a wait that resolves on controls the schema then discards
 #: is the cookie-banner false positive rebuilt one layer down.
 WATCH_FORM_JS = """((minFields, token) => {
-  const furniture = el => !!el.closest(
-    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
-    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header aside');
+  const bh = window.__bh;
   const count = () => {
     let n = 0;
     for (const el of document.querySelectorAll('input,select,textarea,[contenteditable=true]')) {
       const type = (el.type || '').toLowerCase();
       if (['submit', 'button', 'reset', 'image', 'hidden', 'search'].includes(type)) continue;
-      if (furniture(el)) continue;
+      if (bh.furniture(el)) continue;
       const r = el.getBoundingClientRect();
       if (r.width <= 2 && r.height <= 2) continue;
       if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') continue;
@@ -390,7 +397,6 @@ WATCH_FORM_JS = """((minFields, token) => {
   };
   const now = count();
   if (now >= minFields) return {matched: true, immediate: true, fields: now};
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
   bh.watch = bh.watch || {};
   const obs = new MutationObserver(() => {
     if (count() < minFields) return;
@@ -420,24 +426,17 @@ FORM_COUNTS_JS = """(() => {
 #: states immediately and otherwise arms a one-shot mutation observer; Python decides
 #: whether a quiet usable page or quiet empty page has been stable long enough.
 WATCH_APPLICATION_STATE_JS = """((token) => {
-  const visible = el => {
-    const r = el.getBoundingClientRect();
-    const cs = getComputedStyle(el);
-    return !!(r.width && r.height) && cs.visibility !== 'hidden' && cs.display !== 'none';
-  };
-  const furniture = el => !!el.closest(
-    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
-    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header,aside');
+  const bh = window.__bh;
   let fields = 0;
   for (const el of document.querySelectorAll(
        'input,select,textarea,[contenteditable=true],[role=combobox]')) {
     const type = (el.type || '').toLowerCase();
     if (['submit', 'button', 'reset', 'image', 'hidden', 'search'].includes(type)) continue;
-    if (furniture(el) || !visible(el)) continue;
+    if (bh.furniture(el) || !bh.visible(el)) continue;
     fields++;
   }
   const controls = [...document.querySelectorAll(
-    'button,a[href],[role=button],input,select,textarea')].filter(visible);
+    'button,a[href],[role=button],input,select,textarea')].filter(bh.visible);
   const labels = controls.map(el =>
     (el.innerText || el.value || el.getAttribute('aria-label') || '').trim()).join(' ');
   const text = ((document.body && document.body.innerText) || '').trim();
@@ -453,7 +452,7 @@ WATCH_APPLICATION_STATE_JS = """((token) => {
     return /(apply|bewerb|postul|candidat|sollicit|aplicar)/i.test(label);
   });
   const botWall = /(captcha|verify you are human|checking your browser|access denied|unusual traffic|robot check|security challenge)/i.test(lower);
-  const password = [...document.querySelectorAll('input[type=password]')].some(visible);
+  const password = [...document.querySelectorAll('input[type=password]')].some(bh.visible);
   const accountWall = password || (
     /(sign in|log in|login|anmelden|connexion|create an account|konto erstellen)/i.test(lower)
     && fields < 2 && controls.length > 0);
@@ -468,7 +467,6 @@ WATCH_APPLICATION_STATE_JS = """((token) => {
                   matched: ['form', 'account_wall', 'bot_wall'].includes(state)};
   if (result.matched) return {...result, immediate: true};
 
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
   bh.watch = bh.watch || {};
   if (bh.watch[token]) bh.watch[token].disconnect();
   const obs = new MutationObserver(() => {
@@ -1157,56 +1155,14 @@ class Tab:
             raise ValueError(f"min_fields must be >= 1, got {min_fields!r}")
         token = f"f{id(self)}:{time.perf_counter_ns()}"
         t0 = time.perf_counter()
-        deadline = time.monotonic() + timeout
-        ready = False
-        probe: dict[str, Any] = {}
         with self._j.call("wait_for_form", min_fields=min_fields):
-            # Watch for the document being REPLACED as well as for the condition firing.
-            # The observer lives in the isolated world, and a world dies with its document
-            # — so after a navigation the callback can never run and the wait can only end
-            # by timing out. That is not theoretical: on Recruitee the apply control
-            # navigates to `/c/new`, and under a 10-worker run every one of the four
-            # postings burned its whole budget waiting on an observer that no longer
-            # existed, then reported the OLD page's "92 in the DOM, 0 visible". Sequentially
-            # the same page took 4ms. Re-arming on the new document is the difference
-            # between a wait that is event-driven and one that is event-driven until the
-            # first navigation.
-            renavigated = ("Runtime.executionContextsCleared", "Page.frameNavigated")
-            # `wait_match` re-scans everything buffered since arming, so a navigation
-            # already consumed would match again on the next pass and spin the loop until
-            # the deadline. Remember what has been handled, by identity.
-            consumed: set[int] = set()
-
-            def interesting(m: dict[str, Any]) -> bool:
-                if id(m) in consumed:
-                    return False
-                return ((m.get("method") == "Runtime.bindingCalled"
-                         and (m.get("params") or {}).get("payload") == token)
-                        or m.get("method") in renavigated)
-
-            with self._armed(lambda m: m.get("method") == "Runtime.bindingCalled"
-                             or m.get("method") in renavigated) as w:
-                while True:
-                    probe = self._world_js(
-                        WATCH_FORM_JS.replace("__MIN__", json.dumps(min_fields))
-                                     .replace("__TOKEN__", json.dumps(token)),
-                        timeout=timeout) or {}
-                    if probe.get("matched"):
-                        ready = True
-                        break
-                    left = deadline - time.monotonic()
-                    if left <= 0:
-                        self._unwatch(token)
-                        break
-                    hit = w.wait_match(interesting, left)
-                    if hit is None:
-                        self._unwatch(token)
-                        break
-                    consumed.add(id(hit))
-                    if hit.get("method") == "Runtime.bindingCalled":
-                        ready = True
-                        break
-                    # else: the document was replaced — re-arm against the new one
+            probe, reason = self._watch_document(
+                token,
+                WATCH_FORM_JS.replace("__MIN__", json.dumps(min_fields))
+                             .replace("__TOKEN__", json.dumps(token)),
+                timeout=timeout, binding_finishes=True,
+            )
+            ready = reason in {"terminal", "binding"}
             if ready and settle:
                 time.sleep(settle)
             in_dom, visible, text_len = self._world_js(FORM_COUNTS_JS, timeout=timeout) \
@@ -1233,61 +1189,63 @@ class Tab:
             raise ValueError("timeout and stability windows must be positive")
         token = f"a{id(self)}:{time.perf_counter_ns()}"
         started = time.perf_counter()
+        with self._j.call("wait_for_application_state",
+                          usable_stable=usable_stable, empty_stable=empty_stable):
+            probe, reason = self._watch_document(
+                token,
+                WATCH_APPLICATION_STATE_JS.replace("__TOKEN__", json.dumps(token)),
+                timeout=timeout,
+                stable_for=lambda value: usable_stable
+                if value.get("state") == "usable_ui" else empty_stable,
+            )
+        final_state = (str(probe.get("state")) if probe.get("matched")
+                       else "usable_ui" if probe.get("state") == "usable_ui"
+                       else "stable_failure")
+
+        return {**probe, "state": final_state, "reason": reason,
+                "immediate": bool(probe.get("immediate")) if reason == "terminal" else False,
+                "waited_ms": round((time.perf_counter() - started) * 1000, 1)}
+
+    def _watch_document(self, token: str, expression: str, *, timeout: float,
+                        stable_for: Callable[[dict[str, Any]], float] | None = None,
+                        binding_finishes: bool = False) -> tuple[dict[str, Any], str]:
+        """Run one observer across document replacements.
+
+        A binding may mean the condition matched (``wait_for_form``) or merely that the
+        DOM changed and must be probed again (application state).  A quiet interval is a
+        terminal result only when ``stable_for`` supplies the required window.
+        """
         deadline = time.monotonic() + timeout
-        probe: dict[str, Any] = {}
-        final_state = "stable_failure"
-        reason = "timeout"
-        immediate = False
-        renavigated = ("Runtime.executionContextsCleared", "Page.frameNavigated")
+        replaced = {"Runtime.executionContextsCleared", "Page.frameNavigated"}
         consumed: set[int] = set()
 
         def interesting(message: dict[str, Any]) -> bool:
-            if id(message) in consumed:
-                return False
-            return ((message.get("method") == "Runtime.bindingCalled"
-                     and (message.get("params") or {}).get("payload") == token)
-                    or message.get("method") in renavigated)
+            return id(message) not in consumed and (
+                (message.get("method") == "Runtime.bindingCalled"
+                 and (message.get("params") or {}).get("payload") == token)
+                or message.get("method") in replaced
+            )
 
-        with self._j.call("wait_for_application_state",
-                          usable_stable=usable_stable, empty_stable=empty_stable):
-            with self._armed(lambda m: m.get("method") == "Runtime.bindingCalled"
-                             or m.get("method") in renavigated) as waiter:
-                while True:
-                    left = deadline - time.monotonic()
-                    if left <= 0:
-                        final_state = ("usable_ui" if probe.get("state") == "usable_ui"
-                                       else "stable_failure")
-                        break
+        probe: dict[str, Any] = {}
+        try:
+            with self._armed(lambda message: message.get("method") == "Runtime.bindingCalled"
+                             or message.get("method") in replaced) as waiter:
+                while (left := deadline - time.monotonic()) > 0:
                     probe = self._world_js(
-                        WATCH_APPLICATION_STATE_JS.replace(
-                            "__TOKEN__", json.dumps(token)),
-                        timeout=min(max(left, 0.1), 5.0)) or {}
-                    state = str(probe.get("state") or "loading")
+                        expression, timeout=min(max(left, 0.1), 5.0)) or {}
                     if probe.get("matched"):
-                        final_state = state
-                        reason = "terminal"
-                        immediate = bool(probe.get("immediate"))
-                        break
-
-                    quiet_for = usable_stable if state == "usable_ui" else empty_stable
-                    hit = waiter.wait_match(interesting, min(quiet_for, left))
+                        return probe, "terminal"
+                    quiet = stable_for(probe) if stable_for is not None else left
+                    hit = waiter.wait_match(interesting, min(quiet, left))
                     if hit is None:
-                        if quiet_for <= left:
-                            final_state = ("usable_ui" if state == "usable_ui"
-                                           else "stable_failure")
-                            reason = "stable"
-                        else:
-                            final_state = ("usable_ui" if state == "usable_ui"
-                                           else "stable_failure")
-                        break
+                        return probe, "stable" if stable_for is not None and quiet <= left \
+                            else "timeout"
                     consumed.add(id(hit))
-                    # A mutation or replacement means the previous observation is stale.
-                    # Loop and re-arm against the current document.
+                    if binding_finishes and hit.get("method") == "Runtime.bindingCalled":
+                        return probe, "binding"
+            return probe, "timeout"
+        finally:
             self._unwatch(token)
-
-        return {**probe, "state": final_state, "reason": reason,
-                "immediate": immediate,
-                "waited_ms": round((time.perf_counter() - started) * 1000, 1)}
 
     def _unwatch(self, token: str) -> None:
         """Drop an abandoned observer. A MutationObserver left armed on a busy page runs

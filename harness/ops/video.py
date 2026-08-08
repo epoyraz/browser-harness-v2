@@ -27,6 +27,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from harness.core import jsonl
+
 MIN_HOLD = 0.6
 MAX_HOLD = 3.0
 
@@ -37,20 +39,8 @@ def have_ffmpeg() -> bool:
 
 def _entries(recording: Path) -> list[dict[str, Any]]:
     journal = recording / "session.jsonl"
-    if not journal.is_file():
-        return []
-    out = []
-    for line in journal.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            e = json.loads(line)
-        except json.JSONDecodeError:
-            continue
-        if e.get("kind") == "call" and e.get("frame"):
-            out.append(e)
-    return out
+    return [entry for entry in jsonl.read(journal)
+            if entry.get("kind") == "call" and entry.get("frame")]
 
 
 def plan(recording: Path, *, min_hold: float = MIN_HOLD,

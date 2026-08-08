@@ -289,6 +289,7 @@ def test_run_application_plans_and_fills_without_a_submit_operation(session, mon
             [{"ref": "e1", "value": "Enes"}], [{"status": "planned"}]))
     assert result["stage"] == "filled" and result["fill"] == {"ok": True}
     assert result["audit"] == [{"status": "planned"}]
+    assert "prepared" not in result  # location is the single authoritative copy
 
 
 def test_helpers_keep_their_names_so_a_traceback_is_readable(session):

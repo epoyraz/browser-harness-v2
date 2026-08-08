@@ -37,6 +37,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any
 
+from harness.core import jsonl
 from harness.core.journal import ELIDE_OVER, _elide
 
 SEND = "send"
@@ -179,14 +180,8 @@ class Player:
         """
         sig_of_id: dict[Any, str] = {}
         pending: list[dict[str, Any]] = []
-        for line in path.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                frame = json.loads(line)
-            except json.JSONDecodeError:
-                continue          # a run killed mid-write must not poison the whole cassette
+        for frame in jsonl.read(path, missing_ok=False):
+            frame = dict(frame)
             kind, msg = frame.pop("t", None), frame
             if kind == SEND:
                 sig_of_id[msg.get("id")] = signature(msg)
@@ -259,14 +254,8 @@ class Player:
 def send_signatures(path: str | Path) -> list[str]:
     """The request stream, in order. Replay answers requests, so this IS the behaviour."""
     sigs: list[str] = []
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line:
-            continue
-        try:
-            frame = json.loads(line)
-        except json.JSONDecodeError:
-            continue
+    for frame in jsonl.read(path, missing_ok=False):
+        frame = dict(frame)
         if frame.pop("t", None) == SEND:
             sigs.append(signature(frame))
     return sigs
