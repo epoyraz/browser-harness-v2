@@ -1,5 +1,6 @@
 """Tab primitive tests against the fake. The measured done-whens (overshoot, snapshot
 latency, screenshot pixels) live in tests/live/check.py against real Chrome."""
+import json
 import time
 
 import pytest
@@ -7,12 +8,14 @@ import pytest
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import (
+    Class,
     ElementGone,
     JsException,
     NavigationFailed,
     NotSerializable,
     SideEffectRefused,
     Timeout,
+    ValueRejected,
 )
 from harness.ops.page import ANNOTATE_JS, WORLD, Tab
 from tests.fake_browser import FakeBrowser
@@ -406,6 +409,11 @@ def test_a_file_the_accept_filter_excludes_is_named_not_silently_empty(wired, tm
     out = t.upload_file("e7", str(doc))
     assert out["attached"] == []
     assert out["accept_rejected"] == ["cv.txt"]
+    assert not out.ok and out.cls is Class.VALUE_REJECTED
+    assert out.to_json()["observed"]["accept_rejected"] == ["cv.txt"]
+    with pytest.raises(ValueRejected) as error:
+        out.unwrap()
+    assert error.value.observed["accept_rejected"] == ["cv.txt"]
 
 
 def test_a_consumed_file_is_not_reported_as_an_accept_rejection(wired, tmp_path):
@@ -428,6 +436,29 @@ def test_a_consumed_file_is_not_reported_as_an_accept_rejection(wired, tmp_path)
     out = t.upload_file("e7", str(doc))
     assert out["consumed_or_rejected"] is True
     assert "accept_rejected" not in out
+    assert out.ok and out.value is out and out.unwrap() is out
+
+
+def test_a_partially_attached_upload_reports_the_accept_rejection(wired, tmp_path):
+    browser, _conn, _reg = wired
+    tab = _tab(wired)
+    pdf = tmp_path / "cv.pdf"
+    pdf.write_bytes(b"%PDF-1.4\n")
+    text = tmp_path / "notes.txt"
+    text.write_text("not a pdf")
+
+    def hook(expr):
+        if "tagName" in expr:
+            return {"tag": "input", "type": "file", "name": "cv", "accept": ".pdf"}
+        if "files" in expr:
+            return ["cv.pdf"]
+        return {"__raw__": {"result": {"type": "object", "objectId": "obj-1"}}}
+
+    browser.eval_hook = hook
+    out = tab.upload_file("e7", [str(pdf), str(text)])
+    assert out["attached"] == ["cv.pdf"]
+    assert out["accept_rejected"] == ["notes.txt"]
+    assert not out.ok and out.cls is Class.VALUE_REJECTED
 
 
 # --- vision: the other half of perception ------------------------------------
@@ -523,6 +554,8 @@ def test_a_hidden_file_input_is_reachable_by_css_selector(wired, tmp_path):
 
     out = t.upload_file("input[type=file]", str(doc))
     assert out["attached"] == ["cv.pdf"]
+    assert json.loads(json.dumps(out)) == dict(out)
+    assert out.ok and out.to_json()["observed"]["attached"] == ["cv.pdf"]
     # The registry is still consulted first, so a real ref keeps winning over a selector
     # that happens to look like one.
     assert any("__bh.refs[" in e and "querySelector" in e for e in seen)

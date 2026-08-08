@@ -21,6 +21,10 @@ base = f"http://127.0.0.1:{site.server_port}"
 scratch = Path(tempfile.mkdtemp(prefix="bh-skill-"))
 # /tmp keeps the AF_UNIX sun_path inside its 104-byte budget; Windows has no such limit.
 runtime = Path(tempfile.mkdtemp(prefix="bhs-", dir=None if os.name == "nt" else "/tmp"))
+upload_pdf = runtime / "cv.pdf"
+upload_pdf.write_bytes(b"%PDF-1.4\n")
+upload_txt = runtime / "cv.txt"
+upload_txt.write_text("not a pdf")
 _browser.launch(scratch)
 env={**os.environ,"PYTHONPATH":str(ROOT),"BH_RUNTIME_DIR":str(runtime),
      "BH_PROFILE_DIRS":str(scratch),"BU_CDP_URL":"","BU_CDP_WS":"","BU_NAME":"skillcheck"}
@@ -44,6 +48,15 @@ by = {{f["label"]: f for f in s["fields"]}}
 out = fill_form([{{"ref": by["Vorname *"]["ref"], "value": "Enes"}},
                  {{"ref": by["Anrede *"]["ref"], "label": "Herr"}}])
 print(out.ok, out.observed["succeeded"])''',
+      "upload outcome": f'''import json
+goto("{base}/personio.html")
+good = upload_file("input[type=file]", {str(upload_pdf)!r})
+print(good.ok, good.value is good, "cv.pdf" in json.dumps(good))
+js("""(() => {{ const e = document.querySelector('input[type=file]');
+  e.accept = '.pdf'; e.addEventListener('change', () => {{ e.value = ''; }}, {{once:true}});
+  return true; }})()""")
+bad = upload_file("input[type=file]", {str(upload_txt)!r})
+print(not bad.ok, bad.cls.value, bad.to_json()["observed"]["accept_rejected"])''',
       "combobox": f'goto("{base}/combobox.html")\ns = form_schema()\nc = [f for f in s["fields"] if f["kind"]=="combobox"][0]\no = select_option(c["ref"], "Referral from a friend")\nprint(o.ok, js("document.getElementById(\'c1\').textContent"))',
       "tabs": f'''t = new_tab("{base}/personio.html")
 use_tab(t.target_id); print(len(targets())>=1, t.target_id[:4]!=""); close_tab()''',

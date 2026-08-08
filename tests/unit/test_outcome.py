@@ -1,11 +1,17 @@
 """The contract's own tests. Each asserts a rule that v1 broke in production."""
+import copy
+import json
+import pickle
+
 import pytest
 
 from harness.core.outcome import (
     Class,
     HarnessError,
+    MappingOutcome,
     NavigationFailed,
     Tally,
+    ValueRejected,
     fail,
     ok,
 )
@@ -26,6 +32,39 @@ def test_unwrap_raises_the_typed_error_not_a_generic_one():
     # the caller branches on the class, never on the message
     assert e.value.cls is Class.NAVIGATION_FAILED
     assert e.value.observed["landed"].startswith("chrome-error://")
+
+
+def test_mapping_outcome_preserves_legacy_json_and_the_outcome_contract():
+    payload = {"attached": ["cv.pdf"], "requested": 1}
+    out = MappingOutcome(ok(payload, **payload))
+    assert isinstance(out, dict)
+    assert json.loads(json.dumps(out)) == payload
+    assert out.ok and out.value is out and out.unwrap() is out
+    assert out.failures == []
+    assert out.to_json()["observed"] == payload
+    assert "value" not in out.to_json()
+
+
+def test_mapping_outcome_keeps_plain_dict_copy_and_pickle_compatibility():
+    out = MappingOutcome(ok({"attached": ["cv.pdf"]}, attached=["cv.pdf"]))
+    for cloned in (copy.copy(out), copy.deepcopy(out), pickle.loads(pickle.dumps(out))):
+        assert cloned == out and cloned.ok
+        assert cloned.value is cloned and cloned.observed is cloned
+
+
+def test_mapping_outcome_views_stay_aligned_after_mapping_mutation():
+    out = MappingOutcome(ok({"attached": ["old.pdf"]}, attached=["old.pdf"]))
+    out["attached"] = ["new.pdf"]
+    assert out.value["attached"] == ["new.pdf"]
+    assert out.observed["attached"] == ["new.pdf"]
+    assert out.to_json()["observed"]["attached"] == ["new.pdf"]
+
+
+def test_value_rejected_unwraps_to_its_own_typed_error():
+    out = fail(Class.VALUE_REJECTED, "filtered", accept="application/pdf")
+    with pytest.raises(ValueRejected) as error:
+        out.unwrap()
+    assert error.value.cls is Class.VALUE_REJECTED
 
 
 # --- rule 2: never discard a cause you were handed --------------------------

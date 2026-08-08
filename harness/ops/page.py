@@ -36,10 +36,13 @@ from harness.core.outcome import (
     ElementGone,
     HarnessError,
     JsException,
+    MappingOutcome,
     NavigationFailed,
     NotSerializable,
+    Outcome,
     SideEffectRefused,
     Timeout,
+    ok,
 )
 
 #: The harness's machinery runs in a CDP **isolated world**, not on `window`.
@@ -862,7 +865,7 @@ class Tab:
             timeout=timeout)
 
     def upload_file(self, ref: str, paths: str | list[str], *,
-                    timeout: float = 20.0) -> dict[str, Any]:
+                    timeout: float = 20.0) -> MappingOutcome:
         """Set a file input's files without touching the OS picker.
 
         `ref` is a snapshot ref **or** a CSS selector — hidden file inputs never reach the
@@ -873,7 +876,8 @@ class Tab:
         id, then `DOM.describeNode`. Clicking the input instead would open a native dialog
         that blocks the renderer with no CDP way back out.
 
-        The return says what actually happened, because `attached: []` alone cannot
+        The mapping return also exposes the standard Outcome attributes. It says what
+        actually happened, because `attached: []` alone cannot
         distinguish three different outcomes: a page whose change handler consumed the
         file and cleared the input (success), a file the input's `accept` filtered out,
         and a ref that was never a file input. The second and third are now loud —
@@ -918,15 +922,24 @@ class Tab:
             f" return [...(e.files||[])].map(f => f.name);}})()", timeout=timeout)
         out: dict[str, Any] = {"ref": ref, "attached": got or [], "requested": len(files),
                                "accept": el.get("accept") or ""}
+        attached = set(got or [])
+        rejected = [f for f in files if Path(f).name not in attached
+                    and not _accepts(el.get("accept") or "", f)]
         if not got:
             # Empty is normal when the page's change handler moves the file into its own
             # state and clears the input. It is NOT normal when `accept` excluded the file
             # — that one is a silent client-side rejection, so name it.
-            rejected = [f for f in files if not _accepts(el.get("accept") or "", f)]
             out["consumed_or_rejected"] = True
-            if rejected:
-                out["accept_rejected"] = [Path(f).name for f in rejected]
-        return out
+        if rejected:
+            out["accept_rejected"] = [Path(f).name for f in rejected]
+            return MappingOutcome(Outcome(
+                ok=False,
+                cls=Class.VALUE_REJECTED,
+                detail="file input rejected file(s) excluded by its accept filter",
+                observed=out,
+                value=out,
+            ))
+        return MappingOutcome(ok(out, **out))
 
     # -- item 21: screenshots ----------------------------------------------
 

@@ -122,7 +122,7 @@ hides the real one. Take the `hidden_control` ref, not the visible decoy beside 
 click_ref(ref) / click_at(x, y)      # coordinate clicks pass through iframes + shadow DOM
 press_key("Enter") / scroll(600)      # named keys; for text use set_value
 set_value(ref, text)                  # one round trip, any length
-upload_file(ref, "/path/cv.pdf")      # no OS picker
+upload_file(ref, "/path/cv.pdf")      # mapping + Outcome attrs; no OS picker
 js("await fetch('/api').then(r=>r.json())")   # replMode: top-level await works
 cdp("Target.getTargets")              # raw escape hatch, always available
 ```

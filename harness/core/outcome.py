@@ -132,6 +132,43 @@ class Outcome:
         return d
 
 
+class MappingOutcome(dict[str, Any]):
+    """Outcome contract for helpers whose public payload was historically a mapping."""
+
+    def __init__(self, outcome: Outcome):
+        if not isinstance(outcome.value, dict):
+            raise TypeError("MappingOutcome requires a dict value")
+        super().__init__(outcome.value)
+        self._outcome = outcome
+
+    @property
+    def value(self) -> MappingOutcome:
+        return self
+
+    @property
+    def observed(self) -> MappingOutcome:
+        return self
+
+    def unwrap(self) -> MappingOutcome:
+        if not self.ok:
+            self._outcome.observed = dict(self)
+            self._outcome.value = dict(self)
+            raise HarnessError.of(self._outcome)
+        return self
+
+    def to_json(self) -> dict[str, Any]:
+        data = self._outcome.to_json()
+        data["observed"] = dict(self)
+        return data
+
+    def __getattr__(self, name: str) -> Any:
+        try:
+            outcome = object.__getattribute__(self, "_outcome")
+        except AttributeError:
+            raise AttributeError(name) from None
+        return getattr(outcome, name)
+
+
 @dataclass(slots=True)
 class Tally:
     """Rule 4: an operation over N items reports all three counts.
@@ -229,6 +266,7 @@ JsException = _error("JsException", Class.JS_EXCEPTION)
 NotSerializable = _error("NotSerializable", Class.NOT_SERIALIZABLE)
 NoOptionMatch = _error("NoOptionMatch", Class.NO_OPTION_MATCH)
 NeedsInteraction = _error("NeedsInteraction", Class.NEEDS_INTERACTION)
+ValueRejected = _error("ValueRejected", Class.VALUE_REJECTED)
 NotAForm = _error("NotAForm", Class.NOT_A_FORM)
 ElementGone = _error("ElementGone", Class.ELEMENT_GONE)
 Partial = _error("Partial", Class.PARTIAL)
@@ -242,7 +280,8 @@ _BY_CLASS: dict[Class, type[HarnessError]] = {
         SkillIntegrityFailed,
         TargetGone, SessionStale,
         RendererUnresponsive, CdpError, NavigationFailed, HttpError, JsException,
-        NotSerializable, NoOptionMatch, NeedsInteraction, NotAForm, ElementGone, Partial,
+        NotSerializable, NoOptionMatch, NeedsInteraction, ValueRejected, NotAForm,
+        ElementGone, Partial,
         Timeout,
     )
 }
