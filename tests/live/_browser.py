@@ -16,6 +16,12 @@ other being enough.
 
 The cost is that there is no process handle to terminate — hence `kill()`, which finds the
 browser by the scratch profile it was told to use. No other Chrome can be holding it.
+
+That last sentence is load-bearing and was once false on Windows, where `kill()` ran
+`taskkill /F /IM chrome.exe` and took down every Chrome on the machine: the operator's own
+browser, and the one an attached extension was driving, which killed the calling CLI too.
+Both branches now match on `--user-data-dir=<profile>` so the blast radius is the scratch
+profile and nothing else.
 """
 from __future__ import annotations
 
@@ -97,8 +103,22 @@ def kill(profile: Path) -> None:
         if lease is None:
             raise RuntimeError(f"refusing to kill unowned Chrome profile {profile}")
         if os.name == "nt":
-            subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], check=False,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            # NEVER `taskkill /IM chrome.exe`: that is every Chrome on the machine, not
+            # ours. It killed the operator's own browser mid-session — their real tabs and
+            # the Chrome an attached extension was driving — which then took the calling
+            # CLI down with it. The lease above exists precisely to scope this, and the
+            # POSIX branch already honours it via `pkill -f --user-data-dir=`; Windows has
+            # no command-line filter in taskkill, so match on it explicitly and kill by pid.
+            quoted = str(profile).replace("'", "''")
+            script = (
+                "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+                f"Where-Object {{ $_.CommandLine -like '*--user-data-dir={quoted}*' }} | "
+                "ForEach-Object { Stop-Process -Id $_.ProcessId -Force "
+                "-ErrorAction SilentlyContinue }"
+            )
+            subprocess.run(
+                ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+                check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             subprocess.run(["/usr/bin/pkill", "-f", "--", f"--user-data-dir={profile}"],
                            check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
