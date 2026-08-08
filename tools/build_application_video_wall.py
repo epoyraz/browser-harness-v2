@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "outputs" / "top-25-applications-2026-08-08"
 MANIFEST = OUT / "manifest.json"
 VIDEO = OUT / "application-wall-5x5.mp4"
+CONTACT_SHEET = OUT / ".application-wall-contact-sheet.png"
 
 FPS = 30
 CONTENT_SECONDS = 8.0
@@ -18,6 +19,8 @@ TOTAL_SECONDS = INTRO_SECONDS + CONTENT_SECONDS
 OUTPUT_W, OUTPUT_H = 3840, 2160
 CELL_W, CELL_H = 768, 432
 INNER_W, INNER_H = 764, 428
+SCENE_CELL_W, SCENE_CELL_H = 1920, 1080
+SCENE_INNER_W, SCENE_INNER_H = 1912, 1072
 
 
 payload = json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -27,6 +30,42 @@ values = sorted(
 )
 if len(values) != 25:
     raise RuntimeError(f"expected 25 recordings, got {len(values)}")
+
+# Build a high-resolution scene once. The camera moves over this 9600x5400 surface, so
+# the opening cell is not a tiny grid tile enlarged fivefold.
+scene_inputs: list[str] = []
+scene_filters: list[str] = []
+for index, value in enumerate(values):
+    screenshot = ROOT / value["screenshot"]
+    if not screenshot.is_file():
+        raise FileNotFoundError(screenshot)
+    scene_inputs.extend(["-i", str(screenshot)])
+    scene_filters.append(
+        f"[{index}:v]scale={SCENE_INNER_W}:{SCENE_INNER_H}:"
+        "force_original_aspect_ratio=decrease,"
+        f"pad={SCENE_CELL_W}:{SCENE_CELL_H}:(ow-iw)/2:(oh-ih)/2:color=white[s{index}]"
+    )
+scene_layout = "|".join(
+    f"{column * SCENE_CELL_W}_{row * SCENE_CELL_H}"
+    for row in range(5)
+    for column in range(5)
+)
+scene_filters.append(
+    f"{''.join(f'[s{index}]' for index in range(25))}"
+    f"xstack=inputs=25:layout={scene_layout}:fill=white[scene]"
+)
+scene_result = subprocess.run(
+    [
+        "ffmpeg", "-v", "error", "-y", *scene_inputs,
+        "-filter_complex", ";".join(scene_filters),
+        "-map", "[scene]", "-frames:v", "1", "-update", "1", str(CONTACT_SHEET),
+    ],
+    capture_output=True,
+    text=True,
+    check=False,
+)
+if scene_result.returncode != 0 or not CONTACT_SHEET.is_file():
+    raise RuntimeError(f"contact sheet failed: {scene_result.stderr[-1000:]}")
 
 inputs: list[str] = []
 filters: list[str] = []
@@ -45,14 +84,11 @@ for index, value in enumerate(values):
         f"trim=duration={TOTAL_SECONDS}[v{index}]"
     )
 
-# The middle of a 5x5 grid is item 13 (zero-based index 12). Its full-resolution PNG
-# supplies the sharp opening frame; shrinking a 768x432 tile back to 4K would recreate
-# the exact quality loss this compositor exists to avoid.
-center = values[12]
-center_screenshot = ROOT / center["screenshot"]
-if not center_screenshot.is_file():
-    raise FileNotFoundError(center_screenshot)
-inputs.extend(["-loop", "1", "-framerate", str(FPS), "-i", str(center_screenshot)])
+# The middle of a 5x5 grid is item 13 (zero-based index 12). The high-resolution scene
+# carries its captured frame during the camera move; the live wall fades in after the
+# camera arrives. Several recordings begin with a blank navigation frame, so embedding
+# the live center clip during the intro would make an otherwise sharp opening turn white.
+inputs.extend(["-loop", "1", "-framerate", str(FPS), "-i", str(CONTACT_SHEET)])
 
 layout = "|".join(
     f"{column * CELL_W}_{row * CELL_H}"
@@ -64,39 +100,29 @@ filters.append(
     f"{stack_inputs}xstack=inputs=25:layout={layout}:fill=black:shortest=1[wall]"
 )
 
-focus_w = (
-    f"if(lte(t,{INTRO_SECONDS}),{OUTPUT_W},"
-    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
-    f"{OUTPUT_W}-({OUTPUT_W}-{INNER_W})*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{INNER_W}))"
+filters.append(
+    f"[25:v]fps={FPS},trim=duration={TOTAL_SECONDS},setpts=PTS-STARTPTS[scene-active]"
 )
-focus_h = (
-    f"if(lte(t,{INTRO_SECONDS}),{OUTPUT_H},"
-    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
-    f"{OUTPUT_H}-({OUTPUT_H}-{INNER_H})*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{INNER_H}))"
+
+hold_frames = round(INTRO_SECONDS * FPS)
+zoom_frames = round(ZOOM_SECONDS * FPS)
+zoom_end = hold_frames + zoom_frames
+camera_zoom = (
+    f"if(lte(on,{hold_frames - 1}),5,"
+    f"if(lte(on,{zoom_end}),5-4*(on-{hold_frames - 1})/{zoom_frames},1))"
 )
-target_x = 2 * CELL_W + (CELL_W - INNER_W) // 2
-target_y = 2 * CELL_H + (CELL_H - INNER_H) // 2
-focus_x = (
-    f"if(lte(t,{INTRO_SECONDS}),0,"
-    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
-    f"{target_x}*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{target_x}))"
+filters.append(
+    f"[scene-active]zoompan=z='{camera_zoom}':"
+    "x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':"
+    f"d=1:s={OUTPUT_W}x{OUTPUT_H}:fps={FPS},settb=AVTB[camera]"
 )
-focus_y = (
-    f"if(lte(t,{INTRO_SECONDS}),0,"
-    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
-    f"{target_y}*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{target_y}))"
+filters.append(
+    f"[wall]fps={FPS},settb=AVTB[wall-ready]"
 )
 fade_start = INTRO_SECONDS + ZOOM_SECONDS - 0.3
 filters.append(
-    f"[25:v]scale={OUTPUT_W}:{OUTPUT_H}:force_original_aspect_ratio=decrease,"
-    f"pad={OUTPUT_W}:{OUTPUT_H}:(ow-iw)/2:(oh-ih)/2:color=white,"
-    f"trim=duration={TOTAL_SECONDS},setpts=PTS-STARTPTS,format=rgba,"
-    f"scale=w='{focus_w}':h='{focus_h}':eval=frame,"
-    f"fade=t=out:st={fade_start}:d=0.3:alpha=1[focus]"
-)
-filters.append(
-    f"[wall][focus]overlay=x='{focus_x}':y='{focus_y}':eval=frame:shortest=1,"
-    "format=yuv420p[out]"
+    f"[camera][wall-ready]xfade=transition=fade:duration=0.3:offset={fade_start},"
+    f"trim=duration={TOTAL_SECONDS},format=yuv420p[out]"
 )
 
 command = [
@@ -109,6 +135,7 @@ command = [
 result = subprocess.run(command, capture_output=True, text=True, check=False)
 if result.returncode != 0 or not VIDEO.is_file():
     raise RuntimeError(f"ffmpeg failed: {result.stderr[-1000:]}")
+CONTACT_SHEET.unlink(missing_ok=True)
 
 probe = subprocess.run(
     [
