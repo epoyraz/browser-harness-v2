@@ -15,8 +15,9 @@ CONTENT_SECONDS = 8.0
 INTRO_SECONDS = 1.2
 ZOOM_SECONDS = 2.5
 TOTAL_SECONDS = INTRO_SECONDS + CONTENT_SECONDS
-CELL_W, CELL_H = 384, 216
-INNER_W, INNER_H = 380, 212
+OUTPUT_W, OUTPUT_H = 3840, 2160
+CELL_W, CELL_H = 768, 432
+INNER_W, INNER_H = 764, 428
 
 
 payload = json.loads(MANIFEST.read_text(encoding="utf-8"))
@@ -44,6 +45,15 @@ for index, value in enumerate(values):
         f"trim=duration={TOTAL_SECONDS}[v{index}]"
     )
 
+# The middle of a 5x5 grid is item 13 (zero-based index 12). Its full-resolution PNG
+# supplies the sharp opening frame; shrinking a 768x432 tile back to 4K would recreate
+# the exact quality loss this compositor exists to avoid.
+center = values[12]
+center_screenshot = ROOT / center["screenshot"]
+if not center_screenshot.is_file():
+    raise FileNotFoundError(center_screenshot)
+inputs.extend(["-loop", "1", "-framerate", str(FPS), "-i", str(center_screenshot)])
+
 layout = "|".join(
     f"{column * CELL_W}_{row * CELL_H}"
     for row in range(5)
@@ -54,15 +64,38 @@ filters.append(
     f"{stack_inputs}xstack=inputs=25:layout={layout}:fill=black:shortest=1[wall]"
 )
 
-hold_frames = round(INTRO_SECONDS * FPS)
-zoom_frames = round(ZOOM_SECONDS * FPS)
-zoom_end = hold_frames + zoom_frames
-zoom = (
-    f"if(lte(on,{hold_frames - 1}),5,"
-    f"if(lte(on,{zoom_end}),5-4*(on-{hold_frames - 1})/{zoom_frames},1))"
+focus_w = (
+    f"if(lte(t,{INTRO_SECONDS}),{OUTPUT_W},"
+    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
+    f"{OUTPUT_W}-({OUTPUT_W}-{INNER_W})*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{INNER_W}))"
+)
+focus_h = (
+    f"if(lte(t,{INTRO_SECONDS}),{OUTPUT_H},"
+    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
+    f"{OUTPUT_H}-({OUTPUT_H}-{INNER_H})*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{INNER_H}))"
+)
+target_x = 2 * CELL_W + (CELL_W - INNER_W) // 2
+target_y = 2 * CELL_H + (CELL_H - INNER_H) // 2
+focus_x = (
+    f"if(lte(t,{INTRO_SECONDS}),0,"
+    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
+    f"{target_x}*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{target_x}))"
+)
+focus_y = (
+    f"if(lte(t,{INTRO_SECONDS}),0,"
+    f"if(lte(t,{INTRO_SECONDS + ZOOM_SECONDS}),"
+    f"{target_y}*(t-{INTRO_SECONDS})/{ZOOM_SECONDS},{target_y}))"
+)
+fade_start = INTRO_SECONDS + ZOOM_SECONDS - 0.3
+filters.append(
+    f"[25:v]scale={OUTPUT_W}:{OUTPUT_H}:force_original_aspect_ratio=decrease,"
+    f"pad={OUTPUT_W}:{OUTPUT_H}:(ow-iw)/2:(oh-ih)/2:color=white,"
+    f"trim=duration={TOTAL_SECONDS},setpts=PTS-STARTPTS,format=rgba,"
+    f"scale=w='{focus_w}':h='{focus_h}':eval=frame,"
+    f"fade=t=out:st={fade_start}:d=0.3:alpha=1[focus]"
 )
 filters.append(
-    f"[wall]zoompan=z='{zoom}':x=0:y=0:d=1:s=1920x1080:fps={FPS},"
+    f"[wall][focus]overlay=x='{focus_x}':y='{focus_y}':eval=frame:shortest=1,"
     "format=yuv420p[out]"
 )
 
@@ -70,7 +103,7 @@ command = [
     "ffmpeg", "-v", "error", "-y", *inputs,
     "-filter_complex", ";".join(filters),
     "-map", "[out]", "-an", "-t", str(TOTAL_SECONDS),
-    "-c:v", "libx264", "-preset", "medium", "-crf", "21",
+    "-c:v", "libx264", "-preset", "medium", "-crf", "19",
     "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(VIDEO),
 ]
 result = subprocess.run(command, capture_output=True, text=True, check=False)
