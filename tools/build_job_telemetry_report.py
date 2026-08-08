@@ -301,7 +301,7 @@ details{{background:var(--card);border:1px solid var(--line);border-radius:8px;m
 <section class="metrics">
 {metric('Jobs processed','100','100 worker records; no worker or cleanup failure')}
 {metric('Wall time',f'{wall_ms/1000:.1f}s',f'{effective_parallelism:.2f} effective concurrent job-seconds across 10 tabs')}
-{metric('Forms reached',f'{len(FORMS)}/100','56 routes ended at account, bot-wall, listing, or no-form states')}
+{metric('Forms reached',f'{len(FORMS)}/100',f'{len(VALUES) - len(FORMS)} routes ended at account, bot-wall, listing, or no-form states')}
 {metric('Verified fills',f'{filled}/{planned}',f'{pct(filled,planned)} of CV-backed planned fields; {fill_failed} typed failures')}
 {metric('CV uploads',f'{upload_ok}/{len(uploads)}','Local file-control verification only; not server receipt')}
 {metric('Fields observed',str(len(fields)),f'{sum(bool(f.get("required")) for f in fields)} inferred required controls')}
@@ -311,9 +311,9 @@ details{{background:var(--card);border:1px solid var(--line);border-radius:8px;m
 
 <h2>Reachability and route quality</h2><div class="grid2">
 <section class="panel"><h3>Form discovery by declared route</h3><table><thead><tr><th>Route</th><th>Forms</th><th>Jobs</th><th>Rate</th></tr></thead><tbody>{route_html}</tbody></table></section>
-<section class="panel"><h3>Why 56 jobs had no usable form</h3><table><thead><tr><th>Observed state</th><th>Jobs</th></tr></thead><tbody>{reason_html}</tbody></table></section>
+<section class="panel"><h3>Why {len(VALUES) - len(FORMS)} jobs had no usable form</h3><table><thead><tr><th>Observed state</th><th>Jobs</th></tr></thead><tbody>{reason_html}</tbody></table></section>
 </div>
-<p>The distinction matters: all 100 parallel items completed successfully as harness work, but only 44 exposed a form the harness could honestly classify and fill.</p>
+<p>The distinction matters: all {len(VALUES)} parallel items completed successfully as harness work, but only {len(FORMS)} exposed a form the harness could honestly classify and fill.</p>
 
 <h2>What is missing from the CV/profile</h2>
 <section class="panel"><table><thead><tr><th>Information or choice</th><th>Jobs</th><th>Controls</th><th>Required</th><th>Examples</th></tr></thead><tbody>{missing_table}</tbody></table></section>
