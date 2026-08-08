@@ -94,8 +94,39 @@ def _state_path() -> Path:
 
 
 def _pid_alive(pid: int) -> bool:
+    """Is this pid still running? Read-only — it must never signal anything.
+
+    `os.kill(pid, 0)` is the POSIX idiom for exactly this, and on Windows it is a loaded
+    gun. Python maps the signal argument onto the console API, `signal.CTRL_C_EVENT == 0`,
+    and a control event goes to every process sharing the console — not to the pid. So the
+    liveness probe raised Ctrl+C on the terminal that started the run, killing the operator's
+    whole CLI session and dropping them to the shell. The lease watchdog polls this twice a
+    second, so the effect looked random and never pointed back here.
+
+    On Windows, ask the OS instead. A handle that opens and a process still reporting
+    STILL_ACTIVE is alive; access-denied means it exists but belongs to someone else, which
+    is the same answer PermissionError gives on POSIX.
+    """
     if pid <= 0:
         return False
+    if os.name == "nt":
+        import ctypes
+        from ctypes import wintypes
+
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        STILL_ACTIVE = 259
+        ERROR_ACCESS_DENIED = 5
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            return ctypes.get_last_error() == ERROR_ACCESS_DENIED
+        try:
+            code = wintypes.DWORD()
+            if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                return True                      # cannot tell; assume alive, never signal
+            return code.value == STILL_ACTIVE
+        finally:
+            kernel32.CloseHandle(handle)
     try:
         os.kill(pid, 0)
     except ProcessLookupError:

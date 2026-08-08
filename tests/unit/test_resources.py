@@ -64,3 +64,47 @@ def test_ledger_cleans_up_in_reverse_order_and_reports_failures():
     assert failures == [{"kind": "tab", "identifier": "b",
                          "error": "RuntimeError: stuck"}]
     assert ledger.active() == []
+
+
+# --- the liveness probe must never signal anything ---------------------------
+
+def test_pid_alive_detects_a_live_and_a_dead_process():
+    """`os.kill(pid, 0)` reads as a probe and is one on POSIX. On Windows Python maps the
+    signal onto the console API, signal.CTRL_C_EVENT == 0, and the event goes to every
+    process sharing the console — so the probe raised Ctrl+C on the terminal running the
+    suite and killed the whole CLI session. The watchdog polls this twice a second."""
+    import os
+    import subprocess
+    import sys
+
+    from harness.core.resources import _pid_alive
+
+    assert _pid_alive(os.getpid()) is True
+    done = subprocess.Popen([sys.executable, "-c", "pass"])
+    done.wait()
+    assert _pid_alive(done.pid) is False
+    assert _pid_alive(0) is False
+    assert _pid_alive(-1) is False
+
+
+def test_pid_alive_does_not_signal_on_windows():
+    """Pin the implementation, not just the answer: on Windows this must not reach os.kill
+    at all, because every value of sig there either terminates the target or raises a
+    console control event."""
+    import inspect
+    import os
+
+    from harness.core import resources
+
+    src = inspect.getsource(resources._pid_alive)
+    windows_branch = src.split('if os.name == "nt":', 1)
+    assert len(windows_branch) == 2, "the Windows branch is gone; os.kill would be reached"
+    before_posix_fallback = windows_branch[1].split("try:", 1)[0]
+    assert "os.kill" not in before_posix_fallback
+    assert "OpenProcess" in before_posix_fallback
+    if os.name == "nt":
+        assert _win_probe_is_used(resources)
+
+
+def _win_probe_is_used(resources):
+    return resources._pid_alive(4) is True      # System: exists, access denied
