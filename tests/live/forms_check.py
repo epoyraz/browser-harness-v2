@@ -27,7 +27,14 @@ from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
 from harness.ops.batch import fetch_all
-from harness.ops.forms import fill_form, form_schema, require_form, select_option, set_value
+from harness.ops.forms import (
+    fill_form,
+    form_schema,
+    prepare_document,
+    require_form,
+    select_option,
+    set_value,
+)
 from harness.ops.page import Tab
 
 #: See check.py — Windows occlusion throttling drops Input.dispatchMouseEvent.
@@ -93,6 +100,20 @@ def main() -> int:
 
         def evaluates() -> int:
             return sum(1 for c in [])            # placeholder, replaced by journal below
+
+        # ---- apply_link: the verb is not the first word --------------------
+        # An anchored /^(apply|bewerben|...)/ found the link on 1 of 34 real postings,
+        # because Personio's German label is "Auf diese Stelle bewerben".
+        tab.goto(f"{base}/applylink.html")
+        prep = prepare_document(tab)
+        link = prep.get("apply_link") or ""
+        check("apply_link: matches a verb that is not the first word",
+              link.endswith("/job/2612502/apply?language=de"), link[-46:] or "None")
+        check("apply_link: rejects same-stem decoys (tips, filters, alerts, mailto)",
+              "tips" not in link and "filters" not in link and "alert" not in link
+              and not link.startswith("mailto:"), link[-46:] or "None")
+        check("apply_link: an href saying /apply cannot outrank the label",
+              "privacy" not in link, link[-46:] or "None")
 
         # ---- Abacus: the proximity fallback (item 23's done-when) ----------
         tab.goto(f"{base}/abacus.html")

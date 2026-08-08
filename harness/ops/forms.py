@@ -188,9 +188,38 @@ _PREPARE_JS = """(() => {
             label: (label && label.innerText || el.getAttribute('aria-label') || '').trim(),
             accept: el.accept || '', multiple: !!el.multiple};
   });
-  const apply = [...document.querySelectorAll('a[href]')].find(a =>
-    /^(apply|apply now|bewerben|jetzt bewerben|postuler|candidature|candida)/i
-      .test((a.innerText || '').trim()));
+  // The verb is rarely the first word. "Auf diese Stelle bewerben" is the commonest German
+  // apply label there is, and an anchored pattern can never match it — measured 1 hit in 34
+  // real postings. Match the verb ANYWHERE, in the languages Swiss ATSs actually ship, and
+  // score rather than take-first so a nav item reading "Apply" cannot beat the real link.
+  const APPLY_TEXT =
+    /(bewerb|apply|postul|candidat|candida|sollicit|solicit|aplicar|ansök|søk)/i;
+  const APPLY_HREF = /(apply|application|bewerb|postul|candidat)/i;
+  // "Apply filters", "Bewerbungstipps", a privacy link — same verb, wrong destination.
+  const NOT_APPLY =
+    /(filter|tipp|tips|ratgeber|guide|faq|hilfe|help|datenschutz|privacy|impressum|cookie|newsletter|alert|job.?alert|abo)/i;
+  const scoreApply = a => {
+    const txt = (a.innerText || a.getAttribute('aria-label') || a.title || '')
+      .replace(/\\s+/g, ' ').trim();
+    const href = a.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href)) return -1;
+    if (!txt || txt.length > 60 || NOT_APPLY.test(txt)) return -1;
+    // The label must carry the verb. Scoring on href alone found nothing the text did not
+    // already find, and did produce a false positive: a "Candidates Privacy Notice" link
+    // whose href happened to contain /apply/. href is a tie-break, not evidence.
+    if (!APPLY_TEXT.test(txt)) return -1;
+    let s = 3;
+    if (APPLY_HREF.test(href)) s += 2;
+    const r = a.getBoundingClientRect();
+    if (r.width && r.height) s += 1;          // a visible control beats a hidden one
+    if (txt.length <= 30) s += 1;             // a button label, not a sentence
+    return s;
+  };
+  let apply = null, bestScore = 0;
+  for (const a of document.querySelectorAll('a[href]')) {
+    const s = scoreApply(a);
+    if (s > bestScore) { bestScore = s; apply = a; }
+  }
   return {schema, url: location.href, title: document.title,
           language: document.documentElement.lang || navigator.language || 'en',
           file_inputs: fileInputs, apply_link: apply ? apply.href : null};

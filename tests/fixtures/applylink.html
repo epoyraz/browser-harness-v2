@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>apply-link labels</title>
+<!--
+  Labels taken from real Swiss ATS postings. The verb is almost never the first word,
+  which is why an anchored /^(apply|bewerben|...)/ matched 1 posting in 34: Personio's
+  German label is "Auf diese Stelle bewerben" and starts with "Auf".
+
+  The decoys are the other half of the job — same verb stem, wrong destination.
+-->
+<body>
+  <nav>
+    <a href="/tips">Bewerbungstipps</a>            <!-- decoy: bewerb + tipp -->
+    <a href="/filters">Apply filters</a>           <!-- decoy: apply + filter -->
+    <a href="/privacy/apply">Candidates Privacy Notice</a>  <!-- decoy: href says apply -->
+    <a href="/alerts">Job Alert erstellen</a>      <!-- decoy: alert -->
+    <a href="#main">Zum Inhalt springen</a>        <!-- decoy: fragment only -->
+    <a href="mailto:jobs@example.ch">Per Mail bewerben</a>  <!-- decoy: mailto -->
+  </nav>
+
+  <main id="main">
+    <h1>Senior Full-Stack Engineer</h1>
+    <p>Ein langer Absatz, der zufällig das Wort bewerben enthält und deshalb kein
+       Kandidat sein darf, weil er viel zu lang für ein Button-Label ist und über
+       sechzig Zeichen hinausgeht.</p>
+    <a class="real" href="/job/2612502/apply?language=de">Auf diese Stelle bewerben</a>
+  </main>
+</body>
