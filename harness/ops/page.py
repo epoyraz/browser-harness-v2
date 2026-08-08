@@ -73,20 +73,30 @@ RUNTIME_JS = """(() => {
 #: Installed in the page's main world before page script. This is deliberately separate
 #: from the isolated-world runtime: form handlers and network APIs live in the main world,
 #: and a guard in another JavaScript realm cannot interpose on them. The closure retains
-#: the native functions before application code can capture them, then makes the guarded
-#: replacements non-configurable. Filling and inspecting remain available; irreversible
-#: requests are default-denied and counted for the audit log.
+#: the native functions before application code can capture them. Filling and inspecting
+#: remain available; irreversible requests are default-denied and counted for the audit log.
+#:
+#: The guarded properties are deliberately left **writable and configurable**. Hardening
+#: them cost far more than it bought: a module bundle is strict mode, so a page wrapping
+#: `window.fetch` — which Sentry, DataDog, New Relic and most analytics SDKs do — got an
+#: uncaught TypeError and died. Measured: Ashby's bundle assigns `window.fetch` on line 33
+#: of its entry chunk, so 15 of 34 real ATS postings rendered a 0-character DOM and the
+#: harness then reported its own damage as "fewer than 2 real fields". Interception is what
+#: provides the safety; non-writability only defended against a page racing to *unwrap* the
+#: guard, which no real page does and which a fresh iframe would defeat anyway. Wrapping
+#: preserves the guard: a page that wraps our `fetch` still calls through to it.
 SAFETY_JS = """(() => {
   const marker = Symbol.for('browser-harness.dry-run');
   if (window[marker]) return true;
   const attempts = [];
+  const state = {attempts, armed: false};
   const record = (kind, detail = {}) => {
     attempts.push({kind, detail, ts: Date.now()});
     console.warn('browser-harness dry-run policy blocked', kind, detail);
     return false;
   };
   Object.defineProperty(window, marker, {
-    value: {attempts}, configurable: false, writable: false});
+    value: state, configurable: false, writable: false});
   document.addEventListener('submit', event => {
     record('form.submit', {action: event.target && event.target.action || ''});
     event.preventDefault();
@@ -97,13 +107,40 @@ SAFETY_JS = """(() => {
   };
   for (const name of ['submit', 'requestSubmit']) {
     Object.defineProperty(HTMLFormElement.prototype, name, {
-      value: blockedSubmit, configurable: false, writable: false});
+      value: blockedSubmit, configurable: true, writable: true});
   }
+  // A POST is only dangerous once the page holds data somebody entered. Before that there
+  // is nothing of the applicant's to send, so a boot-time POST cannot submit an
+  // application — and blocking it merely stops the page rendering. Measured: 15 of 34 real
+  // ATS postings (every Ashby, BambooHR and Workable one) served a 0-character DOM because
+  // their SPA POSTs for its own content and got NotAllowedError back.
+  //
+  // The trigger is the page's own state rather than a flag the harness has to set, so this
+  // costs no round trip: a control whose value differs from its default, or a file input
+  // holding a file, means data is present. Errors fail CLOSED.
+  // Form submit/requestSubmit and beacons stay blocked unconditionally — that is the real
+  // send path, and it is refused whether data is present or not.
+  // The writer runs in the isolated world, whose expandos do not cross realms — but DOM
+  // *attributes* are shared document state, so the fill marks the document there and this
+  // guard reads it, costing no extra round trip. `defaultValue` cannot be used for this:
+  // React mirrors a programmatic write onto the value attribute, so value === defaultValue
+  // even after the field was filled (measured on Personio: first_name read back
+  // value="Enes Poyraz", defaultValue="Enes Poyraz").
+  const dirty = () => {
+    if (state.armed) return true;
+    try {
+      if (document.documentElement.hasAttribute('data-bh-entered')) return true;
+      for (const el of document.querySelectorAll('input, textarea')) {
+        if (el.type === 'file' && el.files && el.files.length) return true;
+      }
+      return false;
+    } catch (err) { return true; }
+  };
   const mutating = method => !['GET', 'HEAD', 'OPTIONS'].includes(
-    String(method || 'GET').toUpperCase());
+    String(method || 'GET').toUpperCase()) && dirty();
   const nativeFetch = window.fetch && window.fetch.bind(window);
   if (nativeFetch) Object.defineProperty(window, 'fetch', {
-    configurable: false, writable: false,
+    configurable: true, writable: true,
     value: function(input, init = {}) {
       const method = init.method || (input && input.method) || 'GET';
       if (mutating(method)) {
@@ -115,14 +152,14 @@ SAFETY_JS = """(() => {
   const nativeOpen = XMLHttpRequest.prototype.open;
   const nativeSend = XMLHttpRequest.prototype.send;
   Object.defineProperty(XMLHttpRequest.prototype, 'open', {
-    configurable: false, writable: false,
+    configurable: true, writable: true,
     value: function(method, url, ...rest) {
       this.__bhMethod = String(method || 'GET').toUpperCase();
       this.__bhUrl = String(url || '');
       return nativeOpen.call(this, method, url, ...rest);
     }});
   Object.defineProperty(XMLHttpRequest.prototype, 'send', {
-    configurable: false, writable: false,
+    configurable: true, writable: true,
     value: function(body) {
       if (mutating(this.__bhMethod)) {
         record('xhr', {method: this.__bhMethod, url: this.__bhUrl});
@@ -131,7 +168,7 @@ SAFETY_JS = """(() => {
       return nativeSend.call(this, body);
     }});
   if (navigator.sendBeacon) Object.defineProperty(navigator, 'sendBeacon', {
-    configurable: false, writable: false,
+    configurable: true, writable: true,
     value: function(url) { return record('beacon', {url: String(url || '')}); }});
   return true;
 })()"""
@@ -458,6 +495,21 @@ class Tab:
                 pass                  # waits fall back to their timeout, nothing else breaks
         self._world_ctx = ctx
         return ctx
+
+    def arm_dry_run(self) -> bool:
+        """Close the read-only window: from here on mutating fetch/XHR are refused.
+
+        Called by the first helper that writes applicant data into the page. Until then the
+        document holds nothing of ours and a POST cannot send an application; afterwards
+        every mutating request is a candidate for exactly that. Form submission, beacons
+        and `requestSubmit` stay blocked either way — this only governs XHR/fetch.
+        """
+        try:
+            return bool(self.js(
+                "(() => {const s = window[Symbol.for('browser-harness.dry-run')];"
+                " if (!s) return false; s.armed = true; return true;})()", timeout=5.0))
+        except HarnessError:
+            return False               # a page we cannot reach cannot send anything either
 
     def _world_js(self, expression: str, *, timeout: float = 10.0) -> Any:
         """Evaluate harness machinery in the isolated world. Falls back to the main world

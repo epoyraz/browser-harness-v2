@@ -327,7 +327,7 @@ class Session:
         }
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "frames",
-                     "page_text", "press_key", "scroll", "upload_file"):
+                     "page_text", "press_key", "scroll", "upload_file", "arm_dry_run"):
             ns[name] = on_tab(name)
         ns["start_recording"] = self.start_recording
         ns["stop_recording"] = self.stop_recording

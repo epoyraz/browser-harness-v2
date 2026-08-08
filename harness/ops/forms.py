@@ -142,13 +142,33 @@ _SCHEMA_JS = """(() => {
     'button[type=submit],input[type=submit],input[type=button],button:not([type])')]
     .filter(b => !furniture(b))
     .map(b => (b.innerText || b.value || '').trim()).filter(Boolean);
+  // "fewer than 2 real fields" is true of a bot wall, an unbooted SPA and a form whose
+  // controls are all hidden — three different problems with three different fixes. Say
+  // which one it is, and carry the counts that prove it.
+  const textLen = ((document.body && document.body.innerText) || '').trim().length;
+  const inDom = document.querySelectorAll('input,textarea,select').length;
+  const visible = [...document.querySelectorAll('input,textarea,select')]
+    .filter(e => e.offsetParent !== null).length;
+  let reason;
+  if (fields.length >= 2 && submits.length > 0) reason = 'fields plus a submit control';
+  else if (textLen === 0 && inDom === 0)
+    reason = 'page rendered nothing: 0 characters and 0 form controls. The document is '
+           + 'empty — a bot wall, or an app whose boot request never completed';
+  else if (fields.length < 2 && inDom >= 2 && visible === 0)
+    reason = 'form controls exist but none are usable: ' + inDom + ' in the DOM, 0 visible'
+           + ' — the form is collapsed or behind another step';
+  else if (fields.length < 2)
+    reason = 'fewer than 2 real fields after furniture exclusion';
+  else reason = 'no submit control';
   const verdict = {
     is_form: fields.length >= 2 && submits.length > 0,
-    reason: fields.length < 2 ? 'fewer than 2 real fields after furniture exclusion'
-      : submits.length === 0 ? 'no submit control' : 'fields plus a submit control',
+    reason,
     fields: fields.length,
     required: fields.filter(f => f.required).length,
     files: files.length,
+    controls_in_dom: inDom,
+    controls_visible: visible,
+    text_len: textLen,
     submit_labels: submits.slice(0, 5)};
   return {verdict, fields, files};
 })()"""
@@ -258,6 +278,11 @@ _FILL_JS = """((plan) => {
       report.push({ref: step.ref, ok: false, error: String(e).slice(0, 120)});
     }
   }
+  // Tell the main-world dry-run guard that the document now holds entered data, so it
+  // starts refusing mutating fetch/XHR. An attribute is the only channel: this runs in the
+  // isolated world and its expandos do not cross realms, while the DOM is shared. Folded
+  // into this evaluate so it costs nothing — the "one write per form" count is unchanged.
+  try { document.documentElement.setAttribute('data-bh-entered', '1'); } catch (e) {}
   return report;
 })(__PLAN__)"""
 
@@ -342,6 +367,7 @@ def _typed_write(tab: Tab, ref: str, value: Any, mode: str, timeout: float) -> d
     """
     focused = tab._world_js(
         f"(() => {{const el = window.__bh && __bh.refs[{json.dumps(ref)}]; if (!el) return false;"
+        " try { document.documentElement.setAttribute('data-bh-entered', '1'); } catch (e) {}"
         " el.focus(); el.select && el.select(); return true;})()", timeout=timeout)
     if not focused:
         return {"ref": ref, "ok": False, "error": "element_gone", "mode": mode}
