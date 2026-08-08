@@ -206,6 +206,35 @@ def _claim_dead_lease(lease_id: str) -> str | None:
         return str(entry.get("profile") or "")
 
 
+def kill_chrome_for_profile(profile: str) -> None:
+    """Stop only the Chrome started on `profile`. The scope is the whole point.
+
+    Both callers used to reach for `taskkill /F /IM chrome.exe` on Windows, which is every
+    Chrome on the machine — the operator's own tabs, and any browser an extension is
+    driving. Measured on a developer box: 29 chrome.exe running, 0 of them the scratch
+    profile. Killing an attached browser also took down the CLI that started the run, so
+    the watchdog turned a crash into a bigger one.
+
+    taskkill has no command-line filter, so match `--user-data-dir` explicitly and stop by
+    pid — the same scoping the POSIX branch always had.
+    """
+    if not profile:
+        return
+    if os.name == "nt":
+        quoted = str(profile).replace("'", "''")
+        script = (
+            "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
+            f"Where-Object {{ $_.CommandLine -like '*--user-data-dir={quoted}*' }} | "
+            "ForEach-Object { Stop-Process -Id $_.ProcessId -Force "
+            "-ErrorAction SilentlyContinue }"
+        )
+        subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
+                       check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        subprocess.run(["/usr/bin/pkill", "-9", "-f", "--", f"--user-data-dir={profile}"],
+                       check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def _watch(lease_id: str) -> int:
     while True:
         with _locked_state(prune=False) as (_, entries):
@@ -218,13 +247,7 @@ def _watch(lease_id: str) -> int:
         profile = _claim_dead_lease(lease_id)
         if not profile:
             return 0
-        if os.name == "nt":
-            subprocess.run(["taskkill", "/F", "/IM", "chrome.exe"], check=False,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        else:
-            subprocess.run(["/usr/bin/pkill", "-9", "-f", "--",
-                            f"--user-data-dir={profile}"], check=False,
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        kill_chrome_for_profile(profile)
         return 0
 
 

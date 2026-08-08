@@ -32,7 +32,7 @@ import sys
 import time
 from pathlib import Path
 
-from harness.core.resources import BrowserLease
+from harness.core.resources import BrowserLease, kill_chrome_for_profile
 
 CHROME = (os.environ.get("BH_CHROME")
           or ("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
@@ -102,29 +102,13 @@ def kill(profile: Path) -> None:
     try:
         if lease is None:
             raise RuntimeError(f"refusing to kill unowned Chrome profile {profile}")
-        if os.name == "nt":
-            # NEVER `taskkill /IM chrome.exe`: that is every Chrome on the machine, not
-            # ours. It killed the operator's own browser mid-session — their real tabs and
-            # the Chrome an attached extension was driving — which then took the calling
-            # CLI down with it. The lease above exists precisely to scope this, and the
-            # POSIX branch already honours it via `pkill -f --user-data-dir=`; Windows has
-            # no command-line filter in taskkill, so match on it explicitly and kill by pid.
-            quoted = str(profile).replace("'", "''")
-            script = (
-                "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | "
-                f"Where-Object {{ $_.CommandLine -like '*--user-data-dir={quoted}*' }} | "
-                "ForEach-Object { Stop-Process -Id $_.ProcessId -Force "
-                "-ErrorAction SilentlyContinue }"
-            )
-            subprocess.run(
-                ["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
-                check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        else:
+        # One implementation, shared with the lease watchdog: this existed twice, and both
+        # copies ignored the profile on Windows.
+        if os.name != "nt":
             subprocess.run(["/usr/bin/pkill", "-f", "--", f"--user-data-dir={profile}"],
                            check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(0.8)
-            subprocess.run(["/usr/bin/pkill", "-9", "-f", "--", f"--user-data-dir={profile}"],
-                           check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        kill_chrome_for_profile(str(profile))
         time.sleep(0.2)
     finally:
         if lease is not None:
