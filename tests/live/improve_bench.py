@@ -168,7 +168,7 @@ def main() -> int:
         tab.goto(f"{base}/lateform.html", timeout=10.0)
         ms, _, err = timed(lambda: tab.wait_for("input, textarea, form", state="visible",
                                                 timeout=6.0))
-        fields_then = len((forms.form_schema(tab).get("fields") or []))
+        fields_then = len(forms.form_schema(tab).get("fields") or [])
         res["wait_for_late_ms"], res["wait_for_late_fields"] = ms, fields_then
         print(f"  4b. wait_for  on a late form           {ms:>8.1f}ms "
               f"-> {fields_then} real fields present (form arrives at 1500ms)")

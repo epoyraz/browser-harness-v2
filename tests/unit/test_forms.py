@@ -7,6 +7,7 @@ from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
 from harness.ops.forms import (
+    application_route_candidates,
     fill_form,
     form_schema,
     prepare_document,
@@ -25,6 +26,13 @@ def tab():
     t = Tab(conn, SessionRegistry(conn), "a")
     yield browser, t
     conn.close()
+
+
+def test_application_route_candidates_encodes_ashby_capability():
+    posting = "https://jobs.ashbyhq.com/acme/ebd97901-59be-4655-ad13-fcfa8ca17987"
+    assert application_route_candidates(posting) == [posting + "/application"]
+    assert application_route_candidates(posting + "/application") == []
+    assert application_route_candidates("https://example.com/acme/123") == []
 
 
 

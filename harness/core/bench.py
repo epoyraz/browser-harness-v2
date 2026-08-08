@@ -42,6 +42,7 @@ from typing import Any
 READ_ONLY = frozenset({
     "snapshot", "see", "page_text", "form_schema", "js", "screenshot",
     "capture_screenshot", "frames", "wait_for", "wait_lifecycle",
+    "wait_for_application_state",
 })
 
 #: Helpers whose span time is dominated by *waiting for the page*, not by our own work.
@@ -58,7 +59,10 @@ READ_ONLY = frozenset({
 #: Attributing the whole span to `wait` slightly *understates* harness — a `wait_for` also
 #: installs a binding, and `goto` issues the navigate. That error is milliseconds against
 #: seconds, and in the direction that cannot flatter us.
-BLOCKING = frozenset({"goto", "wait_for", "wait_lifecycle"})
+BLOCKING = frozenset({
+    "goto", "wait_for", "wait_lifecycle", "wait_for_form",
+    "wait_for_application_state",
+})
 
 
 def _entries(paths: Iterable[str | Path]) -> list[dict[str, Any]]:

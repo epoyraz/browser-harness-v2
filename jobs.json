@@ -1,6 +1,6 @@
 {
  "generated": "2026-08-08",
- "source": "joblens MCP search_jobs (same corpus as joblens.ch/suche)",
+ "source": "joblens public MCP get_job_details",
  "cv": {
   "file": "Lebenslauf – Enes Poyraz.pdf",
   "name": "Enes Poyraz",
@@ -8,7 +8,7 @@
   "experience_years": 8
  },
  "skills": {
-  "note": "Read from the CV's KOMPETENZEN section and experience text. joblens' own PDF extractor additionally reported Go, C and R, none of which appear in the document. Employer apply URLs for the 34 direct-form jobs come from get_job_details, not from scraping and not derived: Snowflake's Ashby uuid differs from its joblens jobId, and three of four join.com ids differ, so pattern-guessing produces dead links.",
+  "note": "Read from the CV's KOMPETENZEN section and experience text. joblens' own PDF extractor additionally reported Go, C and R, none of which appear in the document. Employer apply URLs for all 100 jobs were resolved through the public get_job_details MCP tool, not scraped or pattern-derived.",
   "core_stack": [
    "C#",
    ".NET",
@@ -77,7 +77,7 @@
   "sort": "matches",
   "universe_matching_at_least_one_skill": 1141,
   "returned": 100,
-  "direct_urls_resolved": 34
+  "direct_urls_resolved": 100
  },
  "summary": {
   "direct_form_no_account": 34,
@@ -104,10 +104,12 @@
     "mode": "form",
     "ats": "Personio",
     "direct_url": "https://comparis-ch.jobs.personio.de/job/2612502?language=de",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Personio)",
+    "resolved": true
    },
    "job_id": "Comparis_2612502",
-   "url": "https://joblens.ch/comparis/Comparis_2612502",
+   "url": "https://comparis-ch.jobs.personio.de/job/2612502?language=de",
    "matched_skills": [
     "C#",
     ".NET",
@@ -134,10 +136,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/airapps/ebd97901-59be-4655-ad13-fcfa8ca17987",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "AirApps_ebd97901-59be-4655-ad13-fcfa8ca17987",
-   "url": "https://joblens.ch/air-apps/AirApps_ebd97901-59be-4655-ad13-fcfa8ca17987",
+   "url": "https://jobs.ashbyhq.com/airapps/ebd97901-59be-4655-ad13-fcfa8ca17987",
    "matched_skills": [
     ".NET",
     "React",
@@ -161,10 +165,14 @@
    "published": "2026-04-21",
    "apply": {
     "mode": "account",
-    "ats": "iCIMS"
+    "ats": "iCIMS",
+    "direct_url": "https://expleo-jobs-ch-en.icims.com/jobs/50652/backend-developer/job?in_iframe=1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (iCIMS)",
+    "resolved": true
    },
    "job_id": "Expleo_50652",
-   "url": "https://joblens.ch/expleo/Expleo_50652",
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/50652/backend-developer/job?in_iframe=1",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -187,10 +195,14 @@
    "published": "2026-07-07",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.bs-team.ch/jobs/developpeur-c-full-stack-senior-applications-metier-critiques/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "BSTeam_37983",
-   "url": "https://joblens.ch/bs-team/BSTeam_37983",
+   "url": "https://www.bs-team.ch/jobs/developpeur-c-full-stack-senior-applications-metier-critiques/",
    "matched_skills": [
     "C#",
     ".NET",
@@ -212,10 +224,14 @@
    "published": "2026-07-06",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://careers.arqh.ai/jobs/8021551-senior-platform-full-stack-engineer",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Arqh_8021551",
-   "url": "https://joblens.ch/arqh/Arqh_8021551",
+   "url": "https://careers.arqh.ai/jobs/8021551-senior-platform-full-stack-engineer",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -237,10 +253,14 @@
    "published": "2026-06-26",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Frontend--React--Developer---Financial-Platforms-80---100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-6-months-with-possible-extension-_r-19028",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "JuliusBaer_r-19028",
-   "url": "https://joblens.ch/julius-bar/JuliusBaer_r-19028",
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Frontend--React--Developer---Financial-Platforms-80---100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-6-months-with-possible-extension-_r-19028",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -262,10 +282,14 @@
    "published": "2025-11-27",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.bs-team.ch/jobs/ingenieur-devops-3/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "BSTeam_31813",
-   "url": "https://joblens.ch/bs-team/BSTeam_31813",
+   "url": "https://www.bs-team.ch/jobs/ingenieur-devops-3/",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -287,10 +311,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/test-und-quality-engineer/3b06da1e-b2a4-48c5-9910-67ca1aff616f",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_3b06da1e-b2a4-48c5-9910-67ca1aff616f",
-   "url": "https://joblens.ch/ti-m/TiM_3b06da1e-b2a4-48c5-9910-67ca1aff616f",
+   "url": "https://career.ti8m.com/offene-stellen/test-und-quality-engineer/3b06da1e-b2a4-48c5-9910-67ca1aff616f",
    "matched_skills": [
     ".NET",
     "TypeScript",
@@ -314,10 +342,12 @@
     "mode": "form",
     "ats": "Workable",
     "direct_url": "https://apply.workable.com/j/375CA9458A",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Workable)",
+    "resolved": true
    },
    "job_id": "CryptoFinance_375CA9458A",
-   "url": "https://joblens.ch/crypto-finance-ag/CryptoFinance_375CA9458A",
+   "url": "https://apply.workable.com/j/375CA9458A",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -340,10 +370,12 @@
     "mode": "form",
     "ats": "join.com",
     "direct_url": "https://join.com/companies/finfox/16474909-technical-lead",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (join.com)",
+    "resolved": true
    },
    "job_id": "finfox_16408044",
-   "url": "https://joblens.ch/finfox/finfox_16408044",
+   "url": "https://join.com/companies/finfox/16474909-technical-lead",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -366,10 +398,12 @@
     "mode": "form",
     "ats": "Refline",
     "direct_url": "https://apply.refline.ch/788531/1229/pub/1/index.html",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Refline)",
+    "resolved": true
    },
    "job_id": "ZHDK_1229_1",
-   "url": "https://joblens.ch/zhdk/ZHDK_1229_1",
+   "url": "https://apply.refline.ch/788531/1229/pub/1/index.html",
    "matched_skills": [
     "TypeScript",
     "Next.js",
@@ -390,10 +424,14 @@
    "published": "2026-06-19",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2950",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2950",
-   "url": "https://joblens.ch/adesso/adesso_2950",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2950",
    "matched_skills": [
     "React",
     "Kubernetes",
@@ -414,10 +452,14 @@
    "published": "2026-05-21",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.admin.ch/offene-stellen/datenbank-administrator-in-senior-1025/ac610463-7195-4141-bb96-b08491ad0eaf",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Bundesverwaltung_10046677",
-   "url": "https://joblens.ch/bundesverwaltung/Bundesverwaltung_10046677",
+   "url": "https://jobs.admin.ch/offene-stellen/datenbank-administrator-in-senior-1025/ac610463-7195-4141-bb96-b08491ad0eaf",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -440,10 +482,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/airapps/ec14952b-818d-401e-be27-c0ef0f3a61b6",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "AirApps_ec14952b-818d-401e-be27-c0ef0f3a61b6",
-   "url": "https://joblens.ch/air-apps/AirApps_ec14952b-818d-401e-be27-c0ef0f3a61b6",
+   "url": "https://jobs.ashbyhq.com/airapps/ec14952b-818d-401e-be27-c0ef0f3a61b6",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -466,10 +510,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/airapps/bc967cad-decf-4486-9db0-39f0b5936f90",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "AirApps_bc967cad-decf-4486-9db0-39f0b5936f90",
-   "url": "https://joblens.ch/air-apps/AirApps_bc967cad-decf-4486-9db0-39f0b5936f90",
+   "url": "https://jobs.ashbyhq.com/airapps/bc967cad-decf-4486-9db0-39f0b5936f90",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -490,10 +536,14 @@
    "published": "2024-11-19",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://onlu.ch/jobs/senior-expert-software-engineer-javaee/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "ONLU_3462",
-   "url": "https://joblens.ch/onlu-ag/ONLU_3462",
+   "url": "https://onlu.ch/jobs/senior-expert-software-engineer-javaee/",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -516,10 +566,12 @@
     "mode": "form",
     "ats": "JazzHR",
     "direct_url": "https://fincons.applytojob.com/apply/7OqPcl4U5Q/Senior-C-NET-Engineer",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (JazzHR)",
+    "resolved": true
    },
    "job_id": "FinconsGroup_7OqPcl4U5Q",
-   "url": "https://joblens.ch/fincons-group/FinconsGroup_7OqPcl4U5Q",
+   "url": "https://fincons.applytojob.com/apply/7OqPcl4U5Q/Senior-C-NET-Engineer",
    "matched_skills": [
     "C#",
     ".NET",
@@ -539,10 +591,14 @@
    "published": "2026-08-06",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Desktop_JR00041646",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "ABB_JR00041646",
-   "url": "https://joblens.ch/abb/ABB_JR00041646",
+   "url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Desktop_JR00041646",
    "matched_skills": [
     "C#",
     ".NET",
@@ -562,10 +618,14 @@
    "published": "2026-08-04",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.ruag.ch/offene-stellen/senior-software-engineer-c5i/6d33c977-7809-4202-9a86-3f80e474104c",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "RUAG_gen_e37627d57ff1",
-   "url": "https://joblens.ch/ruag/RUAG_gen_e37627d57ff1",
+   "url": "https://jobs.ruag.ch/offene-stellen/senior-software-engineer-c5i/6d33c977-7809-4202-9a86-3f80e474104c",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -585,10 +645,14 @@
    "published": "2026-08-03",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.coopjobs.ch/offene-stellen/cloud-software-engineer-java-gcp/7fdf6ec6-34cc-4ad6-bff0-6c26501c5b57",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Coop_10136263",
-   "url": "https://joblens.ch/coop/Coop_10136263",
+   "url": "https://jobs.coopjobs.ch/offene-stellen/cloud-software-engineer-java-gcp/7fdf6ec6-34cc-4ad6-bff0-6c26501c5b57",
    "matched_skills": [
     "Terraform",
     "GitHub Actions",
@@ -610,10 +674,12 @@
     "mode": "form",
     "ats": "Refline",
     "direct_url": "https://apply.refline.ch/499599/0360/pub/1/index.html",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Refline)",
+    "resolved": true
    },
    "job_id": "SIB_0360_1",
-   "url": "https://joblens.ch/sib-swiss-institute-of-bioinformatics/SIB_0360_1",
+   "url": "https://apply.refline.ch/499599/0360/pub/1/index.html",
    "matched_skills": [
     "Docker",
     "CI/CD",
@@ -633,10 +699,14 @@
    "published": "2026-07-09",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://zuehlke.wd3.myworkdayjobs.com/en-US/Zuhlke-Careers/job/Schlieren/Advanced-Data-Engineer_JR100885",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "Zuehlke_JR100885",
-   "url": "https://joblens.ch/zuhlke/Zuehlke_JR100885",
+   "url": "https://zuehlke.wd3.myworkdayjobs.com/en-US/Zuhlke-Careers/job/Schlieren/Advanced-Data-Engineer_JR100885",
    "matched_skills": [
     ".NET",
     "TypeScript",
@@ -656,10 +726,14 @@
    "published": "2026-06-26",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/software-engineer-java-spring-boot-auf-dem-weg-zum-data-ai-engineer/76e56bc4-e9f1-4c67-8f08-c77a8c87eeba",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_76e56bc4-e9f1-4c67-8f08-c77a8c87eeba",
-   "url": "https://joblens.ch/ti-m/TiM_76e56bc4-e9f1-4c67-8f08-c77a8c87eeba",
+   "url": "https://career.ti8m.com/offene-stellen/software-engineer-java-spring-boot-auf-dem-weg-zum-data-ai-engineer/76e56bc4-e9f1-4c67-8f08-c77a8c87eeba",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -679,10 +753,14 @@
    "published": "2026-06-04",
    "apply": {
     "mode": "account",
-    "ats": "iCIMS"
+    "ats": "iCIMS",
+    "direct_url": "https://expleo-jobs-ch-en.icims.com/jobs/51944/fullstack-software-engineer---architect/job?in_iframe=1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (iCIMS)",
+    "resolved": true
    },
    "job_id": "Expleo_51944",
-   "url": "https://joblens.ch/expleo/Expleo_51944",
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/51944/fullstack-software-engineer---architect/job?in_iframe=1",
    "matched_skills": [
     "TypeScript",
     "Kubernetes",
@@ -702,10 +780,14 @@
    "published": "2026-05-09",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Java-Developer---Financial-Platforms-80---100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-12-months-with-possible-extension-_r-18276-1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "JuliusBaer_r-18276",
-   "url": "https://joblens.ch/julius-bar/JuliusBaer_r-18276",
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Java-Developer---Financial-Platforms-80---100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-12-months-with-possible-extension-_r-18276-1",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -727,10 +809,12 @@
     "mode": "form",
     "ats": "join.com",
     "direct_url": "https://join.com/companies/optiml/16527218-software-engineer-infrastructure-gcp-and-platform",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (join.com)",
+    "resolved": true
    },
    "job_id": "Optiml_16035458",
-   "url": "https://joblens.ch/optiml/Optiml_16035458",
+   "url": "https://join.com/companies/optiml/16527218-software-engineer-infrastructure-gcp-and-platform",
    "matched_skills": [
     "TypeScript",
     "Kubernetes",
@@ -752,10 +836,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/blockstream/4b0ce32c-7523-4954-ab07-80d7eb40a67f",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Blockstream_4b0ce32c-7523-4954-ab07-80d7eb40a67f",
-   "url": "https://joblens.ch/blockstream/Blockstream_4b0ce32c-7523-4954-ab07-80d7eb40a67f",
+   "url": "https://jobs.ashbyhq.com/blockstream/4b0ce32c-7523-4954-ab07-80d7eb40a67f",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -777,10 +863,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/blockstream/4bd6e458-a98f-4f3d-8c0e-a50e4735e32f",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Blockstream_4bd6e458-a98f-4f3d-8c0e-a50e4735e32f",
-   "url": "https://joblens.ch/blockstream/Blockstream_4bd6e458-a98f-4f3d-8c0e-a50e4735e32f",
+   "url": "https://jobs.ashbyhq.com/blockstream/4bd6e458-a98f-4f3d-8c0e-a50e4735e32f",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -802,10 +890,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/blockstream/702c6c65-c38d-4c80-98e9-a4e42afddc1b",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Blockstream_702c6c65-c38d-4c80-98e9-a4e42afddc1b",
-   "url": "https://joblens.ch/blockstream/Blockstream_702c6c65-c38d-4c80-98e9-a4e42afddc1b",
+   "url": "https://jobs.ashbyhq.com/blockstream/702c6c65-c38d-4c80-98e9-a4e42afddc1b",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -827,10 +917,12 @@
     "mode": "form",
     "ats": "Personio",
     "direct_url": "https://comparis-ch.jobs.personio.de/job/2612473?language=de",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Personio)",
+    "resolved": true
    },
    "job_id": "Comparis_2612473",
-   "url": "https://joblens.ch/comparis/Comparis_2612473",
+   "url": "https://comparis-ch.jobs.personio.de/job/2612473?language=de",
    "matched_skills": [
     "C#",
     ".NET",
@@ -850,10 +942,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.dynatrace.com/careers/jobs/1376835800/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Dynatrace_4831",
-   "url": "https://joblens.ch/dynatrace/Dynatrace_4831",
+   "url": "https://www.dynatrace.com/careers/jobs/1376835800/",
    "matched_skills": [
     ".NET",
     "Node.js",
@@ -873,10 +969,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://job.lumapps.com/jobs/8052689-forward-deployed-engineer-fde-zurich",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "LumApps_8052689",
-   "url": "https://joblens.ch/lumapps/LumApps_8052689",
+   "url": "https://job.lumapps.com/jobs/8052689-forward-deployed-engineer-fde-zurich",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -896,10 +996,14 @@
    "published": "2026-08-07",
    "apply": {
     "mode": "account",
-    "ats": "iCIMS"
+    "ats": "iCIMS",
+    "direct_url": "https://expleo-jobs-ch-en.icims.com/jobs/50651/frontend-developer/job?in_iframe=1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (iCIMS)",
+    "resolved": true
    },
    "job_id": "Expleo_50651",
-   "url": "https://joblens.ch/expleo/Expleo_50651",
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/50651/frontend-developer/job?in_iframe=1",
    "matched_skills": [
     "TypeScript",
     "Kubernetes",
@@ -918,10 +1022,14 @@
    "published": "2026-08-07",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.helsana.ch/offene-stellen/full-stack-software-engineer-c-net-react-a/71324d82-0065-4246-9fce-b490e927ad89",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Helsana_gen_e50462733e91",
-   "url": "https://joblens.ch/helsana/Helsana_gen_e50462733e91",
+   "url": "https://jobs.helsana.ch/offene-stellen/full-stack-software-engineer-c-net-react-a/71324d82-0065-4246-9fce-b490e927ad89",
    "matched_skills": [
     "C#",
     ".NET",
@@ -940,10 +1048,14 @@
    "published": "2026-08-06",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Mobile-APPs_JR00041998",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "ABB_JR00041998",
-   "url": "https://joblens.ch/abb/ABB_JR00041998",
+   "url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Mobile-APPs_JR00041998",
    "matched_skills": [
     "Azure",
     "Docker",
@@ -964,10 +1076,12 @@
     "mode": "form",
     "ats": "join.com",
     "direct_url": "https://join.com/companies/paretolabs/16543831-backend-developer-intern",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (join.com)",
+    "resolved": true
    },
    "job_id": "ParetoLabs_16543831",
-   "url": "https://joblens.ch/paretolabs/ParetoLabs_16543831",
+   "url": "https://join.com/companies/paretolabs/16543831-backend-developer-intern",
    "matched_skills": [
     "Azure",
     "Docker",
@@ -986,10 +1100,14 @@
    "published": "2026-08-04",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.quickline.ch/offene-stellen/senior-software-developer-technical-lead/6258c422-bff3-484a-934a-f8584510d4c0",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Quickline_10138116",
-   "url": "https://joblens.ch/quickline/Quickline_10138116",
+   "url": "https://jobs.quickline.ch/offene-stellen/senior-software-developer-technical-lead/6258c422-bff3-484a-934a-f8584510d4c0",
    "matched_skills": [
     ".NET",
     "Kubernetes",
@@ -1008,10 +1126,14 @@
    "published": "2026-08-03",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Quartino-Ticino-Switzerland/XMLNAME--80---100---Software-Developer--NET-Desktop-Applications-_JR00043018",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "ABB_JR00043018",
-   "url": "https://joblens.ch/abb/ABB_JR00043018",
+   "url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Quartino-Ticino-Switzerland/XMLNAME--80---100---Software-Developer--NET-Desktop-Applications-_JR00043018",
    "matched_skills": [
     "C#",
     ".NET",
@@ -1030,10 +1152,14 @@
    "published": "2026-08-03",
    "apply": {
     "mode": "account",
-    "ats": "jobup"
+    "ats": "jobup",
+    "direct_url": "https://www.jobup.ch/fr/emplois/detail/8a071bff-0585-43bd-97f9-83d6610de46d/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (jobup)",
+    "resolved": true
    },
    "job_id": "CPAutomation_8a071bff-0585-43bd-97f9-83d6610de46d",
-   "url": "https://joblens.ch/cpautomation/CPAutomation_8a071bff-0585-43bd-97f9-83d6610de46d",
+   "url": "https://www.jobup.ch/fr/emplois/detail/8a071bff-0585-43bd-97f9-83d6610de46d/",
    "matched_skills": [
     "C#",
     ".NET",
@@ -1052,10 +1178,14 @@
    "published": "2026-08-01",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.concordia.ch/offene-stellen/senior-database-engineer-oracle-postgresql-80/b472d0ff-ad56-4291-b247-69045dd345c0",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Concordia_b472d0ff-ad56-4291-b247-69045dd345c0",
-   "url": "https://joblens.ch/concordia/Concordia_b472d0ff-ad56-4291-b247-69045dd345c0",
+   "url": "https://jobs.concordia.ch/offene-stellen/senior-database-engineer-oracle-postgresql-80/b472d0ff-ad56-4291-b247-69045dd345c0",
    "matched_skills": [
     "Azure",
     "Terraform",
@@ -1074,10 +1204,14 @@
    "published": "2026-07-22",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.gem.com/rivia/am9icG9zdDolawehX6LXz_xBS4P-dXGl",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Rivia_am9icG9zdDolawehX6LXz_xBS4P-dXGl",
-   "url": "https://joblens.ch/rivia/Rivia_am9icG9zdDolawehX6LXz_xBS4P-dXGl",
+   "url": "https://jobs.gem.com/rivia/am9icG9zdDolawehX6LXz_xBS4P-dXGl",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -1096,10 +1230,14 @@
    "published": "2026-07-22",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://switzerland-career.wavestone.com/jobs/66229583/IT-Business-Engineer---Beratung-und-Umsetzung-all-genders-/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Wavestone_66229583",
-   "url": "https://joblens.ch/wavestone/Wavestone_66229583",
+   "url": "https://switzerland-career.wavestone.com/jobs/66229583/IT-Business-Engineer---Beratung-und-Umsetzung-all-genders-/",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -1118,10 +1256,14 @@
    "published": "2026-07-21",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://carrieres.ansam.ch/jobs/8103917-senior-artificial-intelligence-engineer",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Ansam_8103917",
-   "url": "https://joblens.ch/ansam-group/Ansam_8103917",
+   "url": "https://carrieres.ansam.ch/jobs/8103917-senior-artificial-intelligence-engineer",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1142,10 +1284,12 @@
     "mode": "form",
     "ats": "Lever",
     "direct_url": "https://jobs.lever.co/sonarsource/dfb8492a-8d96-4033-9c7b-e87dfe1b07b0",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Lever)",
+    "resolved": true
    },
    "job_id": "SonarSource_dfb8492a-8d96-4033-9c7b-e87dfe1b07b0",
-   "url": "https://joblens.ch/sonarsource/SonarSource_dfb8492a-8d96-4033-9c7b-e87dfe1b07b0",
+   "url": "https://jobs.lever.co/sonarsource/dfb8492a-8d96-4033-9c7b-e87dfe1b07b0",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -1164,10 +1308,14 @@
    "published": "2026-07-02",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://careers.epam.com/en/vacancy/senior-ai-architect-microsoft-technologies-blt7hn6cu94qvtujuxg_en",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "epam_blt7hn6cu94qvtujuxg",
-   "url": "https://joblens.ch/epam/epam_blt7hn6cu94qvtujuxg",
+   "url": "https://careers.epam.com/en/vacancy/senior-ai-architect-microsoft-technologies-blt7hn6cu94qvtujuxg_en",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1186,10 +1334,14 @@
    "published": "2026-07-02",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://careers.epam.com/en/vacancy/senior-big-data-system-engineer-platform-engineer-bltc83iaamnmitiu3pj_en",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "epam_bltc83iaamnmitiu3pj",
-   "url": "https://joblens.ch/epam/epam_bltc83iaamnmitiu3pj",
+   "url": "https://careers.epam.com/en/vacancy/senior-big-data-system-engineer-platform-engineer-bltc83iaamnmitiu3pj_en",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -1208,10 +1360,14 @@
    "published": "2026-07-01",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://carrieres.ansam.ch/jobs/8002878-developpeur-euse-full-stack-c",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Ansam_8002878",
-   "url": "https://joblens.ch/ansam-group/Ansam_8002878",
+   "url": "https://carrieres.ansam.ch/jobs/8002878-developpeur-euse-full-stack-c",
    "matched_skills": [
     "C#",
     ".NET",
@@ -1230,10 +1386,14 @@
    "published": "2026-06-30",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://careers.axpo.com/jobs/7958644-senior-ai-solutions-enablement-engineer-f-m-d",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Axpo_gen_d9231e0cac04",
-   "url": "https://joblens.ch/axpo/Axpo_gen_d9231e0cac04",
+   "url": "https://careers.axpo.com/jobs/7958644-senior-ai-solutions-enablement-engineer-f-m-d",
    "matched_skills": [
     "TypeScript",
     "Azure",
@@ -1252,10 +1412,14 @@
    "published": "2026-06-19",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Java-Engineer---Cloud-Native-Backend-Development-100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-12-months-with-possible-extension-_r-18953-1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "JuliusBaer_r-18953",
-   "url": "https://joblens.ch/julius-bar/JuliusBaer_r-18953",
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Java-Engineer---Cloud-Native-Backend-Development-100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-12-months-with-possible-extension-_r-18953-1",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1274,10 +1438,14 @@
    "published": "2026-06-16",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2879",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2879",
-   "url": "https://joblens.ch/adesso/adesso_2879",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2879",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1296,10 +1464,14 @@
    "published": "2026-05-28",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Software-Engineer---Senior-Software-Engineer_202605-112795/apply",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "Roche_202605-112795",
-   "url": "https://joblens.ch/roche/Roche_202605-112795",
+   "url": "https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Software-Engineer---Senior-Software-Engineer_202605-112795/apply",
    "matched_skills": [
     "React",
     "CI/CD",
@@ -1320,10 +1492,12 @@
     "mode": "form",
     "ats": "Personio",
     "direct_url": "https://enovetic.jobs.personio.de/job/2635570",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Personio)",
+    "resolved": true
    },
    "job_id": "enovetic_2635570",
-   "url": "https://joblens.ch/enovetic/enovetic_2635570",
+   "url": "https://enovetic.jobs.personio.de/job/2635570",
    "matched_skills": [
     "React",
     "Azure",
@@ -1344,10 +1518,12 @@
     "mode": "form",
     "ats": "BambooHR",
     "direct_url": "https://opench.bamboohr.com/careers/775",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (BambooHR)",
+    "resolved": true
    },
    "job_id": "OpenSystems_775",
-   "url": "https://joblens.ch/open-systems/OpenSystems_775",
+   "url": "https://opench.bamboohr.com/careers/775",
    "matched_skills": [
     "C#",
     "Kubernetes",
@@ -1368,10 +1544,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/airapps/ba548d10-9b5f-4742-b807-99d584ef0f83",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "AirApps_ba548d10-9b5f-4742-b807-99d584ef0f83",
-   "url": "https://joblens.ch/air-apps/AirApps_ba548d10-9b5f-4742-b807-99d584ef0f83",
+   "url": "https://jobs.ashbyhq.com/airapps/ba548d10-9b5f-4742-b807-99d584ef0f83",
    "matched_skills": [
     "TypeScript",
     "Node.js",
@@ -1392,10 +1570,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/airapps/ef744046-bd39-434b-83ac-4de60a8d5a86",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "AirApps_ef744046-bd39-434b-83ac-4de60a8d5a86",
-   "url": "https://joblens.ch/air-apps/AirApps_ef744046-bd39-434b-83ac-4de60a8d5a86",
+   "url": "https://jobs.ashbyhq.com/airapps/ef744046-bd39-434b-83ac-4de60a8d5a86",
    "matched_skills": [
     "TypeScript",
     "GitHub Actions",
@@ -1414,10 +1594,14 @@
    "published": "2026-04-23",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.qiminfo.ch/poste/developpeur-fullstack-devops-senior-h-f/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "QimInfo_40702",
-   "url": "https://joblens.ch/qim-info/QimInfo_40702",
+   "url": "https://www.qiminfo.ch/poste/developpeur-fullstack-devops-senior-h-f/",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -1438,10 +1622,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/snowflake/f288375d-5d6b-4686-94bf-8018583ff03b",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Snowflake_cd394117-2006-4598-939a-dfa85377f96d",
-   "url": "https://joblens.ch/snowflake/Snowflake_cd394117-2006-4598-939a-dfa85377f96d",
+   "url": "https://jobs.ashbyhq.com/snowflake/f288375d-5d6b-4686-94bf-8018583ff03b",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1462,10 +1648,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/blockstream/c9b689fc-cb3a-41c3-a465-11169d251326",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Blockstream_c9b689fc-cb3a-41c3-a465-11169d251326",
-   "url": "https://joblens.ch/blockstream/Blockstream_c9b689fc-cb3a-41c3-a465-11169d251326",
+   "url": "https://jobs.ashbyhq.com/blockstream/c9b689fc-cb3a-41c3-a465-11169d251326",
    "matched_skills": [
     "TypeScript",
     "Azure",
@@ -1486,10 +1674,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/blockstream/4cf529b6-ea59-46b0-a95d-7e2afbd5d02e",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Blockstream_4cf529b6-ea59-46b0-a95d-7e2afbd5d02e",
-   "url": "https://joblens.ch/blockstream/Blockstream_4cf529b6-ea59-46b0-a95d-7e2afbd5d02e",
+   "url": "https://jobs.ashbyhq.com/blockstream/4cf529b6-ea59-46b0-a95d-7e2afbd5d02e",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1508,10 +1698,14 @@
    "published": "2025-10-13",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2665",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2665",
-   "url": "https://joblens.ch/adesso/adesso_2665",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2665",
    "matched_skills": [
     "React",
     "Docker",
@@ -1532,10 +1726,12 @@
     "mode": "form",
     "ats": "Recruitee",
     "direct_url": "https://artifactsa.recruitee.com/o/ai-engineer-consultant-1",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Recruitee)",
+    "resolved": true
    },
    "job_id": "Artifact_2297403",
-   "url": "https://joblens.ch/artifact/Artifact_2297403",
+   "url": "https://artifactsa.recruitee.com/o/ai-engineer-consultant-1",
    "matched_skills": [
     "React",
     "Azure",
@@ -1554,10 +1750,14 @@
    "published": "2025-08-17",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2670",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2670",
-   "url": "https://joblens.ch/adesso/adesso_2670",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2670",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1576,10 +1776,14 @@
    "published": "2024-08-27",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.bs-team.ch/jobs/developpeur-fullstack-java-vue-js/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "BSTeam_16185",
-   "url": "https://joblens.ch/bs-team/BSTeam_16185",
+   "url": "https://www.bs-team.ch/jobs/developpeur-fullstack-java-vue-js/",
    "matched_skills": [
     "React",
     "Docker",
@@ -1600,10 +1804,12 @@
     "mode": "form",
     "ats": "Recruitee",
     "direct_url": "https://artifactsa.recruitee.com/o/ai-engineer-consultant-internship",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Recruitee)",
+    "resolved": true
    },
    "job_id": "Artifact_1688031",
-   "url": "https://joblens.ch/artifact/Artifact_1688031",
+   "url": "https://artifactsa.recruitee.com/o/ai-engineer-consultant-internship",
    "matched_skills": [
     "React",
     "Azure",
@@ -1622,10 +1828,14 @@
    "published": "2024-03-06",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://onlu.ch/jobs/full-stack-developer/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "ONLU_139",
-   "url": "https://joblens.ch/onlu-ag/ONLU_139",
+   "url": "https://onlu.ch/jobs/full-stack-developer/",
    "matched_skills": [
     "React",
     "Node.js",
@@ -1646,10 +1856,12 @@
     "mode": "form",
     "ats": "Recruitee",
     "direct_url": "https://artifactsa.recruitee.com/o/senior-ai-engineer-consultant",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Recruitee)",
+    "resolved": true
    },
    "job_id": "Artifact_1594807",
-   "url": "https://joblens.ch/artifact/Artifact_1594807",
+   "url": "https://artifactsa.recruitee.com/o/senior-ai-engineer-consultant",
    "matched_skills": [
     "React",
     "Azure",
@@ -1670,10 +1882,12 @@
     "mode": "form",
     "ats": "join.com",
     "direct_url": "https://join.com/companies/digital-architects-zurich/16526126-observability-und-aiops-engineer-consultant",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (join.com)",
+    "resolved": true
    },
    "job_id": "DigitalArchitectsZurich_3859573",
-   "url": "https://joblens.ch/digital-architects-zurich/DigitalArchitectsZurich_3859573",
+   "url": "https://join.com/companies/digital-architects-zurich/16526126-observability-und-aiops-engineer-consultant",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -1692,10 +1906,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://careers.sophiagenetics.com/jobs/senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "SophiaGenetics_senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
-   "url": "https://joblens.ch/sophia-genetics/SophiaGenetics_senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
+   "url": "https://careers.sophiagenetics.com/jobs/senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
    "matched_skills": [
     "React",
     "Azure",
@@ -1714,10 +1932,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://my.jobalino.ch/job/d46bed06fa68418c88ef3d14927e138a/cyon-ag/senior-software-engineer-alle#application",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "cyon_senior-software-engineer-alle-80-100",
-   "url": "https://joblens.ch/cyon/cyon_senior-software-engineer-alle-80-100",
+   "url": "https://my.jobalino.ch/job/d46bed06fa68418c88ef3d14927e138a/cyon-ag/senior-software-engineer-alle#application",
    "matched_skills": [
     "Docker",
     "CI/CD",
@@ -1736,10 +1958,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/professional-software-engineer-java-spring-boot/925ca7a6-1461-407d-997e-8ac0cb5e0079",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_925ca7a6-1461-407d-997e-8ac0cb5e0079",
-   "url": "https://joblens.ch/ti-m/TiM_925ca7a6-1461-407d-997e-8ac0cb5e0079",
+   "url": "https://career.ti8m.com/offene-stellen/professional-software-engineer-java-spring-boot/925ca7a6-1461-407d-997e-8ac0cb5e0079",
    "matched_skills": [
     "React",
     "Kubernetes",
@@ -1758,10 +1984,14 @@
    "published": null,
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/senior-data-engineer-mit-flair-fuer-ai/841b6943-f8d6-4699-b973-690c618a3d7a",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_841b6943-f8d6-4699-b973-690c618a3d7a",
-   "url": "https://joblens.ch/ti-m/TiM_841b6943-f8d6-4699-b973-690c618a3d7a",
+   "url": "https://career.ti8m.com/offene-stellen/senior-data-engineer-mit-flair-fuer-ai/841b6943-f8d6-4699-b973-690c618a3d7a",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1780,10 +2010,14 @@
    "published": "2026-08-06",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.transgourmet.ch/offene-stellen/test-engineer/30a923bd-a265-4d78-b33b-7f40622434c2",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Coop_10141837",
-   "url": "https://joblens.ch/coop/Coop_10141837",
+   "url": "https://jobs.transgourmet.ch/offene-stellen/test-engineer/30a923bd-a265-4d78-b33b-7f40622434c2",
    "matched_skills": [
     "C#",
     "CI/CD",
@@ -1801,10 +2035,14 @@
    "published": "2026-08-04",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.helvetia.com/offene-stellen/senior-full-stack-mobile-engineer-ios-backend-w-m-d-teilzeit-vollzeit/bb0b2378-7928-4c09-84f6-ca01d05cd16e",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Helvetia_10133478",
-   "url": "https://joblens.ch/helvetia/Helvetia_10133478",
+   "url": "https://jobs.helvetia.com/offene-stellen/senior-full-stack-mobile-engineer-ios-backend-w-m-d-teilzeit-vollzeit/bb0b2378-7928-4c09-84f6-ca01d05cd16e",
    "matched_skills": [
     "PostgreSQL",
     "Java",
@@ -1822,10 +2060,14 @@
    "published": "2026-08-04",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.helvetia.com/offene-stellen/senior-full-stack-software-engineer-kotlin-java-w-m-d-vollzeit/eb6060ff-bfe8-4159-883d-c17bf8034cbb",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Helvetia_10133500",
-   "url": "https://joblens.ch/helvetia/Helvetia_10133500",
+   "url": "https://jobs.helvetia.com/offene-stellen/senior-full-stack-software-engineer-kotlin-java-w-m-d-vollzeit/eb6060ff-bfe8-4159-883d-c17bf8034cbb",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -1845,10 +2087,12 @@
     "mode": "form",
     "ats": "BambooHR",
     "direct_url": "https://opench.bamboohr.com/careers/810",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (BambooHR)",
+    "resolved": true
    },
    "job_id": "OpenSystems_810",
-   "url": "https://joblens.ch/open-systems/OpenSystems_810",
+   "url": "https://opench.bamboohr.com/careers/810",
    "matched_skills": [
     "Azure",
     "Terraform",
@@ -1868,10 +2112,12 @@
     "mode": "form",
     "ats": "Ashby",
     "direct_url": "https://jobs.ashbyhq.com/alohi/723e51a3-40c7-450e-8346-b03d39fcd991",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Ashby)",
+    "resolved": true
    },
    "job_id": "Alohi_723e51a3-40c7-450e-8346-b03d39fcd991",
-   "url": "https://joblens.ch/alohi/Alohi_723e51a3-40c7-450e-8346-b03d39fcd991",
+   "url": "https://jobs.ashbyhq.com/alohi/723e51a3-40c7-450e-8346-b03d39fcd991",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -1889,10 +2135,14 @@
    "published": "2026-07-30",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.coopjobs.ch/offene-stellen/senior-cloud-engineer/dc8edbda-63ba-4c0d-adb0-9ad8219661e7",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Coop_10134509",
-   "url": "https://joblens.ch/coop/Coop_10134509",
+   "url": "https://jobs.coopjobs.ch/offene-stellen/senior-cloud-engineer/dc8edbda-63ba-4c0d-adb0-9ad8219661e7",
    "matched_skills": [
     "Kubernetes",
     "Terraform",
@@ -1910,10 +2160,14 @@
    "published": "2026-07-30",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/senior-python-software-engineer/f829eac9-8772-4379-8ef1-8727c4b39f1d",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_f829eac9-8772-4379-8ef1-8727c4b39f1d",
-   "url": "https://joblens.ch/ti-m/TiM_f829eac9-8772-4379-8ef1-8727c4b39f1d",
+   "url": "https://career.ti8m.com/offene-stellen/senior-python-software-engineer/f829eac9-8772-4379-8ef1-8727c4b39f1d",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -1931,10 +2185,14 @@
    "published": "2026-07-29",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.admin.ch/offene-stellen/sre-applikations-entwickler-in-expert-1255-1261-1262/4f18a53d-313d-422c-ac96-f9fe064c87e7",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Bundesverwaltung_10131504",
-   "url": "https://joblens.ch/bundesverwaltung/Bundesverwaltung_10131504",
+   "url": "https://jobs.admin.ch/offene-stellen/sre-applikations-entwickler-in-expert-1255-1261-1262/4f18a53d-313d-422c-ac96-f9fe064c87e7",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -1954,10 +2212,12 @@
     "mode": "form",
     "ats": "Lever",
     "direct_url": "https://jobs.lever.co/sonarsource/5a3bd23a-24c0-49af-8839-eba24776268c",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Lever)",
+    "resolved": true
    },
    "job_id": "SonarSource_5a3bd23a-24c0-49af-8839-eba24776268c",
-   "url": "https://joblens.ch/sonarsource/SonarSource_5a3bd23a-24c0-49af-8839-eba24776268c",
+   "url": "https://jobs.lever.co/sonarsource/5a3bd23a-24c0-49af-8839-eba24776268c",
    "matched_skills": [
     "TypeScript",
     "React",
@@ -1975,10 +2235,14 @@
    "published": "2026-07-25",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland-Zug-Zug/Principal-Software-Engineer_JREQ202383-1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "ThomsonReuters_JREQ202383",
-   "url": "https://joblens.ch/thomson-reuters/ThomsonReuters_JREQ202383",
+   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland-Zug-Zug/Principal-Software-Engineer_JREQ202383-1",
    "matched_skills": [
     "Azure",
     "Identity and Access Management",
@@ -1996,10 +2260,14 @@
    "published": "2026-07-24",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.ruag.ch/offene-stellen/software-engineer-c5i/d4cff80d-97d5-4ef7-8460-fc72c54eb3be",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "RUAG_gen_307c670f16a6",
-   "url": "https://joblens.ch/ruag/RUAG_gen_307c670f16a6",
+   "url": "https://jobs.ruag.ch/offene-stellen/software-engineer-c5i/d4cff80d-97d5-4ef7-8460-fc72c54eb3be",
    "matched_skills": [
     "C#",
     ".NET",
@@ -2017,10 +2285,14 @@
    "published": "2026-07-21",
    "apply": {
     "mode": "account",
-    "ats": "iCIMS"
+    "ats": "iCIMS",
+    "direct_url": "https://expleo-jobs-ch-en.icims.com/jobs/54821/solution-architect/job?in_iframe=1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (iCIMS)",
+    "resolved": true
    },
    "job_id": "Expleo_54821",
-   "url": "https://joblens.ch/expleo/Expleo_54821",
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/54821/solution-architect/job?in_iframe=1",
    "matched_skills": [
     "Azure",
     "CI/CD",
@@ -2038,10 +2310,14 @@
    "published": "2026-07-21",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/senior-software-engineer-java-kotlin/337c43df-f3c9-4910-ba8a-35532bb72bf6",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_337c43df-f3c9-4910-ba8a-35532bb72bf6",
-   "url": "https://joblens.ch/ti-m/TiM_337c43df-f3c9-4910-ba8a-35532bb72bf6",
+   "url": "https://career.ti8m.com/offene-stellen/senior-software-engineer-java-kotlin/337c43df-f3c9-4910-ba8a-35532bb72bf6",
    "matched_skills": [
     "TypeScript",
     "CI/CD",
@@ -2059,10 +2335,14 @@
    "published": "2026-07-18",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Senior-Research-Engineer_JREQ198563",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "ThomsonReuters_JREQ198563",
-   "url": "https://joblens.ch/thomson-reuters/ThomsonReuters_JREQ198563",
+   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Senior-Research-Engineer_JREQ198563",
    "matched_skills": [
     "TypeScript",
     "CI/CD",
@@ -2080,10 +2360,14 @@
    "published": "2026-07-18",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://career.ti8m.com/offene-stellen/senior-frontend-engineer-typescript/e4542816-c4b1-46a4-82bb-1f468dbcdc27",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "TiM_e4542816-c4b1-46a4-82bb-1f468dbcdc27",
-   "url": "https://joblens.ch/ti-m/TiM_e4542816-c4b1-46a4-82bb-1f468dbcdc27",
+   "url": "https://career.ti8m.com/offene-stellen/senior-frontend-engineer-typescript/e4542816-c4b1-46a4-82bb-1f468dbcdc27",
    "matched_skills": [
     ".NET",
     "TypeScript",
@@ -2101,10 +2385,14 @@
    "published": "2026-07-17",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2900",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2900",
-   "url": "https://joblens.ch/adesso/adesso_2900",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2900",
    "matched_skills": [
     "Azure",
     "Docker",
@@ -2124,10 +2412,12 @@
     "mode": "form",
     "ats": "Lever",
     "direct_url": "https://jobs.lever.co/sonarsource/f1c90f4d-f722-4573-af6d-9d0839776d63",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Lever)",
+    "resolved": true
    },
    "job_id": "SonarSource_f1c90f4d-f722-4573-af6d-9d0839776d63",
-   "url": "https://joblens.ch/sonarsource/SonarSource_f1c90f4d-f722-4573-af6d-9d0839776d63",
+   "url": "https://jobs.lever.co/sonarsource/f1c90f4d-f722-4573-af6d-9d0839776d63",
    "matched_skills": [
     "Azure",
     "Terraform",
@@ -2147,10 +2437,12 @@
     "mode": "form",
     "ats": "Personio",
     "direct_url": "https://supertext.jobs.personio.com/job/2713922?language=de",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Personio)",
+    "resolved": true
    },
    "job_id": "Supertext_2713922",
-   "url": "https://joblens.ch/supertext/Supertext_2713922",
+   "url": "https://supertext.jobs.personio.com/job/2713922?language=de",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -2168,10 +2460,14 @@
    "published": "2026-07-13",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.admin.ch/offene-stellen/applikations-entwickler-in-mit-fokus-sre-site-reliability-engineering/f83bf7e3-fd74-4619-a3f9-91a217328a6d",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Bundesverwaltung_10102230",
-   "url": "https://joblens.ch/bundesverwaltung/Bundesverwaltung_10102230",
+   "url": "https://jobs.admin.ch/offene-stellen/applikations-entwickler-in-mit-fokus-sre-site-reliability-engineering/f83bf7e3-fd74-4619-a3f9-91a217328a6d",
    "matched_skills": [
     "Kubernetes",
     "Docker",
@@ -2189,10 +2485,14 @@
    "published": "2026-07-09",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Lead-Research-Engineer_JREQ198566-3",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "ThomsonReuters_JREQ198566",
-   "url": "https://joblens.ch/thomson-reuters/ThomsonReuters_JREQ198566",
+   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Lead-Research-Engineer_JREQ198566-3",
    "matched_skills": [
     "TypeScript",
     "Azure",
@@ -2212,10 +2512,12 @@
     "mode": "form",
     "ats": "Recruitee",
     "direct_url": "https://imnoo.recruitee.com/o/fullstack-frontend-backend-cad-ai-iot-engineer-coding-wizard-70-100-remoteonsite",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Recruitee)",
+    "resolved": true
    },
    "job_id": "Imnoo_2662191",
-   "url": "https://joblens.ch/imnoo/Imnoo_2662191",
+   "url": "https://imnoo.recruitee.com/o/fullstack-frontend-backend-cad-ai-iot-engineer-coding-wizard-70-100-remoteonsite",
    "matched_skills": [
     "C#",
     "React",
@@ -2235,10 +2537,12 @@
     "mode": "form",
     "ats": "Personio",
     "direct_url": "https://smino.jobs.personio.com/job/2691240?language=de",
-    "direct_source": "joblens get_job_details"
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Personio)",
+    "resolved": true
    },
    "job_id": "Smino_2691240",
-   "url": "https://joblens.ch/smino/Smino_2691240",
+   "url": "https://smino.jobs.personio.com/job/2691240?language=de",
    "matched_skills": [
     ".NET",
     "Azure",
@@ -2256,10 +2560,14 @@
    "published": "2026-06-16",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2934",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2934",
-   "url": "https://joblens.ch/adesso/adesso_2934",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2934",
    "matched_skills": [
     "React",
     "Docker",
@@ -2277,10 +2585,14 @@
    "published": "2026-06-16",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2935",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2935",
-   "url": "https://joblens.ch/adesso/adesso_2935",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2935",
    "matched_skills": [
     "React",
     "Docker",
@@ -2298,10 +2610,14 @@
    "published": "2026-05-28",
    "apply": {
     "mode": "unknown",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://jobs.admin.ch/offene-stellen/ict-test-ingenieur-in-senior-1250-1251/2f3b42e4-7813-416b-9d41-75e1c431cdb6",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "Bundesverwaltung_10045662",
-   "url": "https://joblens.ch/bundesverwaltung/Bundesverwaltung_10045662",
+   "url": "https://jobs.admin.ch/offene-stellen/ict-test-ingenieur-in-senior-1250-1251/2f3b42e4-7813-416b-9d41-75e1c431cdb6",
    "matched_skills": [
     "Docker",
     "CI/CD",
@@ -2319,10 +2635,14 @@
    "published": "2026-05-28",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Principal---Senior-Principal-Software-Engineer_202605-112796-1/apply",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "Roche_202605-112796",
-   "url": "https://joblens.ch/roche/Roche_202605-112796",
+   "url": "https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Principal---Senior-Principal-Software-Engineer_202605-112796-1/apply",
    "matched_skills": [
     "React",
     "CI/CD",
@@ -2340,10 +2660,14 @@
    "published": "2026-05-27",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://specialized.wd5.myworkdayjobs.com/en-US/Specialized_External_Career_Site/job/Switzerland-Cham-Office/Senior-Automation-QA-Engineer---Mobile-Testing_R0011680",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "Specialized_R0011680",
-   "url": "https://joblens.ch/specialized/Specialized_R0011680",
+   "url": "https://specialized.wd5.myworkdayjobs.com/en-US/Specialized_External_Career_Site/job/Switzerland-Cham-Office/Senior-Automation-QA-Engineer---Mobile-Testing_R0011680",
    "matched_skills": [
     "React",
     "GitHub Actions",
@@ -2361,10 +2685,14 @@
    "published": "2026-05-06",
    "apply": {
     "mode": "account",
-    "ats": "Workday"
+    "ats": "Workday",
+    "direct_url": "https://zuehlke.wd3.myworkdayjobs.com/en-US/Zuhlke-Careers/job/Schlieren/Expert-Data-Engineer_JR100122",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
    },
    "job_id": "Zuehlke_JR100122",
-   "url": "https://joblens.ch/zuhlke/Zuehlke_JR100122",
+   "url": "https://zuehlke.wd3.myworkdayjobs.com/en-US/Zuhlke-Careers/job/Schlieren/Expert-Data-Engineer_JR100122",
    "matched_skills": [
     ".NET",
     "Azure",
@@ -2382,10 +2710,14 @@
    "published": "2026-05-05",
    "apply": {
     "mode": "account",
-    "ats": null
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
    },
    "job_id": "adesso_2906",
-   "url": "https://joblens.ch/adesso/adesso_2906",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
    "matched_skills": [
     "Azure",
     "Kubernetes",
@@ -2394,5 +2726,11 @@
     "Python"
    ]
   }
- ]
+ ],
+ "direct_url_resolution": {
+  "attempted": 100,
+  "resolved": 100,
+  "unresolved": 0,
+  "method": "get_job_details"
+ }
 }

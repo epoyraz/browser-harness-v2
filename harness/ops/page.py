@@ -411,6 +411,76 @@ FORM_COUNTS_JS = """(() => {
           ((document.body && document.body.innerText) || '').trim().length];
 })()"""
 
+#: Wait for the page to reach a meaningful application state, not merely for `load`.
+#:
+#: Client-rendered ATS pages commonly set `document.title` from server metadata before
+#: React has mounted anything into `<body>`.  Treating that transient 0/0 snapshot as a
+#: bot wall lost 9 of 11 Ashby forms in a ten-tab run.  This probe reports strong terminal
+#: states immediately and otherwise arms a one-shot mutation observer; Python decides
+#: whether a quiet usable page or quiet empty page has been stable long enough.
+WATCH_APPLICATION_STATE_JS = """((token) => {
+  const visible = el => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return !!(r.width && r.height) && cs.visibility !== 'hidden' && cs.display !== 'none';
+  };
+  const furniture = el => !!el.closest(
+    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
+    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header,aside');
+  let fields = 0;
+  for (const el of document.querySelectorAll(
+       'input,select,textarea,[contenteditable=true],[role=combobox]')) {
+    const type = (el.type || '').toLowerCase();
+    if (['submit', 'button', 'reset', 'image', 'hidden', 'search'].includes(type)) continue;
+    if (furniture(el) || !visible(el)) continue;
+    fields++;
+  }
+  const controls = [...document.querySelectorAll(
+    'button,a[href],[role=button],input,select,textarea')].filter(visible);
+  const labels = controls.map(el =>
+    (el.innerText || el.value || el.getAttribute('aria-label') || '').trim()).join(' ');
+  const text = ((document.body && document.body.innerText) || '').trim();
+  const lower = (text + ' ' + labels).toLowerCase();
+  const title = (document.title || '').trim();
+  const hasSubmit = controls.some(el => {
+    const label = (el.innerText || el.value || el.getAttribute('aria-label') || '').trim();
+    return /submit application|send application|bewerbung senden|postuler|candidature/i.test(label)
+      || (el.tagName === 'INPUT' && (el.type || '').toLowerCase() === 'submit');
+  });
+  const hasApply = controls.some(el => {
+    const label = (el.innerText || el.value || el.getAttribute('aria-label') || '').trim();
+    return /(apply|bewerb|postul|candidat|sollicit|aplicar)/i.test(label);
+  });
+  const botWall = /(captcha|verify you are human|checking your browser|access denied|unusual traffic|robot check|security challenge)/i.test(lower);
+  const password = [...document.querySelectorAll('input[type=password]')].some(visible);
+  const accountWall = password || (
+    /(sign in|log in|login|anmelden|connexion|create an account|konto erstellen)/i.test(lower)
+    && fields < 2 && controls.length > 0);
+
+  let state = 'loading';
+  if (botWall) state = 'bot_wall';
+  else if (accountWall) state = 'account_wall';
+  else if (fields >= 2 && (hasSubmit || document.querySelector('form'))) state = 'form';
+  else if (text.length >= 40 || controls.length > 0 || hasApply) state = 'usable_ui';
+  const result = {state, fields, controls: controls.length, text_len: text.length,
+                  title, url: location.href, ready_state: document.readyState,
+                  matched: ['form', 'account_wall', 'bot_wall'].includes(state)};
+  if (result.matched) return {...result, immediate: true};
+
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  bh.watch = bh.watch || {};
+  if (bh.watch[token]) bh.watch[token].disconnect();
+  const obs = new MutationObserver(() => {
+    obs.disconnect();
+    delete bh.watch[token];
+    __bhNotify(token);
+  });
+  obs.observe(document.documentElement || document,
+    {subtree: true, childList: true, attributes: true, characterData: true});
+  bh.watch[token] = obs;
+  return {...result, immediate: false};
+})(__TOKEN__)"""
+
 
 def _unwrap_eval(r: dict[str, Any]) -> Any:
     """`Runtime.evaluate` result → a Python value, or the typed error. One implementation,
@@ -1031,6 +1101,78 @@ class Tab:
                 "controls_in_dom": int(in_dom), "controls_visible": int(visible),
                 "text_len": int(text_len),
                 "waited_ms": round((time.perf_counter() - t0) * 1000, 1)}
+
+    def wait_for_application_state(self, *, timeout: float = 12.0,
+                                   usable_stable: float = 0.8,
+                                   empty_stable: float = 5.0) -> dict[str, Any]:
+        """Wait for a form, usable UI, account wall, bot wall, or stable failure.
+
+        `load` is not a UI readiness signal for client-rendered ATS pages.  In particular,
+        Ashby can have a correct title while `<body>` is still empty.  Strong states return
+        immediately; ordinary content must remain mutation-free for `usable_stable`, and
+        an empty document must remain quiet for the longer `empty_stable` before it is
+        called a failure.  DOM mutations and document replacements wake this wait rather
+        than a polling loop.
+        """
+        if timeout <= 0 or usable_stable <= 0 or empty_stable <= 0:
+            raise ValueError("timeout and stability windows must be positive")
+        token = f"a{id(self)}:{time.perf_counter_ns()}"
+        started = time.perf_counter()
+        deadline = time.monotonic() + timeout
+        probe: dict[str, Any] = {}
+        final_state = "stable_failure"
+        reason = "timeout"
+        immediate = False
+        renavigated = ("Runtime.executionContextsCleared", "Page.frameNavigated")
+        consumed: set[int] = set()
+
+        def interesting(message: dict[str, Any]) -> bool:
+            if id(message) in consumed:
+                return False
+            return ((message.get("method") == "Runtime.bindingCalled"
+                     and (message.get("params") or {}).get("payload") == token)
+                    or message.get("method") in renavigated)
+
+        with self._j.call("wait_for_application_state",
+                          usable_stable=usable_stable, empty_stable=empty_stable):
+            with self._armed(lambda m: m.get("method") == "Runtime.bindingCalled"
+                             or m.get("method") in renavigated) as waiter:
+                while True:
+                    left = deadline - time.monotonic()
+                    if left <= 0:
+                        final_state = ("usable_ui" if probe.get("state") == "usable_ui"
+                                       else "stable_failure")
+                        break
+                    probe = self._world_js(
+                        WATCH_APPLICATION_STATE_JS.replace(
+                            "__TOKEN__", json.dumps(token)),
+                        timeout=min(max(left, 0.1), 5.0)) or {}
+                    state = str(probe.get("state") or "loading")
+                    if probe.get("matched"):
+                        final_state = state
+                        reason = "terminal"
+                        immediate = bool(probe.get("immediate"))
+                        break
+
+                    quiet_for = usable_stable if state == "usable_ui" else empty_stable
+                    hit = waiter.wait_match(interesting, min(quiet_for, left))
+                    if hit is None:
+                        if quiet_for <= left:
+                            final_state = ("usable_ui" if state == "usable_ui"
+                                           else "stable_failure")
+                            reason = "stable"
+                        else:
+                            final_state = ("usable_ui" if state == "usable_ui"
+                                           else "stable_failure")
+                        break
+                    consumed.add(id(hit))
+                    # A mutation or replacement means the previous observation is stale.
+                    # Loop and re-arm against the current document.
+            self._unwatch(token)
+
+        return {**probe, "state": final_state, "reason": reason,
+                "immediate": immediate,
+                "waited_ms": round((time.perf_counter() - started) * 1000, 1)}
 
     def _unwatch(self, token: str) -> None:
         """Drop an abandoned observer. A MutationObserver left armed on a busy page runs

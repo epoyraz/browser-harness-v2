@@ -156,8 +156,9 @@ def test_the_namespace_covers_the_documented_surface(session):
     ns = session.namespace()
     for name in ("goto", "js", "cdp", "snapshot", "click_ref", "click_at", "page_text",
                  "press_key", "scroll", "upload_file", "capture_screenshot",
-                 "wait_lifecycle", "form_schema", "fill_form", "set_value",
-                 "require_form", "prepare_application", "fetch_all", "new_tab", "use_tab", "close_tab",
+                 "wait_lifecycle", "wait_for_application_state", "form_schema", "fill_form",
+                 "set_value", "require_form", "prepare_application", "follow_application",
+                 "application_route_candidates", "fetch_all", "new_tab", "use_tab", "close_tab",
                  "new_context", "close_context", "parallel", "summarise", "targets",
                  "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"
@@ -187,6 +188,60 @@ def test_prepare_application_stops_for_a_substantial_js_button_form(session, ser
     prepared = session.prepare_application()
     assert prepared["contexts_checked"] == 1 and prepared["is_application"] is True
     assert not any(call.get("method") == "Target.setAutoAttach" for call in browser.calls)
+
+
+def test_follow_application_switches_to_a_new_target(session, served, monkeypatch):
+    browser, _ = served
+    origin = session.use_tab("a")
+    browser.targets["popup"] = {
+        "targetId": "popup", "type": "page", "url": "https://a.test/application"}
+    popup = session.tab("popup")
+    session.use_tab("a")
+    monkeypatch.setattr(origin, "click_ref", lambda *a, **kw: {
+        "url_before": "https://a.test/job", "url_after": "https://a.test/job",
+        "navigated": False, "dom_mutations": 0, "new_targets": ["popup"],
+        "dialog": None})
+    monkeypatch.setattr(popup, "wait_for_application_state", lambda **kw: {
+        "state": "form", "fields": 8})
+
+    result = session.follow_application({
+        "url": "https://a.test/job", "apply_control": {"ref": "e1"},
+        "apply_link": "https://a.test/application"})
+    assert result["transition"]["kind"] == "new_target"
+    assert result["target_changed"] is True and session.tab().target_id == "popup"
+
+
+def test_follow_application_uses_discovered_link_after_an_inert_click(
+        session, monkeypatch):
+    origin = session.use_tab("a")
+    monkeypatch.setattr(origin, "click_ref", lambda *a, **kw: {
+        "url_before": "https://a.test/job", "url_after": "https://a.test/job",
+        "navigated": False, "dom_mutations": 0, "new_targets": [], "dialog": None})
+    monkeypatch.setattr(origin, "goto", lambda url, **kw: {
+        "requested": url, "landed": url, "lifecycle": "load"})
+    monkeypatch.setattr(origin, "wait_for_application_state", lambda **kw: {
+        "state": "form", "fields": 8})
+
+    result = session.follow_application({
+        "url": "https://a.test/job", "apply_control": {"ref": "e1"},
+        "apply_link": "https://a.test/job/application"})
+    assert result["transition"]["kind"] == "fallback_link"
+    assert result["state"]["state"] == "form"
+
+
+def test_follow_application_uses_an_ats_route_candidate(session, monkeypatch):
+    origin = session.use_tab("a")
+    visited = []
+    monkeypatch.setattr(origin, "goto", lambda url, **kw: (
+        visited.append(url) or {"requested": url, "landed": url, "lifecycle": "load"}))
+    monkeypatch.setattr(origin, "wait_for_application_state", lambda **kw: {
+        "state": "form", "fields": 8})
+    candidate = "https://jobs.test/acme/id/application"
+    result = session.follow_application(
+        {"url": "https://jobs.test/acme/id", "apply_control": None,
+         "apply_link": None}, candidates=[candidate])
+    assert visited == [candidate]
+    assert result["transition"]["kind"] == "candidate_link"
 
 
 def test_helpers_keep_their_names_so_a_traceback_is_readable(session):

@@ -205,6 +205,8 @@ Things the schema tells you that matter:
 ```python
 wait_for("#results", state="visible", timeout=15)   # present | visible | gone
 wait_lifecycle("networkIdle")                        # document-level events
+wait_for_application_state()                         # form | usable_ui | account_wall |
+                                                     # bot_wall | stable_failure
 ```
 
 `wait_for` arms a MutationObserver in the isolated world and wakes on the mutation — an
@@ -214,6 +216,23 @@ slower than it needs to be when the page is fast and wrong when the page is slow
 
 `state="visible"` is the default on purpose — a node that exists with no box is exactly the
 decoy that produced a verified write to nothing.
+
+For client-rendered application pages, use `wait_for_application_state()` after
+navigation instead of trusting `load`. A valid title with an empty body is transient;
+strong terminal states return immediately, ordinary UI must stay quiet briefly, and a
+genuinely empty page must remain stable longer before it becomes `stable_failure`.
+
+To advance from a posting without branching on how the ATS implements Apply:
+
+```python
+prepared = prepare_application()
+if not prepared["is_application"]:
+    followed = follow_application(prepared)  # same tab, link, in-page reveal, or new target
+    prepared = prepare_application()
+```
+
+`follow_application()` makes a newly opened browser target current before returning and
+falls back to a discovered application URL when a click is observably inert.
 
 ## Cross-origin iframes
 
@@ -336,6 +355,7 @@ Bounded and counted: it cannot silently return 163 of 300. 429/5xx retry in-page
 
 ```bash
 BH_JOURNAL=/tmp/run.jsonl bh <<'PY' ... PY
+BH_CDP_TRACE=1 BH_JOURNAL=/tmp/run.jsonl bh <<'PY' ... PY
 bh trace /tmp/run.jsonl            # span tree with CDP round-trip counts per call
 bh trace /tmp/run.jsonl --tail 20
 bh --doctor                        # why the browser can or cannot be reached
@@ -344,6 +364,11 @@ bh skills which https://acme.jobs.personio.de/job/1
 
 `bh trace` puts `cdp=N` on every line. If a call shows a large count, it is doing work
 per-item that could be batched.
+
+`BH_CDP_TRACE=1` also records one sanitized event per protocol round trip: method, parent
+helper, latency, request/response byte counts, parameter keys, result keys, and outcome.
+It never records values, which may contain cookies, form answers, uploaded paths,
+JavaScript source, or screenshot bytes.
 
 ## Gotchas, each paid for
 

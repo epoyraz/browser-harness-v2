@@ -160,13 +160,21 @@ class RemoteConnection:
                                    "timeout": timeout}
         if session_id:
             payload["session_id"] = session_id
-        self._j.cdp(method)
-        reply = self._call(payload, timeout=timeout + 5.0)
+        marker = self._j.cdp_start(method, params)
+        try:
+            reply = self._call(payload, timeout=timeout + 5.0)
+        except BaseException as error:
+            self._j.cdp_end(marker, method, error=error)
+            raise
         if reply.get("ok"):
-            return reply.get("value") or {}
-        raise HarnessError.of(fail(Class(reply.get("class", Class.CDP_ERROR.value)),
-                                   reply.get("detail", ""),
-                                   **(reply.get("observed") or {})))
+            result = reply.get("value") or {}
+            self._j.cdp_end(marker, method, result=result)
+            return result
+        error = HarnessError.of(fail(Class(reply.get("class", Class.CDP_ERROR.value)),
+                                     reply.get("detail", ""),
+                                     **(reply.get("observed") or {})))
+        self._j.cdp_end(marker, method, error=error)
+        raise error
 
     def close(self) -> None:
         with self._lock:

@@ -66,6 +66,25 @@ def test_cdp_outside_a_span_is_not_an_error(j):
     assert j.current is None
 
 
+def test_opt_in_cdp_trace_records_shape_timing_and_no_values(tmp_path, monkeypatch):
+    monkeypatch.setenv("BH_CDP_TRACE", "1")
+    path = tmp_path / "protocol.jsonl"
+    traced = Journal(path, session="trace")
+    with traced.call("js") as span:
+        marker = traced.cdp_start("Runtime.evaluate", {
+            "expression": "SECRET_FORM_VALUE", "returnByValue": True})
+        traced.cdp_end(marker, "Runtime.evaluate", result={
+            "result": "SECRET_RESPONSE_VALUE"})
+    entries = list(traced.entries())
+    event = next(entry for entry in entries if entry["kind"] == "cdp")
+    assert event["method"] == "Runtime.evaluate" and event["parent"] == span.id
+    assert event["param_keys"] == ["expression", "returnByValue"]
+    assert event["result_keys"] == ["result"] and event["ok"] is True
+    assert next(entry for entry in entries if entry["kind"] == "call")["cdp"] == 1
+    raw = path.read_text()
+    assert "SECRET_FORM_VALUE" not in raw and "SECRET_RESPONSE_VALUE" not in raw
+
+
 # --- rule 2: never discard a cause you were handed --------------------------
 
 def test_typed_failure_is_recorded_with_its_class_and_evidence(j):

@@ -77,6 +77,8 @@ class Journal:
         self.on_call: Callable[[Span, dict[str, Any]], dict[str, Any] | None] | None = None
         self.path = Path(path) if path else None
         self.session = session or f"s{int(time.time())}"
+        self.trace_cdp = os.environ.get("BH_CDP_TRACE", "").strip().lower() \
+            not in ("", "0", "false", "no")
         self._n = 0
         self._lock = threading.Lock()
         # Per-thread, because span nesting is a property of one call chain, not of the
@@ -140,6 +142,46 @@ class Journal:
         """
         if self._stack:
             self._stack[-1].cdp_calls += 1
+
+    def cdp_start(self, method: str, params: dict[str, Any] | None = None) \
+            -> tuple[str, float, str | None, int, list[str]] | None:
+        """Count a round trip and optionally begin a sanitized protocol event.
+
+        Values are deliberately excluded: CDP parameters can contain cookies, form
+        answers, JavaScript source, uploaded paths, and screenshot bytes.  Method names,
+        keys, sizes, timing, and parent spans are enough for a Protocol-Monitor-style
+        explorer without turning observability into a credential store.
+        """
+        self.cdp(method)
+        if not self.trace_cdp:
+            return None
+        parent = self.current.id if self.current is not None else None
+        encoded = json.dumps(params or {}, default=str, ensure_ascii=False).encode()
+        return (self.next_id(), time.perf_counter(), parent, len(encoded),
+                sorted(str(k) for k in (params or {})))
+
+    def cdp_end(self, marker: tuple[str, float, str | None, int, list[str]] | None,
+                method: str, *, result: Any = None, error: BaseException | None = None) -> None:
+        if marker is None:
+            return
+        event_id, started, parent, request_bytes, param_keys = marker
+        try:
+            response_bytes = len(json.dumps(
+                result, default=str, ensure_ascii=False).encode()) if result is not None else 0
+        except (OverflowError, RecursionError, TypeError, ValueError):
+            response_bytes = 0
+        payload: dict[str, Any] = {
+            "method": method, "ms": round((time.perf_counter() - started) * 1000, 1),
+            "request_bytes": request_bytes, "response_bytes": response_bytes,
+            "param_keys": param_keys, "ok": error is None,
+        }
+        if parent:
+            payload["parent"] = parent
+        if isinstance(result, dict):
+            payload["result_keys"] = sorted(str(k) for k in result)
+        if error is not None:
+            payload["error_class"] = type(error).__name__
+        self.write("cdp", id=event_id, **payload)
 
     @property
     def current(self) -> Span | None:

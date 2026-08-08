@@ -244,6 +244,53 @@ class Session:
                     "contexts_checked": len(candidates),
                     "is_application": is_application(prepared)}
 
+    def follow_application(self, prepared: dict[str, Any], *, timeout: float = 15.0,
+                           settle: float = 0.25,
+                           candidates: list[str] | None = None) -> dict[str, Any]:
+        """Advance from a posting to its application UI and report the chosen target.
+
+        The transition may replace the current document, reveal an in-page form, expose a
+        discovered URL, or create a new browser target.  Callers should not have to encode
+        those four shapes independently, and a new target must become current before the
+        next perception call or the application is inspected in the wrong tab.
+        """
+        origin = self.tab()
+        control = prepared.get("apply_control") or {}
+        link = prepared.get("apply_link")
+        current_url = prepared.get("url")
+        candidate = next((url for url in (candidates or []) if url != current_url), None)
+        transition: dict[str, Any] = {"kind": "none"}
+        selected = origin
+
+        with self.journal.call("follow_application"):
+            if control.get("ref"):
+                delta = origin.click_ref(control["ref"], settle=settle, timeout=timeout)
+                transition = {"kind": "control", "delta": delta}
+                new_targets = [str(t) for t in delta.get("new_targets") or [] if t]
+                if new_targets:
+                    selected = self.use_tab(new_targets[-1])
+                    transition["kind"] = "new_target"
+                    transition["target_id"] = selected.target_id
+                elif (not delta.get("navigated") and not delta.get("dom_mutations")
+                      and ((link and link != current_url) or candidate)):
+                    destination = str(link or candidate)
+                    navigation = origin.goto(destination, timeout=timeout)
+                    transition = {"kind": ("fallback_link" if link else "candidate_link"),
+                                  "delta": delta,
+                                  "navigation": navigation}
+            elif link and link != current_url:
+                navigation = origin.goto(str(link), timeout=timeout)
+                transition = {"kind": "link", "navigation": navigation}
+            elif candidate:
+                navigation = origin.goto(candidate, timeout=timeout)
+                transition = {"kind": "candidate_link", "navigation": navigation}
+
+            state = selected.wait_for_application_state(timeout=timeout)
+            self.use_tab(selected.target_id)
+        return {"transition": transition, "state": state,
+                "target_id": selected.target_id,
+                "target_changed": selected.target_id != origin.target_id}
+
     # -- recording ---------------------------------------------------------
 
     def start_recording(self, name: str | None = None, title: str | None = None) -> str:
@@ -318,7 +365,9 @@ class Session:
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
+            "application_route_candidates": forms.application_route_candidates,
             "prepare_application": self.prepare_application,
+            "follow_application": self.follow_application,
             # Bound to this session, so a script writes parallel(urls, fn) and the bare
             # helpers inside fn address that worker's own tab.
             "parallel": lambda items, fn, **kw: parallel_ops.parallel(self, items, fn, **kw),
@@ -327,6 +376,7 @@ class Session:
         }
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "wait_for_form",
+                     "wait_for_application_state",
                      "frames",
                      "page_text", "press_key", "scroll", "upload_file", "arm_dry_run"):
             ns[name] = on_tab(name)

@@ -21,11 +21,35 @@ Everything here was forced by a real form in the five-ATS run:
 from __future__ import annotations
 
 import json
+import re
 import time
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from harness.core.outcome import Class, NotAForm, Outcome, Tally, fail, ok
 from harness.ops.page import Tab
+
+# ATS route conventions belong in one capability registry.  They are not form selectors:
+# they produce reversible candidate GET routes which the normal form guard still verifies.
+_APPLICATION_ROUTE_RULES = (
+    (re.compile(r"^jobs\.ashbyhq\.com$", re.IGNORECASE),
+     re.compile(r"^/[^/]+/[0-9a-f-]{20,}/?$", re.IGNORECASE), "application"),
+)
+
+
+def application_route_candidates(url: str) -> list[str]:
+    """Return known direct application views for a posting URL, in preference order."""
+    try:
+        parts = urlsplit(url)
+    except ValueError:
+        return []
+    for host, path, suffix in _APPLICATION_ROUTE_RULES:
+        if host.fullmatch(parts.hostname or "") and path.fullmatch(parts.path):
+            candidate = urlunsplit((parts.scheme, parts.netloc,
+                                    f"{parts.path.rstrip('/')}/{suffix}",
+                                    parts.query, ""))
+            return [candidate]
+    return []
 
 
 def _digits(s: str) -> str:

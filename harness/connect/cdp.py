@@ -204,22 +204,29 @@ class Connection:
         if session_id:
             msg["sessionId"] = session_id
 
-        self._j.cdp(method)
+        marker = self._j.cdp_start(method, params)
         try:
             self._t.send(msg)
         except EOFError as e:
             self._drop(msg_id)
-            raise BrowserDisconnected(str(e), method=method) from e
+            error = BrowserDisconnected(str(e), method=method)
+            self._j.cdp_end(marker, method, error=error)
+            raise error from e
 
         if not slot.done.wait(timeout):
             self._drop(msg_id)
-            raise Timeout(
+            error = Timeout(
                 f"{method} did not answer in {timeout}s",
                 method=method, session=session_id, timeout=timeout,
             )
+            self._j.cdp_end(marker, method, error=error)
+            raise error
         if slot.error is not None:
+            self._j.cdp_end(marker, method, error=slot.error)
             raise slot.error
-        return slot.result or {}
+        result = slot.result or {}
+        self._j.cdp_end(marker, method, result=result)
+        return result
 
     def _drop(self, msg_id: int) -> None:
         with self._lock:

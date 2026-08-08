@@ -385,6 +385,54 @@ def test_wait_for_form_rejects_a_nonsense_threshold(wired):
         _tab(wired).wait_for_form(min_fields=0)
 
 
+def test_application_state_returns_a_real_form_immediately(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        {"matched": True, "immediate": True, "state": "form", "fields": 8,
+         "controls": 11, "text_len": 844, "title": "Software Architect",
+         "url": "https://jobs.test/application", "ready_state": "complete"}
+        if "hasSubmit" in e else None)
+    result = tab.wait_for_application_state(timeout=2.0)
+    assert result["state"] == "form" and result["immediate"] is True
+    assert result["waited_ms"] < 500
+
+
+def test_application_state_requires_a_quiet_usable_ui(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        {"matched": False, "immediate": False, "state": "usable_ui", "fields": 0,
+         "controls": 1, "text_len": 900, "title": "Job", "url": "https://a.test/",
+         "ready_state": "complete"}
+        if "hasSubmit" in e else None)
+    started = time.monotonic()
+    result = tab.wait_for_application_state(
+        timeout=1.0, usable_stable=0.08, empty_stable=0.2)
+    assert result["state"] == "usable_ui" and result["reason"] == "stable"
+    assert time.monotonic() - started >= 0.06
+
+
+def test_application_state_does_not_treat_title_plus_empty_body_as_terminal(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        {"matched": False, "immediate": False, "state": "loading", "fields": 0,
+         "controls": 0, "text_len": 0, "title": "Backend Engineer @ Air Apps",
+         "url": "https://jobs.test/posting", "ready_state": "complete"}
+        if "hasSubmit" in e else None)
+    started = time.monotonic()
+    result = tab.wait_for_application_state(
+        timeout=1.0, usable_stable=0.05, empty_stable=0.12)
+    assert result["state"] == "stable_failure" and result["immediate"] is False
+    assert time.monotonic() - started >= 0.10
+
+
+def test_application_state_rejects_invalid_stability_windows(wired):
+    with pytest.raises(ValueError):
+        _tab(wired).wait_for_application_state(empty_stable=0)
+
+
 # --- items 17 + 20: snapshot, refs, deltas ------------------------------------
 
 def test_snapshot_returns_the_elements_the_page_reported(wired):
