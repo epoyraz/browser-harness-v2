@@ -1,0 +1,47 @@
+tests/unit/test_page.py
+  s_6bd7a46abc589b::t_35b7596dbb3b5b 275-276
+  s_6bd7a46abc589b::t_b58f9707fc1e88 249-250
+  s_6bd7a46abc589b::t_ecab04f7188c85 331-382
+  s_6bd7a46abc589b::t_dfdc7793394197 231-232,236-245,247,251-262,267-268,270-271,277,279-282,284,286-287
+  s_6bd7a46abc589b::t_3f02710dab3e44 195-229,288-330,383-387
+  s_6bd7a46abc589b::t_4bbd709ae39055 230,233-235,246,248,263-266,269,272-274,278,283,285
+  s_6bd7a46abc589b::t_1727c77c8685b0 87-88
+  s_6bd7a46abc589b::t_9e0ef30086bfab 122-175
+harness/ops/page.py
+  s_6bd7a46abc589b::t_7b2891b320dc41 864,867-868,870,875-891
+  s_6bd7a46abc589b::t_57179382c247c1 61-68,360-413,670-718,725-729,731,735-753,842-850,856-857,862-863,865-866,869,871-874,892-916,957-1034,1063-1102,1112-1113,1115
+harness/ops/forms.py
+  s_6bd7a46abc589b::t_d08bb93207961f 149-175,181-182,184-186,198,229-235,238,242-248,251-277,280-281
+harness/session.py
+  s_6bd7a46abc589b::t_09e5aa7f1b80a2 329-330
+tests/fake_browser.py
+  s_6bd7a46abc589b::t_4534a43ea4dc5a 41-44,197-205
+tests/fixtures/collapsed.html
+  s_6bd7a46abc589b::t_00d329c66e2f6a 1-59
+tests/fixtures/hangload.html
+  s_6bd7a46abc589b::t_b6dec1095b97b5 1-20
+tests/fixtures/lateform.html
+  s_6bd7a46abc589b::t_95c2e98b9b3193 1-38
+tests/fixtures/noform.html
+  s_6bd7a46abc589b::t_42b3e2236e199e 1-13
+tests/live/forms_check.py
+  s_6bd7a46abc589b::t_13ffb05c81dd25 118-148
+tests/live/improve_bench.py
+  s_6bd7a46abc589b::t_3ed9b22a111220 1-224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "c43f0feb35eee94c39f40857d589c47970c33ea0",
+  "prompts": {},
+  "sessions": {
+    "s_6bd7a46abc589b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "775133a1-93e5-4b1b-908a-f9fae4034753",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
