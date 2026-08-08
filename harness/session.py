@@ -303,7 +303,11 @@ class Session:
             return str(self._recorder.dir)
         self._recorder = record.start(lambda: self._current and self._tabs.get(self._current),
                                       self.journal, name=name, title=title)
-        record.prune()
+        # Batch evidence runs may deliberately create more than the interactive default
+        # of 20 recordings. Keep rollover bounded while allowing the caller to preserve
+        # the whole batch explicitly.
+        keep = max(1, int(os.environ.get("BH_RECORDING_KEEP", "20")))
+        record.prune(keep=keep)
         return str(self._recorder.dir)
 
     def stop_recording(self) -> str | None:

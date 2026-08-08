@@ -1,8 +1,9 @@
-"""Capture the 30 best technically clean application forms without submitting.
+"""Capture 30 technically clean forms so the 25 longest can be presented.
 
-Run through the harness so its dry-run boundary and optional recorder are active::
+Run through the harness so its dry-run boundary and per-application recorder are active::
 
-    BH_RECORD=1 BH_RECORDINGS=outputs/top-30-applications/recordings \
+    BH_RECORDING_KEEP=40 \
+      BH_RECORDINGS=outputs/top-25-applications/recordings-per-application \
       uv run bh < tools/capture_top_applications.py
 
 The selection comes from the latest 100-job telemetry: form reached, no harness errors,
@@ -25,8 +26,9 @@ from tools.collect_job_form_telemetry import MAX_HOPS, plan_for
 
 ROOT = Path.cwd()
 SOURCE = ROOT / "outputs" / "job-form-telemetry-2026-08-08" / "results.json"
-OUT = ROOT / "outputs" / "top-30-applications-2026-08-08"
+OUT = ROOT / "outputs" / "top-25-applications-2026-08-08"
 SHOTS = OUT / "screenshots"
+RECORDINGS = OUT / "recordings-per-application"
 LIMIT = 30
 
 
@@ -126,25 +128,26 @@ def capture(job: dict[str, Any]) -> dict[str, Any]:
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     SHOTS.mkdir(parents=True, exist_ok=True)
+    RECORDINGS.mkdir(parents=True, exist_ok=True)
     jobs = select_jobs()
-
-    def progress(done: int, total: int, record: dict[str, Any]) -> None:
-        value = record.get("value") or {}
+    records = []
+    for done, job in enumerate(jobs, 1):
+        rank = int(job["rank"])
+        name = f"{rank:03d}-{safe_name(job.get('company'))}"
+        new_tab()
+        recording = session.start_recording(name=name, title=f"#{rank} {job.get('company')}")
+        try:
+            value = capture(job)
+            value["recording"] = str(Path(recording).relative_to(ROOT))
+            records.append({"ok": True, "value": value})
+        finally:
+            session.stop_recording()
+            close_tab()
         print(
-            f"progress {done}/{total} rank={value.get('rank')} "
+            f"progress {done}/{len(jobs)} rank={rank} "
             f"errors={len(value.get('errors') or [])}",
             flush=True,
         )
-
-    records = parallel(
-        jobs,
-        capture,
-        workers=6,
-        reuse_tabs=True,
-        isolated=False,
-        timeout=20 * 60,
-        progress=progress,
-    )
     values = [record.get("value") for record in records if record.get("ok")]
     manifest = {
         "meta": {
