@@ -31,6 +31,15 @@ values = sorted(
 if len(values) != 25:
     raise RuntimeError(f"expected 25 recordings, got {len(values)}")
 
+# Put a genuinely changing recording in the center. Rivia's surviving content is one
+# repeated state; Wavestone visibly advances from its job page to its application UI.
+center_index = 12
+wavestone_index = next(
+    index for index, value in enumerate(values)
+    if value["rank"] == 42 and value["company"] == "Wavestone"
+)
+values[center_index], values[wavestone_index] = values[wavestone_index], values[center_index]
+
 # Build a high-resolution scene once. The camera moves over this 9600x5400 surface, so
 # the opening cell is not a tiny grid tile enlarged fivefold.
 scene_inputs: list[str] = []
@@ -67,6 +76,24 @@ scene_result = subprocess.run(
 if scene_result.returncode != 0 or not CONTACT_SHEET.is_file():
     raise RuntimeError(f"contact sheet failed: {scene_result.stderr[-1000:]}")
 
+center = values[center_index]
+center_video = OUT / center["video"]
+center_probe = subprocess.run(
+    [
+        "ffprobe", "-v", "error", "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1", str(center_video),
+    ],
+    capture_output=True,
+    text=True,
+    check=True,
+)
+# The first Wavestone state remains visible through 2.5s. Starting at 1.5s retains that
+# opening and places its transition to the application UI at the end of the camera move.
+center_trim = 1.5
+center_duration = float(center_probe.stdout.strip()) - center_trim
+if center_duration <= 0:
+    raise RuntimeError("center recording has no content after its blank prefix")
+
 inputs: list[str] = []
 filters: list[str] = []
 for index, value in enumerate(values):
@@ -74,20 +101,28 @@ for index, value in enumerate(values):
     if not path.is_file():
         raise FileNotFoundError(path)
     duration = float(value["recording_seconds"])
-    stretch = CONTENT_SECONDS / duration
+    stretch = CONTENT_SECONDS / (center_duration if index == center_index else duration)
     inputs.extend(["-i", str(path)])
-    filters.append(
-        f"[{index}:v]setpts=(PTS-STARTPTS)*{stretch:.8f},fps={FPS},"
-        f"scale={INNER_W}:{INNER_H}:force_original_aspect_ratio=decrease,"
-        f"pad={CELL_W}:{CELL_H}:(ow-iw)/2:(oh-ih)/2:color=white,"
+    trim = f"trim=start={center_trim}," if index == center_index else ""
+    normalized = (
+        f"[{index}:v]{trim}setpts=(PTS-STARTPTS)*{stretch:.8f},fps={FPS},"
         f"tpad=start_mode=clone:start_duration={INTRO_SECONDS},"
-        f"trim=duration={TOTAL_SECONDS}[v{index}]"
+        f"trim=duration={TOTAL_SECONDS}"
     )
+    if index == center_index:
+        filters.append(f"{normalized},split=2[center-wall][center-camera]")
+        filters.append(
+            f"[center-wall]scale={INNER_W}:{INNER_H}:force_original_aspect_ratio=decrease,"
+            f"pad={CELL_W}:{CELL_H}:(ow-iw)/2:(oh-ih)/2:color=white[v{index}]"
+        )
+    else:
+        filters.append(
+            f"{normalized},scale={INNER_W}:{INNER_H}:force_original_aspect_ratio=decrease,"
+            f"pad={CELL_W}:{CELL_H}:(ow-iw)/2:(oh-ih)/2:color=white[v{index}]"
+        )
 
-# The middle of a 5x5 grid is item 13 (zero-based index 12). The high-resolution scene
-# carries its captured frame during the camera move; the live wall fades in after the
-# camera arrives. Several recordings begin with a blank navigation frame, so embedding
-# the live center clip during the intro would make an otherwise sharp opening turn white.
+# The middle recording is composited into the large scene before zoompan. That means the
+# camera moves over it; the video itself never changes position or size independently.
 inputs.extend(["-loop", "1", "-framerate", str(FPS), "-i", str(CONTACT_SHEET)])
 
 layout = "|".join(
@@ -101,7 +136,14 @@ filters.append(
 )
 
 filters.append(
-    f"[25:v]fps={FPS},trim=duration={TOTAL_SECONDS},setpts=PTS-STARTPTS[scene-active]"
+    f"[center-camera]scale={SCENE_INNER_W}:{SCENE_INNER_H}:"
+    "force_original_aspect_ratio=decrease,"
+    f"pad={SCENE_CELL_W}:{SCENE_CELL_H}:(ow-iw)/2:(oh-ih)/2:color=white[center-large]"
+)
+filters.append(
+    f"[25:v]fps={FPS},trim=duration={TOTAL_SECONDS},setpts=PTS-STARTPTS[scene];"
+    f"[scene][center-large]overlay=x={2 * SCENE_CELL_W}:y={2 * SCENE_CELL_H}:"
+    "shortest=1[scene-active]"
 )
 
 hold_frames = round(INTRO_SECONDS * FPS)
