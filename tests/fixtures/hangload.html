@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- The join.com shape: a subresource that never completes, so `load` never fires.
+     The document itself is finished and usable within milliseconds — DOMContentLoaded
+     fires, the form is in the DOM, a human could type into it — but a `goto` that waits
+     for the `load` lifecycle event sits there until its timeout and then raises, throwing
+     away a page that was ready the whole time. Measured on 4 real join.com postings:
+     25s each, 100s of a 34-job run spent waiting for an event that was never coming. -->
+<meta charset="utf-8">
+<title>Application — hanging subresource</title>
+<h1>Apply for this position</h1>
+<form id="app">
+  <label for="fn">First name</label><input id="fn" name="first">
+  <label for="ln">Last name</label><input id="ln" name="last">
+  <label for="em">E-mail</label><input id="em" name="email" type="email">
+  <label for="ph">Phone</label><input id="ph" name="phone" type="tel">
+  <label for="cv">Motivation</label><textarea id="cv" name="cover"></textarea>
+  <button type="submit">Send application</button>
+</form>
+<!-- served by the bench's /hang endpoint, which accepts and then never answers -->
+<img src="/hang" alt="" width="1" height="1">

@@ -115,6 +115,37 @@ def main() -> int:
         check("apply_link: an href saying /apply cannot outrank the label",
               "privacy" not in link, link[-46:] or "None")
 
+        # ---- apply_control: when the way in is a button, not a link --------
+        # Recruitee and BambooHR expose the apply affordance as a <button> that expands
+        # the form in place. There is no URL to navigate to, so an anchor-only matcher
+        # returns null and the caller has nowhere to go: 0/4 filled on Recruitee in all
+        # five live runs, while the schema simultaneously reported ~92 controls sitting
+        # in the DOM, invisible, waiting for exactly that button.
+        tab.goto(f"{base}/collapsed.html")
+        prep = prepare_document(tab)
+        verdict = (prep.get("schema") or {}).get("verdict") or {}
+        ctl = prep.get("apply_control") or {}
+        check("apply_control: finds the button when there is no apply link",
+              prep.get("apply_link") is None and ctl.get("ref") is not None,
+              f"link={prep.get('apply_link')} control={ctl.get('label')!r}")
+        check("apply_control: the label carries the verb, decoys do not win",
+              "bewerben" in str(ctl.get("label", "")).lower(), str(ctl.get("label")))
+
+        # ---- invisible_because: "0 visible" now names its cause ------------
+        why = verdict.get("invisible_because") or {}
+        check("invisible_because: attributes hidden controls to a cause",
+              why.get("hidden_ancestor", 0) >= 8 and why.get("self_display_none", 0) >= 3,
+              str(why))
+        check("invisible_because: the verdict reason names the dominant cause",
+              "hidden ancestor" in str(verdict.get("reason", "")),
+              str(verdict.get("reason"))[:78])
+
+        # and the point of all of it: the form is reachable through that control
+        tab.click_ref(ctl["ref"])
+        after = ((prepare_document(tab).get("schema") or {}).get("verdict") or {})
+        check("apply_control: clicking it reveals a real form",
+              bool(after.get("is_form")), f"fields={after.get('fields')}")
+
         # ---- Abacus: the proximity fallback (item 23's done-when) ----------
         tab.goto(f"{base}/abacus.html")
         schema = form_schema(tab)

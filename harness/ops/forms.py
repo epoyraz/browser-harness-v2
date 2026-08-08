@@ -146,17 +146,44 @@ _SCHEMA_JS = """(() => {
   // controls are all hidden — three different problems with three different fixes. Say
   // which one it is, and carry the counts that prove it.
   const textLen = ((document.body && document.body.innerText) || '').trim().length;
-  const inDom = document.querySelectorAll('input,textarea,select').length;
-  const visible = [...document.querySelectorAll('input,textarea,select')]
-    .filter(e => e.offsetParent !== null).length;
+  const controls = [...document.querySelectorAll('input,textarea,select')];
+  const inDom = controls.length;
+  const visible = controls.filter(e => e.offsetParent !== null).length;
+  // "0 visible" is where diagnosis used to stop, and it stopped one step short of the
+  // fix every time. A form collapsed behind an apply button, a page of tracking pixels
+  // and an app that rendered nothing all report 0 — with three different remedies.
+  // Attributing each hidden control to a cause costs nothing (the nodes are already
+  // walked) and names the remedy: `hidden_ancestor` in bulk means the form is behind a
+  // step, so look for a control to click; `self_display_none` means tracking furniture,
+  // so ignore it. Measured live on Recruitee: 92 in the DOM, 0 visible, and the cause
+  // went uninvestigated across five runs because the verdict never said which one.
+  const why = {};
+  for (const el of controls) {
+    if (el.offsetParent !== null) continue;
+    const cs = getComputedStyle(el);
+    const r = el.getBoundingClientRect();
+    let cause;
+    if (cs.display === 'none') cause = 'self_display_none';
+    else if (cs.visibility === 'hidden' || cs.visibility === 'collapse') cause = 'self_visibility_hidden';
+    else if (parseFloat(cs.opacity) === 0) cause = 'self_opacity_zero';
+    else if (cs.position === 'fixed') cause = 'position_fixed';
+    else if (!r.width && !r.height) cause = 'hidden_ancestor';
+    else if (r.right < 0 || r.bottom < 0
+             || r.left > (document.documentElement.clientWidth || 0)) cause = 'offscreen';
+    else cause = 'zero_rect';
+    why[cause] = (why[cause] || 0) + 1;
+  }
   let reason;
   if (fields.length >= 2 && submits.length > 0) reason = 'fields plus a submit control';
   else if (textLen === 0 && inDom === 0)
     reason = 'page rendered nothing: 0 characters and 0 form controls. The document is '
            + 'empty — a bot wall, or an app whose boot request never completed';
-  else if (fields.length < 2 && inDom >= 2 && visible === 0)
+  else if (fields.length < 2 && inDom >= 2 && visible === 0) {
+    const top = Object.entries(why).sort((a, b) => b[1] - a[1])[0];
     reason = 'form controls exist but none are usable: ' + inDom + ' in the DOM, 0 visible'
-           + ' — the form is collapsed or behind another step';
+           + (top ? ' — ' + top[1] + ' of them ' + top[0].replace(/_/g, ' ') : '')
+           + '; the form is collapsed or behind another step';
+  }
   else if (fields.length < 2)
     reason = 'fewer than 2 real fields after furniture exclusion';
   else reason = 'no submit control';
@@ -168,6 +195,7 @@ _SCHEMA_JS = """(() => {
     files: files.length,
     controls_in_dom: inDom,
     controls_visible: visible,
+    invisible_because: why,
     text_len: textLen,
     submit_labels: submits.slice(0, 5)};
   return {verdict, fields, files};
@@ -198,31 +226,59 @@ _PREPARE_JS = """(() => {
   // "Apply filters", "Bewerbungstipps", a privacy link — same verb, wrong destination.
   const NOT_APPLY =
     /(filter|tipp|tips|ratgeber|guide|faq|hilfe|help|datenschutz|privacy|impressum|cookie|newsletter|alert|job.?alert|abo)/i;
-  const scoreApply = a => {
-    const txt = (a.innerText || a.getAttribute('aria-label') || a.title || '')
-      .replace(/\\s+/g, ' ').trim();
-    const href = a.getAttribute('href') || '';
-    if (!href || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href)) return -1;
+  const labelOf = el => (el.innerText || el.value || el.getAttribute('aria-label')
+                         || el.title || '').replace(/\\s+/g, ' ').trim();
+  //: Shared by both kinds. The label must carry the verb: scoring on href alone found
+  //: nothing the text did not already find, and did produce a false positive — a
+  //: "Candidates Privacy Notice" link whose href happened to contain /apply/. href is a
+  //: tie-break, not evidence.
+  const scoreLabel = txt => {
     if (!txt || txt.length > 60 || NOT_APPLY.test(txt)) return -1;
-    // The label must carry the verb. Scoring on href alone found nothing the text did not
-    // already find, and did produce a false positive: a "Candidates Privacy Notice" link
-    // whose href happened to contain /apply/. href is a tie-break, not evidence.
     if (!APPLY_TEXT.test(txt)) return -1;
-    let s = 3;
-    if (APPLY_HREF.test(href)) s += 2;
-    const r = a.getBoundingClientRect();
-    if (r.width && r.height) s += 1;          // a visible control beats a hidden one
-    if (txt.length <= 30) s += 1;             // a button label, not a sentence
-    return s;
+    return txt.length <= 30 ? 4 : 3;          // a button label, not a sentence
   };
   let apply = null, bestScore = 0;
   for (const a of document.querySelectorAll('a[href]')) {
-    const s = scoreApply(a);
+    const href = a.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href)) continue;
+    let s = scoreLabel(labelOf(a));
+    if (s < 0) continue;
+    if (APPLY_HREF.test(href)) s += 2;
+    const r = a.getBoundingClientRect();
+    if (r.width && r.height) s += 1;          // a visible control beats a hidden one
     if (s > bestScore) { bestScore = s; apply = a; }
+  }
+  // An <a href> is not the only way to offer an application, and on two ATSs it is not
+  // the way at all: Recruitee and BambooHR render a <button> that expands the form in
+  // place. There is no URL to navigate to, so a matcher that scores only anchors returns
+  // null and the caller has nowhere to go — measured 0/4 filled on Recruitee in all five
+  // live runs, while the schema simultaneously reported ~92 controls sitting in the DOM,
+  // invisible, waiting for that button. So return a clickable ref alongside the link.
+  let ctl = null, ctlScore = 0;
+  for (const b of document.querySelectorAll(
+       'button, [role=button], summary, input[type=button], input[type=submit]')) {
+    // A submit inside a form that is already showing is the send button, not the way in.
+    if (b.form && b.type === 'submit') continue;
+    let s = scoreLabel(labelOf(b));
+    if (s < 0) continue;
+    const r = b.getBoundingClientRect();
+    if (!r.width || !r.height) continue;      // a control nobody can click is not one
+    if (b.tagName === 'SUMMARY') s += 1;      // <details> is literally "there is more"
+    if (s > ctlScore) { ctlScore = s; ctl = b; }
+  }
+  let applyControl = null;
+  if (ctl) {
+    let ref = ctl.__bhRef;
+    if (!ref || bh.refs[ref] !== ctl) {
+      ref = 'e' + (++bh.n); ctl.__bhRef = ref; bh.refs[ref] = ctl;
+    }
+    applyControl = {ref, label: labelOf(ctl).slice(0, 60), score: ctlScore,
+                    tag: ctl.tagName.toLowerCase()};
   }
   return {schema, url: location.href, title: document.title,
           language: document.documentElement.lang || navigator.language || 'en',
-          file_inputs: fileInputs, apply_link: apply ? apply.href : null};
+          file_inputs: fileInputs, apply_link: apply ? apply.href : null,
+          apply_control: applyControl};
 })()""".replace("__SCHEMA__", _SCHEMA_JS)
 
 

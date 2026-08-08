@@ -58,6 +58,14 @@ from harness.core.outcome import (
 #: and code that reaches for page globals must land where the page's globals live.
 WORLD = "__bh_world"
 
+#: `frames()` collects OOPIF announcements until this long passes with none arriving.
+#: They follow `Target.setAutoAttach` by one round trip, so a quiet window this size is
+#: many times the gap it has to bridge — while a frameless page now costs one window
+#: instead of two 0.6s sleeps.
+FRAMES_QUIET = 0.12
+#: Ceiling for the settle loop, so a page that keeps spawning iframes still terminates.
+FRAMES_MAX_WAIT = 0.8
+
 #: Installed on every new document (item 18). Idempotent; `__bh.mutations` is the DOM
 #: delta counter, `__bh.refs` the snapshot ref registry. Lives in the isolated world, so
 #: `__bh` is reachable from harness JS and invisible to the page.
@@ -349,6 +357,60 @@ WATCH_JS = """((sel, state, token) => {
   return {matched: false, immediate: false};
 })(__SEL__, __STATE__, __TOKEN__)"""
 
+#: Wait for a *form*, not for a selector — the question every caller was actually asking.
+#:
+#: A blanket `input, textarea, form, main` selector answers a different question, and
+#: measurement showed it answering it wrongly in both directions: 27% of 64 live
+#: `wait_for` calls timed out (15s p95) on pages where nothing would ever match, and on
+#: pages with a cookie banner it matched the banner's checkbox in ~6ms and reported
+#: success while the real form was still seconds away. Neither branch ever waited for the
+#: right thing.
+#:
+#: So the condition is a count of controls that could hold applicant data: laid out,
+#: not display:none, not a submit button, not site furniture. Same exclusions as
+#: `_SCHEMA_JS`, deliberately — a wait that resolves on controls the schema then discards
+#: is the cookie-banner false positive rebuilt one layer down.
+WATCH_FORM_JS = """((minFields, token) => {
+  const furniture = el => !!el.closest(
+    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
+    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header aside');
+  const count = () => {
+    let n = 0;
+    for (const el of document.querySelectorAll('input,select,textarea,[contenteditable=true]')) {
+      const type = (el.type || '').toLowerCase();
+      if (['submit', 'button', 'reset', 'image', 'hidden', 'search'].includes(type)) continue;
+      if (furniture(el)) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width <= 2 && r.height <= 2) continue;
+      if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') continue;
+      n++;
+    }
+    return n;
+  };
+  const now = count();
+  if (now >= minFields) return {matched: true, immediate: true, fields: now};
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  bh.watch = bh.watch || {};
+  const obs = new MutationObserver(() => {
+    if (count() < minFields) return;
+    obs.disconnect();
+    delete bh.watch[token];
+    __bhNotify(token);
+  });
+  obs.observe(document.documentElement || document,
+    {subtree: true, childList: true, attributes: true, characterData: true});
+  bh.watch[token] = obs;
+  return {matched: false, immediate: false, fields: now};
+})(__MIN__, __TOKEN__)"""
+
+#: Read the same counts back without arming an observer, for the final report.
+FORM_COUNTS_JS = """(() => {
+  const all = document.querySelectorAll('input,textarea,select');
+  return [all.length,
+          [...all].filter(e => e.offsetParent !== null).length,
+          ((document.body && document.body.innerText) || '').trim().length];
+})()"""
+
 
 def _unwrap_eval(r: dict[str, Any]) -> Any:
     """`Runtime.evaluate` result → a Python value, or the typed error. One implementation,
@@ -605,26 +667,90 @@ class Tab:
     # -- item 16 + 19: navigation and event-driven waits -------------------
 
     def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load") -> dict[str, Any]:
-        """Returns `{requested, landed}` or raises `NavigationFailed` carrying both.
-        A 404 error page cannot be reported as a title (v1 did exactly that)."""
+        """Returns `{requested, landed, lifecycle}` or raises `NavigationFailed`/`Timeout`.
+        A 404 error page cannot be reported as a title (v1 did exactly that).
+
+        `lifecycle` says which condition ended the wait, and there are three:
+
+        | value       | meaning |
+        |-------------|---------|
+        | `"load"`    | the requested event arrived — the normal case |
+        | `"settled"` | it did not, but the document parsed and the network went quiet |
+        | `"timeout"` | neither, yet the document is demonstrably usable |
+
+        The last two exist because *one stalled subresource holds `load` forever*. A single
+        image, stylesheet or iframe that is accepted and never answered is enough: measured
+        on all three, `DOMContentLoaded` fires, the form is in the DOM and fillable, paint
+        completes — and `load` never comes. The old code waited out the full timeout and
+        then raised, discarding a page that had been ready for seconds.
+
+        That is not hypothetical. Across three live runs every single `goto` failure — 14
+        of 14, 505 seconds — was one host tarpitting its subresources. Those pages were
+        usable: the caller caught the `Timeout`, carried on, and filled the forms anyway.
+        The harness spent 505 seconds proving the caller right.
+
+        `settled` is safe to accept early because of the *order* the events arrive in. On a
+        healthy page Chrome emits `DOMContentLoaded` → `load` → `networkAlmostIdle`, so
+        `load` wins the race and nothing changes. Only when `load` is absent does the pair
+        arrive without it, which is precisely the stalled case.
+        """
+        seen: set[str] = set()
+
+        def satisfied(msg: dict[str, Any]) -> bool:
+            # Only ever called from `wait_match`, which runs after `loader` is assigned —
+            # so the buffered events from BEFORE this navigation are filtered here rather
+            # than being allowed to accumulate into `seen` and satisfy the pair rule with
+            # the previous document's events.
+            p = msg.get("params") or {}
+            name = p.get("name")
+            if not isinstance(name, str):
+                return False
+            if not loader:
+                return name == wait_until      # unidentifiable: exact match only
+            if p.get("loaderId") != loader:
+                return False                   # another navigation's lifecycle, not ours
+            seen.add(name)
+            if name == wait_until:
+                return True
+            return wait_until == "load" and {"DOMContentLoaded",
+                                             "networkAlmostIdle"} <= seen
+
+        loader = None
         with self._j.call("goto", url=url), \
              self._armed(lambda m: m.get("method") == "Page.lifecycleEvent") as w:
             nav = self.cdp("Page.navigate", {"url": url}, timeout=timeout)
             if err := nav.get("errorText"):
                 raise NavigationFailed(err, requested=url, landed=self._try_url())
             loader = nav.get("loaderId")
-            hit = w.wait_match(
-                lambda m: (p := m.get("params") or {}).get("name") == wait_until
-                and (not loader or p.get("loaderId") == loader),
-                timeout,
-            )
-            if hit is None:
+            hit = w.wait_match(satisfied, timeout)
+            got = (hit.get("params") or {}).get("name") if hit else None
+            lifecycle = ("load" if got == wait_until
+                         else "settled" if hit is not None else "timeout")
+            if hit is None and not self._usable_document(timeout):
                 raise Timeout(f"no {wait_until!r} lifecycle event in {timeout}s",
-                              requested=url, wait_until=wait_until)
+                              requested=url, wait_until=wait_until, lifecycle_seen=sorted(seen))
         landed = self._try_url() or url
         if landed.startswith("chrome-error://"):
             raise NavigationFailed("landed on an error page", requested=url, landed=landed)
-        return {"requested": url, "landed": landed}
+        return {"requested": url, "landed": landed, "lifecycle": lifecycle}
+
+    def _usable_document(self, timeout: float) -> bool:
+        """Is there a real page here, whatever the lifecycle events say?
+
+        The bar deliberately excludes `readyState === 'loading'`: a parser that has not
+        finished may still be about to produce the form, and returning then would hand the
+        caller a half-built document that reads as an empty page. Past that point, content
+        or controls is enough to be worth returning.
+        """
+        try:
+            state, controls, text = self.js(
+                "[document.readyState,"
+                " document.querySelectorAll('input,textarea,select,button').length,"
+                " ((document.body && document.body.innerText) || '').trim().length]",
+                timeout=min(timeout, 5.0))
+        except HarnessError:
+            return False
+        return state != "loading" and (int(controls) > 0 or int(text) > 0)
 
     def wait_lifecycle(self, name: str = "networkIdle", *, timeout: float = 10.0) -> None:
         with self._armed(lambda m: m.get("method") == "Page.lifecycleEvent") as w:
@@ -713,16 +839,80 @@ class Tab:
             pass                                       # e.g. the click closed the tab
         url_after = post[0] if post else None
         navigated = url_after is not None and url_after != url_before
+        mutations = (None if navigated or post is None
+                     else max(0, int(post[1]) - mut_before))
+        modality = "compositor"
+        if (not navigated and not mutations and dialog is None
+                and len(self._created) == targets_before):
+            landed = self._activate_click(x, y, url_before, mut_before, settle, timeout)
+            if landed is not None:
+                url_after, mutations, modality = landed
+                navigated = url_after is not None and url_after != url_before
         return {
             "url_before": url_before,
             "url_after": url_after,
             "navigated": navigated,
             # a new document restarts the counter, so a cross-document delta would lie
-            "dom_mutations": None if navigated or post is None
-                             else max(0, int(post[1]) - mut_before),
+            "dom_mutations": mutations,
+            "modality": modality,
             "new_targets": [t.get("targetId") for t in list(self._created)[targets_before:]],
             "dialog": dialog,
         }
+
+    def _activate_click(self, x: float, y: float, url_before: str, mut_before: int,
+                        settle: float, timeout: float) -> tuple[Any, int | None, str] | None:
+        """Retry a click that provably did nothing, through the DOM.
+
+        A compositor-level click is the right default — it passes through iframes and
+        shadow roots that no selector reaches — but it is delivered to a renderer, and the
+        renderer can drop it with no error anywhere. Measured on four Recruitee postings:
+        clicking Apply navigates and yields 35 fields when the tab is in front, and does
+        **nothing at all** for the three of four tabs that are not. `parallel()` puts every
+        worker but one in that state, so every click inside a parallel run was silently a
+        no-op — which is why Recruitee scored 0/4 in all five historical runs while the
+        schema kept reporting ~92 controls waiting behind that button.
+
+        The trigger is the delta, not the tab's visibility. That was the first guess, and
+        it was wrong: gating on `document.visibilityState !== 'visible'` still left the
+        fixture click failing in a tab that reported itself visible, because occlusion
+        tracking is disabled on Windows and the flag therefore says nothing about whether
+        the renderer will act. What the harness can actually observe is whether anything
+        happened, and it already computes exactly that.
+
+        The condition stays narrow for the obvious reason: it fires only when the click
+        was observably inert — no navigation, no DOM mutation, no dialog, no new target.
+        A click that did something is never repeated. The residual risk is a control whose
+        handler changes only internal JavaScript state, which would then run twice; that is
+        accepted deliberately, because the alternative is what was measured — clicks that
+        do nothing at all, silently, in every parallel run.
+
+        The dry-run guard is unaffected either way: the danger check already refused submit
+        controls before the click, and `SAFETY_JS` blocks form submission in the main world
+        regardless of how the click arrived.
+        """
+        try:
+            result = self.js(
+                "(() => {"
+                f" const el = document.elementFromPoint({x!r}, {y!r});"
+                " if (!el || typeof el.click !== 'function') return null;"
+                " el.click();"
+                " return true;})()", timeout=timeout)
+        except HarnessError:
+            return None
+        if result is not True:
+            # Exactly `true` means "the tab was hidden and I clicked something". Anything
+            # else — null, or a value from a page that answered oddly — is not evidence,
+            # and acting on a truthy non-answer would activate a control twice.
+            return None
+        time.sleep(max(settle, 0.15))
+        try:
+            post = self._world_js("[location.href, window.__bh ? __bh.mutations : 0]",
+                                  timeout=timeout)
+        except HarnessError:
+            return None
+        url_after = post[0]
+        navigated = url_after != url_before
+        return (url_after, None if navigated else max(0, int(post[1]) - mut_before), "dom")
 
     # -- waiting on a condition, not on a guess ----------------------------
 
@@ -764,6 +954,84 @@ class Tab:
         return {"selector": selector, "state": state,
                 "immediate": bool(probe.get("immediate"))}
 
+    def wait_for_form(self, *, min_fields: int = 2, timeout: float = 10.0,
+                      settle: float = 0.0) -> dict[str, Any]:
+        """Wait until the page holds at least `min_fields` fillable controls.
+
+        Returns `{ready, fields, controls_in_dom, controls_visible, text_len, waited_ms}`
+        and **never raises on the not-ready case**, which is the whole point: "there is no
+        form on this page" is an ordinary, common answer — roughly a third of live postings
+        — not an exception. `wait_for` could only say it by timing out, so every call site
+        wrapped it in `try/except HarnessError: pass`, and the 15 seconds it spent getting
+        there bought nothing.
+
+        The counts come back either way, so a caller that gets `ready: False` already holds
+        the evidence for why, and does not need a second round trip to find out.
+        """
+        if min_fields < 1:
+            raise ValueError(f"min_fields must be >= 1, got {min_fields!r}")
+        token = f"f{id(self)}:{time.perf_counter_ns()}"
+        t0 = time.perf_counter()
+        deadline = time.monotonic() + timeout
+        ready = False
+        probe: dict[str, Any] = {}
+        with self._j.call("wait_for_form", min_fields=min_fields):
+            # Watch for the document being REPLACED as well as for the condition firing.
+            # The observer lives in the isolated world, and a world dies with its document
+            # — so after a navigation the callback can never run and the wait can only end
+            # by timing out. That is not theoretical: on Recruitee the apply control
+            # navigates to `/c/new`, and under a 10-worker run every one of the four
+            # postings burned its whole budget waiting on an observer that no longer
+            # existed, then reported the OLD page's "92 in the DOM, 0 visible". Sequentially
+            # the same page took 4ms. Re-arming on the new document is the difference
+            # between a wait that is event-driven and one that is event-driven until the
+            # first navigation.
+            renavigated = ("Runtime.executionContextsCleared", "Page.frameNavigated")
+            # `wait_match` re-scans everything buffered since arming, so a navigation
+            # already consumed would match again on the next pass and spin the loop until
+            # the deadline. Remember what has been handled, by identity.
+            consumed: set[int] = set()
+
+            def interesting(m: dict[str, Any]) -> bool:
+                if id(m) in consumed:
+                    return False
+                return ((m.get("method") == "Runtime.bindingCalled"
+                         and (m.get("params") or {}).get("payload") == token)
+                        or m.get("method") in renavigated)
+
+            with self._armed(lambda m: m.get("method") == "Runtime.bindingCalled"
+                             or m.get("method") in renavigated) as w:
+                while True:
+                    probe = self._world_js(
+                        WATCH_FORM_JS.replace("__MIN__", json.dumps(min_fields))
+                                     .replace("__TOKEN__", json.dumps(token)),
+                        timeout=timeout) or {}
+                    if probe.get("matched"):
+                        ready = True
+                        break
+                    left = deadline - time.monotonic()
+                    if left <= 0:
+                        self._unwatch(token)
+                        break
+                    hit = w.wait_match(interesting, left)
+                    if hit is None:
+                        self._unwatch(token)
+                        break
+                    consumed.add(id(hit))
+                    if hit.get("method") == "Runtime.bindingCalled":
+                        ready = True
+                        break
+                    # else: the document was replaced — re-arm against the new one
+            if ready and settle:
+                time.sleep(settle)
+            in_dom, visible, text_len = self._world_js(FORM_COUNTS_JS, timeout=timeout) \
+                or [0, 0, 0]
+        return {"ready": ready, "min_fields": min_fields,
+                "immediate": bool(probe.get("immediate")),
+                "controls_in_dom": int(in_dom), "controls_visible": int(visible),
+                "text_len": int(text_len),
+                "waited_ms": round((time.perf_counter() - t0) * 1000, 1)}
+
     def _unwatch(self, token: str) -> None:
         """Drop an abandoned observer. A MutationObserver left armed on a busy page runs
         its callback on every DOM change for the life of the document."""
@@ -792,29 +1060,46 @@ class Tab:
         # only, even with an explicit filter and --site-per-process), and
         # `attachToTarget` rejects its frame id. Turning it on makes the browser announce
         # each child via `Target.attachedToTarget`, which the registry books.
-        def announce(retoggle: bool) -> list[dict[str, Any]]:
-            got: list[dict[str, Any]] = []
-            with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
-                if retoggle:
-                    # Enabling auto-attach when it is ALREADY on is a no-op, so a second
-                    # call in the same daemon-backed session announces nothing and the
-                    # page reads as frameless. Toggling forces a full re-announcement.
-                    self.cdp("Target.setAutoAttach",
-                             {"autoAttach": False, "waitForDebuggerOnStart": False,
-                              "flatten": True}, timeout=10.0)
-                self.cdp("Target.setAutoAttach",
-                         {"autoAttach": True, "waitForDebuggerOnStart": False,
-                          "flatten": True}, timeout=10.0)
-                w.wait_match(lambda m: True, 0.6)      # let the announcements arrive
-                for _, msg in w.hits:
-                    info = (msg.get("params") or {}).get("targetInfo") or {}
-                    if info.get("type") == "iframe":
-                        got.append({"target_id": info["targetId"],
-                                    "url": info.get("url", ""), "kind": "oopif",
-                                    "reachable": "session.tab(target_id)"})
-            return got
-
-        out = announce(False) or announce(True)
+        # Enabling auto-attach when it is ALREADY on is a no-op, so a second call in the
+        # same daemon-backed session announces nothing and the page reads as frameless.
+        # Toggling off first forces a full re-announcement, which is why this used to run
+        # twice: an optimistic pass, then a retoggling one when the first found nothing.
+        # Toggling unconditionally makes the fallback pass unnecessary — and the fallback
+        # was not free. It cost a second fixed wait on every frameless page, which is most
+        # of them: `prepare_application` measured p50 1225ms / p90 1246 / max 1351 across
+        # 160 live calls, a spread far too tight to be work. It was two 0.6s sleeps.
+        got: list[dict[str, Any]] = []
+        with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
+            self.cdp("Target.setAutoAttach",
+                     {"autoAttach": False, "waitForDebuggerOnStart": False,
+                      "flatten": True}, timeout=10.0)
+            self.cdp("Target.setAutoAttach",
+                     {"autoAttach": True, "waitForDebuggerOnStart": False,
+                      "flatten": True}, timeout=10.0)
+            # Settle rather than sleep: stop as soon as a quiet window passes with no new
+            # announcement. This is also a correctness fix. The old `wait_match(lambda m:
+            # True, 0.6)` returned on the FIRST announcement and then read `w.hits`
+            # immediately, so a page with several OOPIFs reported only the ones that had
+            # happened to arrive by then — under-reporting frames, silently.
+            deadline = time.monotonic() + FRAMES_MAX_WAIT
+            counted = 0
+            while True:
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    break
+                w.wait_match(lambda m: False, min(FRAMES_QUIET, left))
+                with w.cond:
+                    n = len(w.hits)
+                if n == counted:
+                    break                          # nothing new in a whole quiet window
+                counted = n
+            for _, msg in w.hits:
+                info = (msg.get("params") or {}).get("targetInfo") or {}
+                if info.get("type") == "iframe":
+                    got.append({"target_id": info["targetId"],
+                                "url": info.get("url", ""), "kind": "oopif",
+                                "reachable": "session.tab(target_id)"})
+        out = got
         # Same-site iframes stay in the parent process and never become targets, so
         # getTargets alone reads as "no iframes" on a page that plainly has one.
         try:
@@ -824,8 +1109,10 @@ class Tab:
                 "{ return false; }})()}))", timeout=10.0) or []
         except HarnessError:
             same = []
+        if not isinstance(same, list):
+            same = []              # a page that answers with anything else has no iframes
         for f in same:
-            if f.get("same"):
+            if isinstance(f, dict) and f.get("same"):
                 out.append({"target_id": None, "url": f.get("src", ""),
                             "kind": "same-document", "reachable": "js/contentDocument"})
         return out

@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- The Recruitee/BambooHR shape, and the reason `apply_link` alone is not enough.
+
+     The apply affordance is a <button>, not an <a href>: there is no URL to navigate to,
+     so a matcher that only scores anchors returns null and the caller has nowhere to go.
+     Meanwhile the form IS in the document — every field, already parsed — inside a
+     collapsed ancestor (height:0;overflow:hidden). That is exactly the verdict measured
+     live on 4 Recruitee postings across all five runs:
+
+         "form controls exist but none are usable: 92 in the DOM, 0 visible"
+
+     A decoy anchor reading "Apply filters" is present so the button cannot win by default,
+     and a second, larger collapsed block is present so the invisibility histogram has to
+     attribute causes rather than count a single container. -->
+<meta charset="utf-8">
+<title>Senior Engineer — Careers</title>
+<style>
+  /* `display:none`, not `height:0;overflow:hidden` — and the difference is the whole
+     point. A clipped child still has a layout box, so it reads as visible and the page
+     looks like a normal form; the live Recruitee verdict was "0 visible", which only
+     `display:none` (or a display:none ancestor) produces. The bench caught this: the
+     first version of this fixture reported `is_form: true` and reproduced nothing. */
+  #panel { display: none; }
+  #panel.open { display: block; }
+</style>
+
+<nav><a href="/jobs?filter=1">Apply filters</a> · <a href="/tips">Bewerbungstipps</a></nav>
+
+<h1>Senior Engineer</h1>
+<p>We are hiring. Read the description, then use the button below.</p>
+
+<button id="applybtn" type="button">Auf diese Stelle bewerben</button>
+
+<div id="panel">
+  <form id="app">
+    <label for="fn">Vorname</label><input id="fn" name="first">
+    <label for="ln">Nachname</label><input id="ln" name="last">
+    <label for="em">E-Mail</label><input id="em" name="email" type="email">
+    <label for="ph">Telefon</label><input id="ph" name="phone" type="tel">
+    <label for="st">Strasse</label><input id="st" name="street">
+    <label for="pl">PLZ</label><input id="pl" name="zip">
+    <label for="or">Wohnort</label><input id="or" name="city">
+    <label for="mo">Motivationsschreiben</label><textarea id="mo" name="cover"></textarea>
+    <button type="submit">Bewerbung absenden</button>
+  </form>
+</div>
+
+<!-- Three more controls hidden by a DIFFERENT cause: display:none on the control itself,
+     rather than inherited from an ancestor. A histogram that lumps these together cannot
+     tell "the form is collapsed behind a step" from "these are tracking pixels". -->
+<input name="tracking_a" style="display:none">
+<input name="tracking_b" style="display:none">
+<input name="tracking_c" style="display:none">
+
+<script>
+  document.getElementById('applybtn').addEventListener('click', () => {
+    document.getElementById('panel').classList.add('open');
+  });
+</script>

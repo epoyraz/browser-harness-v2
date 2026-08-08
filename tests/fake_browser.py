@@ -38,6 +38,10 @@ class FakeBrowser:
         self.hang_methods: set[str] = set()
         #: When set, Page.navigate reports this errorText (e.g. "net::ERR_CONNECTION_REFUSED").
         self.navigate_error: str | None = None
+        #: Lifecycle events Page.navigate emits, in order. Default is a healthy document;
+        #: set it to ["DOMContentLoaded", "networkAlmostIdle"] for a page held open by one
+        #: stalled subresource, which never emits `load`.
+        self.lifecycle_names: list[str] = ["load"]
         #: worldName of every Page.createIsolatedWorld — proves the machinery is off-window.
         self.isolated_worlds: list[str] = []
 
@@ -190,10 +194,15 @@ class FakeBrowser:
             if self.navigate_error:
                 return {"id": msg_id,
                         "result": {"loaderId": "L1", "errorText": self.navigate_error}}
-            # the load event races the navigate reply, exactly as in real Chrome
-            self.emit("Page.lifecycleEvent",
-                      {"name": "load", "loaderId": "L1", "frameId": "F1"},
-                      session_id=session_id)
+            # `lifecycle_names` models the page's behaviour: the default is a healthy
+            # document, but a page with one stalled subresource emits DOMContentLoaded and
+            # networkAlmostIdle and never emits `load` at all. Both orders are real and
+            # goto has to tell them apart, so the fake has to be able to produce both.
+            for name in self.lifecycle_names:
+                # the events race the navigate reply, exactly as in real Chrome
+                self.emit("Page.lifecycleEvent",
+                          {"name": name, "loaderId": "L1", "frameId": "F1"},
+                          session_id=session_id)
             return {"id": msg_id, "result": {"loaderId": "L1", "frameId": "F1"}}
 
         if method == "Page.getFrameTree":

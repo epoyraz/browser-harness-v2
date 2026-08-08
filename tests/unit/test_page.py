@@ -84,7 +84,8 @@ def test_goto_returns_requested_and_landed(wired):
     tab = _tab(wired)
     browser.eval_hook = lambda e: "https://a.test/landed" if "location" in e else None
     r = tab.goto("https://a.test/")
-    assert r == {"requested": "https://a.test/", "landed": "https://a.test/landed"}
+    assert r == {"requested": "https://a.test/", "landed": "https://a.test/landed",
+                 "lifecycle": "load"}
 
 
 def test_goto_errortext_is_navigation_failed_with_evidence(wired):
@@ -118,6 +119,60 @@ def test_goto_cannot_miss_a_load_that_races_the_navigate_reply(wired):
     assert tab.goto("https://a.test/", timeout=2.0)["landed"]
 
 
+def test_goto_settles_when_one_stalled_subresource_holds_load_forever(wired):
+    """A single accepted-but-never-answered image, stylesheet or iframe is enough to hold
+    `load` open indefinitely while the document is parsed and the form is fillable.
+
+    Measured against real Chrome on all three subresource kinds: DOMContentLoaded fires,
+    paint completes, five controls are present and writable — and `load` never arrives.
+    The old code waited out the whole timeout and then raised, discarding the page. Across
+    three live runs that was 505 seconds, every second of it spent on pages the caller
+    went on to fill successfully after catching the exception.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = ["DOMContentLoaded", "networkAlmostIdle"]   # no `load`
+    browser.eval_hook = lambda e: "https://a.test/" if "location" in e else None
+    started = time.monotonic()
+    r = tab.goto("https://a.test/", timeout=5.0)
+    assert r["lifecycle"] == "settled"
+    assert time.monotonic() - started < 1.0          # not the 5s timeout
+
+
+def test_goto_still_prefers_load_when_the_page_is_healthy(wired):
+    """The safety of settling early rests entirely on event ORDER: Chrome emits
+    DOMContentLoaded -> load -> networkAlmostIdle, so on a healthy page `load` wins the
+    race and the fallback never fires. If that stopped being true, goto would start
+    returning before documents finished loading — so assert the order explicitly."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = ["DOMContentLoaded", "load", "networkAlmostIdle"]
+    browser.eval_hook = lambda e: "https://a.test/" if "location" in e else None
+    assert tab.goto("https://a.test/", timeout=5.0)["lifecycle"] == "load"
+
+
+def test_goto_still_raises_when_the_document_is_genuinely_empty(wired):
+    """Settling early must not become "never fail". A page that produced no lifecycle
+    event AND has no content is a real failure and still raises."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = []
+    browser.eval_hook = lambda e: (["loading", 0, 0] if "readyState" in e else None)
+    with pytest.raises(Timeout):
+        tab.goto("https://a.test/", timeout=0.3)
+
+
+def test_goto_returns_a_usable_document_even_with_no_lifecycle_event(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = []
+    browser.eval_hook = lambda e: (["interactive", 7, 900] if "readyState" in e
+                                   else "https://a.test/" if "location" in e else None)
+    r = tab.goto("https://a.test/", timeout=0.3)
+    assert r["lifecycle"] == "timeout"                # honest about how it got here
+    assert r["landed"] == "https://a.test/"
+
+
 def test_wait_lifecycle_wakes_on_the_event_not_on_a_poll(wired):
     browser, _, _ = wired
     tab = _tab(wired)
@@ -135,6 +190,199 @@ def test_wait_lifecycle_times_out_typed(wired):
     tab = _tab(wired)
     with pytest.raises(Timeout):
         tab.wait_lifecycle("networkIdle", timeout=0.1)
+
+
+def test_frames_does_not_sleep_out_a_fixed_budget_on_a_frameless_page(wired):
+    """Most pages have no out-of-process iframes, and finding that out used to cost 1.2s.
+
+    `frames()` ran an optimistic auto-attach pass, slept 0.6s for announcements, then —
+    because nothing arrived — ran a second retoggling pass and slept 0.6s again. Measured
+    on real Chrome: 1206-1258ms, every time, on a page with zero frames. That fixed cost
+    was the whole of `prepare_application`'s p50 (1225ms, p90 1246, max 1351 across 160
+    live calls; a spread far too tight to be work).
+
+    Toggling unconditionally makes the second pass unnecessary, and settling on a quiet
+    window rather than a fixed sleep makes the first one short.
+    """
+    tab = _tab(wired)
+    started = time.monotonic()
+    assert tab.frames() == []
+    assert time.monotonic() - started < 0.5
+
+
+def test_frames_collects_every_announcement_not_just_the_first(wired):
+    """The old wait returned on the FIRST announcement and read the buffer immediately, so
+    a page with several OOPIFs reported only the ones that had arrived by then. Silent
+    under-reporting: the caller saw a short list and no indication it was short."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    import threading
+    for i, delay in enumerate((0.02, 0.06, 0.10)):
+        threading.Timer(delay, lambda i=i: browser.emit(
+            "Target.attachedToTarget",
+            {"targetInfo": {"targetId": f"f{i}", "type": "iframe",
+                            "url": f"https://x{i}.test/"}},
+            session_id=tab._session_id)).start()
+    got = tab.frames()
+    assert [f["target_id"] for f in got] == ["f0", "f1", "f2"]
+
+
+def test_a_click_that_did_nothing_falls_back_to_the_dom(wired):
+    """The bug that made every click inside `parallel()` a no-op.
+
+    A compositor click is delivered to a renderer, and the renderer can drop it with no
+    error anywhere. Measured on four Recruitee postings: Apply navigates and yields 35
+    fields when the tab is in front, and does nothing at all for the three of four tabs
+    that are not — with the delta honestly reporting no navigation and zero mutations.
+    `parallel()` puts every worker but one in that state, which is why Recruitee scored
+    0/4 in all five historical runs while the schema kept reporting ~92 controls waiting
+    behind that button.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    state = {"clicked": False}
+
+    def hook(e):
+        if "elementFromPoint" in e:
+            state["clicked"] = True
+            return True
+        if "__bh.refs" in e:                  # checked first: it also mentions location
+            return [10.0, 20.0, "https://a.test/", 0, None]
+        if "location.href" in e:
+            return ["https://a.test/after", 0] if state["clicked"] \
+                else ["https://a.test/", 0]
+        return None
+
+    browser.eval_hook = hook
+    d = tab.click_ref("e1", settle=0.01)
+    assert state["clicked"] is True
+    assert d["modality"] == "dom"
+    assert d["navigated"] is True
+
+
+def test_a_click_that_did_something_is_never_repeated(wired):
+    """The fallback fires only on an observably inert click. A click that navigated,
+    mutated the DOM, opened a dialog or spawned a target did something, and repeating it
+    would activate the control twice."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    fired = {"dom": False}
+
+    def hook(e):
+        if "elementFromPoint" in e:
+            fired["dom"] = True
+            return True
+        if "__bh.refs" in e:                  # checked first: it also mentions location
+            return [10.0, 20.0, "https://a.test/", 0, None]
+        if "location.href" in e:
+            return ["https://a.test/", 7]     # 7 mutations: the click plainly landed
+        return None
+
+    browser.eval_hook = hook
+    d = tab.click_ref("e1", settle=0.01)
+    assert fired["dom"] is False
+    assert d["modality"] == "compositor"
+    assert d["dom_mutations"] == 7
+
+
+# --- the wait that answers the question callers were actually asking ----------
+
+def test_wait_for_form_reports_no_form_instead_of_raising(wired):
+    """A posting page with no form is an ordinary answer, not an error. `wait_for` could
+    only express it by timing out, so every call site wrapped it in `except: pass` and
+    threw away the counts that explain why."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: ({"matched": False, "immediate": False, "fields": 0}
+                                   if "minFields" in e
+                                   else [0, 0, 640] if "offsetParent" in e else None)
+    r = tab.wait_for_form(timeout=0.2)
+    assert r["ready"] is False
+    assert r["controls_in_dom"] == 0 and r["text_len"] == 640
+
+
+def test_wait_for_form_does_not_resolve_on_a_cookie_banner(wired):
+    """The false positive that made `wait_for` useless on late-rendering ATSs: a blanket
+    `input, textarea, form` selector matches the consent checkbox in ~10ms and reports
+    success while the real form is still 1.5s away. Measured live on the fixture: at that
+    moment the page had 0 real fields. The count-based condition excludes furniture, so
+    the same page reports not-ready."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: ({"matched": False, "immediate": False, "fields": 0}
+                                   if "minFields" in e
+                                   else [1, 1, 200] if "offsetParent" in e else None)
+    r = tab.wait_for_form(timeout=0.2)
+    assert r["ready"] is False               # one furniture control is not a form
+    assert r["controls_in_dom"] == 1
+
+
+def test_wait_for_form_resolves_immediately_when_the_form_is_there(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: ({"matched": True, "immediate": True, "fields": 6}
+                                   if "minFields" in e
+                                   else [6, 6, 900] if "offsetParent" in e else None)
+    r = tab.wait_for_form(timeout=5.0)
+    assert r["ready"] is True and r["immediate"] is True
+    assert r["waited_ms"] < 500
+
+
+def test_wait_for_form_rearms_after_the_document_is_replaced(wired):
+    """An observer lives in the isolated world, and a world dies with its document — so
+    after a navigation the callback can never fire and the wait can only end by timing out.
+
+    Measured on Recruitee, where the apply control navigates to `/c/new`: sequentially the
+    form was found in 4ms; under a 10-worker run all four postings burned the full budget
+    and then reported the OLD page's counts. Re-arming on the new document is the
+    difference between event-driven and event-driven-until-the-first-navigation.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    calls = {"n": 0}
+
+    def hook(e):
+        if "minFields" in e:
+            calls["n"] += 1
+            # first document: no form, and it is about to be replaced.
+            # second document (after re-arm): the form is there.
+            return {"matched": calls["n"] > 1, "immediate": False, "fields": 0}
+        return [6, 6, 900] if "offsetParent" in e else None
+
+    browser.eval_hook = hook
+    import threading
+    threading.Timer(0.05, lambda: browser.emit(
+        "Runtime.executionContextsCleared", {}, session_id=tab._session_id)).start()
+    r = tab.wait_for_form(timeout=3.0)
+    assert r["ready"] is True
+    assert calls["n"] >= 2                    # it re-probed the replacement document
+    assert r["waited_ms"] < 1500              # not the 3s timeout
+
+
+def test_wait_for_form_does_not_spin_on_a_replayed_navigation(wired):
+    """`wait_match` re-scans everything buffered since arming, so a navigation already
+    handled would match again on the next pass. Without consuming it, the loop spins."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    probes = {"n": 0}
+
+    def hook(e):
+        if "minFields" in e:
+            probes["n"] += 1
+            return {"matched": False, "immediate": False, "fields": 0}
+        return [0, 0, 0] if "offsetParent" in e else None
+
+    browser.eval_hook = hook
+    browser.emit("Page.frameNavigated", {}, session_id=tab._session_id)
+    time.sleep(0.05)
+    r = tab.wait_for_form(timeout=0.6)
+    assert r["ready"] is False
+    assert probes["n"] <= 4                   # a spin would be hundreds
+
+
+def test_wait_for_form_rejects_a_nonsense_threshold(wired):
+    with pytest.raises(ValueError):
+        _tab(wired).wait_for_form(min_fields=0)
 
 
 # --- items 17 + 20: snapshot, refs, deltas ------------------------------------

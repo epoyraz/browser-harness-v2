@@ -1,0 +1,38 @@
+<!doctype html>
+<!-- Why `wait_for(selector)` was the wrong question to ask, in one page.
+
+     A cookie banner's checkbox is in the DOM at parse time; the actual application form
+     arrives 1500ms later, the way every SPA-rendered ATS behaves. So:
+
+       wait_for('input, textarea, form')  returns in ~15ms — matched the banner. The
+                                          caller proceeds, calls prepare_application, and
+                                          finds no form. The wait bought nothing.
+       wait_for_form(min_fields=2)        returns at ~1500ms, when the form is actually
+                                          there. That is the question the caller meant.
+
+     Measured live, the blanket selector 'input, textarea, form, main' either matched
+     furniture instantly (useless) or matched nothing and burned the full timeout —
+     27% of 64 calls, 15s p95. Neither branch ever waited for the right thing. -->
+<meta charset="utf-8">
+<title>Application — form arrives late</title>
+
+<div id="cookieConsentBanner">
+  We use cookies. <input type="checkbox" id="c1"> necessary
+  <button>Accept all</button>
+</div>
+
+<h1>Senior Engineer</h1>
+<div id="mount"></div>
+
+<script>
+  setTimeout(() => {
+    document.getElementById('mount').innerHTML =
+      '<form id="app">' +
+      '<label for="fn">First name</label><input id="fn" name="first">' +
+      '<label for="ln">Last name</label><input id="ln" name="last">' +
+      '<label for="em">E-mail</label><input id="em" name="email" type="email">' +
+      '<label for="ph">Phone</label><input id="ph" name="phone" type="tel">' +
+      '<button type="submit">Send application</button>' +
+      '</form>';
+  }, 1500);
+</script>
