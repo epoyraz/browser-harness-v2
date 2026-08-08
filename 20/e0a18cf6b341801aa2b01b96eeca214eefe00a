@@ -1,0 +1,29 @@
+tools/build_application_capture_grid.py
+  s_c530c264d8463a::t_3bde8a385c05ca 6,25-26,35-69
+  s_c530c264d8463a::t_2765b83ae1db8c 100
+  s_c530c264d8463a::t_ac9abae303d524 1,12,73,76,91,94,97,101,103-104,106-108,112
+  s_c530c264d8463a::t_7462f8058870a6 2-5,7-11,13-24,27-34,70-72,74-75,77-90,92-93,95-96,98-99,102,105,109-111
+tools/capture_top_applications.py
+  s_c530c264d8463a::t_7462f8058870a6 3,31,131,133-145,147
+  s_c530c264d8463a::t_3bde8a385c05ca 1
+  s_c530c264d8463a::t_b9510ffba48e20 5-6
+  s_c530c264d8463a::t_ac9abae303d524 29
+harness/session.py
+  s_c530c264d8463a::t_b9510ffba48e20 306-310
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "20e0a18cf6b341801aa2b01b96eeca214eefe00a",
+  "prompts": {},
+  "sessions": {
+    "s_c530c264d8463a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe2b8-47b8-7be0-932e-fea8ae7c219a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
