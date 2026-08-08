@@ -1,0 +1,57 @@
+TODO.md
+  s_c530c264d8463a::t_aa23469637a649 36,55
+  s_c530c264d8463a::t_eeb9823b022a47 37-54,56-57
+harness/core/transcript.py
+  s_c530c264d8463a::t_6b88b111f25671 95
+  s_c530c264d8463a::t_2cfa485ed35513 36
+  s_c530c264d8463a::t_2fc2438b09b76b 41-42
+harness/core/telemetry.py
+  s_c530c264d8463a::t_2fc2438b09b76b 30-31,58-59,71-72
+harness/core/journal.py
+  s_c530c264d8463a::t_2fc2438b09b76b 35-36,269
+  s_c530c264d8463a::t_b47baeb18532be 131-132,138-167
+harness/session.py
+  s_c530c264d8463a::t_a8dc14661ddb8b 396
+tests/unit/test_session.py
+  s_c530c264d8463a::t_fc2fb44f7a3fb2 292
+harness/ops/page.py
+  s_c530c264d8463a::t_5f0f506b4ff577 384,390
+  s_c530c264d8463a::t_246d1b1aefc389 28
+  s_c530c264d8463a::t_acb16440ed05e6 1159-1165,1192-1217,1219,1223-1227,1229-1233,1235,1237-1239,1241-1242,1244-1247
+  s_c530c264d8463a::t_95679ad2f4dc59 75-92,275,284,349,354,429,435,439,455
+tests/unit/test_jsonl.py
+  s_c530c264d8463a::t_d401219a0e8c0d 1-26
+harness/core/bench.py
+  s_c530c264d8463a::t_2fc2438b09b76b 38-39,70-71
+harness/ops/video.py
+  s_c530c264d8463a::t_6c24b9ef5a06ff 30-31,42-43
+tools/collect_job_form_telemetry.py
+  s_c530c264d8463a::t_a8dc14661ddb8b 409
+harness/core/jsonl.py
+  s_c530c264d8463a::t_2fc2438b09b76b 1-21,24-26,30-37
+  s_c530c264d8463a::t_6b88b111f25671 22-23,27-29
+tests/live/check.py
+  s_c530c264d8463a::t_41e597ceb38192 159-161
+harness/core/cassette.py
+  s_c530c264d8463a::t_6b88b111f25671 183,257
+  s_c530c264d8463a::t_2fc2438b09b76b 40,184,258
+harness/ops/forms.py
+  s_c530c264d8463a::t_d00e3eb3140e1d 226,228,286,447-448,454,460
+  s_c530c264d8463a::t_5f0f506b4ff577 61,126,128,163
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e0986159f1867eddbb255645abb170cc0cd5a363",
+  "prompts": {},
+  "sessions": {
+    "s_c530c264d8463a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe2b8-47b8-7be0-932e-fea8ae7c219a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
