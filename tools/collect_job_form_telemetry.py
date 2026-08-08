@@ -428,4 +428,5 @@ def main() -> None:
                       "wall_ms": payload["meta"]["wall_ms"]}, default=str))
 
 
-main()
+if __name__ in {"__main__", "__bh__"}:
+    main()
