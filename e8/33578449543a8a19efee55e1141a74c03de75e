@@ -1,0 +1,77 @@
+harness/connect/client.py
+  s_c530c264d8463a::t_3aa48eb4ba9581 163-168,170-177
+harness/ops/page.py
+  s_c530c264d8463a::t_796290ef5f6a15 454
+  s_c530c264d8463a::t_49aa9616f53339 1105-1176
+  s_c530c264d8463a::t_78f7be2272093e 414-453,455-483
+tests/unit/test_session.py
+  s_c530c264d8463a::t_1dcf24a7f0ca5c 159-160,193-229
+  s_c530c264d8463a::t_4d47948645f047 161
+  s_c530c264d8463a::t_5943d4e462c7b3 232-246
+  s_c530c264d8463a::t_0bebda7a5bd70e 230-231
+harness/core/bench.py
+  s_c530c264d8463a::t_086021f136d815 45,62-65
+harness/core/journal.py
+  s_c530c264d8463a::t_3aa48eb4ba9581 80-81,146-160,162-170,172-180,182-184
+  s_c530c264d8463a::t_d47c0b14102211 161,171,181
+  s_c530c264d8463a::t_343195513ed9c7 185
+harness/connect/cdp.py
+  s_c530c264d8463a::t_3aa48eb4ba9581 207,212-214,218,222-223,225,227-229
+tools/collect_job_form_telemetry.py
+  s_c530c264d8463a::t_59e328da4c0115 311,323,338-341
+  s_c530c264d8463a::t_6c9c0350378efd 411-412,420
+  s_c530c264d8463a::t_d47c0b14102211 12-14
+  s_c530c264d8463a::t_1aae8da29a0cd2 1-11,15-296,298-310,312-322,324-330,333,342-410,413-419,421-431
+  s_c530c264d8463a::t_4d47948645f047 297,331-332,334-337
+jobs.json
+  s_c530c264d8463a::t_808dbf44f77f0e 1-2736
+tools/resolve_joblens_direct_urls.py
+  s_c530c264d8463a::t_808dbf44f77f0e 99-105
+  s_c530c264d8463a::t_c72264948b4d61 1-10,12-27,30,45-49,52-55,58-98,106-117
+  s_c530c264d8463a::t_4bd498a005e497 11,28-29,31-44,57
+  s_c530c264d8463a::t_d47c0b14102211 50-51,56
+SKILL.md
+  s_c530c264d8463a::t_3c0712a62752d4 208-209,220-236,358,368-371
+  s_c530c264d8463a::t_5ef02acac4ac9f 372
+required.txt
+  s_c530c264d8463a::t_4dffbef433ffd9 1-21
+tests/unit/test_journal.py
+  s_c530c264d8463a::t_43d5061b2962dc 69-87
+harness/ops/forms.py
+  s_c530c264d8463a::t_4d47948645f047 24,27,32-52
+  s_c530c264d8463a::t_7ca405a247aafc 53
+tests/unit/test_forms.py
+  s_c530c264d8463a::t_4d47948645f047 10,31-35
+  s_c530c264d8463a::t_53a3632f690d8b 36-37
+tests/unit/test_page.py
+  s_c530c264d8463a::t_1dcf24a7f0ca5c 388-435
+harness/session.py
+  s_c530c264d8463a::t_4d47948645f047 248-249,261,275-279,284-286,368
+  s_c530c264d8463a::t_659adbd5ebe5ac 247,250-260,262-274,280-283,287-293,370,379
+tools/build_job_telemetry_report.py
+  s_c530c264d8463a::t_803fadcdc0f727 65-128,182-184
+  s_c530c264d8463a::t_d47c0b14102211 2
+  s_c530c264d8463a::t_dd42fbafb1818d 291-294,326-330,347-350
+  s_c530c264d8463a::t_2c0bf69093181a 352
+  s_c530c264d8463a::t_16e04e5b8008f3 295
+  s_c530c264d8463a::t_904519906c6847 1,3-64,129-181,185-290,296-325,331-345,353-358
+  s_c530c264d8463a::t_65972b8649bd56 346,351
+tests/live/improve_bench.py
+  s_c530c264d8463a::t_67afdc56e88a4f 171
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "e833578449543a8a19efee55e1141a74c03de75e",
+  "prompts": {},
+  "sessions": {
+    "s_c530c264d8463a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fe2b8-47b8-7be0-932e-fea8ae7c219a",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
