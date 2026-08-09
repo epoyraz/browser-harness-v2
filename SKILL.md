@@ -122,6 +122,7 @@ hides the real one. Take the `hidden_control` ref, not the visible decoy beside 
 click_ref(ref) / click_at(x, y)      # coordinate clicks pass through iframes + shadow DOM
 press_key("Enter") / scroll(600)      # named keys; for text use set_value
 set_value(ref, text)                  # one round trip, any length
+set_secret_from_keychain(ref, service=..., account=...)  # password-safe; never echoes value
 upload_file(ref, "/path/cv.pdf")      # mapping + Outcome attrs; no OS picker
 js("await fetch('/api').then(r=>r.json())")   # replMode: top-level await works
 cdp("Target.getTargets")              # raw escape hatch, always available
@@ -132,6 +133,16 @@ inside a form raise `side_effect_refused`; form methods, mutating `fetch`/XHR, a
 are blocked before page script can use them. Normal GET navigation, inspection, filling,
 uploads, and read-only API calls still work. This is a safety boundary, not a prompt
 convention: an application cannot be sent through these helpers.
+
+The sole scoped side-effect is `click_auth_ref(ref)`: it permits one request only when the
+current UI is recognisably account/login/recovery UI, contains identity/password controls,
+and contains neither entered files nor application text. It cannot authorize an application
+submit. Use it for an explicitly approved account action after filling secrets from Keychain.
+
+Before account creation, call `account_credential_status(url, email)`. Only when `stored`
+is false may `ensure_account_credential(url, email)` generate a unique password; it stores
+the secret in macOS Keychain and returns metadata only. Repeated calls are idempotent and
+never overwrite an existing credential.
 
 **`set_value` has three tiers, and the default is a bet.** Measured on an instrumented
 page:
@@ -298,6 +309,21 @@ A recording is a folder with `session.jsonl` — **the journal itself**, with `f
 the calls that produced one — plus the JPEGs. So `bh trace <recording>/session.jsonl` works
 unchanged, and the video's timing is the real measured gap between actions, clamped to
 0.6–3 s and reported when it was.
+
+For continuous motion rather than action snapshots, use the compositor stream:
+
+```python
+path = start_screencast(quality=88, max_width=1440, max_height=1000)
+# drive the tab normally
+stop_screencast()
+```
+
+`bh video <path>` encodes its timestamped JPEG frames to H.264. This path is autonomous
+and keeps raw frame metadata in `frames.jsonl`. For a native WebM MediaStream instead,
+`bh recording-extension` prints the bundled unpacked Chrome extension. Load it in Chrome
+for Testing and invoke its action once to start and once to stop; Chrome requires those
+real user gestures for `tabCapture`. The file is written locally to
+`Downloads/browser-harness-recordings/` and no capture data is sent over the network.
 
 `bh stats` reads those journals and ranks failures by outcome class. It carries no URLs, no
 arguments and no JS source — only helper name, class, duration and round-trip count.

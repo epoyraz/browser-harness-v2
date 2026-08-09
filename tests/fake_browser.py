@@ -181,6 +181,12 @@ class FakeBrowser:
         if method == "Target.getTargets":
             return {"id": msg_id, "result": {"targetInfos": list(self.targets.values())}}
 
+        if method == "Target.getTargetInfo":
+            target_id = params.get("targetId")
+            if target_id not in self.targets:
+                return err(f"No target with given id found: {target_id}")
+            return {"id": msg_id, "result": {"targetInfo": self.targets[target_id]}}
+
         if method in ("Target.setDiscoverTargets", "Target.activateTarget"):
             return {"id": msg_id, "result": {}}
 

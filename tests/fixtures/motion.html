@@ -1,0 +1,45 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Browser Harness Motion Capture</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 1800px; color: #eef3ff; background: #08111f;
+         font: 16px/1.45 system-ui, sans-serif; overflow-x: hidden; }
+  header { position: sticky; top: 0; z-index: 5; padding: 24px 7vw;
+           background: rgba(8,17,31,.84); backdrop-filter: blur(16px); }
+  h1 { margin: 0; font-size: clamp(28px,5vw,64px); letter-spacing: -.04em; }
+  .track { height: 8px; margin-top: 18px; border-radius: 9px; background: #17243a; overflow: hidden; }
+  .bar { height: 100%; width: 35%; background: linear-gradient(90deg,#6ee7ff,#a78bfa);
+         animation: travel 2.4s ease-in-out infinite alternate; }
+  main { padding: 50px 7vw; }
+  .orb { width: 150px; aspect-ratio: 1; border-radius: 50%; margin: 30px auto 70px;
+         background: radial-gradient(circle at 30% 25%,#fff,#69e6ff 12%,#7c3aed 58%,#111827 70%);
+         box-shadow: 0 0 70px #5b21b688; animation: float 1.7s ease-in-out infinite alternate; }
+  .grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 22px; }
+  article { min-height: 220px; padding: 26px; border: 1px solid #31435f; border-radius: 22px;
+            background: linear-gradient(145deg,#142239,#0d1728); animation: breathe 3s ease-in-out infinite; }
+  article:nth-child(2) { animation-delay: -.7s; } article:nth-child(3) { animation-delay: -1.4s; }
+  button { margin: 50px auto; display: block; padding: 16px 28px; border: 0; border-radius: 99px;
+           color: #07111f; background: #6ee7ff; font-weight: 800; cursor: pointer; }
+  #pulse { text-align: center; font-variant-numeric: tabular-nums; font-size: 28px; }
+  @keyframes travel { to { transform: translateX(185%); } }
+  @keyframes float { to { transform: translateY(38px) rotate(16deg) scale(1.08); } }
+  @keyframes breathe { 50% { transform: translateY(-12px); border-color: #6ee7ff; } }
+</style>
+<header><h1>Real motion, not held screenshots.</h1><div class="track"><div class="bar"></div></div></header>
+<main>
+  <div class="orb"></div>
+  <div class="grid"><article><h2>Navigate</h2><p>Continuous compositor frames preserve movement.</p></article>
+    <article><h2>Interact</h2><p>Scroll and focus transitions remain visible.</p></article>
+    <article><h2>Measure</h2><p>Timestamps come directly from Chrome.</p></article></div>
+  <button id="burst">Trigger colour burst</button><div id="pulse">frame 0</div>
+</main>
+<script>
+  let frame = 0; const pulse = document.querySelector('#pulse');
+  function tick() { pulse.textContent = `frame ${++frame}`; requestAnimationFrame(tick); }
+  requestAnimationFrame(tick);
+  document.querySelector('#burst').addEventListener('click', () => {
+    document.body.animate([{filter:'hue-rotate(0deg)'},{filter:'hue-rotate(150deg)'},{filter:'hue-rotate(0deg)'}],
+      {duration:1200,easing:'ease-in-out'});
+  });
+</script>

@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import time
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -785,3 +786,51 @@ def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
         return ok({"ref": ref, "got": entry["got"]}, mode=mode)
     return fail(Class.VALUE_REJECTED, "value did not stick", ref=ref, mode=mode,
                 want=entry["want"], got=entry["got"])
+
+
+_SECRET_FILL_JS = """((ref, secret) => {
+  const el = window.__bh && window.__bh.refs[ref];
+  if (!el) return {ok: false, error: 'element_gone'};
+  if (!(el instanceof HTMLInputElement) || el.type !== 'password')
+    return {ok: false, error: 'not_password'};
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  el.focus();
+  if (setter && setter.set) setter.set.call(el, secret); else el.value = secret;
+  for (const type of ['input', 'change', 'blur'])
+    el.dispatchEvent(type === 'input' ? new InputEvent(type, {bubbles: true})
+                                      : new Event(type, {bubbles: true}));
+  try { document.documentElement.setAttribute('data-bh-entered', '1'); } catch (e) {}
+  return {ok: el.value === secret, nonempty: !!el.value, kind: el.type};
+})(__REF__, __SECRET__)"""
+
+
+def set_secret_from_keychain(tab: Tab, ref: str, *, service: str, account: str,
+                             timeout: float = 20.0) -> Outcome:
+    """Fill a password without putting it in source, journals, outcomes or reports.
+
+    The macOS Keychain lookup and the CDP write happen inside this helper.  Only the
+    credential locator crosses the public API; CDP telemetry already records parameter
+    shape and byte counts rather than values.
+    """
+    with tab.journal.call("set_secret", ref=ref, provider="keychain",
+                          service=service, account=account):
+        found = subprocess.run(
+            ["security", "find-generic-password", "-w", "-s", service, "-a", account],
+            check=False, capture_output=True)
+        if found.returncode != 0 or not found.stdout:
+            return fail(Class.NEEDS_INTERACTION, "keychain credential is unavailable",
+                        ref=ref, provider="keychain", service=service, account=account)
+        secret = found.stdout.rstrip(b"\r\n").decode("utf-8")
+        try:
+            result = tab._world_js(
+                _SECRET_FILL_JS.replace("__REF__", json.dumps(ref)).replace(
+                    "__SECRET__", json.dumps(secret)), timeout=timeout) or {}
+        finally:
+            secret = ""
+        if result.get("error") == "element_gone":
+            return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
+        if result.get("error") == "not_password":
+            return fail(Class.VALUE_REJECTED, "secret target is not a password control", ref=ref)
+        if result.get("ok") and result.get("nonempty"):
+            return ok({"ref": ref, "filled": True, "secret_source": "keychain"})
+        return fail(Class.VALUE_REJECTED, "secret value did not stick", ref=ref)

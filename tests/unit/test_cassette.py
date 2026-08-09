@@ -39,6 +39,15 @@ def test_a_recorded_session_replays_without_a_browser(tmp_path):
                             session_id=session.session_id)["result"]["value"] == "a"
 
 
+def test_a_worker_session_enables_runtime_without_page_only_domains():
+    browser = FakeBrowser("worker")
+    browser.targets["worker"]["type"] = "service_worker"
+    with Connection(browser) as conn:
+        session = SessionRegistry(conn).ready_session("worker")
+    assert session.domains == ("Runtime",)
+    assert browser.domains_for("worker") == ["Runtime"]
+
+
 def test_replay_is_keyed_by_signature_not_by_id(tmp_path):
     """Ids are assigned by the client and shift whenever a code path changes. An id-keyed
     cassette would replay a different run's answers into the same slots and still look green.

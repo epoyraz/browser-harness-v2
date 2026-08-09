@@ -115,7 +115,11 @@ SAFETY_JS = """(() => {
   const marker = Symbol.for('browser-harness.dry-run');
   if (window[marker]) return true;
   const attempts = [];
-  const state = {attempts, armed: false};
+  // authBudget is deliberately separate from the ordinary dry-run switch.  A caller may
+  // authorize one narrowly validated authentication request without opening a route to
+  // application submission.  The budget belongs to this document and expires after the
+  // click helper returns.
+  const state = {attempts, armed: false, authBudget: 0};
   const record = (kind, detail = {}) => {
     attempts.push({kind, detail, ts: Date.now()});
     console.warn('browser-harness dry-run policy blocked', kind, detail);
@@ -123,7 +127,28 @@ SAFETY_JS = """(() => {
   };
   Object.defineProperty(window, marker, {
     value: state, configurable: false, writable: false});
+  const visible = el => !!(el && el.getClientRects && el.getClientRects().length);
+  const authContext = () => {
+    try {
+      const passwords = [...document.querySelectorAll('input[type=password]')].filter(visible);
+      const identities = [...document.querySelectorAll(
+        'input[type=email],input[autocomplete=email],input[autocomplete=username]')].filter(visible);
+      const enteredFiles = [...document.querySelectorAll('input[type=file]')]
+        .some(el => el.files && el.files.length);
+      const applicationText = [...document.querySelectorAll('textarea')].some(visible);
+      return !enteredFiles && !applicationText && (passwords.length > 0 || identities.length > 0);
+    } catch (err) { return false; }
+  };
+  const consumeAuth = () => {
+    if (state.authBudget !== 1 || !authContext()) return false;
+    state.authBudget = 0;
+    return true;
+  };
   document.addEventListener('submit', event => {
+    // A submit event is not itself a network request.  Let an authorised auth form reach
+    // its own handler while preserving the single request budget for the fetch/XHR that
+    // handler normally performs.  A native navigation replaces this document and budget.
+    if (state.authBudget === 1 && authContext()) return;
     record('form.submit', {action: event.target && event.target.action || ''});
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -169,7 +194,7 @@ SAFETY_JS = """(() => {
     configurable: true, writable: true,
     value: function(input, init = {}) {
       const method = init.method || (input && input.method) || 'GET';
-      if (mutating(method)) {
+      if (mutating(method) && !consumeAuth()) {
         record('fetch', {method: String(method).toUpperCase(), url: String(input && input.url || input)});
         return Promise.reject(new DOMException('blocked by browser-harness dry-run policy', 'NotAllowedError'));
       }
@@ -187,7 +212,7 @@ SAFETY_JS = """(() => {
   Object.defineProperty(XMLHttpRequest.prototype, 'send', {
     configurable: true, writable: true,
     value: function(body) {
-      if (mutating(this.__bhMethod)) {
+      if (mutating(this.__bhMethod) && !consumeAuth()) {
         record('xhr', {method: this.__bhMethod, url: this.__bhUrl});
         throw new DOMException('blocked by browser-harness dry-run policy', 'NotAllowedError');
       }
@@ -211,6 +236,30 @@ _DANGER_JS = """(el => {
   return {danger, tag, type: type || null,
           label: String(control.innerText || control.value || '').trim().slice(0, 100),
           action: form && form.action || ''};
+})"""
+
+_AUTH_ACTION_JS = """(el => {
+  if (!el) return null;
+  const control = el.closest && el.closest('button,input,[role=button]');
+  if (!control) return {allowed: false, reason: 'not_a_control'};
+  const label = String(control.innerText || control.value ||
+    control.getAttribute('aria-label') || '').replace(/\\s+/g, ' ').trim();
+  const authLabel = /(?:create account|sign up|register|sign in|log in|forgot .*password|reset .*password|verify .*email)/i.test(label);
+  const visible = node => !!(node && node.getClientRects && node.getClientRects().length);
+  const passwords = [...document.querySelectorAll('input[type=password]')].filter(visible);
+  const identities = [...document.querySelectorAll(
+    'input[type=email],input[autocomplete=email],input[autocomplete=username]')].filter(visible);
+  const enteredFiles = [...document.querySelectorAll('input[type=file]')]
+    .some(node => node.files && node.files.length);
+  const applicationText = [...document.querySelectorAll('textarea')].some(visible);
+  const r = control.getBoundingClientRect();
+  const allowed = authLabel && !enteredFiles && !applicationText &&
+    (passwords.length > 0 || identities.length > 0);
+  return {allowed, reason: allowed ? 'auth_context' : 'context_refused', label,
+          password_fields: passwords.length, identity_fields: identities.length,
+          entered_files: enteredFiles, application_text: applicationText,
+          x: r.x + r.width / 2, y: r.y + r.height / 2,
+          url: location.href, mutations: window.__bh ? __bh.mutations : 0};
 })"""
 
 #: Extension -> MIME for reading a file input's `accept`. Only the types upload controls
@@ -966,6 +1015,47 @@ class Tab:
         self._refuse_danger(before[2] if len(before) > 2 else None, x=x, y=y)
         return self._click(x, y, before[0], int(before[1]), settle, timeout)
 
+    def click_auth_ref(self, ref: str, *, settle: float = 0.6,
+                       timeout: float = 15.0) -> dict[str, Any]:
+        """Allow exactly one authentication request from a validated auth-only UI.
+
+        This is not a generic submit override.  The target must be labelled as an account,
+        login, recovery or verification action; the document must contain identity or
+        password controls; and application text/file inputs must be absent.  The main-world
+        guard consumes a one-request budget and the helper clears any unused budget.
+        """
+        pre = self._world_js(
+            f"(() => {{const el = window.__bh && __bh.refs[{ref!r}];"
+            f" return ({_AUTH_ACTION_JS})(el);}})()", timeout=timeout)
+        if pre is None:
+            raise ElementGone(f"no element registered for ref {ref!r}", ref=ref)
+        if not isinstance(pre, dict) or not pre.get("allowed"):
+            evidence = {"ref": ref, **(pre if isinstance(pre, dict) else {})}
+            self._j.write("note", event="side_effect_refused", **evidence)
+            raise SideEffectRefused("authentication action did not pass the scoped gate",
+                                    **evidence)
+        with self._j.call("click_auth_ref", ref=ref, label=pre.get("label")):
+            # Background Chrome renderers can silently drop compositor clicks.  Ordinary
+            # clicks may safely retry through DOM activation; an account action must never
+            # be repeated, so bring this tab forward and deliver one physical click.
+            self.cdp("Page.bringToFront", timeout=5.0)
+            armed = bool(self.js(
+                "(() => {const s=window[Symbol.for('browser-harness.dry-run')];"
+                " if(!s) return false; s.authBudget=1; return true;})()", timeout=5.0))
+            if not armed:
+                raise SideEffectRefused("the document has no active dry-run guard", ref=ref)
+            try:
+                delta = self._click(float(pre["x"]), float(pre["y"]), str(pre["url"]),
+                                    int(pre["mutations"]), settle, timeout, ref=ref,
+                                    retry_inert=False)
+            finally:
+                try:
+                    self.js("(() => {const s=window[Symbol.for('browser-harness.dry-run')];"
+                            " if(s) s.authBudget=0; return true;})()", timeout=5.0)
+                except HarnessError:
+                    pass
+        return {**delta, "auth_action": pre.get("label"), "request_budget": 1}
+
     def _refuse_danger(self, danger: Any, **observed: Any) -> None:
         if not isinstance(danger, dict) or not danger.get("danger"):
             return
@@ -975,7 +1065,8 @@ class Tab:
             "submit controls are disabled by the browser-harness dry-run policy", **evidence)
 
     def _click(self, x: float, y: float, url_before: str, mut_before: int,
-               settle: float, timeout: float, ref: str | None = None) -> dict[str, Any]:
+               settle: float, timeout: float, ref: str | None = None,
+               retry_inert: bool = True) -> dict[str, Any]:
         interesting = ("Page.lifecycleEvent", "Page.frameNavigated",
                        "Page.javascriptDialogOpening", "Target.targetCreated")
         targets_before = len(self._created)
@@ -1025,7 +1116,7 @@ class Tab:
         mutations = (None if navigated or post is None
                      else max(0, int(post[1]) - mut_before))
         modality = "compositor"
-        if (not navigated and not mutations and dialog is None
+        if (retry_inert and not navigated and not mutations and dialog is None
                 and len(self._created) == targets_before):
             landed = self._activate_click(x, y, url_before, mut_before, settle, timeout)
             if landed is not None:

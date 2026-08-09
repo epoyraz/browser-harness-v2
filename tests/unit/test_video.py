@@ -3,6 +3,7 @@ import json
 
 import pytest
 
+from harness.ops import video
 from harness.ops.video import MAX_HOLD, MIN_HOLD, export, have_ffmpeg, plan
 
 
@@ -65,6 +66,21 @@ def test_exporting_an_empty_recording_says_why(tmp_path):
 def test_a_missing_recording_is_not_a_confusing_ffmpeg_error(tmp_path):
     with pytest.raises(FileNotFoundError):
         export(tmp_path / "nope")
+
+
+def test_export_routes_continuous_frames_to_the_screencast_encoder(
+        tmp_path, monkeypatch):
+    (tmp_path / "frames.jsonl").write_text("{}\n")
+    monkeypatch.setattr(video, "have_ffmpeg", lambda: True)
+    seen = {}
+
+    def fake(recording, output, **options):
+        seen.update(recording=recording, output=output, options=options)
+        return {"mode": "cdp_screencast"}
+
+    monkeypatch.setattr(video, "export_screencast", fake)
+    assert export(tmp_path, "movie.mp4")["mode"] == "cdp_screencast"
+    assert seen["recording"] == tmp_path.resolve()
 
 
 @pytest.mark.skipif(not have_ffmpeg(), reason="ffmpeg not installed")

@@ -124,7 +124,7 @@ class SessionRegistry:
                 # The browser already handed us this one; enabling domains is what makes
                 # it a session by our definition, and it still happens here and nowhere else.
                 session = Session(target_id=target_id, session_id=adopted,
-                                  domains=self._enable_domains(adopted))
+                                  domains=self._enable_domains(adopted, self._domains))
                 with self._guard:
                     self._sessions[target_id] = session
                     self._by_session[adopted] = target_id
@@ -146,7 +146,7 @@ class SessionRegistry:
                 raise self._dead(target_id, State.TARGET_MISSING,
                                  "attachToTarget returned no sessionId")
 
-            enabled = self._enable_domains(session_id)
+            enabled = self._enable_domains(session_id, self._domains_for(target_id))
             session = Session(target_id=target_id, session_id=session_id,
                               domains=enabled)
             with self._guard:
@@ -155,7 +155,19 @@ class SessionRegistry:
             self._j.write("daemon", event="attached", **session.to_json())
             return session
 
-    def _enable_domains(self, session_id: str) -> tuple[str, ...]:
+    def _domains_for(self, target_id: str) -> tuple[str, ...]:
+        """Workers have no Page or DOM domains; pages retain the full contract."""
+        try:
+            info = self._conn.request("Target.getTargetInfo", {"targetId": target_id}) \
+                .get("targetInfo") or {}
+        except HarnessError:
+            info = {}
+        kind = str(info.get("type") or "page")
+        if kind in {"service_worker", "shared_worker", "worker"}:
+            return tuple(domain for domain in self._domains if domain == "Runtime")
+        return self._domains
+
+    def _enable_domains(self, session_id: str, domains: tuple[str, ...]) -> tuple[str, ...]:
         """The single place a CDP domain is ever enabled.
 
         `grep -rn '\\.enable' harness/` must find this function and nothing else — the test
@@ -163,13 +175,14 @@ class SessionRegistry:
         without enabling, so `Network.*` events stopped arriving with no error anywhere.
         """
         enabled: list[str] = []
-        for domain in self._domains:
+        for domain in domains:
             self._conn.request(f"{domain}.enable", session_id=session_id, timeout=10.0)
             enabled.append(domain)
         # Session setup lives here too, for the same reason the enables do: a session
         # without lifecycle events silently breaks every event-driven wait (D13).
-        self._conn.request("Page.setLifecycleEventsEnabled", {"enabled": True},
-                           session_id=session_id, timeout=10.0)
+        if "Page" in domains:
+            self._conn.request("Page.setLifecycleEventsEnabled", {"enabled": True},
+                               session_id=session_id, timeout=10.0)
         return tuple(enabled)
 
     # -- the one consumer boundary ----------------------------------------

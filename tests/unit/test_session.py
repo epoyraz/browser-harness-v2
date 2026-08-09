@@ -97,6 +97,26 @@ def test_switching_tabs_redirects_the_bare_helpers(session):
     assert ns["js"]("x") == "b"
 
 
+def test_continuous_screencast_is_exposed_and_stopped_with_the_session(
+        session, monkeypatch, tmp_path):
+    class Recorder:
+        dir = tmp_path
+
+        def __init__(self):
+            self.stops = 0
+
+        def stop(self):
+            self.stops += 1
+            return self.dir
+
+    recorder = Recorder()
+    monkeypatch.setattr("harness.session.screencast.start", lambda *_a, **_kw: recorder)
+    ns = session.namespace()
+    assert ns["start_screencast"]() == str(tmp_path)
+    assert ns["stop_screencast"]() == str(tmp_path)
+    assert recorder.stops == 1
+
+
 def test_only_drivable_targets_are_auto_selected(served):
     """A chrome:// internal is never what a caller meant, so it is not seized as 'the tab'."""
     browser, _ = served

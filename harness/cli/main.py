@@ -27,6 +27,7 @@ USAGE = """bh — browser-harness v2
                         --from-transcript [FILE] price think from the real agent session
   bh recordings         list recordings (newest first)
   bh video [<rec>]      render a recording to mp4 (default: the newest)
+  bh recording-extension  print the unpacked tabCapture extension path
   bh helpers --init     create a file for your own helpers
   bh skills which URL  explain offline skill resolution and trust
   bh skills search Q   search configured skill indexes
@@ -117,12 +118,20 @@ def main() -> int:
         from harness.ops.record import recordings
         found = recordings()
         if not found:
-            print("no recordings — run with BH_RECORD=1, or call start_recording()",
+            print("no recordings — use BH_RECORD=1, start_recording(), or start_screencast()",
                   file=sys.stderr)
             return 1
         for d in found:
-            frames = len(list(d.glob("*.jpg")))
-            print(f"{d}  ({frames} frame{'s' if frames != 1 else ''})")
+            screencast = (d / "frames.jsonl").is_file()
+            frames = len(list((d / "frames").glob("*.jpg"))) if screencast \
+                else len(list(d.glob("*.jpg")))
+            mode = "CDP screencast" if screencast else "action recording"
+            print(f"{d}  ({frames} frame{'s' if frames != 1 else ''}, {mode})")
+        return 0
+
+    if args and args[0] == "recording-extension":
+        path = Path(__file__).resolve().parents[1] / "assets" / "tab_recorder"
+        print(path)
         return 0
 
     if args and args[0] == "helpers":

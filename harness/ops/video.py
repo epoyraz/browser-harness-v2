@@ -46,7 +46,7 @@ def _entries(recording: Path) -> list[dict[str, Any]]:
 def plan(recording: Path, *, min_hold: float = MIN_HOLD,
          max_hold: float = MAX_HOLD) -> dict[str, Any]:
     """Frames with real holds, in capture order. The editorial layer edits *this*."""
-    recording = Path(recording)
+    recording = Path(recording).resolve()
     entries = _entries(recording)
     shots: list[dict[str, Any]] = []
     for i, e in enumerate(entries):
@@ -85,11 +85,14 @@ def export(recording: str | Path, output: str | Path | None = None, *,
     measurements, and re-sampling them to a constant rate would throw away the one thing
     that makes this evidence rather than a slideshow.
     """
-    recording = Path(recording)
+    recording = Path(recording).resolve()
     if not recording.is_dir():
         raise FileNotFoundError(f"no such recording: {recording}")
     if not have_ffmpeg():
         raise RuntimeError("ffmpeg is required to export a video (brew install ffmpeg)")
+    if (recording / "frames.jsonl").is_file():
+        return export_screencast(recording, output, fps=fps, width=width,
+                                 overwrite=overwrite)
     p = plan(recording)
     if not p["shots"]:
         raise ValueError(f"{recording} has no frames to export — was it recorded with "
@@ -129,3 +132,60 @@ def export(recording: str | Path, output: str | Path | None = None, *,
     return {"path": str(out), "bytes": out.stat().st_size, "shots": len(p["shots"]),
             "duration": p["duration"], "real_duration": p["real_duration"],
             "clamped": sum(1 for s in p["shots"] if s["clamped"])}
+
+
+def export_screencast(recording: str | Path, output: str | Path | None = None, *,
+                      fps: int = 30, width: int | None = None,
+                      overwrite: bool = False) -> dict[str, Any]:
+    """Encode timestamped CDP compositor frames without inventing action holds."""
+    recording = Path(recording)
+    frames = list(jsonl.read(recording / "frames.jsonl"))
+    frames = [row for row in frames if (recording / str(row.get("frame", ""))).is_file()]
+    if not frames:
+        raise ValueError(f"{recording} has no CDP screencast frames")
+    meta: dict[str, Any] = {}
+    try:
+        meta = json.loads((recording / "meta.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        pass
+    out = Path(output) if output else recording / "video.mp4"
+    if out.exists() and not overwrite:
+        raise FileExistsError(f"{out} exists — pass a different --output, or --overwrite")
+
+    def stamp(row: dict[str, Any]) -> float:
+        return float(row.get("timestamp") or row.get("captured") or 0)
+
+    lines: list[str] = []
+    duration = 0.0
+    for index, row in enumerate(frames):
+        current = stamp(row)
+        if index + 1 < len(frames):
+            hold = stamp(frames[index + 1]) - current
+        else:
+            # CDP's timestamp is monotonic while `stopped` is wall-clock time, so they
+            # cannot be subtracted. Local capture times share a clock with `stopped`.
+            if row.get("timestamp") is not None:
+                hold = 1 / fps
+            else:
+                stopped = float(meta.get("stopped") or row.get("captured") or current)
+                hold = stopped - current
+        hold = max(1 / fps, min(2.0, hold if hold > 0 else 1 / fps))
+        duration += hold
+        lines.extend((f"file '{row['frame']}'", f"duration {hold:.6f}"))
+    lines.append(f"file '{frames[-1]['frame']}'")
+    listing = recording / ".screencast-concat.txt"
+    listing.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    base = f"scale={width}:-2" if width else "scale=trunc(iw/2)*2:trunc(ih/2)*2"
+    cmd = ["ffmpeg", "-v", "error", "-y" if overwrite else "-n",
+           "-f", "concat", "-safe", "0", "-i", str(listing),
+           "-vf", f"{base}:out_range=tv,format=yuv420p", "-pix_fmt", "yuv420p",
+           "-r", str(fps), "-c:v", "libx264", "-preset", "medium", "-crf", "18",
+           "-movflags", "+faststart", str(out)]
+    proc = subprocess.run(cmd, capture_output=True, text=True, check=False,
+                          cwd=str(recording))
+    listing.unlink(missing_ok=True)
+    if proc.returncode != 0 or not out.is_file():
+        raise RuntimeError(f"ffmpeg failed: {proc.stderr.strip()[:400]}")
+    return {"path": str(out), "bytes": out.stat().st_size, "shots": len(frames),
+            "duration": round(duration, 2), "real_duration": round(duration, 2),
+            "clamped": 0, "mode": "cdp_screencast"}

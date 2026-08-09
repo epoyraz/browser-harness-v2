@@ -19,10 +19,11 @@ from collections.abc import Callable
 from typing import Any, Self
 
 from harness import extend
+from harness.auth import account_credential_status, ensure_account_credential
 from harness.connect.client import RemoteConnection, RemoteRegistry, ensure_daemon
 from harness.core.journal import Journal
 from harness.core.outcome import Class, HarnessError, ScopeRefused, TargetGone
-from harness.ops import batch, forms, record
+from harness.ops import batch, forms, record, screencast
 from harness.ops import parallel as parallel_ops
 from harness.ops.page import Tab
 
@@ -55,6 +56,7 @@ class Session:
         # one level in.
         self._local = threading.local()
         self._recorder: record.Recorder | None = None
+        self._screencast: screencast.ScreencastRecorder | None = None
         self.extensions: list[dict[str, Any]] = []
         if os.environ.get("BH_RECORD", "").strip().lower() not in ("", "0", "false", "no"):
             self.start_recording()
@@ -438,7 +440,26 @@ class Session:
         self._recorder = None
         return str(directory)
 
+    def start_screencast(self, name: str | None = None, *, quality: int = 88,
+                         max_width: int = 1440, max_height: int = 1000,
+                         every_nth_frame: int = 1) -> str:
+        """Continuously capture compositor updates for the current tab through CDP."""
+        if self._screencast is not None:
+            return str(self._screencast.dir)
+        self._screencast = screencast.start(
+            self.tab(), name=name, quality=quality, max_width=max_width,
+            max_height=max_height, every_nth_frame=every_nth_frame)
+        return str(self._screencast.dir)
+
+    def stop_screencast(self) -> str | None:
+        if self._screencast is None:
+            return None
+        directory = self._screencast.stop()
+        self._screencast = None
+        return str(directory)
+
     def close(self) -> None:
+        self.stop_screencast()
         self.stop_recording()
         with self._tabs_lock:
             contexts = list(self._contexts)
@@ -487,10 +508,13 @@ class Session:
             "form_schema": with_tab(forms.form_schema),
             "fill_form": with_tab(forms.fill_form),
             "set_value": with_tab(forms.set_value),
+            "set_secret_from_keychain": with_tab(forms.set_secret_from_keychain),
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
             "application_route_candidates": forms.application_route_candidates,
+            "account_credential_status": account_credential_status,
+            "ensure_account_credential": ensure_account_credential,
             "prepare_application": self.prepare_application,
             "follow_application": self.follow_application,
             "locate_application": self.locate_application,
@@ -502,6 +526,7 @@ class Session:
             "CancelToken": parallel_ops.CancelToken,
         }
         for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
+                     "click_auth_ref",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "wait_for_form",
                      "wait_for_application_state",
                      "start_diagnostics", "diagnostics",
@@ -510,6 +535,8 @@ class Session:
             ns[name] = on_tab(name)
         ns["start_recording"] = self.start_recording
         ns["stop_recording"] = self.stop_recording
+        ns["start_screencast"] = self.start_screencast
+        ns["stop_screencast"] = self.stop_screencast
         # Agent-written helpers load LAST and are executed with this namespace as their
         # globals, so an extension calls goto()/snapshot()/fill_form() exactly as a script
         # does — and its own functions are in scope for every script from the next run on.

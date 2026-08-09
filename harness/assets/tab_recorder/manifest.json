@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Browser Harness Tab Recorder",
+  "version": "0.1.0",
+  "minimum_chrome_version": "116",
+  "description": "Records the active Chrome tab as a real WebM MediaStream.",
+  "permissions": ["activeTab", "tabCapture", "offscreen", "downloads"],
+  "background": {"service_worker": "background.js", "type": "module"},
+  "action": {"default_title": "Start or stop Browser Harness recording"},
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {"default": "Alt+Shift+R", "mac": "Alt+Shift+R"},
+      "description": "Start or stop tab recording"
+    }
+  }
+}
