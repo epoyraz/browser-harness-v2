@@ -306,7 +306,13 @@ def localized(semantic_name: str, language: str, field: dict[str, Any]) -> Any:
     return None
 
 
-def plan_for(schema: dict[str, Any], language: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def plan_for(schema: dict[str, Any], language: str,
+             skill_context: dict[str, Any] | None = None
+             ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    # The production model planner consumes skill_context. This deterministic corpus
+    # planner deliberately does not reinterpret prose; accepting the packet lets the A/B
+    # measure routing/injection overhead without changing its factual answer ontology.
+    del skill_context
     plan: list[dict[str, Any]] = []
     audit: list[dict[str, Any]] = []
     seen_radio_groups: set[str] = set()
@@ -407,6 +413,13 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
 
     workflow = application["location"]
     prepared = workflow["prepared"]
+    skill_packet = application.get("skills") or {}
+    result["skills"] = {
+        "enabled": bool(skill_packet.get("enabled")),
+        "matches": skill_packet.get("matches") or [],
+        "bytes": int(skill_packet.get("bytes") or 0),
+        "sha256": skill_packet.get("sha256"),
+    }
     result["navigation"] = workflow["navigation"]
     result["navigate_ms"] = workflow["wall_ms"]
     result["workflow_terminal"] = workflow["terminal_state"]
@@ -491,6 +504,9 @@ def main() -> None:
             "model_boundary": {
                 "scripted": True, "model_calls": 0, "input_tokens": 0,
                 "output_tokens": 0, "decision_packet_fields": sorted(APPLICANT.values),
+                "application_skills": os.environ.get("BH_APPLICATION_SKILLS", "1"),
+                "skill_context_delivered_to_planner": True,
+                "skill_context_interpreted": False,
                 "decision_packet_sha256": hashlib.sha256("\n".join(
                     sorted(APPLICANT.values)).encode()).hexdigest()[:16],
             },

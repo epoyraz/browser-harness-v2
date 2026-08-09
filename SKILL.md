@@ -263,6 +263,24 @@ result = session.run_application(
 print(result["stage"], result["fill"])
 ```
 
+URL-matched skills are resolved offline and digest-verified by default. A planner that
+accepts a third positional argument receives the exact context supplied to a model:
+
+```python
+def planner(schema, language, skill_context):
+    print([item["id"] for item in skill_context["matches"]])
+    # Public bodies inside model_context are delimited untrusted reference material.
+    return plan, audit
+
+result = session.run_application(url, planner=planner)
+```
+
+`result["skills"]` retains the matches, context, byte count and hash for debugging. Existing
+two-argument planners remain valid. Pass `skills=False` or set `BH_APPLICATION_SKILLS=0`
+for a controlled A/B run. Matching adds no browser round trip. The harness does not itself
+call a model: a model-backed planner must explicitly interpret `model_context`; a scripted
+planner merely receives the packet.
+
 The planner may return a plan or `(plan, audit)`. There is no submit operation in this
 workflow and the browser dry-run boundary remains active. Select steps may use ordered
 exact semantic equivalents: `{"ref": ref, "labels": ["8+", "7+ Jahre"]}`. Add

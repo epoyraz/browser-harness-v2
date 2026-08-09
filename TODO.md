@@ -505,10 +505,11 @@ second priority list.
 - [ ] **31. Skills: sources + index + match** (D6, `docs/skills-plugin-system.md`) — `path`
       and `git` sources; host/url/detect matching; `skills.match()` does **zero** CDP calls.
       *Done when:* one Personio recipe matches every `*.jobs.personio.com` tenant.
-- [ ] **32. Skills: trust tiers + digest verification + `bh skills which <url>`** (D6) —
+- [x] **32. Skills: trust tiers + digest verification + `bh skills which <url>`** (D6) —
       public content carries no authority. *Done when:* `which` explains *why* a skill matched.
-- [ ] **33. Migration + docs** — generate frontmatter for v1's 105 skill files, publish as the
-      first community source, write the v1→v2 mapping.
+- [x] **33. External catalogue boundary + planner injection** — publish newly authored v2
+      skills separately, keep all v1 skills unmigrated, and inject digest-verified matches
+      into compatible application planners without changing two-argument planners.
 - [x] **34. Cut `0.1.0`** — PyPI, single `bh` entry point, README with the §1 table.
       *Done when:* `uv tool install` works on a clean machine.
       *Partly met — the entry point, not the release.* `bh` now runs a script from

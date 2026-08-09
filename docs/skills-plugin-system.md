@@ -205,6 +205,16 @@ skills.write(id, body)                            # → workspace source, instan
 skills.sync(source=None)                          # refresh indexes (out of band)
 ```
 
+`Session.run_application()` resolves host/URL matches and passes a digest-verified packet
+to planners that accept `(schema, language, skill_context)`. The packet contains exact
+`model_context`, provenance, trust, match rules, byte count, and SHA-256. Public bodies stay
+inside explicit `untrusted-skill-reference` delimiters. Two-argument planners remain
+compatible, and matching performs no CDP call.
+
+The harness does not contain a model client. Injection means delivery to the planner
+callback; only a model-backed callback interprets the prose. Deterministic planners can
+accept the packet for observability while deliberately ignoring it.
+
 Roughly a hundred lines. No skill content in the release, no network in the hot path.
 
 ---

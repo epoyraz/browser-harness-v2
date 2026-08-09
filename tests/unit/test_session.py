@@ -1,5 +1,7 @@
 """The agent-facing surface. Runs against a real daemon on a real socket, fake browser
 behind it — the point is the wiring, and a mocked session would prove none of it."""
+import hashlib
+import json
 import os
 import threading
 import time
@@ -179,7 +181,7 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "wait_lifecycle", "wait_for_application_state", "form_schema", "fill_form",
                  "start_diagnostics", "diagnostics",
                  "set_value", "require_form", "prepare_application", "follow_application",
-                 "locate_application",
+                 "locate_application", "application_skills",
                  "run_application",
                  "application_route_candidates", "fetch_all", "new_tab", "use_tab", "close_tab",
                  "new_context", "close_context", "parallel", "summarise", "targets",
@@ -306,7 +308,8 @@ def test_run_application_plans_and_fills_without_a_submit_operation(session, mon
         "Filled", (), {"ok": True, "to_json": lambda self: {"ok": True}})())
     result = session.run_application(
         "https://a.test", planner=lambda schema, language: (
-            [{"ref": "e1", "value": "Enes"}], [{"status": "planned"}]))
+            [{"ref": "e1", "value": "Enes"}], [{"status": "planned"}]),
+        skills=False)
     assert result["stage"] == "filled" and result["fill"] == {"ok": True}
     assert result["audit"] == [{"status": "planned"}]
     assert "prepared" not in result  # location is the single authoritative copy
@@ -327,9 +330,93 @@ def test_run_application_forwards_human_readable_presentation(session, monkeypat
     monkeypatch.setattr("harness.session.forms.fill_form", filled)
     session.run_application(
         "https://a.test", planner=lambda schema, language: [{"ref": "e1", "value": "x"}],
-        human_readable=True, human_pause=0.4)
+        skills=False, human_readable=True, human_pause=0.4)
 
     assert seen["human_readable"] is True and seen["human_pause"] == 0.4
+
+
+def _application_skill_source(tmp_path, monkeypatch):
+    root = tmp_path / "skills"
+    body_path = root / "apply-test" / "SKILL.md"
+    body_path.parent.mkdir(parents=True)
+    body = "---\nname: apply-test\ndescription: Test public applications.\n---\n\n# Test\n"
+    body_path.write_text(body, encoding="utf-8")
+    digest = "sha256:" + hashlib.sha256(body.encode()).hexdigest()
+    (root / "index.json").write_text(json.dumps({"schema": 1, "skills": [{
+        "id": "apply/test", "version": "1.0.0", "description": "Test",
+        "path": "apply-test/SKILL.md", "match": [{"host": "*.test"}],
+        "digest": digest,
+    }]}), encoding="utf-8")
+    config = tmp_path / "sources.toml"
+    config.write_text(f'''[[source]]
+name = "test-public"
+type = "path"
+trust = "public"
+priority = 10
+path = "{root}"
+''', encoding="utf-8")
+    monkeypatch.setenv("BH_SKILLS_SOURCES", str(config))
+
+
+def test_application_skills_are_offline_digest_verified_and_publicly_delimited(
+        session, served, tmp_path, monkeypatch):
+    _application_skill_source(tmp_path, monkeypatch)
+    browser, _daemon = served
+    before = len(browser.calls)
+
+    packet = session.application_skills("https://jobs.test/role")
+
+    assert len(browser.calls) == before
+    assert packet["matches"][0]["id"] == "apply/test"
+    assert "path" not in packet["matches"][0]
+    assert packet["model_context"].startswith(
+        '<untrusted-skill-reference source="test-public" id="apply/test">')
+    assert packet["bytes"] == len(packet["model_context"].encode())
+    assert packet["sha256"] == hashlib.sha256(packet["model_context"].encode()).hexdigest()
+
+
+def test_run_application_injects_skills_only_into_a_compatible_planner(
+        session, tmp_path, monkeypatch):
+    _application_skill_source(tmp_path, monkeypatch)
+    monkeypatch.setattr(session, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "url": "https://jobs.test/role/apply",
+            "schema": {"fields": [{"ref": "e1"}]}, "language": "en"},
+        "hops": [{"url": "https://jobs.test/role"}],
+        "navigation": {}, "wall_ms": 1})
+    monkeypatch.setattr("harness.session.forms.fill_form", lambda tab, plan, **kw: type(
+        "Filled", (), {"ok": True, "to_json": lambda self: {"ok": True}})())
+    received = {}
+
+    def planner(schema, language, skill_context):
+        received.update(skill_context)
+        return [{"ref": "e1", "value": "x"}]
+
+    result = session.run_application("https://jobs.test/role", planner=planner)
+
+    assert received["matches"][0]["id"] == "apply/test"
+    assert received == result["skills"]
+    assert result["stage"] == "filled"
+
+
+def test_run_application_keeps_two_argument_planners_compatible(
+        session, tmp_path, monkeypatch):
+    _application_skill_source(tmp_path, monkeypatch)
+    monkeypatch.setattr(session, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "url": "https://jobs.test/role/apply",
+            "schema": {"fields": [{"ref": "e1"}]}, "language": "en"},
+        "hops": [], "navigation": {}, "wall_ms": 1})
+    monkeypatch.setattr("harness.session.forms.fill_form", lambda tab, plan, **kw: type(
+        "Filled", (), {"ok": True, "to_json": lambda self: {"ok": True}})())
+    calls = []
+
+    result = session.run_application(
+        "https://jobs.test/role",
+        planner=lambda schema, language: calls.append((schema, language)) or [])
+
+    assert len(calls) == 1
+    assert result["skills"]["matches"][0]["id"] == "apply/test"
 
 
 def test_helpers_keep_their_names_so_a_traceback_is_readable(session):

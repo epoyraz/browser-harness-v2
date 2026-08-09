@@ -12,6 +12,8 @@ D1 was after; the ergonomic convenience of "there is a current tab" was never th
 """
 from __future__ import annotations
 
+import hashlib
+import inspect
 import os
 import threading
 import time
@@ -26,9 +28,25 @@ from harness.core.outcome import Class, HarnessError, ScopeRefused, TargetGone
 from harness.ops import batch, forms, record, screencast
 from harness.ops import parallel as parallel_ops
 from harness.ops.page import Tab
+from harness.skills import Registry as SkillRegistry
 
 #: A tab we may drive. `about:blank` counts; chrome:// internals and devtools do not.
 _DRIVABLE = ("http://", "https://", "file://", "about:blank", "data:")
+
+
+def _enabled(value: str | None, *, default: bool = True) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() not in ("", "0", "false", "no", "off")
+
+
+def _planner_accepts_skill_context(planner: Callable[..., Any]) -> bool:
+    """Inspect before calling: catching TypeError would hide a bug inside the planner."""
+    try:
+        inspect.signature(planner).bind({}, "en", {})
+    except (TypeError, ValueError):
+        return False
+    return True
 
 
 class Session:
@@ -57,6 +75,7 @@ class Session:
         self._local = threading.local()
         self._recorder: record.Recorder | None = None
         self._screencast: screencast.ScreencastRecorder | None = None
+        self._skill_registry: SkillRegistry | None = None
         self.extensions: list[dict[str, Any]] = []
         if os.environ.get("BH_RECORD", "").strip().lower() not in ("", "0", "false", "no"):
             self.start_recording()
@@ -378,32 +397,86 @@ class Session:
             "wall_ms": round((time.perf_counter() - started) * 1000, 1),
         }
 
+    def application_skills(self, *urls: str, enabled: bool | None = None) -> dict[str, Any]:
+        """Resolve and digest-verify model context for application URLs, with zero CDP.
+
+        Public bodies remain explicitly delimited untrusted reference material. Paths are
+        intentionally omitted from the planner packet: provenance is source/id/version and
+        digest, not a machine-local cache location.
+        """
+        active = (_enabled(os.environ.get("BH_APPLICATION_SKILLS"))
+                  if enabled is None else bool(enabled))
+        if not active:
+            return {"enabled": False, "matches": [], "model_context": "",
+                    "bytes": 0, "sha256": None}
+        if self._skill_registry is None:
+            self._skill_registry = SkillRegistry()
+        found: dict[tuple[str, str, str], dict[str, Any]] = {}
+        for url in dict.fromkeys(str(item) for item in urls if item):
+            for ref in self._skill_registry.match(url):
+                key = (ref.source, ref.id, ref.version)
+                record = found.setdefault(key, {"ref": ref, "matched_urls": []})
+                record["matched_urls"].append(url)
+        matches = []
+        bodies = []
+        for record in found.values():
+            ref = record["ref"]
+            body = self._skill_registry.load(ref)
+            metadata = ref.to_json()
+            metadata.pop("path", None)
+            metadata["matched_urls"] = record["matched_urls"]
+            matches.append(metadata)
+            bodies.append(body.for_model())
+        model_context = "\n\n".join(bodies)
+        packet = {
+            "enabled": True, "matches": matches, "model_context": model_context,
+            "bytes": len(model_context.encode("utf-8")),
+            "sha256": hashlib.sha256(model_context.encode("utf-8")).hexdigest()
+            if model_context else None,
+        }
+        self.journal.write("note", event="application_skills_resolved",
+                           matched=len(matches), ids=[item["id"] for item in matches],
+                           bytes=packet["bytes"], sha256=packet["sha256"])
+        return packet
+
     def run_application(self, url: str, *,
-                        planner: Callable[[dict[str, Any], str], Any] | None = None,
+                        planner: Callable[..., Any] | None = None,
                         timeout: float = 25.0, transition_timeout: float = 15.0,
                         fill_timeout: float = 30.0, hop_budget: int = 6,
                         candidates: list[str] | None = None,
+                        skills: bool | None = None,
                         human_readable: bool = False,
                         human_pause: float = 0.18) -> dict[str, Any]:
         """Locate and optionally fill an application as one typed, non-submitting flow.
 
-        ``planner`` receives the final schema and language.  It may return a plan or
-        ``(plan, audit)``.  The browser's dry-run boundary remains the authority: this
+        ``planner`` receives the final schema and language. A planner accepting a third
+        positional argument additionally receives the matched, digest-verified skill
+        packet, including the exact delimited ``model_context``. It may return a plan or
+        ``(plan, audit)``. Two-argument planners remain unchanged. The browser's dry-run
+        boundary remains the authority: this
         workflow has no submit operation and cannot weaken the guard. Pass
         ``human_readable=True`` to smoothly reveal and fill one field at a time for a
         recording; the default keeps the fast batched path.
         """
+        skill_context = self.application_skills(url, enabled=skills)
         located = self.locate_application(
             url, timeout=timeout, transition_timeout=transition_timeout,
             hop_budget=hop_budget, candidates=candidates)
         prepared = located["prepared"]
+        routed_urls = [url]
+        routed_urls.extend(str(hop.get("url") or "") for hop in located.get("hops") or [])
+        routed_urls.append(str(prepared.get("url") or ""))
+        skill_context = self.application_skills(*routed_urls, enabled=skills)
         result: dict[str, Any] = {
             "stage": located["terminal_state"], "location": located,
-            "plan": [], "audit": [], "fill": None,
+            "skills": skill_context, "plan": [], "audit": [], "fill": None,
         }
         if not prepared.get("is_application") or planner is None:
             return result
-        planned = planner(prepared.get("schema") or {}, str(prepared.get("language") or "en"))
+        planner_args = (prepared.get("schema") or {},
+                        str(prepared.get("language") or "en"))
+        planned = (planner(*planner_args, skill_context)
+                   if _planner_accepts_skill_context(planner) else planner(*planner_args))
         if isinstance(planned, tuple) and len(planned) == 2:
             plan, audit = planned
         else:
@@ -524,6 +597,7 @@ class Session:
             "prepare_application": self.prepare_application,
             "follow_application": self.follow_application,
             "locate_application": self.locate_application,
+            "application_skills": self.application_skills,
             "run_application": self.run_application,
             # Bound to this session, so a script writes parallel(urls, fn) and the bare
             # helpers inside fn address that worker's own tab.
