@@ -2,6 +2,11 @@
 
 **Status:** design, targets v2. Companion to `DESIGN-V2.md` §D6.
 
+The canonical public catalogue is
+[`epoyraz/browser-harness-skills`](https://github.com/epoyraz/browser-harness-skills). It
+starts empty by design: the legacy v1 catalogue is not migrated. New skills are authored
+there under the index and digest contract described below.
+
 Site knowledge is **data with a package manager's problems**: many sources, version skew,
 integrity, trust, staleness, offline use, and reproducibility. It is not library code, and
 the release cadence of a browser harness has nothing to do with when Personio changes a
@@ -246,19 +251,12 @@ known.
 
 ---
 
-## 10. Migration
+## 10. Legacy boundary
 
-1. Generate frontmatter for the 105 existing files from path + first heading. Only 2 have
-   any today, so this is a script, not a negotiation.
-2. Publish them as the first `community` source, out of this repo.
-3. Delete `agent-workspace/domain-skills/` from the release surface; the workspace source
-   points at the user's own directory.
-4. Redirect the 109 open skill PRs to the skills repo, where CI validates the schema and no
-   maintainer has to read them.
-5. `goto_url()`'s ten-filename return becomes `skills.match(url)` — same idea, real index.
-
-Step 4 is the immediate payoff: **51% of the open-PR queue stops needing human attention**,
-and core review capacity goes to the 48 PRs that actually touch the harness.
+The v1 domain-skill catalogue remains in v1 and is deliberately not copied into the public
+repository. The external catalogue is for newly authored v2 skills. This avoids publishing
+legacy content without an individual review while still separating future site knowledge
+from harness releases.
 
 ---
 
