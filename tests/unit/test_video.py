@@ -57,8 +57,9 @@ def test_a_failed_action_keeps_its_class_for_the_editorial_layer(tmp_path):
     assert s["ok"] is False and s["outcome_class"] == "navigation_failed"
 
 
-def test_exporting_an_empty_recording_says_why(tmp_path):
+def test_exporting_an_empty_recording_says_why_without_needing_ffmpeg(tmp_path, monkeypatch):
     rec = _rec(tmp_path, [{"kind": "call", "fn": "snapshot", "ts": 1.0}], frames=0)
+    monkeypatch.setattr(video, "have_ffmpeg", lambda: False)
     with pytest.raises(ValueError, match="BH_RECORD"):
         export(rec)
 

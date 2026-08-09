@@ -88,15 +88,17 @@ def export(recording: str | Path, output: str | Path | None = None, *,
     recording = Path(recording).resolve()
     if not recording.is_dir():
         raise FileNotFoundError(f"no such recording: {recording}")
-    if not have_ffmpeg():
-        raise RuntimeError("ffmpeg is required to export a video (brew install ffmpeg)")
     if (recording / "frames.jsonl").is_file():
+        if not have_ffmpeg():
+            raise RuntimeError("ffmpeg is required to export a video (brew install ffmpeg)")
         return export_screencast(recording, output, fps=fps, width=width,
                                  overwrite=overwrite)
     p = plan(recording)
     if not p["shots"]:
         raise ValueError(f"{recording} has no frames to export — was it recorded with "
                          f"BH_RECORD=1?")
+    if not have_ffmpeg():
+        raise RuntimeError("ffmpeg is required to export a video (brew install ffmpeg)")
     out = Path(output) if output else recording / "video.mp4"
     if out.exists() and not overwrite:
         raise FileExistsError(f"{out} exists — pass a different --output, or --overwrite")
