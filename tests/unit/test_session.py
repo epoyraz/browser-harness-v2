@@ -312,6 +312,26 @@ def test_run_application_plans_and_fills_without_a_submit_operation(session, mon
     assert "prepared" not in result  # location is the single authoritative copy
 
 
+def test_run_application_forwards_human_readable_presentation(session, monkeypatch):
+    monkeypatch.setattr(session, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "schema": {"fields": [{"ref": "e1"}]},
+            "language": "en"}, "hops": [], "navigation": {}, "wall_ms": 1})
+    seen = {}
+
+    def filled(tab, plan, **kwargs):
+        seen.update(kwargs)
+        return type("Filled", (), {"ok": True,
+                                    "to_json": lambda self: {"ok": True}})()
+
+    monkeypatch.setattr("harness.session.forms.fill_form", filled)
+    session.run_application(
+        "https://a.test", planner=lambda schema, language: [{"ref": "e1", "value": "x"}],
+        human_readable=True, human_pause=0.4)
+
+    assert seen["human_readable"] is True and seen["human_pause"] == 0.4
+
+
 def test_helpers_keep_their_names_so_a_traceback_is_readable(session):
     ns = session.namespace()
     assert ns["goto"].__name__ == "goto" and ns["fill_form"].__name__ == "fill_form"

@@ -382,12 +382,16 @@ class Session:
                         planner: Callable[[dict[str, Any], str], Any] | None = None,
                         timeout: float = 25.0, transition_timeout: float = 15.0,
                         fill_timeout: float = 30.0, hop_budget: int = 6,
-                        candidates: list[str] | None = None) -> dict[str, Any]:
+                        candidates: list[str] | None = None,
+                        human_readable: bool = False,
+                        human_pause: float = 0.18) -> dict[str, Any]:
         """Locate and optionally fill an application as one typed, non-submitting flow.
 
         ``planner`` receives the final schema and language.  It may return a plan or
         ``(plan, audit)``.  The browser's dry-run boundary remains the authority: this
-        workflow has no submit operation and cannot weaken the guard.
+        workflow has no submit operation and cannot weaken the guard. Pass
+        ``human_readable=True`` to smoothly reveal and fill one field at a time for a
+        recording; the default keeps the fast batched path.
         """
         located = self.locate_application(
             url, timeout=timeout, transition_timeout=transition_timeout,
@@ -408,7 +412,9 @@ class Session:
         result["audit"] = list(audit or [])
         started = time.perf_counter()
         with self.journal.bind(stage="fill"):
-            outcome = forms.fill_form(self.tab(), result["plan"], timeout=fill_timeout)
+            outcome = forms.fill_form(
+                self.tab(), result["plan"], timeout=fill_timeout,
+                human_readable=human_readable, human_pause=human_pause)
         result["fill"] = outcome.to_json()
         result["fill_ms"] = round((time.perf_counter() - started) * 1000, 1)
         result["stage"] = "filled" if outcome.ok else "partial"

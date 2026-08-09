@@ -549,8 +549,56 @@ _RECHECK_JS = """((plan) => {
 })(__PLAN__)"""
 
 
+_HUMAN_REVEAL_JS = """await (async () => {
+  /* bh-human-reveal */
+  const el = window.__bh && __bh.refs[__REF__];
+  if (!el) return {ok: false, error: 'element_gone'};
+  const before = el.getBoundingClientRect();
+  el.scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'});
+
+  // scrollIntoView has no completion promise. Wait until the control's viewport position
+  // has stopped changing for a few animation frames, with a hard ceiling for pages whose
+  // sticky layout never becomes perfectly still.
+  const deadline = performance.now() + 1200;
+  let last = before.top, stable = 0;
+  await new Promise(resolve => {
+    const tick = () => {
+      const top = el.getBoundingClientRect().top;
+      stable = Math.abs(top - last) < 0.5 ? stable + 1 : 0;
+      last = top;
+      if (stable >= 4 || performance.now() >= deadline) resolve();
+      else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+  await new Promise(resolve => setTimeout(resolve, __PAUSE_MS__));
+  const after = el.getBoundingClientRect();
+  return {ok: true, moved: Math.abs(after.top - before.top) >= 0.5,
+          top: Math.round(after.top), viewport_height: innerHeight};
+})()"""
+
+
+def _human_reveal(tab: Tab, ref: str, *, timeout: float, pause: float) -> dict[str, Any]:
+    """Smoothly centre one field and leave it visible long enough to explain the write."""
+    src = (_HUMAN_REVEAL_JS.replace("__REF__", json.dumps(ref))
+           .replace("__PAUSE_MS__", str(round(pause * 1000))))
+    return tab._world_js(src, timeout=timeout) or {"ok": False, "error": "no_result"}
+
+
+def _fill_outcome(report: list[dict[str, Any]], fields: int) -> Outcome:
+    tally = Tally()
+    for entry in report:
+        if entry.get("ok"):
+            tally.record(ok(entry))
+        else:
+            tally.record(fail(_step_class(entry),
+                              entry.get("error") or "value did not stick", **entry))
+    return tally.outcome(value=report, fields=fields)
+
+
 def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
-              recheck: float = 0.15) -> Outcome:
+              recheck: float = 0.15, human_readable: bool = False,
+              human_pause: float = 0.18) -> Outcome:
     """One write for the whole plan. Rule 4: OK only when every field verified; PARTIAL
     carries the full per-field report either way (`outcome.value`).
 
@@ -567,12 +615,30 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
     back in the same report: without this the caller had to abandon `fill_form` and hand-
     roll `set_value` per field, which is the batching win thrown away on exactly the forms
     that most need it.
+
+    ``human_readable=True`` deliberately trades the one-pass performance invariant for a
+    debuggable recording: each field is smoothly centred, allowed to settle, and then
+    written on its own. The default remains the measured fast path and performs no scroll.
     """
     if not plan:
         return ok([], attempted=0, succeeded=0, failed=0)
     bad = [s.get("mode") for s in plan if s.get("mode") and s.get("mode") not in MODES]
     if bad:
         raise ValueError(f"mode must be one of {MODES}, got {bad!r}")
+    if human_pause < 0:
+        raise ValueError("human_pause must be non-negative")
+    if human_readable:
+        report: list[dict[str, Any]] = []
+        with tab.journal.call("fill_form", n=len(plan), presentation="human_readable"):
+            for step in plan:
+                reveal = _human_reveal(tab, str(step.get("ref") or ""),
+                                       timeout=timeout, pause=human_pause)
+                single = fill_form(tab, [step], timeout=timeout, recheck=recheck)
+                entry = (single.value[0] if isinstance(single.value, list) and single.value
+                         else {"ref": step.get("ref"), "ok": False,
+                               "error": "no report entry"})
+                report.append({**entry, "presentation": reveal})
+        return _fill_outcome(report, len(plan))
     interactive = [(i, s) for i, s in enumerate(plan) if s.get("interaction") == "select"]
     batched = [(i, s) for i, s in enumerate(plan)
                if s.get("mode", "value") == "value" and not s.get("interaction")]
@@ -633,13 +699,7 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         merged.append(report[slot] if 0 <= slot < len(report)
                       else {"ref": step.get("ref"), "ok": False, "error": "no report entry"})
 
-    tally = Tally()
-    for r in merged:
-        if r.get("ok"):
-            tally.record(ok(r))
-        else:
-            tally.record(fail(_step_class(r), r.get("error") or "value did not stick", **r))
-    return tally.outcome(value=merged, fields=len(plan))     # value = the FULL report
+    return _fill_outcome(merged, len(plan))                  # value = the FULL report
 
 
 def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float = 10.0,

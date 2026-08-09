@@ -183,6 +183,15 @@ if not out.ok:
         print(f.cls.value, f.observed)
 ```
 
+For a recording a person will inspect, opt into the deliberately slower presentation
+path. It smoothly centres each field immediately before writing it; the default remains
+the one-pass fast path and does not scroll:
+
+```python
+out = fill_form(plan, human_readable=True)  # optional human_pause=0.18 seconds
+result = session.run_application(url, planner=planner, human_readable=True)
+```
+
 `prepare_application()` replaces separate URL, title, language, schema,
 file-input and apply-link calls. It returns `schema`, `url`, `title`, `language`,
 `file_inputs`, `apply_link`, `target_id`, `context`, and `contexts_checked`. A valid main

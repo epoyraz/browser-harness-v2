@@ -101,6 +101,39 @@ def test_round_trips_are_constant_in_the_number_of_fields(tab):
     assert counts[0] == counts[1] == 2          # one write + one settle-recheck
 
 
+def test_human_readable_fill_smoothly_reveals_each_field_before_its_write(tab):
+    browser, t = tab
+    events = []
+
+    def hook(expr):
+        if "bh-human-reveal" in expr:
+            ref = "e1" if 'refs["e1"]' in expr else "e2"
+            events.append(("reveal", ref))
+            return {"ok": True, "moved": True, "top": 300, "viewport_height": 800}
+        if "([{" in expr:
+            ref = "e1" if '"ref": "e1"' in expr else "e2"
+            events.append(("fill", ref))
+            return [{"ref": ref, "ok": True, "want": "x", "got": "x"}]
+        return []
+
+    browser.eval_hook = hook
+    out = fill_form(t, [{"ref": "e1", "value": "x"},
+                        {"ref": "e2", "value": "x"}],
+                    recheck=0, human_readable=True, human_pause=0)
+
+    assert out.ok is True
+    assert events == [("reveal", "e1"), ("fill", "e1"),
+                      ("reveal", "e2"), ("fill", "e2")]
+    assert all(entry["presentation"]["moved"] for entry in out.value)
+
+
+def test_human_readable_fill_rejects_a_negative_pause(tab):
+    _, t = tab
+    with pytest.raises(ValueError, match="human_pause"):
+        fill_form(t, [{"ref": "e1", "value": "x"}],
+                  human_readable=True, human_pause=-0.1)
+
+
 def test_one_bad_field_makes_the_whole_fill_partial_with_the_report_kept(tab):
     browser, t = tab
     browser.eval_hook = lambda e: [
