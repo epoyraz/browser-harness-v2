@@ -77,7 +77,11 @@ def launch(profile: Path, *, window: str = "1200,800", extra: list[str] | None =
         if os.name == "nt":                  # no `open`; the TCC problem is macOS-only
             subprocess.Popen([CHROME, *args],
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        elif sys.platform == "darwin" and not headless:
+        elif sys.platform == "darwin":
+            # This must cover headless Chrome too.  A child-process launch makes macOS
+            # attribute Chrome's first file access to the invoking terminal; an unanswered
+            # TCC prompt can then revoke that terminal's Desktop/Documents access.  `open`
+            # hands both headed and headless instances to LaunchServices instead.
             subprocess.run(["/usr/bin/open", "-na", CHROME, "--args", *args],
                            check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
