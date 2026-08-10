@@ -77,6 +77,11 @@ class Session:
         self._screencast: screencast.ScreencastRecorder | None = None
         self._skill_registry: SkillRegistry | None = None
         self.extensions: list[dict[str, Any]] = []
+        if lease := os.environ.get("BH_TARGET_LEASE"):
+            # An explicit lease takes precedence over the ergonomic first-tab fallback.
+            # If it cannot be claimed, fail closed instead of driving whatever happens to
+            # be first in Chrome after this fresh process connects.
+            self.resume_lease(lease)
         if os.environ.get("BH_RECORD", "").strip().lower() not in ("", "0", "false", "no"):
             self.start_recording()
 
@@ -195,6 +200,29 @@ class Session:
 
     def use_tab(self, target_id: str) -> Tab:
         return self.tab(target_id)
+
+    def lease_tab(self, target_id: str | None = None) -> str:
+        """Reserve one tab for later fresh clients and return its opaque lease token.
+
+        Pass that token as ``BH_TARGET_LEASE`` to a later ``bh`` invocation.  The daemon
+        owns the target mapping; callers never persist a raw target id and stale leases
+        fail closed rather than selecting another browser tab.
+        """
+        target = self.tab(target_id)
+        lease = self.conn.create_target_lease(target.target_id)
+        self.journal.write("note", event="target_lease_created", target_id=target.target_id)
+        return lease
+
+    def resume_lease(self, lease: str) -> Tab:
+        """Make a daemon-owned lease's target current for this client."""
+        target_id = self.conn.claim_target_lease(lease)
+        tab = self._attach(target_id)
+        self.journal.write("note", event="target_lease_claimed", target_id=target_id)
+        return tab
+
+    def release_lease(self, lease: str) -> None:
+        self.conn.release_target_lease(lease)
+        self.journal.write("note", event="target_lease_released")
 
     def close_tab(self, target_id: str | None = None, *, wait: bool = True) -> None:
         tid = target_id or self._current
@@ -582,6 +610,8 @@ class Session:
         ns: dict[str, Any] = {
             "session": self, "tab": self.tab, "new_tab": self.new_tab,
             "use_tab": self.use_tab, "close_tab": self.close_tab,
+            "lease_tab": self.lease_tab, "resume_lease": self.resume_lease,
+            "release_lease": self.release_lease,
             "new_context": self.new_context, "close_context": self.close_context,
             "targets": self.targets, "journal": self.journal,
             "form_schema": with_tab(forms.form_schema),

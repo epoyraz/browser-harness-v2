@@ -184,6 +184,31 @@ class RemoteConnection:
         except OSError:
             pass
 
+    def create_target_lease(self, target_id: str) -> str:
+        """Mint an opaque, daemon-owned capability for one explicit target."""
+        got = self._call({"meta": "lease_create", "target_id": target_id}, timeout=30.0)
+        if not got.get("ok"):
+            raise HarnessError.of(fail(Class(got.get("class", Class.CDP_ERROR.value)),
+                                       got.get("detail", ""),
+                                       **(got.get("observed") or {})))
+        return str(got["value"]["lease"])
+
+    def claim_target_lease(self, lease: str) -> str:
+        """Resolve a lease to its target, failing closed when it is stale or unknown."""
+        got = self._call({"meta": "lease_claim", "lease": lease}, timeout=30.0)
+        if not got.get("ok"):
+            raise HarnessError.of(fail(Class(got.get("class", Class.CDP_ERROR.value)),
+                                       got.get("detail", ""),
+                                       **(got.get("observed") or {})))
+        return str(got["value"]["target_id"])
+
+    def release_target_lease(self, lease: str) -> None:
+        got = self._call({"meta": "lease_release", "lease": lease}, timeout=30.0)
+        if not got.get("ok"):
+            raise HarnessError.of(fail(Class(got.get("class", Class.CDP_ERROR.value)),
+                                       got.get("detail", ""),
+                                       **(got.get("observed") or {})))
+
     def __enter__(self) -> Self:
         return self
 

@@ -386,6 +386,18 @@ close_tab()
 
 Your current tab is client-local: two scripts running at once cannot steal each other's.
 
+For a workflow split across fresh `bh` processes, reserve one explicit target instead of
+depending on that process-local convenience:
+
+```python
+lease = lease_tab()                    # opaque capability owned by the daemon
+print(lease)
+```
+
+Run the later process with `BH_TARGET_LEASE=<lease> bh …`. It resumes that exact target;
+an expired or invalid lease fails closed and never falls back to another open tab. A target
+can have one active lease; call `release_lease(lease)` when the workflow is finished.
+
 ## Parallel tab work
 
 ```python
