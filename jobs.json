@@ -1,6 +1,6 @@
 {
- "generated": "2026-08-08",
- "source": "joblens public MCP get_job_details",
+ "generated": "2026-08-11",
+ "source": "joblens public MCP search_jobs + get_job_details",
  "cv": {
   "file": "Lebenslauf – Enes Poyraz.pdf",
   "name": "Enes Poyraz",
@@ -8,7 +8,7 @@
   "experience_years": 8
  },
  "skills": {
-  "note": "Read from the CV's KOMPETENZEN section and experience text. joblens' own PDF extractor additionally reported Go, C and R, none of which appear in the document. Employer apply URLs for all 100 jobs were resolved through the public get_job_details MCP tool, not scraped or pattern-derived.",
+  "note": "Read from the CV's KOMPETENZEN section and experience text. Joblens ranks the vacancy descriptions against the listed CV-derived skills. Employer apply URLs were resolved through the public get_job_details MCP tool, not scraped or pattern-derived.",
   "core_stack": [
    "C#",
    ".NET",
@@ -75,21 +75,21 @@
  "search": {
   "city_filter": null,
   "sort": "matches",
-  "universe_matching_at_least_one_skill": 1141,
+  "universe_matching_at_least_one_skill": 1153,
   "returned": 100,
   "direct_urls_resolved": 100
  },
  "summary": {
   "direct_form_no_account": 34,
-  "account_required": 20,
-  "not_reported": 46,
+  "account_required": 19,
+  "not_reported": 47,
   "top_companies": [
-   "adesso (8)",
+   "adesso (7)",
    "ti&m (7)",
    "Air Apps (5)",
    "Blockstream (5)",
-   "Expleo (4)",
-   "Bundesverwaltung (4)"
+   "Bundesverwaltung (4)",
+   "Expleo (4)"
   ]
  },
  "jobs": [
@@ -248,7 +248,7 @@
    "rank": 6,
    "matched": 9,
    "company": "Julius Bär",
-   "title": "Senior Frontend (React) Developer – Financial Platforms 80-100% (f/m/d)",
+   "title": "Senior Frontend (React) Developer – Financial Platforms 80 - 100% (f/m/d) - (Contract through our external payroll partner with immediate start for 6 months with possible extension)",
    "location": "Zürich",
    "published": "2026-06-26",
    "apply": {
@@ -775,7 +775,7 @@
    "rank": 25,
    "matched": 7,
    "company": "Julius Bär",
-   "title": "Senior Java Developer (Distributed Financial Systems) 80-100% (f/m/d)",
+   "title": "Senior Java Developer (Distributed Financial Systems) 80 - 100% (f/m/d) - (Contract through our external payroll partner with immediate start for 12 months with possible extension)",
    "location": "Zürich",
    "published": "2026-05-09",
    "apply": {
@@ -1407,7 +1407,7 @@
    "rank": 49,
    "matched": 6,
    "company": "Julius Bär",
-   "title": "Senior Java Engineer - Cloud-Native Backend Development 100% (f/m/d)",
+   "title": "Senior Java Engineer - Cloud-Native Backend Development 100% (f/m/d) - (Contract through our external payroll partner with immediate start for 12 months with possible extension)",
    "location": "Zürich",
    "published": "2026-06-19",
    "apply": {
@@ -1823,7 +1823,7 @@
    "rank": 65,
    "matched": 6,
    "company": "ONLU AG",
-   "title": "Full Stack Developer: Springboot & Angular - Deutschschweiz",
+   "title": "Full Stack Developer: Springboot & Angular - Deutschschweiz - German Speaking= MUST",
    "location": "Zürich",
    "published": "2024-03-06",
    "apply": {
@@ -2030,7 +2030,7 @@
    "rank": 73,
    "matched": 5,
    "company": "Helvetia",
-   "title": "Senior Full-Stack Mobile Engineer (iOS - Backend) (w/m/d)",
+   "title": "Senior Full-Stack Mobile Engineer (iOS - Backend) (w/m/d) Teilzeit/Vollzeit",
    "location": "Dübendorf",
    "published": "2026-08-04",
    "apply": {
@@ -2055,7 +2055,7 @@
    "rank": 74,
    "matched": 5,
    "company": "Helvetia",
-   "title": "Senior Full-Stack Software Engineer Kotlin/Java (w/m/d)",
+   "title": "Senior Full-Stack Software Engineer Kotlin/Java (w/m/d) Vollzeit",
    "location": "Dübendorf",
    "published": "2026-08-04",
    "apply": {
@@ -2455,7 +2455,7 @@
    "rank": 90,
    "matched": 5,
    "company": "Bundesverwaltung",
-   "title": "Applikations-Entwickler/-in mit Fokus SRE",
+   "title": "Applikations-Entwickler/-in mit Fokus SRE (Site Reliability Engineering)",
    "location": "Zollikofen",
    "published": "2026-07-13",
    "apply": {
@@ -2482,7 +2482,7 @@
    "company": "Thomson Reuters",
    "title": "Lead Research Engineer",
    "location": "Zug",
-   "published": "2026-07-09",
+   "published": "2026-07-11",
    "apply": {
     "mode": "account",
     "ats": "Workday",
@@ -2505,7 +2505,7 @@
    "rank": 92,
    "matched": 5,
    "company": "Imnoo",
-   "title": "Fullstack: Frontend Backend CAD AI IoT Engineer – Coding Wizard (70% - 100%)",
+   "title": "Fullstack: Frontend Backend CAD AI IoT Engineer – Coding Wizard ( 70% - 100% ) (remote/onsite)",
    "location": "Zürich",
    "published": "2026-07-01",
    "apply": {
@@ -2554,6 +2554,31 @@
   {
    "rank": 94,
    "matched": 5,
+   "company": "MSC Cruises",
+   "title": "IT System Engineer",
+   "location": "Naples",
+   "published": "2026-06-23",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://careers.msccruises.com/gb/en/job/16923/IT-System-Engineer",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "MSC_Cruises_16923",
+   "url": "https://careers.msccruises.com/gb/en/job/16923/IT-System-Engineer",
+   "matched_skills": [
+    "React",
+    "Azure",
+    "Terraform",
+    "CI/CD",
+    "Python"
+   ]
+  },
+  {
+   "rank": 95,
+   "matched": 5,
    "company": "adesso",
    "title": "(Senior) Software Engineer Java (all genders)",
    "location": "Zürich",
@@ -2577,7 +2602,7 @@
    ]
   },
   {
-   "rank": 95,
+   "rank": 96,
    "matched": 5,
    "company": "adesso",
    "title": "(Senior) Software Engineer Java (all genders)",
@@ -2602,7 +2627,7 @@
    ]
   },
   {
-   "rank": 96,
+   "rank": 97,
    "matched": 5,
    "company": "Bundesverwaltung",
    "title": "ICT-Test-Ingenieur/-in Senior (1250 & 1251)",
@@ -2627,7 +2652,7 @@
    ]
   },
   {
-   "rank": 97,
+   "rank": 98,
    "matched": 5,
    "company": "Roche",
    "title": "Principal / Senior Principal Software Engineer",
@@ -2652,7 +2677,7 @@
    ]
   },
   {
-   "rank": 98,
+   "rank": 99,
    "matched": 5,
    "company": "Specialized",
    "title": "Senior Automation QA Engineer – Mobile Testing",
@@ -2677,7 +2702,7 @@
    ]
   },
   {
-   "rank": 99,
+   "rank": 100,
    "matched": 5,
    "company": "Zühlke",
    "title": "Senior Data Engineer",
@@ -2699,31 +2724,6 @@
     "Kubernetes",
     "Python",
     "Java"
-   ]
-  },
-  {
-   "rank": 100,
-   "matched": 5,
-   "company": "adesso",
-   "title": "DevOps Engineer (all genders)",
-   "location": "Bern",
-   "published": "2026-05-05",
-   "apply": {
-    "mode": "account",
-    "ats": null,
-    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "adesso_2906",
-   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
-   "matched_skills": [
-    "Azure",
-    "Kubernetes",
-    "Terraform",
-    "CI/CD",
-    "Python"
    ]
   }
  ],
