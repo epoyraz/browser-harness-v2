@@ -1,6 +1,7 @@
 """Endpoint tests, against real sockets and real HTTP servers — the failure modes here
 (refused, stale, squatted-on port, 404) are transport behaviours, not library behaviours."""
 import json
+import os
 import socket
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -149,7 +150,8 @@ def test_a_stale_active_port_file_is_named_stale(tmp_path):
 
 def test_total_failure_carries_every_verdict(tmp_path):
     with pytest.raises(EndpointUnreachable) as e:
-        discover({"BH_PROFILE_DIRS": str(tmp_path / "a") + ":" + str(tmp_path / "b"),
+        discover({"BH_PROFILE_DIRS": os.pathsep.join(
+                      (str(tmp_path / "a"), str(tmp_path / "b"))),
                   "BU_CDP_URL": f"http://127.0.0.1:{_closed_port()}"})
     attempts = e.value.observed["attempts"]
     assert len(attempts) == 4                       # ws, http, and both profile dirs

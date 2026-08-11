@@ -25,7 +25,7 @@ def _source(tmp_path, *, trust="owner"):
     config.write_text(f'''[[source]]
 name = "local"
 type = "path"
-path = "{root}"
+path = {json.dumps(str(root))}
 trust = "{trust}"
 priority = 100
 ''')
@@ -74,7 +74,7 @@ match:
     config.write_text(f'''[[source]]
 name="workspace"
 type="path"
-path="{root}"
+path={json.dumps(str(root))}
 trust="owner"
 priority=100
 ''')
@@ -98,7 +98,7 @@ def test_git_sync_clones_a_pinned_local_source(tmp_path, monkeypatch):
     config.write_text(f'''[[source]]
 name="git-local"
 type="git"
-url="{origin}"
+url={json.dumps(str(origin))}
 ref="main"
 trust="team"
 priority=50

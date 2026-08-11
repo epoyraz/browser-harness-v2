@@ -198,9 +198,10 @@ def test_raw_attach_to_a_dead_target_is_typed_too(runtime):
 def test_stopping_removes_the_socket(runtime):
     from harness.core import ipc
     daemon = _serve("gone", FakeBrowser("a"))
-    assert ipc.sock_path("gone").exists()
+    endpoint = ipc.port_path("gone") if ipc.IS_WINDOWS else ipc.sock_path("gone")
+    assert endpoint.exists()
     daemon.stop()
-    assert not ipc.sock_path("gone").exists()
+    assert not endpoint.exists()
 
 
 # --- the endpoint is published before the browser handshake -------------------

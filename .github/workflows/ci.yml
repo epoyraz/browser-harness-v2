@@ -2,7 +2,11 @@ name: ci
 on: [push, pull_request]
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -10,6 +14,7 @@ jobs:
       - run: uv run ruff check harness tests
       - run: uv run pytest
       - name: every module has a test file (DESIGN.md §2.2)
+        shell: bash
         run: |
           missing=0
           for f in $(find harness -name '*.py' ! -name '__init__.py'); do

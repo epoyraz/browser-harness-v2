@@ -340,8 +340,9 @@ def _application_skill_source(tmp_path, monkeypatch):
     body_path = root / "apply-test" / "SKILL.md"
     body_path.parent.mkdir(parents=True)
     body = "---\nname: apply-test\ndescription: Test public applications.\n---\n\n# Test\n"
-    body_path.write_text(body, encoding="utf-8")
-    digest = "sha256:" + hashlib.sha256(body.encode()).hexdigest()
+    body_bytes = body.encode("utf-8")
+    body_path.write_bytes(body_bytes)
+    digest = "sha256:" + hashlib.sha256(body_bytes).hexdigest()
     (root / "index.json").write_text(json.dumps({"schema": 1, "skills": [{
         "id": "apply/test", "version": "1.0.0", "description": "Test",
         "path": "apply-test/SKILL.md", "match": [{"host": "*.test"}],
@@ -353,7 +354,7 @@ name = "test-public"
 type = "path"
 trust = "public"
 priority = 10
-path = "{root}"
+path = {json.dumps(str(root))}
 ''', encoding="utf-8")
     monkeypatch.setenv("BH_SKILLS_SOURCES", str(config))
 
