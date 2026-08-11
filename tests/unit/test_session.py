@@ -53,6 +53,60 @@ def test_the_current_tab_is_client_local_not_daemon_state(served):
         a.close(); b.close()
 
 
+def test_a_fresh_client_can_resume_an_explicit_daemon_owned_target_lease(served):
+    owner = Session("sesstest")
+    try:
+        owner.use_tab("b")
+        lease = owner.lease_tab()
+        # A fresh process would otherwise pick a first listed page ("a").  Claiming the
+        # lease binds it to b without reintroducing a daemon-wide current-tab cursor.
+        fresh = Session("sesstest")
+        try:
+            assert fresh.resume_lease(lease).target_id == "b"
+            assert fresh.tab().target_id == "b"
+        finally:
+            fresh.close()
+    finally:
+        owner.close()
+
+
+def test_a_target_cannot_be_leased_twice_until_released(served):
+    owner, other = Session("sesstest"), Session("sesstest")
+    try:
+        lease = owner.lease_tab("a")
+        with pytest.raises(ScopeRefused, match="already has an active lease"):
+            other.lease_tab("a")
+        owner.release_lease(lease)
+        assert other.lease_tab("a")
+    finally:
+        owner.close(); other.close()
+
+
+def test_an_invalid_environment_lease_fails_closed_instead_of_picking_a_tab(served, monkeypatch):
+    monkeypatch.setenv("BH_TARGET_LEASE", "not-a-real-lease")
+    with pytest.raises(ScopeRefused, match="unknown or expired target lease"):
+        Session("sesstest")
+
+
+def test_a_destroyed_target_expires_its_lease(served):
+    browser, _ = served
+    owner = Session("sesstest")
+    try:
+        lease = owner.lease_tab("a")
+        browser.destroy("a")
+        deadline = time.monotonic() + 2
+        while time.monotonic() < deadline:
+            try:
+                owner.resume_lease(lease)
+            except ScopeRefused:
+                break
+            time.sleep(0.01)
+        else:
+            pytest.fail("destroyed target lease remained claimable")
+    finally:
+        owner.close()
+
+
 def test_tabs_are_reused_not_rebuilt(session):
     assert session.tab("a") is session.tab("a")
 
@@ -184,6 +238,7 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "locate_application", "application_skills",
                  "run_application",
                  "application_route_candidates", "fetch_all", "new_tab", "use_tab", "close_tab",
+                 "lease_tab", "resume_lease", "release_lease",
                  "new_context", "close_context", "parallel", "summarise", "targets",
                  "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"

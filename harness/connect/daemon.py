@@ -18,6 +18,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import secrets
 import socket
 import threading
 from concurrent.futures import ThreadPoolExecutor
@@ -88,6 +89,12 @@ class Daemon:
         self._stop = threading.Event()
         self._peers: set[_Peer] = set()
         self._plock = threading.Lock()
+        # A lease is deliberately an opaque capability, not another daemon-wide
+        # "current tab" cursor.  It lets a later client rebind to one explicit target
+        # without making concurrent clients fight over implicit shared state.
+        self._leases: dict[str, str] = {}
+        self._lease_for_target: dict[str, str] = {}
+        self._lease_lock = threading.Lock()
         #: Set once the browser handshake has *finished*, successfully or not. The IPC
         #: endpoint is published before this, so a client can always reach the daemon and
         #: be told what is pending instead of waiting out a silent timeout.
@@ -133,6 +140,7 @@ class Daemon:
                 self.conn.attach(self._make_transport())
             self.conn.start()
             self.conn.subscribe(self._watch_disconnect)
+            self.conn.subscribe(self._watch_leases)
             self.conn.subscribe(self._broadcast)
             self.sessions.discover()
         except Exception as e:                       # noqa: BLE001 — reported, not raised
@@ -361,7 +369,8 @@ class Daemon:
                     "blocks until it is answered" if not settled
                     else "browser connection is closed")
             return out
-        if (pending := self._browser_pending(20.0)) is not None and meta in ("attach", "forget"):
+        if (pending := self._browser_pending(20.0)) is not None and meta in (
+                "attach", "forget", "lease_create", "lease_claim", "lease_release"):
             return pending
         if meta == "attach":
             try:
@@ -371,6 +380,43 @@ class Daemon:
         if meta == "forget":
             self.sessions.forget(request["target_id"])
             return _value(ok(None))
+        if meta == "lease_create":
+            target_id = str(request.get("target_id") or "")
+            if not target_id:
+                return fail(Class.CDP_ERROR, "lease_create needs a target_id").to_json()
+            try:
+                # Validate before minting: a lease must never turn a dead target into a
+                # future implicit fallback.
+                self.sessions.ensure_live(target_id)
+            except HarnessError as e:
+                return e.outcome.to_json()
+            with self._lease_lock:
+                if target_id in self._lease_for_target:
+                    return fail(Class.SCOPE_REFUSED, "target already has an active lease",
+                                target_id=target_id).to_json()
+                lease = secrets.token_urlsafe(24)
+                self._leases[lease] = target_id
+                self._lease_for_target[target_id] = lease
+            self.journal.write("daemon", event="lease_created", target_id=target_id)
+            return _value(ok({"lease": lease, "target_id": target_id}))
+        if meta == "lease_claim":
+            lease = str(request.get("lease") or "")
+            with self._lease_lock:
+                target_id = self._leases.get(lease)
+            if target_id is None:
+                return fail(Class.SCOPE_REFUSED, "unknown or expired target lease").to_json()
+            try:
+                self.sessions.ensure_live(target_id)
+            except HarnessError:
+                self._drop_lease(lease)
+                return fail(Class.SCOPE_REFUSED,
+                            "unknown or expired target lease").to_json()
+            return _value(ok({"target_id": target_id}))
+        if meta == "lease_release":
+            lease = str(request.get("lease") or "")
+            if not self._drop_lease(lease):
+                return fail(Class.SCOPE_REFUSED, "unknown or expired target lease").to_json()
+            return _value(ok(None))
         return fail(Class.CDP_ERROR, f"unknown meta {meta!r}").to_json()
 
     # -- events ------------------------------------------------------------
@@ -378,6 +424,27 @@ class Daemon:
     def _watch_disconnect(self, msg: dict[str, Any]) -> None:
         if msg.get("method") == "Inspector.detached":
             self.sessions.disconnected(str((msg.get("params") or {}).get("reason", "")))
+
+    def _watch_leases(self, msg: dict[str, Any]) -> None:
+        """Forget capabilities for targets Chrome says are gone."""
+        if msg.get("method") not in ("Target.targetDestroyed", "Target.targetCrashed"):
+            return
+        target_id = str((msg.get("params") or {}).get("targetId") or "")
+        if not target_id:
+            return
+        with self._lease_lock:
+            lease = self._lease_for_target.pop(target_id, None)
+            if lease is not None:
+                self._leases.pop(lease, None)
+
+    def _drop_lease(self, lease: str) -> bool:
+        with self._lease_lock:
+            target_id = self._leases.pop(lease, None)
+            if target_id is None:
+                return False
+            self._lease_for_target.pop(target_id, None)
+        self.journal.write("daemon", event="lease_released", target_id=target_id)
+        return True
 
 
 def _rid_of(line: bytes) -> Any:
