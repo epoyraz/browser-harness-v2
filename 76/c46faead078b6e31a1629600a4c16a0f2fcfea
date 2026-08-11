@@ -1,0 +1,43 @@
+harness/connect/daemon.py
+  s_8e7fadb02a8d6a::t_bfcce28dbb9c95 21,92-97,143,372-373,383-419,428-447
+  s_8e7fadb02a8d6a::t_cd916c3a20dc77 448
+  s_3eeb15107d15e8::t_140e38a19f6bad 21,92-97,143,372-373,383-409,411,414-419,428-447
+  s_3eeb15107d15e8::t_b5412eb09f4d31 448
+SKILL.md
+  s_8e7fadb02a8d6a::t_5d2d6908f3f48d 389-400
+  s_3eeb15107d15e8::t_f8be524510e378 389-400
+harness/connect/client.py
+  s_8e7fadb02a8d6a::t_ce154c126d75db 187-211
+  s_3eeb15107d15e8::t_140e38a19f6bad 187-211
+harness/session.py
+  s_8e7fadb02a8d6a::t_5be71486e67cb9 80-84,204-226,613-614
+  s_3eeb15107d15e8::t_140e38a19f6bad 80-84,204-226,613-614
+tests/unit/test_session.py
+  s_8e7fadb02a8d6a::t_9fe8c707e1a30d 56-109,241
+  s_3eeb15107d15e8::t_140e38a19f6bad 56-72,85-109,241
+  s_3eeb15107d15e8::t_f8be524510e378 73-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "76c46faead078b6e31a1629600a4c16a0f2fcfea",
+  "prompts": {},
+  "sessions": {
+    "s_3eeb15107d15e8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019feda5-da6b-7012-8a18-b31eb3d526bf",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    },
+    "s_8e7fadb02a8d6a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff13c-8b38-7e91-9c68-8b9eba4a20b6",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
