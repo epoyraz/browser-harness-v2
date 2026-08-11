@@ -683,6 +683,19 @@ def test_a_dead_world_is_rebuilt_rather_than_failing_the_call(wired):
 
 # --- upload_file: the return must distinguish success from a wrong element ----
 
+def test_uploads_can_be_disabled_before_any_file_or_browser_access(wired, monkeypatch):
+    browser, _conn, _reg = wired
+    tab = _tab(wired)
+    monkeypatch.setenv("BH_DISABLE_FILE_UPLOADS", "yes")
+    calls_before = len(browser.calls)
+
+    with pytest.raises(SideEffectRefused) as error:
+        tab.upload_file("e7", "/path/that/must/not/be-read.pdf")
+
+    assert error.value.observed["ref"] == "e7"
+    assert len(browser.calls) == calls_before
+
+
 def test_uploading_to_a_ref_that_is_not_a_file_input_is_refused(wired, tmp_path):
     """The failure this exists to stop: snapshot() skipped a display:none CV input, so the
     only file ref on the page was an unrelated control. Setting files on it reported

@@ -5,9 +5,11 @@ Run through the harness namespace, not as ordinary Python:
     BH_JOURNAL=outputs/job-form-telemetry-2026-08-08/journal.jsonl \
       uv run bh < tools/collect_job_form_telemetry.py
 
-The harness blocks submission. This script fills only facts supported by the CV, uploads
-the CV only to an unambiguous resume input, and records missing information rather than
-inventing it. Results are crash-safe JSONL plus one input-ordered JSON document.
+The harness blocks submission. This script fills only facts supported by the CV and records
+missing information rather than inventing it. CV upload is opt-in via
+``BH_APPLICATION_UPLOADS=1`` because choosing a local file can transfer it to an employer
+before a form is submitted. Results are crash-safe JSONL plus one input-ordered JSON
+document.
 """
 # The harness injects these helpers into the script namespace at runtime. Per-job broad
 # catches are deliberate: one hostile page must become a typed record, not erase 99 peers.
@@ -38,6 +40,9 @@ CV = Path(
 )
 WORKERS = int(os.environ.get("BH_APPLICATION_WORKERS", "10"))
 MAX_HOPS = 2
+UPLOAD_CV = os.environ.get("BH_APPLICATION_UPLOADS", "").strip().lower() in {
+    "1", "true", "yes",
+}
 
 PROFILE = {
     "first_name": "Enes",
@@ -449,15 +454,17 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     result["file_inputs"] = file_inputs
     result["ambiguous_file_inputs"] = ambiguous
     uploads = []
-    for item in chosen:
-        try:
-            t0 = time.perf_counter()
-            outcome = upload_file(item["ref"], str(CV), timeout=25)
-            uploads.append({"input": item, "ms": round((time.perf_counter() - t0) * 1000, 1),
-                            "outcome": outcome.to_json()})
-        except Exception as error:
-            uploads.append({"input": item, "error": compact_error(error)})
+    if UPLOAD_CV:
+        for item in chosen:
+            try:
+                t0 = time.perf_counter()
+                outcome = upload_file(item["ref"], str(CV), timeout=25)
+                uploads.append({"input": item, "ms": round((time.perf_counter() - t0) * 1000, 1),
+                                "outcome": outcome.to_json()})
+            except Exception as error:
+                uploads.append({"input": item, "error": compact_error(error)})
     result["uploads"] = uploads
+    result["upload_skipped"] = bool(chosen) and not UPLOAD_CV
     result["status"] = "form_processed"
     add_diagnostics(result)
     result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
@@ -499,7 +506,8 @@ def main() -> None:
             "generated": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
             "input": str(INPUT), "cv": str(CV), "workers_requested": WORKERS,
             "workers_effective": min(WORKERS, 10), "dry_run": True,
-            "submissions": 0, "wall_ms": round((time.time() - run_started) * 1000, 1),
+            "submissions": 0, "cv_uploads_enabled": UPLOAD_CV,
+            "wall_ms": round((time.time() - run_started) * 1000, 1),
             "profile_sources": sorted({item.source for item in APPLICANT.values.values()}),
             "model_boundary": {
                 "scripted": True, "model_calls": 0, "input_tokens": 0,

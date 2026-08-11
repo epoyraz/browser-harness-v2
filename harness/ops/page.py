@@ -22,6 +22,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import threading
 import time
 from collections import deque
@@ -1528,6 +1529,11 @@ class Tab:
         and a ref that was never a file input. The second and third are now loud —
         pointing this at the wrong element used to look exactly like success.
         """
+        if os.environ.get("BH_DISABLE_FILE_UPLOADS", "").strip().lower() in {
+            "1", "true", "yes",
+        }:
+            raise SideEffectRefused(
+                "file upload disabled by BH_DISABLE_FILE_UPLOADS", ref=ref)
         files = [paths] if isinstance(paths, str) else list(paths)
         missing = [f for f in files if not Path(f).is_file()]
         if missing:
