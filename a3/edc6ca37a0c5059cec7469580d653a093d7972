@@ -1,0 +1,32 @@
+tests/unit/test_page.py
+  s_5a555767c14337::t_0607aff5ce5f8f 690,696
+  s_5a555767c14337::t_97fc64fc8f0723 686-689,691-695,697-698
+harness/ops/page.py
+  s_3eeb15107d15e8::t_1e93a8fc71568d 25,1532-1536
+tools/collect_job_form_telemetry.py
+  s_3eeb15107d15e8::t_21aa3316ef34d7 8-12,43-45,457-465,467,509-510
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "a3edc6ca37a0c5059cec7469580d653a093d7972",
+  "prompts": {},
+  "sessions": {
+    "s_3eeb15107d15e8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019feda5-da6b-7012-8a18-b31eb3d526bf",
+        "model": "unknown"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    },
+    "s_5a555767c14337": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ff2c5-734c-7b12-aeb1-3c9b4eb4c3b8",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
