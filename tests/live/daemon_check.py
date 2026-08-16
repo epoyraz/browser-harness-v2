@@ -150,13 +150,21 @@ print(json.dumps({"tid": t.target_id, "title": vals[0],
         r5 = bh(f"""
 import json
 goto("{base}/personio.html")
+js('''(() => {{
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Open harmless dialog';
+  button.onclick = () => alert('daemon-event');
+  document.body.prepend(button);
+  return true;
+}})()''')
 els = snapshot()
-btn = [e for e in els if e["tag"] == "button"][0]
+btn = [e for e in els if e.get("name") == "Open harmless dialog"][0]
 d = click_ref(btn["ref"], settle=0.4)
-print(json.dumps({{"navigated": d["navigated"], "mutations": d["dom_mutations"],
-                   "url_after": bool(d["url_after"])}}))
+print(json.dumps({{"dialog": d["dialog"], "url_after": bool(d["url_after"])}}))
 """, env)
-        ok5 = r5.returncode == 0 and '"url_after": true' in r5.stdout
+        ok5 = (r5.returncode == 0 and '"url_after": true' in r5.stdout
+               and '"message": "daemon-event"' in r5.stdout)
         check("event-driven click delta works over the daemon", ok5,
               (r5.stdout.strip()[-70:] if ok5 else r5.stderr.strip()[-160:]))
 

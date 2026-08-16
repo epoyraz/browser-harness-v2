@@ -155,6 +155,76 @@ def test_many_sequential_requests_reuse_one_session(runtime):
     assert browser.attach_count["a"] == 1          # not one attach per call, as v1's js() did
 
 
+def test_target_event_before_adopt_reply_cannot_deadlock_the_reader(runtime):
+    """Adoption must not hold a lock needed by a CDP event subscriber while awaiting a
+    reply. Chrome can send targetDestroyed before the Target.getTargets response; the one
+    reader must process that event before it can deliver the response behind it."""
+
+    class EventBeforeReplyBrowser(FakeBrowser):
+        def _work(self, msg):
+            if msg.get("method") == "Target.getTargets":
+                self.emit("Target.targetDestroyed", {"targetId": "leased"})
+            super()._work(msg)
+
+    browser = EventBeforeReplyBrowser("a")
+    daemon = _serve("event-before-adopt", browser)
+    with daemon._lease_lock:
+        daemon._leases["opaque"] = "leased"
+        daemon._lease_for_target["leased"] = "opaque"
+
+    # Keep a regression failure short. Before the fix, `_watch_leases` blocked on the
+    # lock held by adoption and Target.getTargets could not be delivered before timeout.
+    original_request = daemon.conn.request
+
+    def short_request(method, params=None, *, session_id=None, timeout=10.0):
+        return original_request(method, params, session_id=session_id,
+                                timeout=min(timeout, 0.5))
+
+    daemon.conn.request = short_request
+    started = time.monotonic()
+    reply = daemon._meta("adopt", {})
+    elapsed = time.monotonic() - started
+    daemon.stop()
+
+    assert reply["ok"] is True
+    assert reply["value"]["target_id"] == "a"
+    assert elapsed < 0.5
+    assert "leased" not in daemon._lease_for_target
+
+
+def test_client_closing_during_adoption_cannot_leave_a_stale_reservation(runtime):
+    """Moving CDP outside `_adopt_lock` must not let a disconnected peer install a new
+    adoption after its connection cleanup already removed the old one."""
+    request_started = threading.Event()
+    release_reply = threading.Event()
+
+    class DelayedTargetsBrowser(FakeBrowser):
+        def _work(self, msg):
+            if msg.get("method") == "Target.getTargets":
+                request_started.set()
+                release_reply.wait(2)
+            super()._work(msg)
+
+    class ClosingPeer:
+        def __init__(self):
+            self.closed = threading.Event()
+
+    daemon = _serve("close-during-adopt", DelayedTargetsBrowser("a"))
+    peer = ClosingPeer()
+    result = {}
+    thread = threading.Thread(
+        target=lambda: result.setdefault("reply", daemon._meta("adopt", {}, peer=peer)))
+    thread.start()
+    assert request_started.wait(2)
+    peer.closed.set()                  # connection cleanup won while CDP was in flight
+    release_reply.set()
+    thread.join(2)
+    daemon.stop()
+
+    assert result["reply"]["ok"] is True
+    assert peer not in daemon._adoptions
+
+
 def test_recovery_never_reaches_an_unrelated_tab(runtime):
     """TODO 13's done-when. v1's `attach_first_page()` substituted `pages[0]` when its
     target was gone — which, against a daily-driver Chrome, is someone's real tab."""

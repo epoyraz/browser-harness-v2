@@ -318,6 +318,33 @@ def test_a_native_control_state_change_is_never_repeated(wired):
     assert delta["control_state_changed"] is True
 
 
+def test_focus_alone_does_not_suppress_an_inert_click_retry(wired):
+    """Mouse press can focus a button even when its activation is dropped. Focus is useful
+    observation, but it is not evidence that the requested action happened."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    fired = {"dom": False}
+
+    def hook(e):
+        if "PointerEvent" in e:
+            fired["dom"] = True
+            return True
+        if "getBoundingClientRect" in e:
+            return [10.0, 20.0, "https://a.test/", 0, None,
+                    {"tag": "button", "type": "button", "focused": False}]
+        if "location.href" in e:
+            return ["https://a.test/", 0,
+                    {"tag": "button", "type": "button", "focused": True}]
+        return None
+
+    browser.eval_hook = hook
+    delta = tab.click_ref("e1", settle=0.01)
+
+    assert fired["dom"] is True
+    assert delta["modality"] == "dom"
+    assert delta["control_state_changed"] is False
+
+
 # --- a session is a lease; the target is the identity -------------------------
 
 def _settle(cond, timeout=3.0):

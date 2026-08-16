@@ -288,7 +288,7 @@ _CONTROL_STATE_JS = """(el => {
   if (!control) return null;
   const tag = control.tagName.toLowerCase();
   const type = String(control.type || '').toLowerCase();
-  const state = {tag, type: type || null, focused: document.activeElement === control};
+  const state = {tag, type: type || null};
   if (tag === 'input' && (type === 'checkbox' || type === 'radio'))
     state.checked = !!control.checked;
   if (tag === 'option') state.selected = !!control.selected;
@@ -299,6 +299,24 @@ _CONTROL_STATE_JS = """(el => {
   }
   return state;
 })"""
+
+#: Native/property-only changes are direct evidence that a compositor click landed even
+#: when MutationObserver saw nothing. Focus is deliberately absent: a press can focus a
+#: button without its activation handler running, and treating that as success suppresses
+#: the background-tab DOM fallback while the requested action still did nothing.
+_CONTROL_DELTA_KEYS = frozenset({
+    "checked", "selected", "selectedIndex", "open",
+    "aria-checked", "aria-expanded", "aria-pressed", "aria-selected",
+})
+
+
+def _control_state_changed(before: Any, after: Any) -> bool:
+    if not isinstance(before, dict) or not isinstance(after, dict):
+        return False
+    return any(
+        (key in before, before.get(key)) != (key in after, after.get(key))
+        for key in _CONTROL_DELTA_KEYS
+    )
 
 _AUTH_ACTION_JS = """(el => {
   if (!el) return null;
@@ -1395,8 +1413,7 @@ class Tab:
         mutations = (None if navigated or post is None
                      else max(0, int(post[1]) - mut_before))
         control_after = post[2] if post and len(post) > 2 else None
-        control_state_changed = (control_before is not None and control_after is not None
-                                 and control_before != control_after)
+        control_state_changed = _control_state_changed(control_before, control_after)
         modality = "compositor"
         if (retry_inert and not navigated and not mutations and not control_state_changed
                 and dialog is None
@@ -1406,9 +1423,7 @@ class Tab:
             if landed is not None:
                 url_after, mutations, modality, control_after = landed
                 navigated = url_after is not None and url_after != url_before
-                control_state_changed = (
-                    control_before is not None and control_after is not None
-                    and control_before != control_after)
+                control_state_changed = _control_state_changed(control_before, control_after)
         return {
             "url_before": url_before,
             "url_after": url_after,

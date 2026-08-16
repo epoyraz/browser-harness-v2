@@ -275,13 +275,16 @@ class Daemon:
         except OSError:
             return          # a client that vanishes mid-request is normal, not an error
         finally:
+            # Mark the peer closed before adoption cleanup. An in-flight adopt request no
+            # longer holds `_adopt_lock` across CDP, so it can otherwise reserve a target
+            # in the tiny gap after cleanup found no mapping but before close was visible.
+            peer.close()
             with self._plock:
                 self._peers.discard(peer)
             with self._adopt_lock:
                 # The client is gone; its default tab returns to the adoptable pool. The
                 # TAB stays open — closing it is Session.close_tab's job, never implied.
                 self._adoptions.pop(peer, None)
-            peer.close()
 
     def _answer(self, line: bytes, peer: _Peer | None = None) -> dict[str, Any]:
         try:
@@ -404,28 +407,48 @@ class Daemon:
             # the page the first is working in, and never yanks the user's focus either.
             exclude = {str(t) for t in (request.get("exclude") or [])}
             try:
-                with self._adopt_lock, self._lease_lock:
-                    # An opaque lease reserves its target from all implicit adoption.
-                    # Hold both locks through selection so a concurrent lease creation
-                    # cannot race between the snapshot and assignment.
-                    taken = (set(self._adoptions.values())
-                             | set(self._lease_for_target) | exclude)
-                    infos = self.conn.request("Target.getTargets",
-                                              timeout=10.0).get("targetInfos") or []
-                    pick = next(
-                        (t["targetId"] for t in infos
-                         if t.get("type") == "page"
-                         and str(t.get("url", "")).startswith(_DRIVABLE)
-                         and t["targetId"] not in taken),
-                        None)
-                    created = pick is None
-                    if created:
-                        pick = self.conn.request(
-                            "Target.createTarget",
-                            {"url": "about:blank", "background": True},
-                            timeout=10.0)["targetId"]
-                    if peer is not None:
-                        self._adoptions[peer] = pick
+                # Never hold either state lock across a CDP round trip. Event subscribers
+                # run on the one CDP reader thread, and `_watch_leases` needs `_lease_lock`;
+                # blocking that reader while waiting for its reply deadlocks until timeout.
+                # The target list may be stale by the time we lock, but `taken` is current,
+                # so concurrent leases/adoptions still cannot select the same target.
+                while True:
+                    infos = self.conn.request("Target.getTargets", timeout=10.0) \
+                        .get("targetInfos") or []
+                    with self._adopt_lock, self._lease_lock:
+                        # An opaque lease reserves its target from all implicit adoption.
+                        # Selection and reservation are one atomic state transition.
+                        taken = (set(self._adoptions.values())
+                                 | set(self._lease_for_target) | exclude)
+                        pick = next(
+                            (t["targetId"] for t in infos
+                             if t.get("type") == "page"
+                             and str(t.get("url", "")).startswith(_DRIVABLE)
+                             and t["targetId"] not in taken),
+                            None)
+                        if pick is not None:
+                            if peer is not None and not peer.closed.is_set():
+                                self._adoptions[peer] = pick
+                            created = False
+                            break
+
+                    # No existing target was available. Creation must also happen without
+                    # the state locks: Target.targetDestroyed can race any CDP reply. A
+                    # lease can claim the new id after Chrome announces it, so reserve it
+                    # under both locks and retry if that rare race was won elsewhere.
+                    pick = self.conn.request(
+                        "Target.createTarget",
+                        {"url": "about:blank", "background": True},
+                        timeout=10.0)["targetId"]
+                    with self._adopt_lock, self._lease_lock:
+                        taken = (set(self._adoptions.values())
+                                 | set(self._lease_for_target) | exclude)
+                        if pick in taken:
+                            continue
+                        if peer is not None and not peer.closed.is_set():
+                            self._adoptions[peer] = pick
+                        created = True
+                        break
             except HarnessError as e:
                 return e.outcome.to_json()
             self.journal.write("daemon", event="target_adopted", target_id=pick,
