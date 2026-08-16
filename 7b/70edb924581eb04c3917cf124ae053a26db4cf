@@ -1,0 +1,25 @@
+tests/unit/test_session.py
+  s_6bd7a46abc589b::t_07a241cfd7c7d2 56-106
+harness/connect/daemon.py
+  s_6bd7a46abc589b::t_ddb2e948dc58d8 34-38,103-113,280-283,304,319-320,324,374-375,395-396,398-429
+harness/session.py
+  s_6bd7a46abc589b::t_ddb2e948dc58d8 127-139,144-161
+harness/connect/client.py
+  s_6bd7a46abc589b::t_ddb2e948dc58d8 187-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "7b70edb924581eb04c3917cf124ae053a26db4cf",
+  "prompts": {},
+  "sessions": {
+    "s_6bd7a46abc589b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "775133a1-93e5-4b1b-908a-f9fae4034753",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
