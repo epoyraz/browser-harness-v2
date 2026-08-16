@@ -808,6 +808,40 @@ def test_the_grace_period_lets_the_click_dance_win_its_own_dialog(wired):
     assert len(handled) == 1               # exactly one dismissal, the dance's
 
 
+def test_a_dialog_opened_by_the_fallback_click_still_reaches_the_delta(wired):
+    """The DOM retry runs the handler the dropped compositor click never reached —
+    including one that opens a dialog. The report used to be finalized BEFORE the retry,
+    so that dialog vanished from the delta: measured on a hidden tab with an
+    alert-opening button, the handler fired exactly once, the auto-resolver dismissed
+    the alert, and the delta said dialog: null. daemon_check's event check caught it,
+    but only when tab-adoption ordering happened to hand the client a hidden tab."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        # the pre-click evaluate scrolls the ref into view; the post-click one does not
+        [10.0, 10.0, "https://a.test/", 0, None, None] if "scrollIntoView" in e
+        else True if "PointerEvent" in e
+        else ["https://a.test/", 0, None])
+    real_send = browser.send
+
+    def dialog_on_gesture(msg):
+        real_send(msg)
+        expr = str((msg.get("params") or {}).get("expression", ""))
+        if msg.get("method") == "Runtime.evaluate" and "PointerEvent" in expr:
+            browser.emit("Page.javascriptDialogOpening",
+                         {"type": "alert", "message": "from-the-retry"},
+                         session_id=tab._session_id)
+
+    browser.send = dialog_on_gesture
+    delta = tab.click_ref("e1", settle=0.01)
+    assert delta["modality"] == "dom"
+    assert delta["dialog"] == {"type": "alert", "message": "from-the-retry"}
+    deadline = time.monotonic() + 2                # the auto-resolver still dismisses it
+    while time.monotonic() < deadline and tab._dialog is not None:
+        time.sleep(0.01)
+    assert tab._dialog is None
+
+
 def test_a_genuinely_hung_dispatch_still_raises(wired):
     browser, _, _ = wired
     tab = _tab(wired)

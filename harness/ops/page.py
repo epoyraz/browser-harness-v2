@@ -1424,6 +1424,24 @@ class Tab:
                 url_after, mutations, modality, control_after = landed
                 navigated = url_after is not None and url_after != url_before
                 control_state_changed = _control_state_changed(control_before, control_after)
+                if dialog is None:
+                    # The retried click runs the handler the dropped compositor click
+                    # never reached — including one that opens a dialog. The report was
+                    # finalized before the retry, so that dialog vanished from the delta
+                    # (measured: hidden tab, alert-opening button — handler fired once,
+                    # auto-resolver dismissed it, delta said dialog: null). Read WITHOUT
+                    # popping: a still-open dialog belongs to the auto-resolver, whose
+                    # `is pending` identity check a pop here would break, leaving the
+                    # dialog undismissed and the tab wedged.
+                    with self._wlock:
+                        pending_retry = self._dialog
+                        auto = self._auto_dialog
+                    src = pending_retry if pending_retry is not None else (
+                        auto[1] if auto is not None and auto[0] >= dispatch_started
+                        else None)
+                    if src is not None:
+                        dialog = {"type": src.get("type"),
+                                  "message": src.get("message")}
         return {
             "url_before": url_before,
             "url_after": url_after,

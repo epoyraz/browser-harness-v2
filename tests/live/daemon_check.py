@@ -166,7 +166,12 @@ print(json.dumps({{"dialog": d["dialog"], "url_after": bool(d["url_after"])}}))
         ok5 = (r5.returncode == 0 and '"url_after": true' in r5.stdout
                and '"message": "daemon-event"' in r5.stdout)
         check("event-driven click delta works over the daemon", ok5,
-              (r5.stdout.strip()[-70:] if ok5 else r5.stderr.strip()[-160:]))
+              (r5.stdout.strip()[-70:] if ok5
+               # A failed run's evidence is USUALLY in stdout — an assertion miss on a
+               # successful exit has an empty stderr, and showing only stderr rendered
+               # the first real failure of this check as a blank note.
+               else f"rc={r5.returncode} out={r5.stdout.strip()[-110:]!r} "
+                    f"err={r5.stderr.strip()[-110:]!r}"))
 
         # ---- 6. a typed failure crosses process + IPC intact ---------------
         r6 = bh('goto("http://127.0.0.1:9/nope")', env)
