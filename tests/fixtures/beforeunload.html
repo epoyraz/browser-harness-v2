@@ -1,0 +1,14 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Beforeunload regression</title>
+<h1>Dirty application draft</h1>
+<button id="dirty" type="button">Apply now</button>
+<script>
+  document.getElementById('dirty').addEventListener('click', () => {
+    window.addEventListener('beforeunload', event => {
+      event.preventDefault();
+      event.returnValue = '';
+    });
+    document.title = 'Dirty application draft — armed';
+  });
+</script>

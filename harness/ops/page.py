@@ -80,9 +80,30 @@ RUNTIME_JS = """(() => {
     const cs = getComputedStyle(el);
     return !!(r.width && r.height) && cs.visibility !== 'hidden' && cs.display !== 'none';
   };
-  bh.furniture = el => !!el.closest(
-    '[id*=cookie i],[class*=cookie i],[id*=consent i],[class*=consent i],' +
-    '[id*=gdpr i],[class*=gdpr i],[role=search],nav,header,aside');
+  bh.furniture = el => {
+    if (!el || !el.closest) return false;
+    if (el.closest('[role=search],nav,header,aside')) return true;
+    for (let node = el; node && node.nodeType === 1; node = node.parentElement) {
+      // Feature-detection libraries put tokens such as `cookies` on <html>.  Treating a
+      // root/layout container as a cookie component discards the entire application.
+      if (node.matches('html,body,main,form')) continue;
+      const rawClass = typeof node.className === 'string' ? node.className : '';
+      const identity = (String(node.id || '') + ' ' + rawClass).toLowerCase();
+      // The container may use camelCase (`cookieConsentBanner`) or a dashed token.
+      // Root/layout nodes were rejected above, so substring matching is bounded here.
+      const cookieMarker = /cookie/.test(identity);
+      if (cookieMarker) return true;
+      const consentMarker = /(?:^|[\\s_-])(?:consent|gdpr)(?:[\\s_-]|$)/.test(identity);
+      if (!consentMarker) continue;
+      // `consent` is also a legitimate required application field.  Exclude it only
+      // when the bounded component behaves like a cookie/privacy decision UI.
+      const text = String(node.innerText || '').replace(/\\s+/g, ' ').slice(0, 1200);
+      if (/(?:cookie|gdpr)/i.test(text)
+          && /(?:accept|reject|allow|deny|preferences|manage|akzept|ablehn|zustimm)/i.test(text))
+        return true;
+    }
+    return false;
+  };
   bh.ref = el => {
     let ref = el.__bhRef;
     if (!ref || bh.refs[ref] !== el) {
@@ -94,6 +115,19 @@ RUNTIME_JS = """(() => {
   const arm = () => obs.observe(document.documentElement || document,
     {subtree: true, childList: true, attributes: true, characterData: true});
   document.documentElement ? arm() : document.addEventListener('DOMContentLoaded', arm);
+  // Delivery counters, same idea as `mutations`: raw Input.* events are delivered to a
+  // renderer, and the renderer silently DROPS mouse and key events for any tab that is
+  // not its window's selected tab — the CDP call ACKs either way. Measured with
+  // page-side listeners: background tab, dispatchKeyEvent x2 -> 0 keydowns seen,
+  // dispatchMouseEvent -> 0 clicks; same tab after Target.activateTarget -> all arrive.
+  // A capture listener sees every keydown/scroll that actually reached the document, so
+  // "did my keystrokes land?" becomes a counter delta instead of a guess. Registered
+  // from the isolated world, so page script cannot enumerate or see these.
+  bh.keys = bh.keys || 0;
+  bh.scrolls = bh.scrolls || 0;
+  document.addEventListener('keydown', () => { bh.keys++; }, true);
+  document.addEventListener('scroll', () => { bh.scrolls++; },
+    {capture: true, passive: true});
 })()"""
 
 #: Installed in the page's main world before page script. This is deliberately separate
@@ -133,10 +167,14 @@ SAFETY_JS = """(() => {
       const passwords = [...document.querySelectorAll('input[type=password]')].filter(visible);
       const identities = [...document.querySelectorAll(
         'input[type=email],input[autocomplete=email],input[autocomplete=username]')].filter(visible);
-      const enteredFiles = [...document.querySelectorAll('input[type=file]')]
-        .some(el => el.files && el.files.length);
+      const applicationFiles = document.querySelectorAll('input[type=file]').length;
       const applicationText = [...document.querySelectorAll('textarea')].some(visible);
-      return !enteredFiles && !applicationText && (passwords.length > 0 || identities.length > 0);
+      const dataFields = [...document.querySelectorAll('input,select,textarea')].filter(el => {
+        const type = String(el.type || '').toLowerCase();
+        return visible(el) && !['hidden', 'submit', 'button', 'reset', 'image'].includes(type);
+      });
+      return !applicationFiles && !applicationText && dataFields.length <= 3
+        && (passwords.length > 0 || identities.length > 0);
     } catch (err) { return false; }
   };
   const consumeAuth = () => {
@@ -249,15 +287,19 @@ _AUTH_ACTION_JS = """(el => {
   const passwords = [...document.querySelectorAll('input[type=password]')].filter(visible);
   const identities = [...document.querySelectorAll(
     'input[type=email],input[autocomplete=email],input[autocomplete=username]')].filter(visible);
-  const enteredFiles = [...document.querySelectorAll('input[type=file]')]
-    .some(node => node.files && node.files.length);
+  const applicationFiles = document.querySelectorAll('input[type=file]').length;
   const applicationText = [...document.querySelectorAll('textarea')].some(visible);
+  const dataFields = [...document.querySelectorAll('input,select,textarea')].filter(node => {
+    const type = String(node.type || '').toLowerCase();
+    return visible(node) && !['hidden', 'submit', 'button', 'reset', 'image'].includes(type);
+  });
   const r = control.getBoundingClientRect();
-  const allowed = authLabel && !enteredFiles && !applicationText &&
+  const allowed = authLabel && !applicationFiles && !applicationText && dataFields.length <= 3 &&
     (passwords.length > 0 || identities.length > 0);
   return {allowed, reason: allowed ? 'auth_context' : 'context_refused', label,
           password_fields: passwords.length, identity_fields: identities.length,
-          entered_files: enteredFiles, application_text: applicationText,
+          application_files: applicationFiles, application_text: applicationText,
+          data_fields: dataFields.length,
           x: r.x + r.width / 2, y: r.y + r.height / 2,
           url: location.href, mutations: window.__bh ? __bh.mutations : 0};
 })"""
@@ -467,6 +509,106 @@ FORM_COUNTS_JS = """(() => {
           ((document.body && document.body.innerText) || '').trim().length];
 })()"""
 
+#: The keyboard twin of `_activate_click`'s DOM fallback. `__PRE__` is the `__bh.keys`
+#: reading taken before the trusted events were dispatched; if the counter has not moved,
+#: the renderer dropped every one of them (it does exactly that for a tab that is not its
+#: window's selected tab — measured: 0 of 2 keydowns seen by page listeners, no CDP error)
+#: and the keystrokes are synthesized through the DOM instead: per character, a keydown
+#: the page's handlers can see, the value change a real keystroke would have made, an
+#: InputEvent, a keyup. `isTrusted` is false on the synthetic path — a widget that insists
+#: on trusted events cannot be driven in a background tab by anyone; the alternative is
+#: what was measured, keystrokes that silently go nowhere.
+#:
+#: The counter read is race-free: Input.dispatchKeyEvent does not ACK until the renderer
+#: has processed the event (the same property the dialog dance is built on), so by the
+#: time this evaluates, a delivered keydown has already been counted.
+_SYNTH_KEYS_JS = """/* bh-synth-keys */ ((pre, text, ref) => {
+  const bh = window.__bh || {keys: 0, refs: {}};
+  const delivered = (bh.keys || 0) - pre;
+  if (delivered > 0) return {delivered, synthesized: false};
+  const el = (ref && bh.refs && bh.refs[ref]) || document.activeElement;
+  if (!el || el === document.body || el === document.documentElement)
+    return {delivered: 0, synthesized: false, error: 'no_target'};
+  const editable = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+  let desc = null;
+  if (editable) {
+    const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype
+                                                    : HTMLInputElement.prototype;
+    desc = Object.getOwnPropertyDescriptor(proto, 'value');
+    // A real keystroke replaces the selection; appending would concatenate instead
+    // (the write path select()s the field first, expecting replacement).
+    if (el.selectionStart !== el.selectionEnd) {
+      const v = String(el.value);
+      const keep = v.slice(0, el.selectionStart) + v.slice(el.selectionEnd);
+      if (desc && desc.set) desc.set.call(el, keep); else el.value = keep;
+    }
+  }
+  for (const ch of String(text)) {
+    el.dispatchEvent(new KeyboardEvent('keydown', {key: ch, bubbles: true, cancelable: true}));
+    if (editable) {
+      const v = String(el.value) + ch;
+      if (desc && desc.set) desc.set.call(el, v); else el.value = v;
+      el.dispatchEvent(new InputEvent('input', {data: ch, inputType: 'insertText', bubbles: true}));
+    } else if (el.isContentEditable) {
+      el.textContent = String(el.textContent) + ch;
+      el.dispatchEvent(new InputEvent('input', {data: ch, inputType: 'insertText', bubbles: true}));
+    }
+    el.dispatchEvent(new KeyboardEvent('keyup', {key: ch, bubbles: true}));
+  }
+  return {delivered: 0, synthesized: true};
+})(__PRE__, __TEXT__, __REF__)"""
+
+#: Same contract for a single named key (Escape, Enter, Tab...). Browser DEFAULT ACTIONS
+#: do not run on a synthetic event — Tab will not move focus, Enter will not submit (the
+#: dry-run guard refuses submission anyway) — but page handlers do, and page handlers are
+#: what Escape-closes-the-popup and Enter-confirms-the-option are made of.
+_SYNTH_KEY_JS = """/* bh-synth-key */ ((pre, key, code, text, mods) => {
+  const bh = window.__bh || {keys: 0};
+  if ((bh.keys || 0) - pre > 0) return {synthesized: false};
+  const el = document.activeElement || document.body || document.documentElement;
+  const init = {key, code, bubbles: true, cancelable: true,
+                altKey: !!(mods & 1), ctrlKey: !!(mods & 2),
+                metaKey: !!(mods & 4), shiftKey: !!(mods & 8)};
+  el.dispatchEvent(new KeyboardEvent('keydown', init));
+  if (text && !mods
+      && (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) {
+    const proto = el instanceof HTMLTextAreaElement ? HTMLTextAreaElement.prototype
+                                                    : HTMLInputElement.prototype;
+    const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+    const v = String(el.value) + text;
+    if (desc && desc.set) desc.set.call(el, v); else el.value = v;
+    el.dispatchEvent(new InputEvent('input', {data: text, inputType: 'insertText', bubbles: true}));
+  }
+  el.dispatchEvent(new KeyboardEvent('keyup', init));
+  return {synthesized: true};
+})(__PRE__, __KEY__, __CODE__, __TEXT__, __MODS__)"""
+
+#: And for the wheel. The fallback scrolls what a wheel at (x, y) would have scrolled:
+#: the nearest scrollable ancestor of the element under the point, else the window.
+_SYNTH_SCROLL_JS = """/* bh-synth-scroll */ ((pre, x, y, dx, dy) => {
+  const bh = window.__bh || {scrolls: 0};
+  let modality = 'compositor';
+  if ((bh.scrolls || 0) - pre === 0) {
+    modality = 'dom';
+    let el = document.elementFromPoint(x, y);
+    let scrolled = false;
+    while (el && el !== document.body && el !== document.documentElement) {
+      const cs = getComputedStyle(el);
+      if ((el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth)
+          && /(auto|scroll|overlay)/.test(cs.overflowY + ' ' + cs.overflowX)) {
+        el.scrollBy(dx, dy);
+        scrolled = true;
+        break;
+      }
+      el = el.parentElement;
+    }
+    if (!scrolled) window.scrollBy(dx, dy);
+  }
+  return {y: Math.round(scrollY), height: document.documentElement.scrollHeight,
+          atBottom: Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight,
+          modality};
+})(__PRE__, __X__, __Y__, __DX__, __DY__)"""
+
 #: Wait for the page to reach a meaningful application state, not merely for `load`.
 #:
 #: Client-rendered ATS pages commonly set `document.title` from server metadata before
@@ -502,9 +644,15 @@ WATCH_APPLICATION_STATE_JS = """((token) => {
   });
   const botWall = /(captcha|verify you are human|checking your browser|access denied|unusual traffic|robot check|security challenge)/i.test(lower);
   const password = [...document.querySelectorAll('input[type=password]')].some(bh.visible);
-  const accountWall = password || (
+  const applicationFiles = document.querySelectorAll('input[type=file]').length;
+  const structural = location.href + ' ' + title + ' ' + labels + ' ' +
+    [...document.querySelectorAll('input,select,textarea')].map(el =>
+      [el.id, el.name, el.getAttribute('aria-label')].filter(Boolean).join(' ')).join(' ');
+  const applicationStructure = applicationFiles > 0 ||
+    (fields >= 3 && /(apply|application|bewerb|postul|candidat|candidature)/i.test(structural));
+  const accountWall = !applicationStructure && (password || (
     /(sign in|log in|login|anmelden|connexion|create an account|konto erstellen)/i.test(lower)
-    && fields < 2 && controls.length > 0);
+    && fields < 2 && controls.length > 0));
 
   let state = 'loading';
   if (botWall) state = 'bot_wall';
@@ -512,6 +660,7 @@ WATCH_APPLICATION_STATE_JS = """((token) => {
   else if (fields >= 2 && (hasSubmit || document.querySelector('form'))) state = 'form';
   else if (text.length >= 40 || controls.length > 0 || hasApply) state = 'usable_ui';
   const result = {state, fields, controls: controls.length, text_len: text.length,
+                  application_structure: applicationStructure,
                   title, url: location.href, ready_state: document.readyState,
                   matched: ['form', 'account_wall', 'bot_wall'].includes(state)};
   if (result.matched) return {...result, immediate: true};
@@ -544,6 +693,12 @@ def _unwrap_eval(r: dict[str, Any]) -> Any:
     raise NotSerializable(
         f"result of type {res.get('subtype') or res.get('type')} has no JSON value",
         type=res.get("type"), description=(res.get("description") or "")[:120])
+
+
+def _count(value):
+    """A delivery-counter reading, defensively. A page that answers the probe with
+    anything but a number contributes 0, so the fallback can still fire on the delta."""
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else 0
 
 
 #: keyName -> (code, text). Only printable keys carry text; see press_key.
@@ -733,6 +888,19 @@ class Tab:
         if method == "Page.javascriptDialogOpening":
             with self._wlock:
                 self._dialog = params
+            # A page may install a beforeunload handler as soon as applicant data changes.
+            # Chrome then blocks Page.navigate/Target.close behind its native "Leave
+            # site?" prompt.  It is not an application action; accepting it only permits
+            # the navigation the caller already requested.  Handle this one dialog type
+            # immediately off the reader thread. Alerts and confirms retain the normal
+            # click-dialog policy below, including accept_dialogs=False by default.
+            if params.get("type") == "beforeunload":
+                threading.Thread(
+                    target=self._accept_beforeunload,
+                    args=(params,),
+                    name="bh-beforeunload",
+                    daemon=True,
+                ).start()
         elif method == "Target.targetCreated":
             info = params.get("targetInfo") or {}
             if info.get("type") == "page" and info.get("targetId") != self.target_id:
@@ -741,6 +909,19 @@ class Tab:
             waiters = list(self._waiters)
         for w in waiters:
             w.offer(msg)
+
+    def _accept_beforeunload(self, pending: dict[str, Any]) -> None:
+        try:
+            self.cdp("Page.handleJavaScriptDialog", {"accept": True}, timeout=5.0)
+        except HarnessError as exc:
+            # Chrome can close the dialog itself between the event and our command.
+            if "No dialog is showing" not in str(exc):
+                self._j.write("note", event="beforeunload_handle_failed",
+                              error_class=exc.cls.value)
+        finally:
+            with self._wlock:
+                if self._dialog is pending:
+                    self._dialog = None
 
     def _sanitize_diagnostic_event(self, method: str,
                                    params: dict[str, Any]) -> dict[str, Any] | None:
@@ -1163,13 +1344,32 @@ class Tab:
         The dry-run guard is unaffected either way: the danger check already refused submit
         controls before the click, and `SAFETY_JS` blocks form submission in the main world
         regardless of how the click arrived.
+
+        The synthetic path is the FULL gesture — pointerdown, mousedown, focus, pointerup,
+        mouseup, click — not a bare `el.click()`, because a bare click() reproduces only
+        the last third of what a real click does and both missing thirds are load-bearing:
+        combobox widgets open on *mousedown* (the fixture that models SmartRecruiters
+        does exactly that), and click() does not move focus, so the keystrokes that follow
+        a widget-opening click would land in `document.body` and the typeahead would
+        filter on nothing.
         """
         try:
             result = self.js(
                 "(() => {"
-                f" const el = document.elementFromPoint({x!r}, {y!r});"
-                " if (!el || typeof el.click !== 'function') return null;"
-                " el.click();"
+                f" const x = {x!r}, y = {y!r};"
+                " const el = document.elementFromPoint(x, y);"
+                " if (!el) return null;"
+                " const o = {bubbles: true, cancelable: true, view: window,"
+                "            clientX: x, clientY: y, button: 0};"
+                " el.dispatchEvent(new PointerEvent('pointerdown',"
+                "   {...o, pointerId: 1, isPrimary: true, pointerType: 'mouse'}));"
+                " el.dispatchEvent(new MouseEvent('mousedown', o));"
+                " try { el.focus && el.focus(); } catch (e) {}"
+                " el.dispatchEvent(new PointerEvent('pointerup',"
+                "   {...o, pointerId: 1, isPrimary: true, pointerType: 'mouse'}));"
+                " el.dispatchEvent(new MouseEvent('mouseup', o));"
+                " if (typeof el.click === 'function') el.click();"
+                " else el.dispatchEvent(new MouseEvent('click', o));"
                 " return true;})()", timeout=timeout)
         except HarnessError:
             return None
@@ -1473,10 +1673,20 @@ class Tab:
                 f"(document.body ? document.body.innerText : '').slice(0, {max_chars})",
                 timeout=15.0) or ""
 
-    def press_key(self, key: str, *, modifiers: int = 0, timeout: float = 10.0) -> None:
+    def press_key(self, key: str, *, modifiers: int = 0,
+                  timeout: float = 10.0) -> dict[str, Any]:
         """One named key. `text` is sent only for printable keys — attaching it to Enter or
         Tab makes Chrome insert a character instead of firing the shortcut (v1 paid for
-        this with an uncleared field)."""
+        this with an uncleared field).
+
+        Delivery is verified, not assumed: the renderer drops key events for any tab that
+        is not its window's selected tab, and the dispatch ACKs anyway. When the `__bh.keys`
+        counter shows nothing arrived, the key is re-dispatched as a DOM event — page
+        handlers (Escape closes the popup, ArrowDown moves the highlight) still run;
+        browser default actions (Tab focus move, Enter submit) do not, and Enter's submit
+        is refused by the dry-run guard regardless. The returned `modality` says which
+        path delivered.
+        """
         spec = _KEYS.get(key)
         code, text = (spec if spec else (key, key if len(key) == 1 else ""))
         if key == "Enter":
@@ -1493,21 +1703,110 @@ class Tab:
         if text and not modifiers:
             down["text"] = text
         with self._j.call("press_key", key=key):
+            pre = _count(self._world_js("window.__bh ? __bh.keys : 0", timeout=timeout))
             self.cdp("Input.dispatchKeyEvent", down, timeout=timeout)
             self.cdp("Input.dispatchKeyEvent", {**base, "type": "keyUp"}, timeout=timeout)
+            result = self._world_js(
+                _SYNTH_KEY_JS.replace("__PRE__", json.dumps(pre))
+                             .replace("__KEY__", json.dumps(key))
+                             .replace("__CODE__", json.dumps(code))
+                             .replace("__TEXT__", json.dumps(text))
+                             .replace("__MODS__", json.dumps(modifiers)),
+                timeout=timeout)
+            if not isinstance(result, dict):
+                result = {}            # a non-dict answer is not evidence of a drop
+            if result.get("synthesized"):
+                self._j.write("note", event="input_synthesized", input="key", key=key,
+                              target_id=self.target_id)
+        return {"key": key,
+                "modality": "dom" if result.get("synthesized") else "compositor"}
+
+    def type_chars(self, text: str, *, ref: str | None = None, timeout: float = 10.0,
+                   settle: float = 0.0) -> dict[str, Any]:
+        """Per-character trusted key events, VERIFIED delivered, DOM-synthesized when not.
+
+        The verification exists because both facts below are measured, and together they
+        made every typed write inside `parallel()` a silent no-op:
+
+          - only per-character `dispatchKeyEvent` drives a keystroke typeahead (a one-shot
+            value write opened it 0 times, `Input.insertText` 0 times, real key events 5);
+          - the renderer drops those very events for any tab that is not its window's
+            selected tab — 0 of 2 keydowns seen by page listeners, no error anywhere —
+            and `parallel()` puts every worker but at most one in exactly that state.
+
+        `ref` names the intended field so the fallback cannot type into whatever happens
+        to hold focus; without it the synthetic path uses `document.activeElement`, which
+        is where the trusted events would have gone too.
+        """
+        text = str(text)
+        pre = _count(self._world_js("window.__bh ? __bh.keys : 0", timeout=timeout))
+        for ch in text:
+            # keyDown carrying `text` is what makes the page see a real character; the
+            # matching keyUp is what a keystroke-driven typeahead listens for.
+            self.cdp("Input.dispatchKeyEvent", {"type": "keyDown", "text": ch,
+                                                "key": ch, "unmodifiedText": ch},
+                     timeout=timeout)
+            self.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch},
+                     timeout=timeout)
+        if settle:
+            time.sleep(settle)
+        result = self._world_js(
+            _SYNTH_KEYS_JS.replace("__PRE__", json.dumps(pre))
+                          .replace("__TEXT__", json.dumps(text))
+                          .replace("__REF__", json.dumps(ref)),
+            timeout=timeout)
+        if not isinstance(result, dict):
+            result = {}                # a non-dict answer is not evidence of a drop
+        if result.get("synthesized"):
+            self._j.write("note", event="input_synthesized", input="keys",
+                          chars=len(text), target_id=self.target_id)
+            if settle:
+                time.sleep(settle)     # the widget filters on those events; let it
+        out = {"chars": len(text),
+               "modality": "dom" if result.get("synthesized") else "compositor",
+               "delivered": int(result.get("delivered") or 0)}
+        if result.get("error"):
+            out["error"] = result["error"]
+        return out
 
     def scroll(self, dy: int = 600, dx: int = 0, *, x: int = 400, y: int = 300,
                timeout: float = 10.0) -> dict[str, Any]:
         """Wheel event at a point, so it scrolls whatever container is under the cursor —
-        an overflow pane, a virtualised list — not just the document."""
+        an overflow pane, a virtualised list — not just the document.
+
+        Verified like every other raw input: if no scroll event reached the document (the
+        renderer drops wheel events for non-selected tabs), the same container is scrolled
+        through the DOM instead, and `modality` reports which path ran.
+        """
         with self._j.call("scroll", dy=dy, dx=dx):
-            self.cdp("Input.dispatchMouseEvent",
-                     {"type": "mouseWheel", "x": x, "y": y, "deltaX": dx, "deltaY": dy},
-                     timeout=timeout)
-        return self._world_js(
-            "({y: Math.round(scrollY), height: document.documentElement.scrollHeight,"
-            " atBottom: Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight})",
-            timeout=timeout)
+            pre = _count(self._world_js("window.__bh ? __bh.scrolls : 0", timeout=timeout))
+            try:
+                # Short leash, deliberately: a hidden renderer does not merely drop a
+                # wheel event the way it drops keys and clicks — it never ACKs the
+                # dispatch at all (measured: 10s CDP timeout in a background tab). The
+                # timeout IS the non-delivery signal, so it is caught and the verified
+                # fallback below takes over, exactly as the dialog dance treats a click
+                # dispatch that cannot ACK.
+                self.cdp("Input.dispatchMouseEvent",
+                         {"type": "mouseWheel", "x": x, "y": y,
+                          "deltaX": dx, "deltaY": dy},
+                         timeout=min(timeout, 2.0))
+            except Timeout:
+                pass
+            time.sleep(0.15)           # scroll events fire after the compositor applies
+            result = self._world_js(
+                _SYNTH_SCROLL_JS.replace("__PRE__", json.dumps(pre))
+                                .replace("__X__", json.dumps(x))
+                                .replace("__Y__", json.dumps(y))
+                                .replace("__DX__", json.dumps(dx))
+                                .replace("__DY__", json.dumps(dy)),
+                timeout=timeout)
+            if not isinstance(result, dict):
+                result = {}
+            if result.get("modality") == "dom":
+                self._j.write("note", event="input_synthesized", input="scroll",
+                              dy=dy, dx=dx, target_id=self.target_id)
+        return result
 
     def upload_file(self, ref: str, paths: str | list[str], *,
                     timeout: float = 20.0) -> MappingOutcome:

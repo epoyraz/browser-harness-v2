@@ -403,6 +403,8 @@ def test_prepare_source_has_a_bounded_structured_application_route_tier():
 
     assert "applicationUrls.slice(0, 12)" in _PREPARE_JS
     assert "visited++ > 5000" in _PREPARE_JS
+    assert "const urlShaped" in _PREPARE_JS
+    assert "if (!raw || /[<>\"'\\s]/.test(raw)) return" in _PREPARE_JS
 
 
 def test_require_form_raises_not_a_form_with_the_verdict(tab):

@@ -225,6 +225,18 @@ def test_workers_are_capped_at_ten_tabs():
     assert len(s.created) == 10
 
 
+def test_explicit_worker_limit_can_raise_the_default_cap():
+    s = FakeSession()
+    barrier = threading.Barrier(12, timeout=5)
+
+    def fn(item):
+        barrier.wait()
+        return item
+
+    parallel(s, range(12), fn, workers=12, worker_limit=12)
+    assert len(s.created) == 12
+
+
 def test_summarise_counts_and_groups_failure_classes():
     s = FakeSession()
 

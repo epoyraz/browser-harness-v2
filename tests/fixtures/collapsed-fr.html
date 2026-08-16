@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<title>Ingénieur logiciel — Carrières</title>
+<style>#application { display: none } #application.open { display: block }</style>
+<h1>Ingénieur logiciel</h1>
+<button id="apply" type="button">Soumettre ma demande</button>
+<div id="application">
+  <form action="/candidature">
+    <label>Prénom <input name="first_name"></label>
+    <label>Nom <input name="last_name"></label>
+    <label>E-mail <input name="email" type="email"></label>
+    <label>Téléphone <input name="phone" type="tel"></label>
+    <label>CV <input name="cv" type="file"></label>
+  </form>
+</div>
+<script>
+  document.getElementById('apply').addEventListener('click', () => {
+    document.getElementById('application').classList.add('open');
+  });
+</script>
+</html>

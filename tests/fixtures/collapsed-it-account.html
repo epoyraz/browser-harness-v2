@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="it">
+<meta charset="utf-8">
+<title>Posizione aperta — Lavora con noi</title>
+<style>#account { display: none } #account.open { display: block }</style>
+<h1>Posizione aperta</h1>
+<button id="apply" type="button">Presenta la domanda</button>
+<form id="account">
+  <h2>Accedi per candidarti</h2>
+  <label>E-mail <input name="email" type="email"></label>
+  <label>Password <input name="password" type="password"></label>
+  <button type="submit">Accedi</button>
+</form>
+<script>
+  document.getElementById('apply').addEventListener('click', () => {
+    document.getElementById('account').classList.add('open');
+  });
+</script>
+</html>

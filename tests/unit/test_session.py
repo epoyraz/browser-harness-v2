@@ -53,6 +53,33 @@ def test_the_current_tab_is_client_local_not_daemon_state(served):
         a.close(); b.close()
 
 
+def test_new_tab_is_created_in_the_background(session, served):
+    """`Target.createTarget` defaults to foreground. Measured on four consecutive
+    creations: the user's selected tab loses focus once per tab, and afterwards exactly
+    one harness tab — whichever was created LAST — can receive raw Input.* events while
+    the rest silently drop them. Background creation removes the focus theft and makes
+    every worker tab the same, deterministic, handled case."""
+    browser, _ = served
+    session.new_tab()
+    creates = [c["params"] for c in browser.calls
+               if c.get("method") == "Target.createTarget"]
+    assert creates and all(p.get("background") is True for p in creates)
+
+
+def test_activate_tab_is_the_explicit_visibility_opt_in(session, served):
+    """Everything else works hidden; activation exists for the page that pauses
+    visibility-dependent rendering, and for the human who wants to watch. It must be a
+    deliberate call — never a side effect of attaching."""
+    browser, _ = served
+    session.use_tab("a")
+    before = [c for c in browser.calls if c.get("method") == "Target.activateTarget"]
+    assert before == []                       # attaching alone never activated anything
+    tid = session.activate_tab()
+    activates = [c["params"] for c in browser.calls
+                 if c.get("method") == "Target.activateTarget"]
+    assert tid == "a" and activates == [{"targetId": "a"}]
+
+
 def test_a_fresh_client_can_resume_an_explicit_daemon_owned_target_lease(served):
     owner = Session("sesstest")
     try:
@@ -268,6 +295,32 @@ def test_prepare_application_stops_for_a_substantial_js_button_form(session, ser
     prepared = session.prepare_application()
     assert prepared["contexts_checked"] == 1 and prepared["is_application"] is True
     assert not any(call.get("method") == "Target.setAutoAttach" for call in browser.calls)
+
+
+def test_prepare_application_prefers_explicit_application_verdict(session, served):
+    browser, _ = served
+    payload = {"schema": {"verdict": {"is_form": True, "is_application": False,
+                                        "classification": "generic_form"},
+                          "fields": [{"ref": f"e{i}"} for i in range(8)]},
+               "url": "https://a.test/contact", "title": "Contact", "language": "en",
+               "file_inputs": [], "apply_link": None}
+    browser.eval_hook = lambda expression: (
+        True if "__bhDryRunGuardInstalled" in expression else payload)
+    prepared = session.prepare_application()
+    assert prepared["is_application"] is False
+
+
+def test_prepare_application_accepts_explicit_account_bearing_application(session, served):
+    browser, _ = served
+    payload = {"schema": {"verdict": {"is_form": True, "is_application": True,
+                                        "classification": "application_form_with_account_fields"},
+                          "fields": [{"ref": "email"}, {"ref": "password"}]},
+               "url": "https://a.test/Application/New/1", "title": "Apply", "language": "en",
+               "file_inputs": [{"ref": "cv"}], "apply_link": None}
+    browser.eval_hook = lambda expression: (
+        True if "__bhDryRunGuardInstalled" in expression else payload)
+    prepared = session.prepare_application()
+    assert prepared["is_application"] is True and prepared["contexts_checked"] == 1
 
 
 def test_follow_application_switches_to_a_new_target(session, served, monkeypatch):

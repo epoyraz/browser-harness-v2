@@ -139,7 +139,8 @@ class Session:
             except HarnessError:
                 continue          # closing, or gone between the listing and the attach
         return self._attach(self.conn.request(
-            "Target.createTarget", {"url": "about:blank"})["targetId"])
+            "Target.createTarget",
+            {"url": "about:blank", "background": True})["targetId"])
 
     def new_context(self) -> str:
         """Create an owned incognito browser context for cookie/storage isolation."""
@@ -175,8 +176,20 @@ class Session:
     def new_tab(self, url: str = "about:blank", *, context_id: str | None = None) -> Tab:
         """Create, attach, and make current. Always `about:blank` first, then navigate:
         passing a url to `createTarget` races the attach, so the brief blank page reads as
-        'complete' and a wait returns before the real navigation starts (v1's comment)."""
-        params = {"url": "about:blank"}
+        'complete' and a wait returns before the real navigation starts (v1's comment).
+
+        Created in the BACKGROUND, deliberately. `Target.createTarget` defaults to
+        foreground, and measured on four consecutive creations that meant: the user's
+        selected tab loses focus once per tab, and afterwards exactly one harness tab —
+        whichever was created LAST — is the window's selected tab and can receive raw
+        Input.* events, while the rest silently drop them. A ten-worker run stole the
+        user's focus ten times and left the one input-capable tab to a lottery.
+        Background creation removes both: the user's tab stays put, and every worker tab
+        is in the same, deterministic state — hidden — which the input paths handle by
+        verifying delivery and falling back through the DOM. `activate_tab()` is the
+        explicit opt-in for the page that genuinely needs visibility.
+        """
+        params = {"url": "about:blank", "background": True}
         if context_id is not None:
             with self._tabs_lock:
                 if context_id not in self._contexts:
@@ -200,6 +213,21 @@ class Session:
 
     def use_tab(self, target_id: str) -> Tab:
         return self.tab(target_id)
+
+    def activate_tab(self, target_id: str | None = None) -> str:
+        """Bring a tab to the front of its window — the explicit opt-in for visibility.
+
+        Everything else works hidden: screenshots, evaluation, batched fills, and — via
+        delivery-verified fallbacks — clicks, keystrokes and scrolling. What activation
+        buys is the renderer's raw input path and unthrottled rendering, so it exists for
+        exactly two callers: a page that demonstrably pauses visibility-dependent work
+        while hidden, and a human who wants to watch. It is never called implicitly —
+        ten parallel workers activating would fight over one window's selected slot.
+        """
+        tab = self.tab(target_id)
+        self.conn.request("Target.activateTarget", {"targetId": tab.target_id})
+        self.journal.write("note", event="tab_activated", target_id=tab.target_id)
+        return tab.target_id
 
     def lease_tab(self, target_id: str | None = None) -> str:
         """Reserve one tab for later fresh clients and return its opaque lease token.
@@ -261,8 +289,11 @@ class Session:
         def is_application(data: dict[str, Any]) -> bool:
             schema = data.get("schema") or {}
             fields = schema.get("fields") or []
+            verdict = schema.get("verdict") or {}
+            if "is_application" in verdict:
+                return bool(verdict.get("is_application"))
             substantial = len(fields) >= 8 or (len(fields) >= 4 and data.get("file_inputs"))
-            return bool((schema.get("verdict") or {}).get("is_form") or substantial)
+            return bool(verdict.get("is_form") or substantial)
 
         main = self.tab()
         with self.journal.call("prepare_application"):
@@ -285,7 +316,10 @@ class Session:
             selected, prepared, context = max(
                 candidates,
                 key=lambda item: (
-                    bool(((item[1].get("schema") or {}).get("verdict") or {}).get("is_form")),
+                    bool(((item[1].get("schema") or {}).get("verdict") or {}).get(
+                        "is_application",
+                        ((item[1].get("schema") or {}).get("verdict") or {}).get("is_form"),
+                    )),
                     len((item[1].get("schema") or {}).get("fields") or []),
                 ),
             )
@@ -610,6 +644,7 @@ class Session:
         ns: dict[str, Any] = {
             "session": self, "tab": self.tab, "new_tab": self.new_tab,
             "use_tab": self.use_tab, "close_tab": self.close_tab,
+            "activate_tab": self.activate_tab,
             "lease_tab": self.lease_tab, "resume_lease": self.resume_lease,
             "release_lease": self.release_lease,
             "new_context": self.new_context, "close_context": self.close_context,
@@ -641,7 +676,8 @@ class Session:
                      "wait_for_application_state",
                      "start_diagnostics", "diagnostics",
                      "frames",
-                     "page_text", "press_key", "scroll", "upload_file", "arm_dry_run"):
+                     "page_text", "press_key", "type_chars", "scroll", "upload_file",
+                     "arm_dry_run"):
             ns[name] = on_tab(name)
         ns["start_recording"] = self.start_recording
         ns["stop_recording"] = self.stop_recording

@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- Umantis regression: Modernizr adds the feature token `cookies` to <html>.  The old
+     `[class*=cookie]` furniture selector therefore matched the root and discarded every
+     application control.  Email/password are account-creation fields inside the full
+     application, not a standalone login wall. -->
+<html lang="de" class="ger New cookies cors geolocation"><head><meta charset="utf-8">
+<title>Projektleiter:in - Bewerbung | Recruiting</title></head><body>
+<div id="cookieConsentBanner">Wir verwenden Cookies.
+  <input type="checkbox" id="analytics"> Analytics
+  <button type="button">Alle Cookies akzeptieren</button>
+</div>
+<form name="EditForm" action="/Vacancies/912/Application/New/1" method="post">
+  <p>Mit Einreichen der Bewerbung wird ein Benutzerprofil angelegt.</p>
+  <label for="first">Vorname *</label><input id="first" name="form_data5" required>
+  <label for="last">Nachname *</label><input id="last" name="form_data6" required>
+  <label for="input_3614">E-Mail-Adresse/Login *</label>
+  <input id="input_3614" name="form_data9" autocomplete="email" required>
+  <label for="input_1151384">Passwort *</label>
+  <input id="input_1151384" name="form_data12" type="password"
+         autocomplete="new-password" required>
+  <label for="cv">Lebenslauf *</label>
+  <input id="cv" name="form_data24" type="file" style="position:absolute;clip:rect(0,0,0,0)" required>
+  <button type="submit">Bewerbung definitiv einreichen</button>
+</form>
+</body></html>

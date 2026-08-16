@@ -114,6 +114,11 @@ def main() -> int:
               and not link.startswith("mailto:"), link[-46:] or "None")
         check("apply_link: an href saying /apply cannot outrank the label",
               "privacy" not in link, link[-46:] or "None")
+        routes = prep.get("application_urls") or []
+        check("structured routes: keeps a URL-shaped application route",
+              any(url.endswith("/job/2612502/apply-json") for url in routes), str(routes))
+        check("structured routes: rejects job-description HTML containing Apply",
+              all("%3Cul%3E" not in url and "<ul>" not in url for url in routes), str(routes))
 
         # ---- apply_control: when the way in is a button, not a link --------
         # Recruitee and BambooHR expose the apply affordance as a <button> that expands
@@ -145,6 +150,44 @@ def main() -> int:
         after = ((prepare_document(tab).get("schema") or {}).get("verdict") or {})
         check("apply_control: clicking it reveals a real form",
               bool(after.get("is_form")), f"fields={after.get('fields')}")
+
+        # Less literal French and Italian labels occur on Swiss career sites too. They
+        # contain neither "postuler" nor "candidature", so exercise the exact phrases
+        # and validate both possible destinations: an application and an account wall.
+        tab.goto(f"{base}/collapsed-fr.html")
+        prep = prepare_document(tab)
+        ctl = prep.get("apply_control") or {}
+        check("apply_control: French request phrase finds the hidden application",
+              ctl.get("label") == "Soumettre ma demande", str(ctl.get("label")))
+        tab.click_ref(ctl["ref"])
+        after = ((prepare_document(tab).get("schema") or {}).get("verdict") or {})
+        check("apply_control: French button reveals an application form",
+              bool(after.get("is_application")), str(after.get("classification")))
+
+        tab.goto(f"{base}/collapsed-it-account.html")
+        prep = prepare_document(tab)
+        ctl = prep.get("apply_control") or {}
+        check("apply_control: Italian request phrase finds the hidden account step",
+              ctl.get("label") == "Presenta la domanda", str(ctl.get("label")))
+        tab.click_ref(ctl["ref"])
+        after = ((prepare_document(tab).get("schema") or {}).get("verdict") or {})
+        check("apply_control: Italian button reveals an email/password login",
+              bool(after.get("is_authentication")) and
+              after.get("classification") == "login_email_password",
+              str(after.get("classification")))
+
+        # A filled ATS often installs beforeunload and Chrome otherwise interrupts a
+        # large run with a native "Leave site?" prompt. The apply-labelled button gives
+        # this document a real user gesture, which Chrome requires before showing it.
+        tab.goto(f"{base}/beforeunload.html")
+        ctl = prepare_document(tab).get("apply_control") or {}
+        tab.click_ref(ctl["ref"])
+        started = time.monotonic()
+        landed = tab.goto(f"{base}/applylink.html", timeout=5)
+        check("beforeunload: navigation accepts Leave site without manual input",
+              landed.get("landed", "").endswith("/applylink.html") and
+              time.monotonic() - started < 4,
+              f"landed={landed.get('landed')} elapsed={time.monotonic() - started:.2f}s")
 
         # ---- Abacus: the proximity fallback (item 23's done-when) ----------
         tab.goto(f"{base}/abacus.html")
@@ -184,6 +227,46 @@ def main() -> int:
               f"{out.observed['succeeded']}/7 in {ms:.0f}ms")
         got = tab.js("document.querySelector('[name=customeraddressshoppervorname]').value")
         check("abacus: values actually in the DOM", got == "Enes", f"got={got!r}")
+
+        # ---- Form identity: account fields do not turn an application into login ----
+        tab.goto(f"{base}/umantis-account.html")
+        schema = form_schema(tab)
+        verdict = schema["verdict"]
+        check("umantis: root `cookies` feature token does not hide the form",
+              verdict["fields"] == 4 and verdict["files"] == 1,
+              f"fields={verdict['fields']} files={verdict['files']}")
+        check("umantis: embedded credentials remain an application",
+              verdict["is_application"] is True
+              and verdict["classification"] == "application_form_with_account_fields",
+              str(verdict["classification"]))
+        group = next(item for item in verdict["form_classifications"]
+                     if item["classification"] == "application_form_with_account_fields")
+        check("umantis: account evidence is explicit",
+              group["identity_fields"] == 1 and group["password_fields"] == 1,
+              str(group))
+
+        tab.goto(f"{base}/login.html")
+        verdict = form_schema(tab)["verdict"]
+        check("login: two credential fields are authentication, not application",
+              verdict["classification"] == "login_email_password"
+              and verdict["is_authentication"] is True
+              and verdict["is_application"] is False,
+              str(verdict["classification"]))
+
+        tab.goto(f"{base}/email-login.html")
+        verdict = form_schema(tab)["verdict"]
+        check("login: explicit single-email flow has its own category",
+              verdict["classification"] == "login_email_first"
+              and verdict["is_authentication"] is True,
+              str(verdict["classification"]))
+
+        tab.goto(f"{base}/generic-contact.html")
+        verdict = form_schema(tab)["verdict"]
+        check("generic contact form is not promoted to an application",
+              verdict["classification"] == "generic_form"
+              and verdict["is_generic_form"] is True
+              and verdict["is_application"] is False,
+              str(verdict["classification"]))
 
         # ---- Personio: the well-behaved chain + files in the verdict --------
         tab.goto(f"{base}/personio.html")

@@ -102,7 +102,7 @@ _SCHEMA_JS = """(() => {
     }
     return best;
   };
-  const fields = [], files = [];
+  const fields = [], files = [], fieldNodes = [], fileNodes = [];
   const seen = new Set();
   const els = document.querySelectorAll(
     'input,select,textarea,[role=combobox],[contenteditable=true]');
@@ -112,6 +112,15 @@ _SCHEMA_JS = """(() => {
     const tag = el.tagName.toLowerCase();
     const type = (el.type || '').toLowerCase();
     if (['submit', 'button', 'reset', 'image', 'hidden'].includes(type)) continue;
+    // Styled upload controls are often visually replaced by a button/label.  They are
+    // still decisive application evidence even when their own box is clipped.
+    if (type === 'file') {
+      if (!bh.furniture(el)) {
+        files.push(el.name || el.id || 'file');
+        fileNodes.push(el);
+      }
+      continue;
+    }
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
     // A control a human cannot see is a decoy, not a field. Select2 puts a 1x1
@@ -125,7 +134,6 @@ _SCHEMA_JS = """(() => {
     if (decoy && !hiddenControl) continue;
     if (!r.width && !r.height && !hiddenControl) continue;
     if (bh.furniture(el) || type === 'search') continue;
-    if (type === 'file') { files.push(el.name || el.id || 'file'); continue; }
     const ref = bh.ref(el);
     const label = labelFor(el) || nearText(el);
     const kind = el.getAttribute('role') === 'combobox' && tag !== 'select' ? 'combobox'
@@ -158,11 +166,12 @@ _SCHEMA_JS = """(() => {
     if (type === 'checkbox' || type === 'radio') f.checked = el.checked;
     else if (el.value) f.value = String(el.value).slice(0, 60);
     fields.push(f);
+    fieldNodes.push(el);
   }
-  const submits = [...document.querySelectorAll(
+  const submitNodes = [...document.querySelectorAll(
     'button[type=submit],input[type=submit],input[type=button],button:not([type])')]
-    .filter(b => !bh.furniture(b))
-    .map(b => (b.innerText || b.value || '').trim()).filter(Boolean);
+    .filter(b => !bh.furniture(b));
+  const submits = submitNodes.map(b => (b.innerText || b.value || '').trim()).filter(Boolean);
   // "fewer than 2 real fields" is true of a bot wall, an unbooted SPA and a form whose
   // controls are all hidden — three different problems with three different fixes. Say
   // which one it is, and carry the counts that prove it.
@@ -194,8 +203,100 @@ _SCHEMA_JS = """(() => {
     else cause = 'zero_rect';
     why[cause] = (why[cause] || 0) + 1;
   }
+  const ownerOf = el => el.form || (el.closest && el.closest('form')) || document;
+  const groups = new Map();
+  const groupFor = el => {
+    const owner = ownerOf(el);
+    if (!groups.has(owner)) groups.set(owner, {owner, fields: [], files: [], submits: []});
+    return groups.get(owner);
+  };
+  fieldNodes.forEach((el, index) => groupFor(el).fields.push({el, field: fields[index]}));
+  fileNodes.forEach(el => groupFor(el).files.push(el));
+  submitNodes.forEach(el => groupFor(el).submits.push(el));
+
+  const APP = /(?:apply|application|bewerb|postul|candidat|candidature)/i;
+  const AUTH = /(?:sign\\s*in|log\\s*in|login|anmelden|connexion|create\\s+(?:an\\s+)?account|konto\\s+erstellen|register|registrieren)/i;
+  const ACCOUNT = /(?:login|account|konto|benutzer(?:name|profil)?|register|registr|user\\s+profile|profil\\s+angelegt|create\\s+(?:a\\s+)?profile)/i;
+  const NEWSLETTER = /(?:newsletter|job.?alert|subscribe|abonnieren|abonnement|apply\\s+later)/i;
+  const IDENTITY = /(?:e-?mail|courriel|user(?:name)?|login|benutzer)/i;
+  const classifications = [];
+  for (const group of groups.values()) {
+    const owner = group.owner;
+    const ownerText = owner === document ? '' : String(owner.innerText || '').slice(0, 5000);
+    const fieldEvidence = group.fields.map(({el, field}) =>
+      [el.id, el.name, field.label, field.autocomplete].filter(Boolean).join(' ')).join(' ');
+    const submitEvidence = group.submits.map(el =>
+      [el.id, el.name, el.innerText, el.value, el.getAttribute('aria-label')]
+        .filter(Boolean).join(' ')).join(' ');
+    const structural = [location.href, document.title,
+      owner === document ? '' : owner.action, owner === document ? '' : owner.id,
+      owner === document ? '' : owner.getAttribute('name'), fieldEvidence, submitEvidence]
+      .filter(Boolean).join(' ');
+    const identities = group.fields.filter(({el, field}) =>
+      (el.type || '').toLowerCase() === 'email'
+      || ['email', 'username'].includes(String(field.autocomplete || '').toLowerCase())
+      || IDENTITY.test([el.id, el.name, field.label].filter(Boolean).join(' ')));
+    const passwords = group.fields.filter(({el}) => (el.type || '').toLowerCase() === 'password');
+    const applicationSemantic = APP.test(structural);
+    // A file input is decisive evidence even when its own box is clipped — styled upload
+    // controls hide the real input behind a label — but ONLY on a page whose form is
+    // actually open. A collapsed application (display:none panel behind an Apply button)
+    // contains the same file input, and counting it classified four Recruitee POSTINGS
+    // as application_form: the caller then stopped one click short of the real form and
+    // filled nothing. Visible sibling fields are what separate the two cases — an open
+    // form shows its fields even when its upload control is a styled label; a collapsed
+    // one shows neither.
+    const visibleFiles = group.files.filter(el => el.offsetParent !== null).length;
+    const applicationStructure = (group.files.length > 0
+        && (group.fields.length >= 1 || visibleFiles > 0))
+      || (group.fields.length >= 3 && applicationSemantic);
+    const accountSemantic = ACCOUNT.test(ownerText + ' ' + fieldEvidence + ' ' + structural);
+    const authSemantic = AUTH.test(ownerText + ' ' + structural);
+    const newsletter = NEWSLETTER.test(ownerText + ' ' + structural);
+    let classification = 'not_form';
+    if (applicationStructure && identities.length && (passwords.length || accountSemantic))
+      classification = 'application_form_with_account_fields';
+    else if (applicationStructure)
+      classification = 'application_form';
+    else if (group.fields.length <= 3 && identities.length && passwords.length
+             && group.submits.length)
+      classification = 'login_email_password';
+    else if (group.fields.length <= 2 && identities.length && authSemantic && !newsletter)
+      classification = 'login_email_first';
+    else if (group.fields.length >= 2 && group.submits.length)
+      classification = 'generic_form';
+    classifications.push({
+      classification,
+      fields: group.fields.length,
+      files: group.files.length,
+      submits: group.submits.length,
+      identity_fields: identities.length,
+      password_fields: passwords.length,
+      application_semantic: applicationSemantic,
+      auth_semantic: authSemantic,
+    });
+  }
+  const priority = [
+    'application_form_with_account_fields', 'application_form',
+    'login_email_password', 'login_email_first', 'generic_form', 'not_form'];
+  const classification = priority.find(kind =>
+    classifications.some(item => item.classification === kind)) || 'not_form';
+  const isApplication = classification === 'application_form'
+    || classification === 'application_form_with_account_fields';
+  const isGenericForm = classification === 'generic_form';
+  const isAuthentication = classification === 'login_email_password'
+    || classification === 'login_email_first';
   let reason;
-  if (fields.length >= 2 && submits.length > 0) reason = 'fields plus a submit control';
+  if (classification === 'application_form_with_account_fields')
+    reason = 'application structure with embedded account fields';
+  else if (classification === 'application_form')
+    reason = 'application structure';
+  else if (classification === 'login_email_password')
+    reason = 'standalone email/username and password authentication form';
+  else if (classification === 'login_email_first')
+    reason = 'standalone email-first or passwordless authentication form';
+  else if (isGenericForm)
+    reason = 'generic form without application evidence';
   else if (textLen === 0 && inDom === 0)
     reason = 'page rendered nothing: 0 characters and 0 form controls. The document is '
            + 'empty — a bot wall, or an app whose boot request never completed';
@@ -209,7 +310,11 @@ _SCHEMA_JS = """(() => {
     reason = 'fewer than 2 real fields after furniture exclusion';
   else reason = 'no submit control';
   const verdict = {
-    is_form: fields.length >= 2 && submits.length > 0,
+    is_form: isApplication,
+    is_application: isApplication,
+    is_generic_form: isGenericForm,
+    is_authentication: isAuthentication,
+    classification,
     reason,
     fields: fields.length,
     required: fields.filter(f => f.required).length,
@@ -218,7 +323,8 @@ _SCHEMA_JS = """(() => {
     controls_visible: visible,
     invisible_because: why,
     text_len: textLen,
-    submit_labels: submits.slice(0, 5)};
+    submit_labels: submits.slice(0, 5),
+    form_classifications: classifications};
   return {verdict, fields, files};
 })()"""
 
@@ -237,8 +343,8 @@ _PREPARE_JS = """(() => {
   // real postings. Match the verb ANYWHERE, in the languages Swiss ATSs actually ship, and
   // score rather than take-first so a nav item reading "Apply" cannot beat the real link.
   const APPLY_TEXT =
-    /(bewerb|apply|postul|candidat|candida|sollicit|solicit|aplicar|ansök|søk)/i;
-  const APPLY_HREF = /(apply|application|bewerb|postul|candidat)/i;
+    /(bewerb|apply|postul|candidat|candida|sollicit|solicit|aplicar|ansök|søk|(?:déposer|deposer|envoyer|soumettre)\\s+(?:(?:ma|une|la)\\s+)?(?:demande|dossier)|(?:presenta|invia|manda)\\s+(?:(?:la|una)\\s+)?domanda)/i;
+  const APPLY_HREF = /(apply|application|bewerb|postul|candidat|domanda)/i;
   // "Apply filters", "Bewerbungstipps", a privacy link — same verb, wrong destination.
   const NOT_APPLY =
     /(filter|tipp|tips|ratgeber|guide|faq|hilfe|help|datenschutz|privacy|impressum|cookie|newsletter|alert|job.?alert|abo)/i;
@@ -296,9 +402,19 @@ _PREPARE_JS = """(() => {
   const seenObjects = new Set(); let visited = 0;
   const route = value => {
     if (typeof value !== 'string' || value.length > 2000
-        || !/(apply|application|bewerb|postul|candidat)/i.test(value)) return;
+        || !/(apply|application|bewerb|postul|candidat|domanda)/i.test(value)) return;
+    const raw = value.trim();
+    // `new URL(any text, base)` happily turns a job-description HTML string into a
+    // percent-encoded relative URL.  Only pass URL-shaped strings: absolute/root/dot
+    // paths, an application-named leaf, or a conventional multi-segment relative path.
+    // Reject markup, quotes and whitespace before URL parsing.
+    if (!raw || /[<>"'\\s]/.test(raw)) return;
+    const urlShaped = /^(?:https?:\\/\\/|\\/\\/|\\/|\\.{1,2}\\/)/i.test(raw)
+      || /^(?:apply|application|bewerb|postul|candidat|domanda)(?:[/?#]|$)/i.test(raw)
+      || /^[A-Za-z0-9._~%+-]+(?:\\/[A-Za-z0-9._~!$&()*+,;=:@%?#-]*)+$/.test(raw);
+    if (!urlShaped) return;
     try {
-      const url = new URL(value, location.href);
+      const url = new URL(raw, location.href);
       if (/^https?:$/.test(url.protocol) && !applicationUrls.includes(url.href))
         applicationUrls.push(url.href);
     } catch (e) {}
@@ -315,7 +431,8 @@ _PREPARE_JS = """(() => {
     try { walk(JSON.parse(script.textContent || 'null')); } catch (e) {}
   }
   return {schema, url: location.href, title: document.title,
-          language: document.documentElement.lang || navigator.language || 'en',
+          language: (document.documentElement && document.documentElement.lang)
+                    || navigator.language || 'en',
           file_inputs: fileInputs, apply_link: apply ? apply.href : null,
           apply_control: applyControl, application_urls: applicationUrls.slice(0, 12)};
 })()""".replace("__SCHEMA__", _SCHEMA_JS)
@@ -498,22 +615,25 @@ def _typed_write(tab: Tab, ref: str, value: Any, mode: str, timeout: float) -> d
         " el.focus(); el.select && el.select(); return true;})()", timeout=timeout)
     if not focused:
         return {"ref": ref, "ok": False, "error": "element_gone", "mode": mode}
+    typed = None
     if mode == "insert":
+        # Input.insertText is delivered even to a background tab (measured — it is the
+        # one raw-input path the renderer does not gate on tab selection).
         tab.cdp("Input.insertText", {"text": str(value)}, timeout=timeout)
     else:
-        for ch in str(value):
-            # keyDown carrying `text` is what makes the page see a real character; the
-            # matching keyUp is what a keystroke-driven typeahead listens for.
-            tab.cdp("Input.dispatchKeyEvent", {"type": "keyDown", "text": ch,
-                                               "key": ch, "unmodifiedText": ch},
-                    timeout=timeout)
-            tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch}, timeout=timeout)
+        # Verified per-character events: the renderer drops key events for a tab that is
+        # not its window's selected tab, so type_chars checks the `__bh.keys` delivery
+        # counter and synthesizes through the DOM when nothing arrived (parallel() puts
+        # every worker but at most one in exactly that state).
+        typed = tab.type_chars(str(value), ref=ref, timeout=timeout)
     got = tab._world_js(f"(() => {{const el = __bh.refs[{json.dumps(ref)}]; el.blur();"
                         " return String(el.value).slice(0, 80);})()", timeout=timeout)
     want = str(value)
     good = got == want[:80] or got == want or (_digits(got) == _digits(want) != "")
     entry = {"ref": ref, "ok": bool(good), "mode": mode,
              "want": want[:80], "got": got}
+    if typed is not None and typed.get("modality") == "dom":
+        entry["modality"] = "dom"       # visible in the report, like the click delta's
     if good and got != want[:80]:
         entry["normalized"] = True
     return entry
@@ -749,14 +869,11 @@ def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float 
             wants_typing = not found["options"] and bool(before.get("hasInput"))
         if wants_typing and before.get("hasInput"):
             # Typeahead: the list is empty until it is filtered. Real key events, because
-            # that is the only write mode a keystroke-driven typeahead can see (D3).
-            for ch in requested[0]:
-                tab.cdp("Input.dispatchKeyEvent",
-                        {"type": "keyDown", "text": ch, "key": ch, "unmodifiedText": ch},
-                        timeout=timeout)
-                tab.cdp("Input.dispatchKeyEvent", {"type": "keyUp", "key": ch},
-                        timeout=timeout)
-            time.sleep(settle)
+            # that is the only write mode a keystroke-driven typeahead can see (D3) —
+            # and verified ones, because the renderer drops key events for a background
+            # tab and this path then reported "the popup exposed no options", an error
+            # that sent the reader to the page instead of to the tab state.
+            tab.type_chars(requested[0], timeout=timeout, settle=settle)
             found = tab._world_js(_COMBO_OPTIONS_JS.replace("__REF__", json.dumps(ref)),
                                   timeout=timeout) or {"options": [], "scope": "none"}
 

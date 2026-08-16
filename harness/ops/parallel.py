@@ -58,24 +58,26 @@ def _cleanup_failed(record: dict[str, Any], failures: list[dict[str, Any]]) -> N
 
 def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
              workers: int = 0, reuse_tabs: bool = True, isolated: bool = False,
+             worker_limit: int = MAX_WORKERS,
              timeout: float | None = None, token: CancelToken | None = None,
              progress: Callable[[int, int, dict[str, Any]], None] | None = None,
              events: Callable[[dict[str, Any]], None] | None = None,
              item_id: Callable[[Any], str] | None = None,
              ) -> list[dict[str, Any]]:
-    """Run ``fn(item)`` with at most ten worker tabs and return input-ordered records.
+    """Run ``fn(item)`` with a bounded worker-tab pool and return ordered records.
 
     ``isolated=True`` gives every worker its own incognito browser context while still
     using the same Chrome process. ``reuse_tabs=False`` closes each tab immediately after
     its item; it no longer accumulates one tab per input. Cancellation is cooperative at
     item boundaries: active CDP calls finish under their own timeout, but no queued item
-    starts after the token or whole-run deadline fires.
+    starts after the token or whole-run deadline fires. The default limit remains ten;
+    callers must explicitly raise ``worker_limit`` for larger stress tests.
     """
     todo: Sequence[Any] = list(items)
     if not todo:
         return []
     worker_count = workers or int(os.environ.get("BH_WORKERS") or 0) or DEFAULT_WORKERS
-    worker_count = max(1, min(worker_count, len(todo), MAX_WORKERS))
+    worker_count = max(1, min(worker_count, len(todo), max(1, worker_limit)))
     cancel = token or CancelToken(timeout=timeout)
     if token is not None and timeout is not None:
         deadline = time.monotonic() + max(0.0, timeout)

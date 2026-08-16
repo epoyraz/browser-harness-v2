@@ -1,0 +1,24 @@
+<!doctype html><meta charset=utf-8><title>Background input probe</title>
+<!-- Counts what the PAGE observed, so a check asserts that a handler actually ran —
+     not that a CDP call returned OK, which it does whether the renderer delivered the
+     event or silently dropped it (as it does for every tab that is not its window's
+     selected tab; parallel() puts every worker but at most one in that state). -->
+<style>body{font:16px system-ui;padding:24px;height:3000px}</style>
+<h1>Input probe</h1>
+<form>
+  <label for="name">Full name</label>
+  <input id="name" name="name" style="font-size:16px;padding:8px;width:300px">
+  <button type="submit">Send</button>
+</form>
+<pre id="log"></pre>
+<script>
+  window.counts = {keydown: 0, input: 0, escape: 0, scrolled: 0};
+  const name = document.getElementById('name');
+  name.addEventListener('keydown', () => { window.counts.keydown++; });
+  name.addEventListener('input', () => { window.counts.input++; });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') window.counts.escape++;
+  });
+  document.addEventListener('scroll', () => { window.counts.scrolled++; },
+    {capture: true, passive: true});
+</script>

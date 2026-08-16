@@ -286,6 +286,65 @@ def test_a_click_that_did_something_is_never_repeated(wired):
     assert d["dom_mutations"] == 7
 
 
+# --- the keyboard twin: delivery-verified keys, DOM synthesis when dropped ----
+
+def test_type_chars_synthesizes_when_the_renderer_dropped_every_key(wired):
+    """The counter delta is the evidence: `__bh.keys` unchanged across the dispatch means
+    no keydown reached the document — which is what the renderer does, silently, for any
+    tab that is not its window's selected tab. `parallel()` puts every worker but at most
+    one in that state, so an unverified typed write there typed into nothing."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+
+    def hook(e):
+        if "bh-synth-keys" in e:
+            return {"delivered": 0, "synthesized": True}
+        if "__bh.keys" in e:
+            return 41                          # the pre-dispatch counter reading
+        return None
+
+    browser.eval_hook = hook
+    out = tab.type_chars("zur", ref="e1")
+    keys = [c for c in browser.calls if c.get("method") == "Input.dispatchKeyEvent"]
+    assert [k["params"]["type"] for k in keys] == ["keyDown", "keyUp"] * 3
+    assert out == {"chars": 3, "modality": "dom", "delivered": 0}
+
+
+def test_type_chars_never_synthesizes_when_the_keys_arrived(wired):
+    """Synthesis after real delivery would type everything twice; the check JS returns
+    the delta and the Python side must believe it."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: ({"delivered": 3, "synthesized": False}
+                                   if "bh-synth-keys" in e
+                                   else 7 if "__bh.keys" in e else None)
+    out = tab.type_chars("zur", ref="e1")
+    assert out["modality"] == "compositor"
+    assert out["delivered"] == 3
+
+
+def test_press_key_falls_back_through_the_dom_when_undelivered(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: ({"synthesized": True} if "bh-synth-key " in e
+                                   else 0 if "__bh.keys" in e else None)
+    out = tab.press_key("Escape")
+    downs = [c for c in browser.calls if c.get("method") == "Input.dispatchKeyEvent"]
+    assert len(downs) == 2                     # the trusted attempt still happened first
+    assert out == {"key": "Escape", "modality": "dom"}
+
+
+def test_scroll_falls_back_through_the_dom_when_no_scroll_event_arrived(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        {"y": 600, "height": 2000, "atBottom": False, "modality": "dom"}
+        if "bh-synth-scroll" in e else 0 if "__bh.scrolls" in e else None)
+    out = tab.scroll(600)
+    assert out["modality"] == "dom"
+    assert out["y"] == 600
+
+
 # --- the wait that answers the question callers were actually asking ----------
 
 def test_wait_for_form_reports_no_form_instead_of_raising(wired):
@@ -537,6 +596,23 @@ def test_a_dialog_that_closes_before_dismissal_does_not_erase_the_click(wired, m
     time.sleep(0.05)
     delta = tab.click_ref("e1", settle=0.01)
     assert delta["dialog"] == {"type": "alert", "message": "gone"}
+
+
+def test_beforeunload_is_accepted_immediately_so_navigation_is_not_blocked(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.emit("Page.javascriptDialogOpening",
+                 {"type": "beforeunload", "message": "Leave site?"},
+                 session_id=tab._session_id)
+    deadline = time.monotonic() + 1
+    while time.monotonic() < deadline:
+        handled = [c for c in browser.calls
+                   if c.get("method") == "Page.handleJavaScriptDialog"]
+        if handled:
+            break
+        time.sleep(0.01)
+    assert handled and handled[0]["params"]["accept"] is True
+    assert tab._dialog is None
 
 
 def test_a_genuinely_hung_dispatch_still_raises(wired):
