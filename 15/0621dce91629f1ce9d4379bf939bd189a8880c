@@ -1,0 +1,37 @@
+tests/unit/test_session.py
+  s_6bd7a46abc589b::t_211b450c187b3b 108-109,112
+  s_6bd7a46abc589b::t_abb51a5edf7492 107,110-111,113-147
+harness/session.py
+  s_6bd7a46abc589b::t_31aeae63ef394b 119-121,124-160
+  s_6bd7a46abc589b::t_f8f7f289d32c46 161
+tests/unit/test_page.py
+  s_6bd7a46abc589b::t_29ad2fd50180e8 290-350
+  s_6bd7a46abc589b::t_272494feccaf49 14
+harness/ops/page.py
+  s_6bd7a46abc589b::t_bc39a9c8403fa1 785-804
+  s_6bd7a46abc589b::t_c2cb7c68ab5da1 805-812
+  s_6bd7a46abc589b::t_490b13451501cf 826
+  s_6bd7a46abc589b::t_508d34a54631ae 823-825
+  s_6bd7a46abc589b::t_76f9481636bb11 821-822
+docs/DESIGN.md
+  s_6bd7a46abc589b::t_34f75a6b3e9067 281-314
+  s_6bd7a46abc589b::t_368f7da2d58896 322-326
+harness/connect/session.py
+  s_6bd7a46abc589b::t_16dc449911df20 194-206,214-218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "150621dce91629f1ce9d4379bf939bd189a8880c",
+  "prompts": {},
+  "sessions": {
+    "s_6bd7a46abc589b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "775133a1-93e5-4b1b-908a-f9fae4034753",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
