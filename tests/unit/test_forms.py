@@ -416,6 +416,12 @@ def test_require_form_raises_not_a_form_with_the_verdict(tab):
     assert "furniture" in str(e.value)
 
 
+def test_require_form_accepts_generic_and_authentication_forms(tab):
+    for classification in ("generic_form", "login_email_password", "login_email_first"):
+        schema = {"verdict": {"is_form": True, "classification": classification}}
+        assert require_form(schema) is schema
+
+
 # --- select_option: the combobox dead end, closed -----------------------------
 
 def test_a_native_select_is_delegated_not_rejected(tab):

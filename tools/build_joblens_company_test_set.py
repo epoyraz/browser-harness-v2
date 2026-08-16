@@ -86,6 +86,11 @@ def main() -> int:
     args = parse_args()
     if args.links_per_group < 1:
         raise ValueError("--links-per-group must be positive")
+    if not args.database.is_file():
+        raise FileNotFoundError(
+            f"job database not found: {args.database}; download "
+            "gs://jobboard-data-exports/latest/all_jobs.sqlite or pass --database"
+        )
 
     connection = sqlite3.connect(args.database)
     if connection.execute("PRAGMA integrity_check").fetchone()[0] != "ok":

@@ -97,6 +97,11 @@ second priority list.
       *Done when:* a new client meeting an incompatible old daemon receives one deterministic
       upgrade or restart outcome, and the replacement never discovers a different browser.
 
+      *Partly met:* `ping` and event subscription report package and IPC protocol versions,
+      and the client refuses an incompatible daemon with a typed outcome. Capability
+      negotiation and the safe daemon replacement handoff that preserves the pinned browser
+      endpoint are still missing.
+
 - [ ] **4. Structured cancellation and total deadlines**
 
       Per-CDP-call timeouts do not bound an entire parallel job: queued items can still start,
@@ -107,6 +112,11 @@ second priority list.
 
       *Done when:* cancelling a 100-item run stops every queued action, closes all owned
       resources, and returns within a documented teardown budget.
+
+      *Partly met:* `CancelToken`, a whole-run timeout, lazy item claiming, ordered cancelled
+      results, and owned-resource cleanup prevent queued work from starting after cancellation.
+      Active operations still finish under their individual CDP timeouts; operation/item
+      deadlines, prompt interrupt propagation, and a measured total teardown bound remain.
 
 - [x] **5. Crash-safe resource accounting with visible cleanup failures**
 
@@ -130,6 +140,10 @@ second priority list.
       *Done when:* cursor cross-routing, lost overlap, target leaks, or Chrome-version breakage
       fails an automated required or scheduled check instead of a manual script.
 
+      *Partly met:* a scheduled and manually dispatchable GitHub workflow runs the real-Chrome
+      parallel safety suite. Background input, forms, daemon lifecycle, recording, and write-mode
+      checks remain local-only and Chrome is not yet pinned to a deliberately upgraded version.
+
 - [ ] **7. Resource-aware adaptive parallelism**
 
       A fixed worker count behaves differently on a 2019 laptop, a modern workstation, and a
@@ -152,6 +166,10 @@ second priority list.
       *Done when:* a load test proves that total in-flight work never exceeds the configured
       limit and a one-request client progresses while another client floods the daemon.
 
+      *Partly met:* the daemon now owns one bounded request pool and one global admission
+      semaphore, so clients cannot multiply the total thread count. Per-client fairness,
+      disconnect-aware queued-request cancellation, and the two-client starvation proof remain.
+
 - [ ] **9. Per-domain concurrency, retry, and circuit-breaker policy**
 
       Browser-wide concurrency is not enough because ten tabs can still overload one website or
@@ -163,7 +181,7 @@ second priority list.
       *Done when:* deterministic server fixtures prove the origin cap, retry budget, breaker
       opening and recovery, and the absence of duplicate side effects.
 
-- [ ] **10. Streaming progress with ordered final results**
+- [x] **10. Streaming progress with ordered final results**
 
       `parallel()` correctly returns final records in input order, but waiting for that list
       hides useful progress and makes a long first item look like a frozen run. Add progress
@@ -173,6 +191,11 @@ second priority list.
 
       *Done when:* a fast later item becomes observable before a slow first item completes,
       while every input still appears exactly once and in order in the final result.
+
+      *Met:* `parallel()` emits start/completion events and a completion callback as workers
+      finish, while its collected return value remains input-ordered. Callback failures are
+      journalled without breaking browser work, and focused tests pin event identity and final
+      ordering.
 
 - [ ] **11. Explicit authentication bootstrap per context**
 

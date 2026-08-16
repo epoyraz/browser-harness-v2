@@ -286,6 +286,7 @@ _SCHEMA_JS = """(() => {
   const isGenericForm = classification === 'generic_form';
   const isAuthentication = classification === 'login_email_password'
     || classification === 'login_email_first';
+  const isForm = classification !== 'not_form';
   let reason;
   if (classification === 'application_form_with_account_fields')
     reason = 'application structure with embedded account fields';
@@ -310,7 +311,7 @@ _SCHEMA_JS = """(() => {
     reason = 'fewer than 2 real fields after furniture exclusion';
   else reason = 'no submit control';
   const verdict = {
-    is_form: isApplication,
+    is_form: isForm,
     is_application: isApplication,
     is_generic_form: isGenericForm,
     is_authentication: isAuthentication,

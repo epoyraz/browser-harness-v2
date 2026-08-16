@@ -54,7 +54,7 @@ def drive(tab: Tab, label: str, *, expect_fallback: bool) -> None:
     mode = "background" if expect_fallback else "selected"
 
     # -- typed write (the mode='type' tier) --------------------------------
-    tab.goto(f"{tab._base}/bginput.html")           # noqa: SLF001 — set below
+    tab.goto(f"{tab._base}/bginput.html")
     hidden = tab.js("document.hidden")
     check(f"{label}: tab visibility is what the case needs",
           bool(hidden) is expect_fallback, f"document.hidden={hidden}")
@@ -88,7 +88,7 @@ def drive(tab: Tab, label: str, *, expect_fallback: bool) -> None:
           f"y={r.get('y')} modality={r.get('modality')} {r.get('error', '')}")
 
     # -- the full combobox flow: open (mousedown), type (keyup), pick (click)
-    tab.goto(f"{tab._base}/combobox.html")          # noqa: SLF001
+    tab.goto(f"{tab._base}/combobox.html")
     schema = form_schema(tab)
     combo = next(f for f in schema["fields"]
                  if f["kind"] == "combobox" and "Country" in str(f["label"]))
@@ -98,6 +98,19 @@ def drive(tab: Tab, label: str, *, expect_fallback: bool) -> None:
           out.ok and shown == "Schweiz",
           f"ok={out.ok} shown={shown!r} "
           + ("" if out.ok else str(out.detail)[:40]))
+
+    # -- native state is evidence too: never double-toggle a checkbox -------
+    tab.goto(f"{tab._base}/personio.html")
+    schema = form_schema(tab)
+    privacy = next(f for f in schema["fields"] if f.get("name") == "privacy")
+    delta = tab.click_ref(privacy["ref"])
+    checked = tab.js("document.querySelector('input[name=privacy]').checked")
+    check(f"{label}: checkbox changes exactly once",
+          checked is True
+          and (delta["modality"] == "dom") is expect_fallback
+          and delta["control_state_changed"] is True,
+          f"checked={checked} modality={delta['modality']} "
+          f"state_changed={delta['control_state_changed']}")
 
 
 def main() -> int:
@@ -122,8 +135,8 @@ def main() -> int:
         b = conn.request("Target.createTarget", {"url": "about:blank"})["targetId"]
         time.sleep(0.6)
         tab_a, tab_b = Tab(conn, registry, a), Tab(conn, registry, b)
-        tab_a._base = base                          # noqa: SLF001 — test-local plumbing
-        tab_b._base = base                          # noqa: SLF001
+        tab_a._base = base
+        tab_b._base = base
 
         drive(tab_a, "background", expect_fallback=True)
         drive(tab_b, "selected  ", expect_fallback=False)

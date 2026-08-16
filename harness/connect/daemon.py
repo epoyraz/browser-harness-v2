@@ -317,7 +317,7 @@ class Daemon:
                     self._peers.discard(peer)
 
     def handle(self, request: dict[str, Any],
-               peer: "_Peer | None" = None) -> dict[str, Any]:
+               peer: _Peer | None = None) -> dict[str, Any]:
         """Answer one request. Always an outcome, never a bare value or a bare string."""
         meta = request.get("meta")
         if meta:
@@ -372,7 +372,7 @@ class Daemon:
             return e.outcome.to_json()
 
     def _meta(self, meta: str, request: dict[str, Any],
-              peer: "_Peer | None" = None) -> dict[str, Any]:
+              peer: _Peer | None = None) -> dict[str, Any]:
         if meta == "ping":
             # Liveness means *both* processes are alive: a meta-only pong from a daemon whose
             # browser socket is dead is what v1 needed six PRs to stop reporting as healthy.
@@ -404,8 +404,12 @@ class Daemon:
             # the page the first is working in, and never yanks the user's focus either.
             exclude = {str(t) for t in (request.get("exclude") or [])}
             try:
-                with self._adopt_lock:
-                    taken = set(self._adoptions.values()) | exclude
+                with self._adopt_lock, self._lease_lock:
+                    # An opaque lease reserves its target from all implicit adoption.
+                    # Hold both locks through selection so a concurrent lease creation
+                    # cannot race between the snapshot and assignment.
+                    taken = (set(self._adoptions.values())
+                             | set(self._lease_for_target) | exclude)
                     infos = self.conn.request("Target.getTargets",
                                               timeout=10.0).get("targetInfos") or []
                     pick = next(

@@ -277,6 +277,29 @@ _DANGER_JS = """(el => {
           action: form && form.action || ''};
 })"""
 
+_CONTROL_STATE_JS = """(el => {
+  if (!el) return null;
+  const label = el.closest && el.closest('label');
+  if (label && label.control) el = label.control;
+  const summary = el.closest && el.closest('summary');
+  if (summary && summary.parentElement && summary.parentElement.tagName === 'DETAILS')
+    el = summary.parentElement;
+  const control = el.closest && el.closest('input,option,select,details,button,[role=button]');
+  if (!control) return null;
+  const tag = control.tagName.toLowerCase();
+  const type = String(control.type || '').toLowerCase();
+  const state = {tag, type: type || null, focused: document.activeElement === control};
+  if (tag === 'input' && (type === 'checkbox' || type === 'radio'))
+    state.checked = !!control.checked;
+  if (tag === 'option') state.selected = !!control.selected;
+  if (tag === 'select') state.selectedIndex = control.selectedIndex;
+  if (tag === 'details') state.open = !!control.open;
+  for (const name of ['aria-checked', 'aria-expanded', 'aria-pressed', 'aria-selected']) {
+    if (control.hasAttribute && control.hasAttribute(name)) state[name] = control.getAttribute(name);
+  }
+  return state;
+})"""
+
 _AUTH_ACTION_JS = """(el => {
   if (!el) return null;
   const control = el.closest && el.closest('button,input,[role=button]');
@@ -1232,14 +1255,17 @@ class Tab:
             f"(() => {{const el = window.__bh && __bh.refs[{ref!r}]; if (!el) return null;"
             " el.scrollIntoView({block: 'center', inline: 'center'});"
             " const r = el.getBoundingClientRect();"
-            f" return [r.x + r.width/2, r.y + r.height/2, location.href, __bh.mutations, ({_DANGER_JS})(el)];}})()",
+            f" return [r.x + r.width/2, r.y + r.height/2, location.href, __bh.mutations,"
+            f" ({_DANGER_JS})(el), ({_CONTROL_STATE_JS})(el)];}})()",
             timeout=timeout)
         if pre is None:
             raise ElementGone(f"no element registered for ref {ref!r}", ref=ref)
         x, y, url_before, mut_before = pre[:4]
         danger = pre[4] if len(pre) > 4 else None
+        control_before = pre[5] if len(pre) > 5 else None
         self._refuse_danger(danger, ref=ref)
-        return self._click(x, y, url_before, int(mut_before), settle, timeout, ref=ref)
+        return self._click(x, y, url_before, int(mut_before), settle, timeout, ref=ref,
+                           control_before=control_before)
 
     def click_at(self, x: float, y: float, *, settle: float = 0.15,
                  timeout: float = 10.0) -> dict[str, Any]:
@@ -1247,9 +1273,12 @@ class Tab:
         iframes and shadow roots that no selector can reach."""
         before = self._world_js(
             f"[location.href, window.__bh ? __bh.mutations : 0,"
-            f" ({_DANGER_JS})(document.elementFromPoint({x!r}, {y!r}))]", timeout=timeout)
+            f" ({_DANGER_JS})(document.elementFromPoint({x!r}, {y!r})),"
+            f" ({_CONTROL_STATE_JS})(document.elementFromPoint({x!r}, {y!r}))]",
+            timeout=timeout)
         self._refuse_danger(before[2] if len(before) > 2 else None, x=x, y=y)
-        return self._click(x, y, before[0], int(before[1]), settle, timeout)
+        return self._click(x, y, before[0], int(before[1]), settle, timeout,
+                           control_before=before[3] if len(before) > 3 else None)
 
     def click_auth_ref(self, ref: str, *, settle: float = 0.6,
                        timeout: float = 15.0) -> dict[str, Any]:
@@ -1302,7 +1331,7 @@ class Tab:
 
     def _click(self, x: float, y: float, url_before: str, mut_before: int,
                settle: float, timeout: float, ref: str | None = None,
-               retry_inert: bool = True) -> dict[str, Any]:
+               retry_inert: bool = True, control_before: Any = None) -> dict[str, Any]:
         interesting = ("Page.lifecycleEvent", "Page.frameNavigated",
                        "Page.javascriptDialogOpening", "Target.targetCreated")
         targets_before = len(self._created)
@@ -1354,34 +1383,48 @@ class Tab:
 
         post: list[Any] | None = None
         try:
-            post = self._world_js("[location.href, window.__bh ? __bh.mutations : 0]",
-                                  timeout=timeout)
+            target = (f"window.__bh && __bh.refs[{ref!r}]" if ref is not None
+                      else f"document.elementFromPoint({x!r}, {y!r})")
+            post = self._world_js(
+                f"[location.href, window.__bh ? __bh.mutations : 0,"
+                f" ({_CONTROL_STATE_JS})({target})]", timeout=timeout)
         except HarnessError:
             pass                                       # e.g. the click closed the tab
         url_after = post[0] if post else None
         navigated = url_after is not None and url_after != url_before
         mutations = (None if navigated or post is None
                      else max(0, int(post[1]) - mut_before))
+        control_after = post[2] if post and len(post) > 2 else None
+        control_state_changed = (control_before is not None and control_after is not None
+                                 and control_before != control_after)
         modality = "compositor"
-        if (retry_inert and not navigated and not mutations and dialog is None
+        if (retry_inert and not navigated and not mutations and not control_state_changed
+                and dialog is None
                 and len(self._created) == targets_before):
-            landed = self._activate_click(x, y, url_before, mut_before, settle, timeout)
+            landed = self._activate_click(x, y, url_before, mut_before, settle, timeout,
+                                          ref=ref)
             if landed is not None:
-                url_after, mutations, modality = landed
+                url_after, mutations, modality, control_after = landed
                 navigated = url_after is not None and url_after != url_before
+                control_state_changed = (
+                    control_before is not None and control_after is not None
+                    and control_before != control_after)
         return {
             "url_before": url_before,
             "url_after": url_after,
             "navigated": navigated,
             # a new document restarts the counter, so a cross-document delta would lie
             "dom_mutations": mutations,
+            "control_state_changed": control_state_changed,
             "modality": modality,
             "new_targets": [t.get("targetId") for t in list(self._created)[targets_before:]],
             "dialog": dialog,
         }
 
-    def _activate_click(self, x: float, y: float, url_before: str, mut_before: int,
-                        settle: float, timeout: float) -> tuple[Any, int | None, str] | None:
+    def _activate_click(
+        self, x: float, y: float, url_before: str, mut_before: int,
+        settle: float, timeout: float, ref: str | None = None,
+    ) -> tuple[Any, int | None, str, Any] | None:
         """Retry a click that provably did nothing, through the DOM.
 
         A compositor-level click is the right default — it passes through iframes and
@@ -1446,13 +1489,17 @@ class Tab:
             return None
         time.sleep(max(settle, 0.15))
         try:
-            post = self._world_js("[location.href, window.__bh ? __bh.mutations : 0]",
-                                  timeout=timeout)
+            target = (f"window.__bh && __bh.refs[{ref!r}]" if ref is not None
+                      else f"document.elementFromPoint({x!r}, {y!r})")
+            post = self._world_js(
+                f"[location.href, window.__bh ? __bh.mutations : 0,"
+                f" ({_CONTROL_STATE_JS})({target})]", timeout=timeout)
         except HarnessError:
             return None
         url_after = post[0]
         navigated = url_after != url_before
-        return (url_after, None if navigated else max(0, int(post[1]) - mut_before), "dom")
+        return (url_after, None if navigated else max(0, int(post[1]) - mut_before), "dom",
+                post[2] if len(post) > 2 else None)
 
     # -- waiting on a condition, not on a guess ----------------------------
 

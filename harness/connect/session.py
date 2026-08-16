@@ -114,46 +114,51 @@ class SessionRegistry:
         """
         lock = self._lock_for(target_id)
         with lock:
+            return self._ready_session_locked(target_id)
+
+    def _ready_session_locked(self, target_id: str) -> Session:
+        """Produce a session while the caller owns this target's lock."""
+        with self._guard:
             existing = self._sessions.get(target_id)
-            if existing is not None and existing.live:
-                return existing
+        if existing is not None and existing.live:
+            return existing
 
-            with self._guard:
-                adopted = self._adopted.pop(target_id, None)
-            if adopted is not None:
-                # The browser already handed us this one; enabling domains is what makes
-                # it a session by our definition, and it still happens here and nowhere else.
-                session = Session(target_id=target_id, session_id=adopted,
-                                  domains=self._enable_domains(adopted, self._domains))
-                with self._guard:
-                    self._sessions[target_id] = session
-                    self._by_session[adopted] = target_id
-                self._j.write("daemon", event="adopted", **session.to_json())
-                return session
-
-            try:
-                result = self._conn.request(
-                    "Target.attachToTarget", {"targetId": target_id, "flatten": True}
-                )
-            except HarnessError as e:
-                # Attaching to a tab that closed is `TARGET_GONE`, not a mystery.
-                if e.cls in (Class.TARGET_GONE, Class.CDP_ERROR):
-                    raise self._dead(target_id, State.TARGET_MISSING, e.args[0]) from e
-                raise
-
-            session_id = result.get("sessionId")
-            if not session_id:
-                raise self._dead(target_id, State.TARGET_MISSING,
-                                 "attachToTarget returned no sessionId")
-
-            enabled = self._enable_domains(session_id, self._domains_for(target_id))
-            session = Session(target_id=target_id, session_id=session_id,
-                              domains=enabled)
+        with self._guard:
+            adopted = self._adopted.pop(target_id, None)
+        if adopted is not None:
+            # The browser already handed us this one; enabling domains is what makes
+            # it a session by our definition, and it still happens here and nowhere else.
+            session = Session(target_id=target_id, session_id=adopted,
+                              domains=self._enable_domains(adopted, self._domains))
             with self._guard:
                 self._sessions[target_id] = session
-                self._by_session[session_id] = target_id
-            self._j.write("daemon", event="attached", **session.to_json())
+                self._by_session[adopted] = target_id
+            self._j.write("daemon", event="adopted", **session.to_json())
             return session
+
+        try:
+            result = self._conn.request(
+                "Target.attachToTarget", {"targetId": target_id, "flatten": True}
+            )
+        except HarnessError as e:
+            # Attaching to a tab that closed is `TARGET_GONE`, not a mystery.
+            if e.cls in (Class.TARGET_GONE, Class.CDP_ERROR):
+                raise self._dead(target_id, State.TARGET_MISSING, e.args[0]) from e
+            raise
+
+        session_id = result.get("sessionId")
+        if not session_id:
+            raise self._dead(target_id, State.TARGET_MISSING,
+                             "attachToTarget returned no sessionId")
+
+        enabled = self._enable_domains(session_id, self._domains_for(target_id))
+        session = Session(target_id=target_id, session_id=session_id,
+                          domains=enabled)
+        with self._guard:
+            self._sessions[target_id] = session
+            self._by_session[session_id] = target_id
+        self._j.write("daemon", event="attached", **session.to_json())
+        return session
 
     def _domains_for(self, target_id: str) -> tuple[str, ...]:
         """Workers have no Page or DOM domains; pages retain the full contract."""
@@ -205,22 +210,30 @@ class SessionRegistry:
         target has nothing to re-attach to, and a crashed renderer needs a reload
         decision the caller owns.
         """
-        with self._guard:
-            session = self._sessions.get(target_id)
-        if session is None:
-            return self.ready_session(target_id)
-        if session.live:
-            return session
-        if session.state is State.SESSION_STALE:
-            self._j.write("daemon", event="session_reattached", target=target_id,
-                          stale_session=session.session_id)
-            self.forget(target_id)
-            return self.ready_session(target_id)
-        raise HarnessError.of(Outcome(
-            ok=False, cls=STATE_CLASS[session.state], detail=session.reason,
-            observed={"target_id": target_id, "session_id": session.session_id,
-                      "state": session.state.value},
-        ))
+        lock = self._lock_for(target_id)
+        with lock:
+            with self._guard:
+                session = self._sessions.get(target_id)
+            if session is None:
+                return self._ready_session_locked(target_id)
+            if session.live:
+                return session
+            if session.state is State.SESSION_STALE:
+                self._j.write("daemon", event="session_reattached", target=target_id,
+                              stale_session=session.session_id)
+                # Remove exactly the stale generation observed above. Keeping the
+                # check and replacement under the target lock prevents a second caller
+                # from deleting the fresh session installed by the first caller.
+                with self._guard:
+                    if self._sessions.get(target_id) is session:
+                        self._sessions.pop(target_id, None)
+                        self._by_session.pop(session.session_id, None)
+                return self._ready_session_locked(target_id)
+            raise HarnessError.of(Outcome(
+                ok=False, cls=STATE_CLASS[session.state], detail=session.reason,
+                observed={"target_id": target_id, "session_id": session.session_id,
+                          "state": session.state.value},
+            ))
 
     def mark(self, target_id: str, state: State, reason: str = "") -> None:
         """Record that a session died, and why. Idempotent."""

@@ -250,6 +250,7 @@ def main() -> int:
         check("login: two credential fields are authentication, not application",
               verdict["classification"] == "login_email_password"
               and verdict["is_authentication"] is True
+              and verdict["is_form"] is True
               and verdict["is_application"] is False,
               str(verdict["classification"]))
 
@@ -265,6 +266,7 @@ def main() -> int:
         check("generic contact form is not promoted to an application",
               verdict["classification"] == "generic_form"
               and verdict["is_generic_form"] is True
+              and verdict["is_form"] is True
               and verdict["is_application"] is False,
               str(verdict["classification"]))
 

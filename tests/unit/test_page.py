@@ -1,12 +1,13 @@
 """Tab primitive tests against the fake. The measured done-whens (overshoot, snapshot
 latency, screenshot pixels) live in tests/live/check.py against real Chrome."""
 import json
+import threading
 import time
 
 import pytest
 
 from harness.connect.cdp import Connection
-from harness.connect.session import SessionRegistry
+from harness.connect.session import SessionRegistry, State
 from harness.core.outcome import (
     CdpError,
     Class,
@@ -178,7 +179,6 @@ def test_goto_returns_a_usable_document_even_with_no_lifecycle_event(wired):
 def test_wait_lifecycle_wakes_on_the_event_not_on_a_poll(wired):
     browser, _, _ = wired
     tab = _tab(wired)
-    import threading
     threading.Timer(0.1, lambda: browser.emit(
         "Page.lifecycleEvent", {"name": "networkIdle"},
         session_id=tab._session_id)).start()
@@ -218,7 +218,6 @@ def test_frames_collects_every_announcement_not_just_the_first(wired):
     under-reporting: the caller saw a short list and no indication it was short."""
     browser, _, _ = wired
     tab = _tab(wired)
-    import threading
     for i, delay in enumerate((0.02, 0.06, 0.10)):
         threading.Timer(delay, lambda i=i: browser.emit(
             "Target.attachedToTarget",
@@ -245,14 +244,16 @@ def test_a_click_that_did_nothing_falls_back_to_the_dom(wired):
     state = {"clicked": False}
 
     def hook(e):
-        if "elementFromPoint" in e:
+        if "PointerEvent" in e:
             state["clicked"] = True
             return True
-        if "__bh.refs" in e:                  # checked first: it also mentions location
-            return [10.0, 20.0, "https://a.test/", 0, None]
+        if "getBoundingClientRect" in e:
+            return [10.0, 20.0, "https://a.test/", 0, None,
+                    {"tag": "button", "focused": False}]
         if "location.href" in e:
-            return ["https://a.test/after", 0] if state["clicked"] \
-                else ["https://a.test/", 0]
+            return (["https://a.test/after", 0, {"tag": "button", "focused": True}]
+                    if state["clicked"] else
+                    ["https://a.test/", 0, {"tag": "button", "focused": False}])
         return None
 
     browser.eval_hook = hook
@@ -271,13 +272,14 @@ def test_a_click_that_did_something_is_never_repeated(wired):
     fired = {"dom": False}
 
     def hook(e):
-        if "elementFromPoint" in e:
+        if "PointerEvent" in e:
             fired["dom"] = True
             return True
-        if "__bh.refs" in e:                  # checked first: it also mentions location
-            return [10.0, 20.0, "https://a.test/", 0, None]
+        if "getBoundingClientRect" in e:
+            return [10.0, 20.0, "https://a.test/", 0, None,
+                    {"tag": "button", "focused": False}]
         if "location.href" in e:
-            return ["https://a.test/", 7]     # 7 mutations: the click plainly landed
+            return ["https://a.test/", 7, {"tag": "button", "focused": True}]
         return None
 
     browser.eval_hook = hook
@@ -285,6 +287,35 @@ def test_a_click_that_did_something_is_never_repeated(wired):
     assert fired["dom"] is False
     assert d["modality"] == "compositor"
     assert d["dom_mutations"] == 7
+
+
+def test_a_native_control_state_change_is_never_repeated(wired):
+    """A checkbox toggle does not necessarily mutate the DOM. Its property state is
+    nevertheless direct evidence that the compositor click landed, so a DOM retry would
+    toggle it back to the original value."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    fired = {"dom": False}
+
+    def hook(e):
+        if "PointerEvent" in e:
+            fired["dom"] = True
+            return True
+        if "getBoundingClientRect" in e:
+            return [10.0, 20.0, "https://a.test/", 0, None,
+                    {"tag": "input", "type": "checkbox", "focused": False,
+                     "checked": False}]
+        if "location.href" in e:
+            return ["https://a.test/", 0,
+                    {"tag": "input", "type": "checkbox", "focused": True,
+                     "checked": True}]
+        return None
+
+    browser.eval_hook = hook
+    delta = tab.click_ref("e1", settle=0.01)
+    assert fired["dom"] is False
+    assert delta["modality"] == "compositor"
+    assert delta["control_state_changed"] is True
 
 
 # --- a session is a lease; the target is the identity -------------------------
@@ -304,7 +335,7 @@ def test_a_stale_session_recovers_by_reattaching_to_the_living_target(wired):
     never notices. Safe precisely because callers hold target ids: the replacement is for
     the target they named, by construction, so there is no tab to be redirected to —
     which is why none of browser-use PR 618's session-replacement machinery exists here."""
-    browser, conn, registry = wired
+    browser, _conn, registry = wired
     tab = _tab(wired)
     first = tab._session_id
     browser.eval_hook = lambda e: "ok"
@@ -319,7 +350,7 @@ def test_recovery_rearms_the_injected_scripts_on_the_new_session(wired):
     runtime, the wait binding — dies with it and announces nothing: the next navigation
     would simply load WITHOUT the dry-run guard. The re-arm is therefore a safety
     property, not a nicety."""
-    browser, conn, registry = wired
+    browser, _conn, registry = wired
     tab = _tab(wired)
     first = tab._session_id
     scripts_before = [c for c in browser.calls
@@ -339,13 +370,40 @@ def test_recovery_rearms_the_injected_scripts_on_the_new_session(wired):
 def test_a_destroyed_target_still_fails_closed(wired):
     """Recovery is for expired leases only. A destroyed target has nothing to re-attach
     to, and pretending otherwise would fabricate a tab."""
-    browser, conn, registry = wired
+    browser, _conn, registry = wired
     tab = _tab(wired)
     browser.destroy("a")
     assert _settle(lambda: "a" not in registry._sessions
                    or not registry._sessions["a"].live)
     with pytest.raises(HarnessError):
         tab.js("1")
+
+
+def test_concurrent_stale_recovery_installs_one_replacement_session(wired):
+    """Two callers observing one stale generation must share one replacement. Previously
+    both forgot the stale session outside the target lock; the loser could then delete
+    the winner's fresh session and attach a third generation."""
+    browser, _conn, registry = wired
+    first = registry.ready_session("a")
+    registry.mark("a", State.SESSION_STALE, "test detach")
+    browser.latency = 0.02
+    start = threading.Barrier(3)
+    returned = []
+
+    def recover():
+        start.wait()
+        returned.append(registry.ensure_live("a").session_id)
+
+    threads = [threading.Thread(target=recover) for _ in range(2)]
+    for thread in threads:
+        thread.start()
+    start.wait()
+    for thread in threads:
+        thread.join(timeout=5)
+
+    assert len(returned) == 2
+    assert returned[0] == returned[1] != first.session_id
+    assert browser.attach_count["a"] == 2
 
 
 # --- the keyboard twin: delivery-verified keys, DOM synthesis when dropped ----
@@ -569,8 +627,8 @@ def test_click_ref_dispatches_at_the_elements_center(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [15.0, 25.0, "https://a.test/", 5] if "__bh.refs" in e
-        else ["https://a.test/", 9])
+        [15.0, 25.0, "https://a.test/", 5] if "getBoundingClientRect" in e
+        else ["https://a.test/", 9, None])
     delta = tab.click_ref("e1", settle=0.05)
     clicks = [c for c in browser.calls if c.get("method") == "Input.dispatchMouseEvent"]
     assert [c["params"]["type"] for c in clicks] == ["mousePressed", "mouseReleased"]
@@ -592,8 +650,8 @@ def test_a_click_that_navigates_reports_it_and_voids_the_dom_delta(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 3] if "__bh.refs" in e
-        else ["https://a.test/next", 0])
+        [10.0, 10.0, "https://a.test/", 3] if "getBoundingClientRect" in e
+        else ["https://a.test/next", 0, None])
     delta = tab.click_ref("e1", settle=0.05)
     assert delta["navigated"] is True
     assert delta["dom_mutations"] is None            # a new document restarts the counter
@@ -603,7 +661,8 @@ def test_a_click_that_opens_a_new_tab_reports_the_target(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+        [10.0, 10.0, "https://a.test/", 0] if "getBoundingClientRect" in e
+        else ["https://a.test/", 0, None])
     real_send = browser.send
 
     def send_and_open(msg):
@@ -623,7 +682,8 @@ def test_the_dialog_dance_a_blocked_dispatch_is_a_click_that_opened_a_dialog(wir
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+        [10.0, 10.0, "https://a.test/", 0] if "getBoundingClientRect" in e
+        else ["https://a.test/", 0, None])
     browser.hang_methods = {"Input.dispatchMouseEvent"}
     real_send = browser.send
 
@@ -644,7 +704,8 @@ def test_a_dialog_that_closes_before_dismissal_does_not_erase_the_click(wired, m
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+        [10.0, 10.0, "https://a.test/", 0] if "getBoundingClientRect" in e
+        else ["https://a.test/", 0, None])
     real_cdp = tab.cdp
 
     def raced(method, *args, **kwargs):
@@ -707,7 +768,8 @@ def test_the_grace_period_lets_the_click_dance_win_its_own_dialog(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+        [10.0, 10.0, "https://a.test/", 0] if "getBoundingClientRect" in e
+        else ["https://a.test/", 0, None])
     browser.emit("Page.javascriptDialogOpening", {"type": "confirm", "message": "Now?"},
                  session_id=tab._session_id)
     time.sleep(0.05)                       # inside the grace window
@@ -723,7 +785,8 @@ def test_a_genuinely_hung_dispatch_still_raises(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+        [10.0, 10.0, "https://a.test/", 0] if "getBoundingClientRect" in e
+        else ["https://a.test/", 0, None])
     browser.hang_methods = {"Input.dispatchMouseEvent"}          # hangs, but no dialog
     with pytest.raises(Timeout):
         tab.click_ref("e1", settle=0.05, timeout=1.0)
@@ -813,7 +876,7 @@ def test_submit_ref_is_refused_before_mouse_dispatch(wired):
     browser.eval_hook = lambda e: (
         [15.0, 25.0, "https://a.test/", 5,
          {"danger": True, "tag": "button", "type": "submit", "action": "/apply"}]
-        if "__bh.refs" in e else ["https://a.test/", 5])
+        if "getBoundingClientRect" in e else ["https://a.test/", 5, None])
     with pytest.raises(SideEffectRefused):
         tab.click_ref("e1")
     assert not any(c.get("method") == "Input.dispatchMouseEvent" for c in browser.calls)

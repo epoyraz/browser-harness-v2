@@ -231,6 +231,20 @@ def test_a_fresh_client_can_resume_an_explicit_daemon_owned_target_lease(served)
         owner.close()
 
 
+def test_implicit_adoption_never_takes_an_actively_leased_target(served):
+    """A lease reserves a target across fresh processes. The ergonomic no-target path
+    must therefore treat it as unavailable, even when no peer has adopted it yet."""
+    owner = Session("sesstest")
+    lease = owner.lease_tab("a")
+    fresh = Session("sesstest")
+    try:
+        assert fresh.tab().target_id == "b"
+    finally:
+        fresh.close()
+        owner.release_lease(lease)
+        owner.close()
+
+
 def test_a_target_cannot_be_leased_twice_until_released(served):
     owner, other = Session("sesstest"), Session("sesstest")
     try:
