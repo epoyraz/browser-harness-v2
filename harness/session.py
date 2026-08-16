@@ -322,22 +322,33 @@ class Session:
         tid = target_id or self._current
         if tid is None:
             return
-        with self._tabs_lock:
-            tab = self._tabs.pop(tid, None)
-            self._tab_context.pop(tid, None)
-        if tab is not None:
-            tab.close()
-        self.registry.forget(tid)
-        if self._current == tid:
-            self._current = None
+        # Close FIRST, while this client's Tab is still subscribed. Closing a tab whose
+        # page armed beforeunload makes Chrome raise its "Leave site?" dialog, and the
+        # Tab's dialog auto-resolver is the thing that answers it — the local teardown
+        # used to run first, which unsubscribed the only listener, left the dialog
+        # unanswered, and blocked Target.closeTarget behind it. That is the parallel()
+        # cleanup path: every reuse_tabs=False item and every end-of-run worker-tab
+        # release closes a tab that was just FILLED, which is exactly the page that
+        # armed the handler.
+        def teardown() -> None:
+            with self._tabs_lock:
+                tab = self._tabs.pop(tid, None)
+                self._tab_context.pop(tid, None)
+            if tab is not None:
+                tab.close()
+            self.registry.forget(tid)
+            if self._current == tid:
+                self._current = None
         try:
             self.conn.request("Target.closeTarget", {"targetId": tid})
         except HarnessError as error:
             if error.cls not in (Class.TARGET_GONE, Class.SESSION_STALE):
+                teardown()
                 self.journal.write("note", event="resource_cleanup_failed",
                                    resource_kind="tab", identifier=tid,
                                    error=str(error)[:200])
                 raise
+        teardown()
         # Chrome acknowledges closeTarget before the target always disappears from
         # getTargets. Clean-tab workers must not open their replacement during that gap,
         # or a declared three-tab run briefly becomes four renderers on a memory-bound Mac.

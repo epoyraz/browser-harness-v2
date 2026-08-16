@@ -677,6 +677,48 @@ def test_beforeunload_is_accepted_immediately_so_navigation_is_not_blocked(wired
     assert tab._dialog is None
 
 
+def test_an_uninvited_dialog_is_auto_dismissed_so_the_renderer_unblocks(wired):
+    """A dialog that opened with no click in flight — an alert from a page timer, a
+    confirm on load — used to have NO resolver at all: only the click dance dismissed
+    dialogs, so the renderer stayed blocked and every subsequent call on the tab timed
+    out. Measured under parallel() as one worker per run dying at exactly 45.0s: a 25s
+    Page.navigate timeout plus a 20s Runtime.evaluate timeout on a renderer that would
+    never answer either. After the grace period the accept_dialogs policy applies."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.emit("Page.javascriptDialogOpening",
+                 {"type": "alert", "message": "surprise"},
+                 session_id=tab._session_id)
+    deadline = time.monotonic() + 2
+    handled = []
+    while time.monotonic() < deadline and not handled:
+        handled = [c for c in browser.calls
+                   if c.get("method") == "Page.handleJavaScriptDialog"]
+        time.sleep(0.01)
+    assert handled and handled[0]["params"]["accept"] is False   # policy default
+    assert tab._dialog is None                                   # unblocked and cleared
+
+
+def test_the_grace_period_lets_the_click_dance_win_its_own_dialog(wired):
+    """The auto-resolver must not steal a dialog the click dance is about to claim: the
+    dance reads richer context (it reports the dialog in the click's delta). Within the
+    grace window the dance resolves it; the auto-resolver then finds the claim and does
+    nothing."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: (
+        [10.0, 10.0, "https://a.test/", 0] if "__bh.refs" in e else ["https://a.test/", 0])
+    browser.emit("Page.javascriptDialogOpening", {"type": "confirm", "message": "Now?"},
+                 session_id=tab._session_id)
+    time.sleep(0.05)                       # inside the grace window
+    delta = tab.click_ref("e1", settle=0.01)
+    assert delta["dialog"] == {"type": "confirm", "message": "Now?"}
+    time.sleep(Tab.DIALOG_GRACE + 0.2)     # let the auto-resolver wake and stand down
+    handled = [c for c in browser.calls
+               if c.get("method") == "Page.handleJavaScriptDialog"]
+    assert len(handled) == 1               # exactly one dismissal, the dance's
+
+
 def test_a_genuinely_hung_dispatch_still_raises(wired):
     browser, _, _ = wired
     tab = _tab(wired)

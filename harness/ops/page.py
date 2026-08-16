@@ -760,6 +760,9 @@ class Tab:
         self._wlock = threading.Lock()
         self._waiters: list[_Waiter] = []
         self._dialog: dict[str, Any] | None = None
+        #: (monotonic ts, params) of the last dialog the auto-resolver dismissed — how a
+        #: click whose dispatch was blocked learns its dialog was already handled.
+        self._auto_dialog: tuple[float, dict[str, Any]] | None = None
         self._created: deque[dict[str, Any]] = deque(maxlen=16)
         self._diagnostic_events: deque[dict[str, Any]] = deque(maxlen=128)
         self._diagnostics_enabled = False
@@ -915,19 +918,23 @@ class Tab:
         if method == "Page.javascriptDialogOpening":
             with self._wlock:
                 self._dialog = params
-            # A page may install a beforeunload handler as soon as applicant data changes.
-            # Chrome then blocks Page.navigate/Target.close behind its native "Leave
-            # site?" prompt.  It is not an application action; accepting it only permits
-            # the navigation the caller already requested.  Handle this one dialog type
-            # immediately off the reader thread. Alerts and confirms retain the normal
-            # click-dialog policy below, including accept_dialogs=False by default.
-            if params.get("type") == "beforeunload":
-                threading.Thread(
-                    target=self._accept_beforeunload,
-                    args=(params,),
-                    name="bh-beforeunload",
-                    daemon=True,
-                ).start()
+            # EVERY open dialog blocks the renderer for every caller — Page.navigate
+            # stops answering, Runtime.evaluate stops answering — and only a click's own
+            # dialog dance knew how to resolve one. A dialog that opened any other way
+            # (beforeunload on navigation, an alert from a page timer) wedged the tab for
+            # good: measured under parallel() as one worker per run dying at exactly
+            # 45.0s — a 25s navigate timeout plus a 20s evaluate timeout on a renderer
+            # that would never answer either. So no dialog goes unresolved: beforeunload
+            # is accepted immediately (it is not an application action; accepting only
+            # permits the navigation the caller already requested), and the rest get a
+            # grace period for the click dance to claim them before the accept_dialogs
+            # policy applies. Off the reader thread, which must never make a request.
+            threading.Thread(
+                target=self._resolve_dialog,
+                args=(params,),
+                name="bh-dialog",
+                daemon=True,
+            ).start()
         elif method == "Target.targetCreated":
             info = params.get("targetInfo") or {}
             if info.get("type") == "page" and info.get("targetId") != self.target_id:
@@ -937,18 +944,39 @@ class Tab:
         for w in waiters:
             w.offer(msg)
 
-    def _accept_beforeunload(self, pending: dict[str, Any]) -> None:
+    #: How long a click's own dialog dance gets to claim an alert/confirm/prompt before
+    #: the auto-resolver applies the accept_dialogs policy. Much shorter than the 2s the
+    #: dance waits on its blocked dispatch, so the dance never loses the race when it is
+    #: actually running — and much shorter than any caller's timeout, so an uninvited
+    #: dialog costs a quarter second instead of wedging the tab until the run ends.
+    DIALOG_GRACE = 0.25
+
+    def _resolve_dialog(self, pending: dict[str, Any]) -> None:
+        kind = str(pending.get("type") or "")
+        accept = True if kind == "beforeunload" else self.accept_dialogs
+        if kind != "beforeunload":
+            time.sleep(self.DIALOG_GRACE)
+            with self._wlock:
+                if self._dialog is not pending:
+                    return          # the click dance claimed and resolved it
         try:
-            self.cdp("Page.handleJavaScriptDialog", {"accept": True}, timeout=5.0)
+            self.cdp("Page.handleJavaScriptDialog", {"accept": accept}, timeout=5.0)
+            self._j.write("note", event="dialog_auto_handled", dialog_type=kind,
+                          accepted=accept, target_id=self.target_id,
+                          message=str(pending.get("message") or "")[:120])
         except HarnessError as exc:
             # Chrome can close the dialog itself between the event and our command.
             if "No dialog is showing" not in str(exc):
-                self._j.write("note", event="beforeunload_handle_failed",
-                              error_class=exc.cls.value)
+                self._j.write("note", event="dialog_handle_failed", dialog_type=kind,
+                              error_class=exc.cls.value, target_id=self.target_id)
         finally:
             with self._wlock:
                 if self._dialog is pending:
                     self._dialog = None
+                    # The dance may still be waiting on its blocked dispatch; this record
+                    # is how it learns that its click DID open a dialog and that the
+                    # dialog is already resolved — reported, never re-dismissed.
+                    self._auto_dialog = (time.monotonic(), pending)
 
     def _sanitize_diagnostic_event(self, method: str,
                                    params: dict[str, Any]) -> dict[str, Any] | None:
@@ -1278,6 +1306,7 @@ class Tab:
         interesting = ("Page.lifecycleEvent", "Page.frameNavigated",
                        "Page.javascriptDialogOpening", "Target.targetCreated")
         targets_before = len(self._created)
+        dispatch_started = time.monotonic()
         with self._j.call("click", x=x, y=y, ref=ref) , \
              self._armed(lambda m: m.get("method") in interesting) as w:
             for kind in ("mousePressed", "mouseReleased"):
@@ -1287,7 +1316,12 @@ class Tab:
                               "clickCount": 1}, timeout=min(timeout, 2.0))
                 except Timeout:
                     with self._wlock:
-                        blocked_by_dialog = self._dialog is not None
+                        # Pending, OR already resolved by the auto-resolver during this
+                        # very dispatch — its grace period is shorter than this wait, so
+                        # by the time the timeout fires the dialog is usually gone.
+                        auto = self._auto_dialog
+                        blocked_by_dialog = self._dialog is not None or (
+                            auto is not None and auto[0] >= dispatch_started)
                     if not blocked_by_dialog:
                         raise          # a real hang, not the dialog dance
                     break              # the click landed; its handler opened a dialog
@@ -1296,6 +1330,11 @@ class Tab:
         dialog = None
         with self._wlock:
             pending, self._dialog = self._dialog, None
+            auto = self._auto_dialog
+        if pending is None and auto is not None and auto[0] >= dispatch_started:
+            # The auto-resolver got there first; the dialog still belongs in this click's
+            # delta — same shape, already dismissed under the same accept_dialogs policy.
+            dialog = {"type": auto[1].get("type"), "message": auto[1].get("message")}
         if pending is not None:
             try:
                 self.cdp("Page.handleJavaScriptDialog", {"accept": self.accept_dialogs},

@@ -145,6 +145,48 @@ def test_the_tab_marker_follows_the_cursor_when_enabled(served, monkeypatch):
         s.close()
 
 
+def test_closing_a_dirty_tab_answers_its_own_leave_site_prompt(served):
+    """Chrome raises the beforeunload dialog when a tab whose page armed it is CLOSED,
+    and blocks Target.closeTarget until the dialog is answered. close_tab used to tear
+    down the local Tab — unsubscribing the only dialog listener — before issuing the
+    close, so the prompt went unanswered and the close wedged. This is the parallel()
+    cleanup path: the tab being closed is one that was just FILLED, which is exactly the
+    page that armed the handler. The fake models Chrome faithfully: closeTarget answers
+    only after handleJavaScriptDialog arrives."""
+    browser, _ = served
+    s = Session("sesstest")
+    try:
+        tab = s.use_tab("a")
+        released = threading.Event()
+        real_send = browser.send
+
+        def chrome_like(msg):
+            method = msg.get("method")
+            if method == "Target.closeTarget":
+                browser.emit("Page.javascriptDialogOpening",
+                             {"type": "beforeunload", "message": "Leave site?"},
+                             session_id=tab._session_id)
+
+                def answer_when_released(deferred=msg):
+                    if released.wait(5):
+                        real_send(deferred)     # the dialog was answered; close proceeds
+
+                threading.Thread(target=answer_when_released, daemon=True).start()
+                return
+            if method == "Page.handleJavaScriptDialog":
+                released.set()
+            real_send(msg)
+
+        browser.send = chrome_like
+        s.close_tab("a", wait=False)            # completes instead of wedging
+        handled = [c for c in browser.calls
+                   if c.get("method") == "Page.handleJavaScriptDialog"]
+        assert handled and handled[0]["params"]["accept"] is True
+    finally:
+        browser.send = real_send
+        s.close()
+
+
 def test_new_tab_is_created_in_the_background(session, served):
     """`Target.createTarget` defaults to foreground. Measured on four consecutive
     creations: the user's selected tab loses focus once per tab, and afterwards exactly
