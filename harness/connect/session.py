@@ -191,6 +191,19 @@ class SessionRegistry:
         """Return a live session or raise its typed error (TODO 10).
 
         A dictionary lookup, not a probe: the browser already told us when the target died.
+
+        One dead state is not final. `SESSION_STALE` means the browser detached the
+        *session* — the tab itself may be perfectly alive, and a session is only a lease
+        on a target, so the recovery is to take a new lease: re-attach through the one
+        producer and carry on. This is safe here precisely because callers hold TARGET
+        ids: the replacement session is for the same target by construction, so there is
+        no tab the caller could be silently redirected to (the redirect hazard is what
+        browser-use PR 618 needed a session-replacement map and an explicit-caller
+        refusal to manage — v1's callers hold session ids). `ready_session` fails closed
+        with `TARGET_MISSING` when the tab really is gone, so a wrong guess about
+        liveness cannot fabricate a tab. The other dead states stay final: a destroyed
+        target has nothing to re-attach to, and a crashed renderer needs a reload
+        decision the caller owns.
         """
         with self._guard:
             session = self._sessions.get(target_id)
@@ -198,6 +211,11 @@ class SessionRegistry:
             return self.ready_session(target_id)
         if session.live:
             return session
+        if session.state is State.SESSION_STALE:
+            self._j.write("daemon", event="session_reattached", target=target_id,
+                          stale_session=session.session_id)
+            self.forget(target_id)
+            return self.ready_session(target_id)
         raise HarnessError.of(Outcome(
             ok=False, cls=STATE_CLASS[session.state], detail=session.reason,
             observed={"target_id": target_id, "session_id": session.session_id,

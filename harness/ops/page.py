@@ -782,14 +782,34 @@ class Tab:
     # -- plumbing ----------------------------------------------------------
 
     def _sid(self) -> str:
-        self._session_id = self._reg.ensure_live(self.target_id).session_id
-        return self._session_id
+        sid = self._reg.ensure_live(self.target_id).session_id
+        if self._session_id is not None and sid != self._session_id:
+            # The registry recovered a stale session by re-attaching (a session is a
+            # lease; the target is the identity). Everything the OLD session carried is
+            # gone with it — injected-script registrations, the runtime binding, event
+            # subscriptions — and none of it announces its own absence: the next
+            # navigation would simply load without the dry-run guard, and waits would
+            # quietly run to their timeouts. So a changed session id re-arms it all,
+            # here, before the call that noticed the change proceeds.
+            self._session_id = sid
+            self._world_ctx = None
+            self._bound = False
+            self._rearm_session(sid)
+        else:
+            self._session_id = sid
+        return sid
 
-    def _install_runtime(self) -> None:
-        """Item 18: the registry + mutation counter exist on every document this tab will
-        ever load, so refs survive navigation by reinstallation, not by luck — and they
-        live in an isolated world, so the page never sees them."""
-        sid = self._sid()
+    def _rearm_session(self, sid: str) -> None:
+        """Reinstall per-session state on a replacement session, quietly but journaled."""
+        self._j.write("note", event="session_rearmed", target_id=self.target_id)
+        self._register_runtime(sid)
+        self._ensure_world()
+
+    def _register_runtime(self, sid: str) -> None:
+        """The one place the injected scripts are registered — first attach and every
+        session recovery go through the same two calls, so they cannot drift apart.
+        SAFETY_JS is a safety property; a drifted copy that forgot it would announce
+        nothing."""
         self._conn.request(
             "Page.addScriptToEvaluateOnNewDocument",
             {"source": SAFETY_JS, "runImmediately": True},
@@ -798,6 +818,12 @@ class Tab:
             "Page.addScriptToEvaluateOnNewDocument",
             {"source": RUNTIME_JS, "worldName": WORLD, "runImmediately": True},
             session_id=sid, timeout=10.0)
+
+    def _install_runtime(self) -> None:
+        """Item 18: the registry + mutation counter exist on every document this tab will
+        ever load, so refs survive navigation by reinstallation, not by luck — and they
+        live in an isolated world, so the page never sees them."""
+        self._register_runtime(self._sid())
         self._ensure_world()                                   # and for the current document
 
     def _ensure_world(self) -> int | None:

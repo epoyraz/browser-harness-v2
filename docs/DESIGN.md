@@ -278,6 +278,40 @@ session starts with all domains disabled was not the one `switch_tab()` used. Th
 divergence produced four separate bugs over four PRs, including silently breaking
 `wait_for_network_idle()` four days after it shipped.
 
+**The invariant beneath all of this, stated so nobody "simplifies" it away: a target id
+is IDENTITY; a session id is a LEASE.** Callers — `Tab`, scripts, the daemon's clients —
+hold target ids and nothing else; the session id is re-resolved on every call through
+`ensure_live()`, never stored across calls, never handed to a caller as a thing to keep.
+Two consequences do a lot of quiet work:
+
+- *Recovery is trivial and cannot redirect.* When the browser detaches a session
+  (`SESSION_STALE`), the tab is usually fine — a lease expired, not the thing it named —
+  so `ensure_live` takes a new lease on the **same target** and the caller never notices.
+  Silent redirection to the wrong tab is structurally impossible: the replacement is for
+  the target the caller named, by construction. Compare browser-use PR 618, which fixes
+  the v1-shaped version of this: because v1 callers hold *session* ids, its recovery
+  needs a session-replacement map with chain preservation, a cap, and an explicit rule
+  that named-session callers must get an error rather than a redirect. None of that
+  machinery has a counterpart here — this one sentence is why. The states that stay
+  fatal stay fatal: a destroyed target has nothing to re-attach to, and a crashed
+  renderer needs a reload decision the caller owns.
+- *Per-session state must follow the lease.* Injected-script registrations (`SAFETY_JS`,
+  the isolated-world runtime) and the wait binding live on the session and die with it,
+  announcing nothing. `Tab._sid()` watches the lease change and re-arms them before the
+  noticing call proceeds — the dry-run guard's presence on the next document must never
+  depend on which lease happened to register it.
+
+**Correction to the background-input measurement above (2026-08-16, Windows Chrome):**
+"a backgrounded tab accepts synthetic mouse input addressed to its session" does **not**
+hold on Windows. Measured with page-side listeners: the renderer silently drops raw
+`Input.dispatchMouseEvent` *and* `dispatchKeyEvent` for any tab that is not its window's
+selected tab (0 of N events reached the page's handlers; the CDP call ACKs regardless),
+and `mouseWheel` never ACKs at all. `Input.insertText` and DOM-level dispatch survive.
+v2 therefore does not rest on the original claim: every raw-input path verifies delivery
+against isolated-world counters (`__bh.keys` / `__bh.scrolls` / the click delta) and
+falls back through the DOM when provably nothing arrived — see `type_chars`,
+`press_key`, `scroll`, and `_activate_click` in `ops/page.py`.
+
 ### D2 — Never steal OS focus
 
 Four PRs exist to remove focus stealing (#402 #498 #504 #513). D1's measurement shows why
@@ -285,7 +319,11 @@ it was never needed: background tabs receive input fine when addressed by sessio
 
 Focus stealing is not merely unnecessary — with N concurrent clients it is *actively
 harmful*, since every click yanks the window between tabs. **v2 never calls
-`Target.activateTarget` implicitly.**
+`Target.activateTarget` implicitly.** The explicit opt-in is `Session.activate_tab()`
+(2026-08-16, mirroring browser-use PR 618's attach/activate split): it exists for a page
+that demonstrably pauses visibility-dependent work while hidden, and for a human who
+wants to watch — never for input, which the delivery-verified fallbacks in D1's
+correction handle without it.
 
 > Caveat to carry forward: backgrounded tabs pause `requestAnimationFrame` (#511), so
 > *screenshots* of a background tab can be stale even though input works. Screenshot is the

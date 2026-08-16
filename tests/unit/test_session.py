@@ -104,6 +104,47 @@ def test_adoption_never_restricts_an_explicit_target(served):
         owner.close(); guest.close()
 
 
+def _title_calls(browser):
+    # The marker travels as JS surrogate escapes (🐴), so match the escape —
+    # the Python-side expression string never contains the raw emoji.
+    return [c for c in browser.calls
+            if c.get("method") == "Runtime.evaluate"
+            and "udc34" in str((c.get("params") or {}).get("expression", ""))]
+
+
+def test_the_tab_marker_is_off_unless_asked_for(session, served):
+    """`document.title` is page-visible state — analytics read it — and the
+    detectability contract is that the harness announces nothing to the page unless the
+    operator asks. So the marker is strictly opt-in."""
+    browser, _ = served
+    session.use_tab("a")
+    session.use_tab("b")
+    assert _title_calls(browser) == []
+
+
+def test_the_tab_marker_follows_the_cursor_when_enabled(served, monkeypatch):
+    """BH_TAB_MARK=1: the driven tab carries the 🐴 prefix (browser-use's convention), so
+    a human watching ten hidden worker tabs can tell the harness's tabs from their own at
+    a glance. Moving the cursor marks the new tab and unmarks the one it left."""
+    monkeypatch.setenv("BH_TAB_MARK", "1")
+    browser, _ = served
+    s = Session("sesstest")
+    try:
+        s.use_tab("a")
+        marks = _title_calls(browser)
+        assert marks, "attaching never marked the tab"
+        s.use_tab("b")
+        by_session = [(browser.sessions.get(c.get("sessionId")),
+                       "slice(3)" in c["params"]["expression"]) for c in _title_calls(browser)]
+        assert ("b", False) in by_session          # the new current tab was marked
+        assert ("a", True) in by_session           # the abandoned one was unmarked
+        n = len(_title_calls(browser))
+        s.tab()                                    # cursor unchanged -> no re-mark
+        assert len(_title_calls(browser)) == n
+    finally:
+        s.close()
+
+
 def test_new_tab_is_created_in_the_background(session, served):
     """`Target.createTarget` defaults to foreground. Measured on four consecutive
     creations: the user's selected tab loses focus once per tab, and afterwards exactly

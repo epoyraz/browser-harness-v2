@@ -116,8 +116,48 @@ class Session:
                           accept_dialogs=self.accept_dialogs)
                 with self._tabs_lock:
                     self._tabs[tid] = tab
-        self._current = tid
+        previous, self._current = self._current, tid
+        if previous != tid and _enabled(os.environ.get("BH_TAB_MARK"), default=False):
+            self._move_tab_marker(tab, previous)
         return tab
+
+    #: The driven-tab marker (🐴, browser-use's convention). A human watching ten hidden
+    #: worker tabs fill forms has no way to tell the harness's tabs from their own; the
+    #: title prefix is that answer, one glance at the tab strip. OPT-IN via BH_TAB_MARK,
+    #: default off, because `document.title` is page-visible state — analytics read it,
+    #: and the detectability contract is that the harness announces nothing to the page
+    #: unless the operator asks it to.
+    _MARK = "\U0001f434 "
+
+    def _move_tab_marker(self, tab: Tab, previous: str | None) -> None:
+        """Mark the newly current tab; unmark the one this thread just left.
+
+        Best-effort on both sides: a tab mid-navigation or already closing must never
+        turn a cursor move into a failure. The marker is 3 UTF-16 units (surrogate pair
+        plus space), hence slice(3). It survives until the page rewrites its own title —
+        an SPA that does is unmarked until the next cursor move, which is acceptable for
+        a purely cosmetic aid.
+        """
+        try:
+            tab._world_js(
+                "(() => { if (!document.title.startsWith('\\ud83d\\udc34 '))"
+                " document.title = '\\ud83d\\udc34 ' + document.title; return true; })()",
+                timeout=5.0)
+        except HarnessError:
+            pass
+        if previous is None:
+            return
+        with self._tabs_lock:
+            old = self._tabs.get(previous)
+        if old is None:
+            return
+        try:
+            old._world_js(
+                "(() => { if (document.title.startsWith('\\ud83d\\udc34 '))"
+                " document.title = document.title.slice(3); return true; })()",
+                timeout=5.0)
+        except HarnessError:
+            pass
 
     def tab(self, target_id: str | None = None) -> Tab:
         """The current tab, or a named one. Attaches to a real page if we have none yet —

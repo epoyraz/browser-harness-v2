@@ -11,6 +11,7 @@ from harness.core.outcome import (
     CdpError,
     Class,
     ElementGone,
+    HarnessError,
     JsException,
     NavigationFailed,
     NotSerializable,
@@ -284,6 +285,67 @@ def test_a_click_that_did_something_is_never_repeated(wired):
     assert fired["dom"] is False
     assert d["modality"] == "compositor"
     assert d["dom_mutations"] == 7
+
+
+# --- a session is a lease; the target is the identity -------------------------
+
+def _settle(cond, timeout=3.0):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if cond():
+            return True
+        time.sleep(0.01)
+    return False
+
+
+def test_a_stale_session_recovers_by_reattaching_to_the_living_target(wired):
+    """The browser detaching a SESSION does not mean the TAB died — a lease expired, not
+    the thing it named. `ensure_live` takes a new lease on the same target and the caller
+    never notices. Safe precisely because callers hold target ids: the replacement is for
+    the target they named, by construction, so there is no tab to be redirected to —
+    which is why none of browser-use PR 618's session-replacement machinery exists here."""
+    browser, conn, registry = wired
+    tab = _tab(wired)
+    first = tab._session_id
+    browser.eval_hook = lambda e: "ok"
+    browser.emit("Target.detachedFromTarget", {"sessionId": first})
+    assert _settle(lambda: not registry._sessions["a"].live)
+    assert tab.js("1") == "ok"                    # recovered mid-flight, no raise
+    assert tab._session_id != first               # a NEW lease, same target
+
+
+def test_recovery_rearms_the_injected_scripts_on_the_new_session(wired):
+    """Everything the old session carried — SAFETY_JS registration, the isolated-world
+    runtime, the wait binding — dies with it and announces nothing: the next navigation
+    would simply load WITHOUT the dry-run guard. The re-arm is therefore a safety
+    property, not a nicety."""
+    browser, conn, registry = wired
+    tab = _tab(wired)
+    first = tab._session_id
+    scripts_before = [c for c in browser.calls
+                      if c.get("method") == "Page.addScriptToEvaluateOnNewDocument"]
+    assert len(scripts_before) == 2               # SAFETY_JS + RUNTIME_JS on attach
+    browser.eval_hook = lambda e: "ok"
+    browser.emit("Target.detachedFromTarget", {"sessionId": first})
+    assert _settle(lambda: not registry._sessions["a"].live)
+    tab.js("1")
+    new_sid = tab._session_id
+    rearmed = [c for c in browser.calls
+               if c.get("method") == "Page.addScriptToEvaluateOnNewDocument"
+               and c.get("sessionId") == new_sid]
+    assert new_sid != first and len(rearmed) == 2
+
+
+def test_a_destroyed_target_still_fails_closed(wired):
+    """Recovery is for expired leases only. A destroyed target has nothing to re-attach
+    to, and pretending otherwise would fabricate a tab."""
+    browser, conn, registry = wired
+    tab = _tab(wired)
+    browser.destroy("a")
+    assert _settle(lambda: "a" not in registry._sessions
+                   or not registry._sessions["a"].live)
+    with pytest.raises(HarnessError):
+        tab.js("1")
 
 
 # --- the keyboard twin: delivery-verified keys, DOM synthesis when dropped ----
