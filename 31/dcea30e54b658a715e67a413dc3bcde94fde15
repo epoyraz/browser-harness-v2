@@ -1,0 +1,31 @@
+harness/ops/page.py
+  s_39800a230e8cc7::t_a5d8188f2d87a8 291,303-320,1416,1426
+tests/unit/test_daemon.py
+  s_39800a230e8cc7::t_5aadcd03f3fd04 195-227
+  s_39800a230e8cc7::t_d61f3caf3b86a0 185
+  s_39800a230e8cc7::t_a5d8188f2d87a8 158-184,186-194
+tests/live/daemon_check.py
+  s_39800a230e8cc7::t_ac2287ba7e1772 154-159,162,164,166-167
+  s_39800a230e8cc7::t_1b74d9310878f5 153,160
+tests/unit/test_page.py
+  s_39800a230e8cc7::t_a5d8188f2d87a8 321-347
+harness/connect/daemon.py
+  s_39800a230e8cc7::t_a5d8188f2d87a8 410-429,431-447,449-451
+  s_39800a230e8cc7::t_d61f3caf3b86a0 278-281,430,448
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "31dcea30e54b658a715e67a413dc3bcde94fde15",
+  "prompts": {},
+  "sessions": {
+    "s_39800a230e8cc7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a00b2f-5262-7db2-a96b-2a2b7d24d57b",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
