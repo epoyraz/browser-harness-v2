@@ -124,15 +124,41 @@ class Session:
         and creates one rather than seizing a `chrome://` internal, which is not a page a
         caller ever meant.
 
-        The fallback tries each drivable page rather than trusting the first. `getTargets`
-        happily lists a tab that is already closing, and `parallel()` closes a whole
-        worker pool's tabs at once — so the window where the first listed page is dead is
-        wide, and taking it on faith raised `target_gone` from a call that had asked for
-        nothing in particular.
+        The no-target fallback is decided by the DAEMON (`adopt`), not by scanning here:
+        computed client-side, two fresh clients against one browser both took the same
+        first drivable page and clobbered each other's navigations — the multi-client
+        collision browser-use PR 618 fixes in v1. The daemon hands each connected client
+        the first page nobody else has adopted, or a fresh background tab, atomically;
+        adoption dies with the client's connection and never restricts an explicit
+        `use_tab(target_id)`.
+
+        `getTargets` happily lists a tab that is already closing, and `parallel()` closes
+        a whole worker pool's tabs at once — so an adopted target can be dead by the time
+        the attach lands; the retry excludes it and asks again. A daemon predating the
+        meta gets the legacy client-side scan, so a stale long-lived daemon degrades to
+        the old behaviour instead of refusing to hand out a tab.
         """
         tid = target_id or self._current
         if tid is not None:
             return self._attach(tid)
+        exclude: list[str] = []
+        last: HarnessError | None = None
+        for _ in range(4):
+            try:
+                adopted = self.conn.adopt_default_target(exclude=exclude)
+            except HarnessError as error:
+                if "unknown meta" not in str(error):
+                    raise
+                return self._legacy_default_tab()
+            try:
+                return self._attach(adopted["target_id"])
+            except HarnessError as error:
+                last = error
+                exclude.append(adopted["target_id"])
+        raise last if last is not None else TargetGone("no adoptable tab could be attached")
+
+    def _legacy_default_tab(self) -> Tab:
+        """The pre-adoption fallback, kept verbatim for daemons that predate `adopt`."""
         for page in self.drivable():
             try:
                 return self._attach(page["targetId"])

@@ -184,6 +184,26 @@ class RemoteConnection:
         except OSError:
             pass
 
+    def adopt_default_target(self, *, exclude: list[str] | None = None) -> dict[str, Any]:
+        """Ask the daemon for this client's default tab.
+
+        The daemon picks the first drivable page no other connected client has adopted,
+        or creates a fresh background tab when every page is spoken for — atomically, so
+        two clients starting together cannot land on the same page. Raises on a daemon
+        that predates the meta; `Session.tab()` falls back to the legacy client-side scan
+        there, because a stale long-lived daemon must degrade to the old behaviour rather
+        than refuse to hand out a tab at all.
+        """
+        payload: dict[str, Any] = {"meta": "adopt"}
+        if exclude:
+            payload["exclude"] = list(exclude)
+        got = self._call(payload, timeout=30.0)
+        if not got.get("ok"):
+            raise HarnessError.of(fail(Class(got.get("class", Class.CDP_ERROR.value)),
+                                       got.get("detail", ""),
+                                       **(got.get("observed") or {})))
+        return dict(got["value"] or {})
+
     def create_target_lease(self, target_id: str) -> str:
         """Mint an opaque, daemon-owned capability for one explicit target."""
         got = self._call({"meta": "lease_create", "target_id": target_id}, timeout=30.0)

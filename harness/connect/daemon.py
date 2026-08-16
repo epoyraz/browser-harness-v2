@@ -31,6 +31,11 @@ from harness.core.journal import Journal
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError, fail, ok
 from harness.version import PROTOCOL_VERSION, VERSION
 
+#: A tab the adopt fallback may hand out. `about:blank` counts; chrome:// internals and
+#: devtools do not. Kept in lockstep with harness.session._DRIVABLE — connect cannot
+#: import from session without inverting the layering.
+_DRIVABLE = ("http://", "https://", "file://", "about:blank", "data:")
+
 #: In-flight requests one client may have. Past this they queue — the same backpressure
 #: the old serial loop always had, but only once genuinely saturated.
 _DAEMON_WORKERS = int(os.environ.get("BH_DAEMON_WORKERS") or 16)
@@ -95,6 +100,17 @@ class Daemon:
         self._leases: dict[str, str] = {}
         self._lease_for_target: dict[str, str] = {}
         self._lease_lock = threading.Lock()
+        # Which client (peer connection) has ADOPTED which target as its default tab.
+        # This exists because the ergonomic no-target fallback used to be computed
+        # client-side — list drivable pages, take the first — and two fresh clients
+        # against one browser therefore both took the SAME page and clobbered each
+        # other's navigations (the exact bug browser-use PR 618 fixes in v1, one layer
+        # down). The daemon is the only place the choice can be made atomically. An
+        # adoption is not a lease: it is advisory, scoped to the fallback only —
+        # explicit `use_tab(target_id)` is untouched — and dies with the client's
+        # connection rather than needing release calls.
+        self._adoptions: dict[_Peer, str] = {}
+        self._adopt_lock = threading.Lock()
         #: Set once the browser handshake has *finished*, successfully or not. The IPC
         #: endpoint is published before this, so a client can always reach the daemon and
         #: be told what is pending instead of waiting out a silent timeout.
@@ -261,6 +277,10 @@ class Daemon:
         finally:
             with self._plock:
                 self._peers.discard(peer)
+            with self._adopt_lock:
+                # The client is gone; its default tab returns to the adoptable pool. The
+                # TAB stays open — closing it is Session.close_tab's job, never implied.
+                self._adoptions.pop(peer, None)
             peer.close()
 
     def _answer(self, line: bytes, peer: _Peer | None = None) -> dict[str, Any]:
@@ -281,7 +301,7 @@ class Daemon:
                 self._peers.add(peer)
             return _value(ok({"subscribed": True, "protocol": PROTOCOL_VERSION,
                               "version": VERSION}))
-        return self.handle(request)
+        return self.handle(request, peer=peer)
 
     def _broadcast(self, msg: dict[str, Any]) -> None:
         """Fan a CDP event out to subscribed clients. Runs on the CDP reader thread, so it
@@ -296,11 +316,12 @@ class Daemon:
                 with self._plock:
                     self._peers.discard(peer)
 
-    def handle(self, request: dict[str, Any]) -> dict[str, Any]:
+    def handle(self, request: dict[str, Any],
+               peer: "_Peer | None" = None) -> dict[str, Any]:
         """Answer one request. Always an outcome, never a bare value or a bare string."""
         meta = request.get("meta")
         if meta:
-            return self._meta(meta, request)
+            return self._meta(meta, request, peer=peer)
         method = request.get("method")
         if not method:
             return fail(Class.CDP_ERROR, "request names no method").to_json()
@@ -350,7 +371,8 @@ class Daemon:
         except HarnessError as e:
             return e.outcome.to_json()
 
-    def _meta(self, meta: str, request: dict[str, Any]) -> dict[str, Any]:
+    def _meta(self, meta: str, request: dict[str, Any],
+              peer: "_Peer | None" = None) -> dict[str, Any]:
         if meta == "ping":
             # Liveness means *both* processes are alive: a meta-only pong from a daemon whose
             # browser socket is dead is what v1 needed six PRs to stop reporting as healthy.
@@ -370,8 +392,41 @@ class Daemon:
                     else "browser connection is closed")
             return out
         if (pending := self._browser_pending(20.0)) is not None and meta in (
-                "attach", "forget", "lease_create", "lease_claim", "lease_release"):
+                "attach", "forget", "adopt",
+                "lease_create", "lease_claim", "lease_release"):
             return pending
+        if meta == "adopt":
+            # The ergonomic no-target fallback, decided HERE so it can be decided once.
+            # Client-side each fresh client listed the drivable pages and took the first,
+            # so two clients starting against one browser took the same page and their
+            # navigations clobbered each other. Under the lock: the first unadopted
+            # drivable page, else a fresh BACKGROUND tab — a second client never steals
+            # the page the first is working in, and never yanks the user's focus either.
+            exclude = {str(t) for t in (request.get("exclude") or [])}
+            try:
+                with self._adopt_lock:
+                    taken = set(self._adoptions.values()) | exclude
+                    infos = self.conn.request("Target.getTargets",
+                                              timeout=10.0).get("targetInfos") or []
+                    pick = next(
+                        (t["targetId"] for t in infos
+                         if t.get("type") == "page"
+                         and str(t.get("url", "")).startswith(_DRIVABLE)
+                         and t["targetId"] not in taken),
+                        None)
+                    created = pick is None
+                    if created:
+                        pick = self.conn.request(
+                            "Target.createTarget",
+                            {"url": "about:blank", "background": True},
+                            timeout=10.0)["targetId"]
+                    if peer is not None:
+                        self._adoptions[peer] = pick
+            except HarnessError as e:
+                return e.outcome.to_json()
+            self.journal.write("daemon", event="target_adopted", target_id=pick,
+                               created=created)
+            return _value(ok({"target_id": pick, "created": created}))
         if meta == "attach":
             try:
                 return _value(ok(self.sessions.ready_session(request["target_id"]).to_json()))

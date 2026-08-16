@@ -53,6 +53,57 @@ def test_the_current_tab_is_client_local_not_daemon_state(served):
         a.close(); b.close()
 
 
+def test_two_fresh_clients_do_not_adopt_the_same_page(served):
+    """The multi-client startup collision, which is browser-use PR 618's bug one layer
+    down: the no-target fallback was computed client-side (list drivable pages, take the
+    first), so two fresh clients against one browser both took the SAME page and their
+    navigations clobbered each other. The daemon now hands each connected client the
+    first page nobody else has adopted — atomically — and creates a background tab once
+    every page is spoken for."""
+    browser, _ = served
+    a, b, c = Session("sesstest"), Session("sesstest"), Session("sesstest")
+    try:
+        picks = [a.tab().target_id, b.tab().target_id, c.tab().target_id]
+        assert len(set(picks)) == 3, picks           # three clients, three tabs
+        assert set(picks[:2]) == {"a", "b"}          # existing pages first, in order
+        creates = [call["params"] for call in browser.calls
+                   if call.get("method") == "Target.createTarget"]
+        assert creates == [{"url": "about:blank", "background": True}]
+    finally:
+        a.close(); b.close(); c.close()
+
+
+def test_a_closed_clients_adoption_returns_to_the_pool(served):
+    """Adoption is connection-scoped, not a lease: no release call exists or is needed.
+    When the client goes, its default tab becomes adoptable again — and the TAB stays
+    open, because closing it is close_tab's job, never implied."""
+    first = Session("sesstest")
+    assert first.tab().target_id == "a"
+    first.close()
+    deadline = time.monotonic() + 5.0
+    while time.monotonic() < deadline:               # the daemon reaps the peer async
+        replacement = Session("sesstest")
+        try:
+            if replacement.tab().target_id == "a":
+                return
+        finally:
+            replacement.close()
+        time.sleep(0.05)
+    raise AssertionError("the first client's adoption was never released")
+
+
+def test_adoption_never_restricts_an_explicit_target(served):
+    """Adoption governs only the ergonomic no-target fallback. A caller that NAMES a
+    target gets it, adopted elsewhere or not — two collaborating clients on one tab is
+    a legitimate arrangement, and refusing it would turn advice into a lock."""
+    owner, guest = Session("sesstest"), Session("sesstest")
+    try:
+        assert owner.tab().target_id == "a"          # owner adopts it...
+        assert guest.use_tab("a").target_id == "a"   # ...guest may still name it
+    finally:
+        owner.close(); guest.close()
+
+
 def test_new_tab_is_created_in_the_background(session, served):
     """`Target.createTarget` defaults to foreground. Measured on four consecutive
     creations: the user's selected tab loses focus once per tab, and afterwards exactly
