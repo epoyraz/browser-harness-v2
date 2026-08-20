@@ -36,7 +36,10 @@ def mcp_call(name: str, arguments: dict[str, Any], request_id: int) -> str:
          "-H", "Mcp-Protocol-Version: 2025-03-26",
          "-H", "User-Agent: browser-harness-job-refresh/0.1",
          "--data-binary", "@-"],
-        input=payload, text=True, capture_output=True, timeout=90, check=False,
+        # encoding is explicit: `text=True` alone decodes with the LOCALE, which on
+        # Windows is cp1252 — every em dash and umlaut in a Joblens row arrived as
+        # mojibake ("**—" -> "**â€”") and the row parser rejected it.
+        input=payload, text=True, encoding="utf-8", capture_output=True, timeout=90, check=False,
     )
     if response.returncode:
         raise RuntimeError(response.stderr.strip() or f"curl exited {response.returncode}")

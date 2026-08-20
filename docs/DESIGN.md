@@ -301,16 +301,34 @@ Two consequences do a lot of quiet work:
   noticing call proceeds — the dry-run guard's presence on the next document must never
   depend on which lease happened to register it.
 
-**Correction to the background-input measurement above (2026-08-16, Windows Chrome):**
-"a backgrounded tab accepts synthetic mouse input addressed to its session" does **not**
-hold on Windows. Measured with page-side listeners: the renderer silently drops raw
-`Input.dispatchMouseEvent` *and* `dispatchKeyEvent` for any tab that is not its window's
-selected tab (0 of N events reached the page's handlers; the CDP call ACKs regardless),
-and `mouseWheel` never ACKs at all. `Input.insertText` and DOM-level dispatch survive.
-v2 therefore does not rest on the original claim: every raw-input path verifies delivery
-against isolated-world counters (`__bh.keys` / `__bh.scrolls` / the click delta) and
-falls back through the DOM when provably nothing arrived — see `type_chars`,
-`press_key`, `scroll`, and `_activate_click` in `ops/page.py`.
+**Qualification on the background-input measurement above (Windows Chrome 152, revised
+2026-08-18):** "a backgrounded tab accepts synthetic mouse input addressed to its session"
+is **conditional**, and the condition is not tab selection alone.
+
+Measured with page-side listeners, so every count is what the page's own handlers saw
+rather than whether the CDP call returned — it returns either way:
+
+| raw input to a tab that is not its window's selected tab | observed |
+|---|---|
+| `Input.dispatchMouseEvent` (click) | delivered in some configurations, dropped in others |
+| `Input.dispatchKeyEvent` | delivered in some configurations, dropped in others |
+| `Input.insertText` | always delivered |
+| `Input.dispatchMouseEvent(mouseWheel)` | **never ACKed at all** — the call times out |
+
+An earlier revision of this note recorded the drop as unconditional. That was
+over-generalised from one probe against a freshly launched Chrome: driving the *same*
+Chrome build through a long-lived, visible browser window delivered clicks and keystrokes
+to a `document.hidden` tab perfectly well. Tab selection is therefore not the whole
+variable — window foreground state is the likelier one, and it is not yet isolated. The
+wheel result is the only part that reproduced identically everywhere, and is filed
+upstream as browser-use/browser-harness#630.
+
+None of v2's behaviour rests on knowing which condition applies, which is the point of
+building it this way: every raw-input path VERIFIES delivery against isolated-world
+counters (`__bh.keys` / `__bh.scrolls` / the click delta) and falls back through the DOM
+only when nothing provably arrived — see `type_chars`, `press_key`, `scroll` and
+`_activate_click` in `ops/page.py`. When input lands normally the fallbacks are inert, so
+a wrong theory about *why* input is dropped cannot become a wrong behaviour.
 
 ### D2 — Never steal OS focus
 

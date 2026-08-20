@@ -116,11 +116,14 @@ RUNTIME_JS = """(() => {
   const arm = () => obs.observe(document.documentElement || document,
     {subtree: true, childList: true, attributes: true, characterData: true});
   document.documentElement ? arm() : document.addEventListener('DOMContentLoaded', arm);
-  // Delivery counters, same idea as `mutations`: raw Input.* events are delivered to a
-  // renderer, and the renderer silently DROPS mouse and key events for any tab that is
-  // not its window's selected tab — the CDP call ACKs either way. Measured with
-  // page-side listeners: background tab, dispatchKeyEvent x2 -> 0 keydowns seen,
-  // dispatchMouseEvent -> 0 clicks; same tab after Target.activateTarget -> all arrive.
+  // Delivery counters, same idea as `mutations`: raw Input.* events are handed to a
+  // renderer that may never act on them, and the CDP call ACKs either way. Measured with
+  // page-side listeners on a hidden tab: dispatchKeyEvent x2 -> 0 keydowns seen,
+  // dispatchMouseEvent -> 0 clicks; the same tab after Target.activateTarget -> all
+  // arrive. That drop is CONDITIONAL — the same Chrome build driven through a visible,
+  // long-lived window delivers both to a `document.hidden` tab — so the exact trigger is
+  // not tab selection alone and is not settled (see D1's qualification). Which is why
+  // nothing here depends on knowing it: the counters measure delivery directly.
   // A capture listener sees every keydown/scroll that actually reached the document, so
   // "did my keystrokes land?" becomes a counter delta instead of a guess. Registered
   // from the isolated world, so page script cannot enumerate or see these.
@@ -1825,8 +1828,9 @@ class Tab:
         Tab makes Chrome insert a character instead of firing the shortcut (v1 paid for
         this with an uncleared field).
 
-        Delivery is verified, not assumed: the renderer drops key events for any tab that
-        is not its window's selected tab, and the dispatch ACKs anyway. When the `__bh.keys`
+        Delivery is verified, not assumed: a renderer can drop key events while the
+        dispatch ACKs anyway (measured on hidden tabs; the trigger is conditional and not
+        fully isolated, so this checks rather than predicts). When the `__bh.keys`
         counter shows nothing arrived, the key is re-dispatched as a DOM event — page
         handlers (Escape closes the popup, ArrowDown moves the highlight) still run;
         browser default actions (Tab focus move, Enter submit) do not, and Enter's submit
@@ -1920,16 +1924,19 @@ class Tab:
         """Wheel event at a point, so it scrolls whatever container is under the cursor —
         an overflow pane, a virtualised list — not just the document.
 
-        Verified like every other raw input: if no scroll event reached the document (the
-        renderer drops wheel events for non-selected tabs), the same container is scrolled
-        through the DOM instead, and `modality` reports which path ran.
+        Verified like every other raw input: if no scroll event reached the document, the
+        same container is scrolled through the DOM instead and `modality` reports which
+        path ran. Unlike the conditional click/key drop, this one reproduced in every
+        configuration tested — a non-selected tab never ACKs the wheel dispatch at all —
+        and is filed upstream as browser-use/browser-harness#630, where the same call
+        through v1's helpers raises TimeoutError and takes the whole script down.
         """
         with self._j.call("scroll", dy=dy, dx=dx):
             pre = _count(self._world_js("window.__bh ? __bh.scrolls : 0", timeout=timeout))
             try:
-                # Short leash, deliberately: a hidden renderer does not merely drop a
-                # wheel event the way it drops keys and clicks — it never ACKs the
-                # dispatch at all (measured: 10s CDP timeout in a background tab). The
+                # Short leash, deliberately: a hidden renderer does not merely drop the
+                # wheel event — it never ACKs the dispatch at all (measured: 10s CDP
+                # timeout in a background tab, reproduced on every build tried). The
                 # timeout IS the non-delivery signal, so it is caught and the verified
                 # fallback below takes over, exactly as the dialog dance treats a click
                 # dispatch that cannot ACK.

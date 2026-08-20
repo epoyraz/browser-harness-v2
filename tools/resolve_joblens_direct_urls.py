@@ -37,7 +37,10 @@ def call(job_id: str, request_id: int) -> dict:
                  "-H", "Accept: application/json, text/event-stream",
                  "-H", "User-Agent: browser-harness-telemetry/0.1",
                  "--data-binary", "@-"],
-                input=payload, text=True, capture_output=True, timeout=60, check=False,
+                # encoding is explicit: `text=True` alone decodes with the LOCALE, which on
+                # Windows is cp1252 — every em dash and umlaut in a Joblens row arrived as
+                # mojibake ("**—" -> "**â€”") and the row parser rejected it.
+                input=payload, text=True, encoding="utf-8", capture_output=True, timeout=60, check=False,
             )
             if response.returncode != 0:
                 raise RuntimeError(response.stderr.strip()[:200] or f"curl rc={response.returncode}")
