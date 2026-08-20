@@ -1,0 +1,34 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Unpainted apply button</title>
+<!-- The Oracle-careers shape. The real apply button exists in the DOM but has no layout
+     box when perception runs — an SPA that has not painted it yet, not a page hiding it.
+     Measured live: apply_control returned null, the run stopped at "usable_ui", and a DOM
+     click on that very button navigated to the application form.
+
+     A decoy that IS painted and outranks nothing must not win, so the page also carries a
+     painted non-apply button: the unpainted apply control has to be preferred over it. -->
+<style>
+  /* zero BORDER-box: a button's default padding and border would otherwise keep
+     the rect non-zero, which is not the state being modelled. */
+  #apply { position: absolute; width: 0; height: 0;
+           padding: 0; border: 0; overflow: hidden; }
+</style>
+
+<h1>Ingénieur logiciel</h1>
+<p>Description du poste.</p>
+
+<button id="share" type="button">Partager cette offre</button>
+<button id="apply" type="button">POSTULER MAINTENANT</button>
+
+<div id="panel"></div>
+<script>
+  document.getElementById('apply').addEventListener('click', () => {
+    document.getElementById('panel').innerHTML =
+      '<form><label for="fn">Prénom</label><input id="fn" name="first">' +
+      '<label for="ln">Nom</label><input id="ln" name="last">' +
+      '<label for="em">E-mail</label><input id="em" name="email" type="email">' +
+      '<input type="file" name="cv">' +
+      '<button type="submit">Envoyer</button></form>';
+  });
+</script>

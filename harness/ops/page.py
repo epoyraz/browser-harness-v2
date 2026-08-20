@@ -1499,10 +1499,20 @@ class Tab:
         filter on nothing.
         """
         try:
-            result = self.js(
+            # Address the REF when there is one, falling back to the point. Point-hit
+            # testing is right for a painted control — it hits whatever a real click
+            # would — but wrong for one with no box: the centre of a zero-rect element
+            # is some other element entirely, so the gesture landed on the page behind
+            # the button and nothing happened (measured on the unpainted-apply fixture:
+            # detection succeeded, the click did not). Runs in the ISOLATED world, which
+            # shares the DOM and is where `__bh.refs` lives.
+            result = self._world_js(
                 "(() => {"
                 f" const x = {x!r}, y = {y!r};"
-                " const el = document.elementFromPoint(x, y);"
+                # json.dumps, not !r: a None ref renders as bare `None`, which is a
+                # ReferenceError in JS and takes the whole fallback down with it.
+                f" const el = (window.__bh && __bh.refs[{json.dumps(ref)}])"
+                "   || document.elementFromPoint(x, y);"
                 " if (!el) return null;"
                 " const o = {bubbles: true, cancelable: true, view: window,"
                 "            clientX: x, clientY: y, button: 0};"

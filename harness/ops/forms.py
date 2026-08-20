@@ -377,7 +377,7 @@ _PREPARE_JS = """(() => {
   // null and the caller has nowhere to go — measured 0/4 filled on Recruitee in all five
   // live runs, while the schema simultaneously reported ~92 controls sitting in the DOM,
   // invisible, waiting for that button. So return a clickable ref alongside the link.
-  let ctl = null, ctlScore = 0;
+  let ctl = null, ctlScore = 0, ctlPainted = true;
   for (const b of document.querySelectorAll(
        'button, [role=button], summary, input[type=button], input[type=submit]')) {
     // A submit inside a form that is already showing is the send button, not the way in.
@@ -385,15 +385,25 @@ _PREPARE_JS = """(() => {
     let s = scoreLabel(labelOf(b));
     if (s < 0) continue;
     const r = b.getBoundingClientRect();
-    if (!r.width || !r.height) continue;      // a control nobody can click is not one
+    // A laid-out control is strongly preferred, but an unpainted one is NOT discarded.
+    // "No box" conflates two different things: a control the page is deliberately
+    // hiding, and one an SPA has simply not painted yet. Measured on an Oracle careers
+    // site: at prepare time the document had 0 visible controls and the real
+    // "POSTULER MAINTENANT" button had no box; a DOM click on it navigated to /apply
+    // and produced the form. Discarding it returned apply_control=null and the run
+    // stopped at "usable_ui" with the way in sitting right there. So an unpainted
+    // candidate is kept at a lower score — the caller's click already falls back
+    // through the DOM when the compositor path is inert, which is exactly this case.
+    const painted = !!(r.width && r.height);
+    if (!painted) s -= 2;
     if (b.tagName === 'SUMMARY') s += 1;      // <details> is literally "there is more"
-    if (s > ctlScore) { ctlScore = s; ctl = b; }
+    if (s > ctlScore) { ctlScore = s; ctl = b; ctlPainted = painted; }
   }
   let applyControl = null;
   if (ctl) {
     const ref = bh.ref(ctl);
     applyControl = {ref, label: labelOf(ctl).slice(0, 60), score: ctlScore,
-                    tag: ctl.tagName.toLowerCase()};
+                    tag: ctl.tagName.toLowerCase(), painted: ctlPainted};
   }
   // Read-only structured-data tier. SPA shells often carry their routes in JSON-LD,
   // __NEXT_DATA__, or another application/json bootstrap even when no clickable control

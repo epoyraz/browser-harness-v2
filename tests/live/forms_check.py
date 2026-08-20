@@ -151,6 +151,26 @@ def main() -> int:
         check("apply_control: clicking it reveals a real form",
               bool(after.get("is_form")), f"fields={after.get('fields')}")
 
+        # ---- an apply button the SPA has not painted yet -------------------
+        # Measured on an Oracle careers site: at prepare time the document had 0 visible
+        # controls and the real "POSTULER MAINTENANT" button had no layout box, so the
+        # painted-only rule discarded it, apply_control came back null, and the run
+        # stopped at "usable_ui" with the way in sitting right there in the DOM.
+        tab.goto(f"{base}/unpainted-apply.html")
+        prep = prepare_document(tab)
+        ctl = prep.get("apply_control") or {}
+        check("apply_control: an unpainted apply button is still offered",
+              "postuler" in str(ctl.get("label", "")).lower()
+              and ctl.get("painted") is False,
+              f"label={ctl.get('label')!r} painted={ctl.get('painted')}")
+        check("apply_control: a painted decoy does not outrank it",
+              "partager" not in str(ctl.get("label", "")).lower(), str(ctl.get("label")))
+        tab.click_ref(ctl["ref"])
+        revealed = ((prepare_document(tab).get("schema") or {}).get("verdict") or {})
+        check("apply_control: clicking the unpainted button reveals the form",
+              bool(revealed.get("is_application")), f"fields={revealed.get('fields')}")
+
+
         # Less literal French and Italian labels occur on Swiss career sites too. They
         # contain neither "postuler" nor "candidature", so exercise the exact phrases
         # and validate both possible destinations: an application and an account wall.
