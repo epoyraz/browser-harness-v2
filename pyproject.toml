@@ -27,6 +27,10 @@ packages = ["harness"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = [
+    # e.g. the keepalive control test, which waits out a real ping timeout.
+    "slow: long-running checks; deselect with -m 'not slow' for the fast loop",
+]
 
 [tool.ruff]
 line-length = 100

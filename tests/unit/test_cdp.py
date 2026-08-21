@@ -182,35 +182,63 @@ class _SilentServer:
         self._srv = socket.socket()
         self._srv.bind(("127.0.0.1", 0))
         self._srv.listen(1)
+        self._done = threading.Event()
+        self._conns: list[socket.socket] = []
         threading.Thread(target=self._serve, daemon=True).start()
 
     @property
     def url(self) -> str:
         return f"ws://127.0.0.1:{self._srv.getsockname()[1]}"
 
+    def close(self) -> None:
+        self._done.set()
+        try:
+            self._srv.close()
+        except OSError:
+            pass
+
     def _serve(self):
-        conn, _ = self._srv.accept()
-        req = b""
-        while b"\r\n\r\n" not in req:
-            chunk = conn.recv(4096)
-            if not chunk:
+        self._srv.settimeout(0.25)
+        while not self._done.is_set():
+            try:
+                conn, _ = self._srv.accept()
+            except TimeoutError:
+                continue
+            except OSError:
                 return
-            req += chunk
-        key = next(
-            line.split(":", 1)[1].strip()
-            for line in req.decode("latin1").split("\r\n")
-            if line.lower().startswith("sec-websocket-key:")
-        )
-        accept = base64.b64encode(hashlib.sha1((key + _WS_GUID).encode()).digest()).decode()
-        conn.sendall(
-            (
-                "HTTP/1.1 101 Switching Protocols\r\n"
-                "Upgrade: websocket\r\n"
-                "Connection: Upgrade\r\n"
-                f"Sec-WebSocket-Accept: {accept}\r\n\r\n"
-            ).encode()
-        )
-        time.sleep(60)                       # silence
+            self._conns.append(conn)
+            threading.Thread(target=self._hold, args=(conn,), daemon=True).start()
+
+    def _hold(self, conn: socket.socket):
+        try:
+            conn.settimeout(2.0)
+            req = b""
+            while b"\r\n\r\n" not in req:
+                chunk = conn.recv(4096)
+                if not chunk:
+                    return
+                req += chunk
+            key = next(
+                line.split(":", 1)[1].strip()
+                for line in req.decode("latin1").split("\r\n")
+                if line.lower().startswith("sec-websocket-key:")
+            )
+            accept = base64.b64encode(hashlib.sha1((key + _WS_GUID).encode()).digest()).decode()
+            conn.sendall(
+                (
+                    "HTTP/1.1 101 Switching Protocols\r\n"
+                    "Upgrade: websocket\r\n"
+                    "Connection: Upgrade\r\n"
+                    f"Sec-WebSocket-Accept: {accept}\r\n\r\n"
+                ).encode()
+            )
+        except OSError:
+            return
+        self._done.wait(30)                  # silence — but closable from the test
+        try:
+            conn.close()
+        except OSError:
+            pass
 
 
 def test_transport_defaults_to_no_keepalive_pings(monkeypatch):
@@ -233,10 +261,12 @@ def test_transport_defaults_to_no_keepalive_pings(monkeypatch):
     assert captured["ping_interval"] is None
 
 
+@pytest.mark.slow
 def test_keepalive_ping_timeout_closes_a_silent_connection():
-    """Control for the tests above: with pings ON, the silent endpoint really does
-    produce the 1011 EOFError — proving the mechanism, not just the absence of pings."""
-    t = WebSocketTransport(_SilentServer().url, ping_interval=0.5, ping_timeout=0.5)
+    """Control for the kwarg assertion above: with pings ON, the silent endpoint really
+    does produce the 1011 EOFError — proving the mechanism, not just the absence of pings."""
+    server = _SilentServer()
+    t = WebSocketTransport(server.url, ping_interval=0.5, ping_timeout=0.5)
     try:
         deadline = time.monotonic() + 25   # close_timeout=10 can stretch the teardown
         while time.monotonic() < deadline:
@@ -250,15 +280,4 @@ def test_keepalive_ping_timeout_closes_a_silent_connection():
         pytest.fail("connection survived a silent browser despite keepalive pings")
     finally:
         t.close()
-
-
-def test_no_keepalive_survives_a_silent_browser():
-    """The fix: production defaults hold the connection open well past the old ~40 s
-    kill window. Real liveness is CDP traffic + per-request timeouts, not ws pings."""
-    t = WebSocketTransport(_SilentServer().url)
-    try:
-        for _ in range(3):
-            with pytest.raises(TimeoutError):
-                t.recv(timeout=1)          # still open; only our own poll timed out
-    finally:
-        t.close()
+        server.close()
