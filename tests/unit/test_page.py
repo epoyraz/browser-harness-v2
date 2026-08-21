@@ -212,16 +212,66 @@ def test_frames_does_not_sleep_out_a_fixed_budget_on_a_frameless_page(wired):
     assert time.monotonic() - started < 0.5
 
 
+def test_frames_skips_the_attach_dance_on_a_frameless_page(wired):
+    """The gate's whole point, pinned so a refactor cannot silently reinstate the dance:
+    a probe answering a trustworthy zero must cost zero `setAutoAttach` calls."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: 0 if "shadowRoot" in e else None
+    assert tab.frames() == []
+    dances = [c for c in browser.calls if c.get("method") == "Target.setAutoAttach"]
+    assert dances == []
+
+
+def test_frames_runs_the_dance_when_the_probe_sees_a_child(wired):
+    """A child-hosting element — including one inside a shadow root, which plain
+    `querySelectorAll` never sees (measured live) — must trigger discovery."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: 1 if "shadowRoot" in e else None
+    threading.Timer(0.02, lambda: browser.emit(
+        "Target.attachedToTarget",
+        {"targetInfo": {"targetId": "f0", "type": "iframe",
+                        "url": "https://x0.test/"}},
+        session_id=tab._session_id)).start()
+    got = tab.frames()
+    assert [f["target_id"] for f in got] == ["f0"]
+    dances = [c for c in browser.calls if c.get("method") == "Target.setAutoAttach"]
+    assert len(dances) == 2
+
+
+def test_frames_fails_open_when_the_probe_fails(wired):
+    """A frame report that says "none" must be earned. A failed probe means unknown, and
+    unknown runs the dance: failing closed here silently dropped OOPIFs on exactly the
+    bot-walled pages frames() exists for."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+
+    def flaky(expression, **kw):
+        if "shadowRoot" in expression:
+            # The documented way to make the fake answer with a JS exception.
+            return {"__raw__": {"result": {},
+                                "exceptionDetails": {"text": "isolated world is gone"}}}
+        return None
+
+    browser.eval_hook = flaky
+    threading.Timer(0.02, lambda: browser.emit(
+        "Target.attachedToTarget",
+        {"targetInfo": {"targetId": "f0", "type": "iframe",
+                        "url": "https://x0.test/"}},
+        session_id=tab._session_id)).start()
+    got = tab.frames()
+    assert [f["target_id"] for f in got] == ["f0"]
+
+
 def test_frames_collects_every_announcement_not_just_the_first(wired):
     """The old wait returned on the FIRST announcement and read the buffer immediately, so
     a page with several OOPIFs reported only the ones that had arrived by then. Silent
     under-reporting: the caller saw a short list and no indication it was short."""
     browser, _, _ = wired
     tab = _tab(wired)
-    # An OOPIF cannot exist without an <iframe> element in the parent document, and
-    # frames() now proves one exists before paying for the auto-attach dance.
-    browser.eval_hook = lambda e: [{"src": "https://x0.test/", "same": False}] \
-        if "querySelectorAll" in e else None
+    browser.frame_tree = {"frame": {"id": "F1"},
+                          "childFrames": [{"frame": {"id": f"F{i}"}} for i in range(3)]}
     for i, delay in enumerate((0.02, 0.06, 0.10)):
         threading.Timer(delay, lambda i=i: browser.emit(
             "Target.attachedToTarget",

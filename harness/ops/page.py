@@ -661,6 +661,27 @@ _SYNTH_SCROLL_JS = """/* bh-synth-scroll */ ((pre, x, y, dx, dy) => {
 #: bot wall lost 9 of 11 Ashby forms in a ten-tab run.  This probe reports strong terminal
 #: states immediately and otherwise arms a one-shot mutation observer; Python decides
 #: whether a quiet usable page or quiet empty page has been stable long enough.
+#: Counts child-browsing-context host elements, piercing shadow roots. Only the parent
+#: document knows an OOPIF-hosting element exists — there is no CDP-side gate for it
+#: (`Page.getFrameTree` was tried and is exactly inverted against real Chrome, measured
+#: 2026-08-21: it lists *in*-process children, which never become targets, and reports
+#: `childFrames: []` for an out-of-process child, the only kind the dance finds).
+#: The selector is broadened beyond `iframe` because `<frame>` in a `<frameset>` and a
+#: document hosted by `<object>`/`<embed>` are child contexts too; those match in light
+#: DOM exactly as a plain iframe does (measured: plain cross-site iframe → 1), while the
+#: shadow walk exists for consent managers, chat widgets and embedded ATS widgets that
+#: hide their iframes from `querySelectorAll` (measured: iframe inside a shadow root → 1,
+#: where the plain selector returns 0).
+FRAME_HOST_PROBE_JS = """(() => {
+  let n = 0;
+  const walk = (root) => {
+    n += root.querySelectorAll('iframe,frame,object,embed').length;
+    for (const el of root.querySelectorAll('*')) if (el.shadowRoot) walk(el.shadowRoot);
+  };
+  walk(document);
+  return n;
+})()"""
+
 WATCH_APPLICATION_STATE_JS = """((token) => {
   const bh = window.__bh;
   let fields = 0;
@@ -1734,24 +1755,24 @@ class Tab:
         # of them: `prepare_application` measured p50 1225ms / p90 1246 / max 1351 across
         # 160 live calls, a spread far too tight to be work. It was two 0.6s sleeps.
         # A cross-origin child is announced only while auto-attach is on, and the
-        # announcement list is rebuilt by the off-on toggle below. But no child of any
-        # kind can exist without an `<iframe>` element in the parent document, and that
-        # is checkable in one cheap round trip — so on frameless pages (most of them:
-        # listings, walls, plain content) the whole attach dance is skipped outright.
-        # Measured on the 100-job batch: `prepare_application` re-scans per call, and
-        # this gate removes ~3 round trips plus the settle wait from ~60% of calls.
+        # announcement list is rebuilt by the off-on toggle below (measured: the toggle
+        # re-announces an already-loaded OOPIF, and a same-site child — which never
+        # becomes a target — announces nothing). The gate on the dance is the DOM probe
+        # above, because only the parent document can know a child-hosting element
+        # exists; see FRAME_HOST_PROBE_JS for why every CDP-side alternative measured
+        # worse. On frameless pages (most of them) the whole dance is skipped outright;
+        # measured on the 100-job batch this removes ~3 round trips plus the settle
+        # wait from ~60% of `prepare_application` calls. And when the probe itself
+        # fails or answers with anything but a trustworthy zero, the dance runs anyway:
+        # a frame report that says "none" must be earned, not assumed. Failing closed
+        # here silently dropped OOPIFs on exactly the bot-walled pages this method
+        # exists for.
         try:
-            same = self._world_js(
-                "[...document.querySelectorAll('iframe')].map(f => ({src: f.src || '',"
-                " same: (() => {try { return !!f.contentDocument; } catch (e) "
-                "{ return false; }})()}))", timeout=10.0) or []
+            count = self._world_js(FRAME_HOST_PROBE_JS, timeout=10.0)
         except HarnessError:
-            same = []
-        if not isinstance(same, list):
-            same = []              # a page that answers with anything else has no iframes
-
+            count = None                       # unknown → pay the dance, fail open
         got: list[dict[str, Any]] = []
-        if any(isinstance(f, dict) for f in same):
+        if count != 0:
             with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
                 self.cdp("Target.setAutoAttach",
                          {"autoAttach": False, "waitForDebuggerOnStart": False,
@@ -1786,6 +1807,15 @@ class Tab:
         out = got
         # Same-site iframes stay in the parent process and never become targets, so
         # getTargets alone reads as "no iframes" on a page that plainly has one.
+        try:
+            same = self._world_js(
+                "[...document.querySelectorAll('iframe')].map(f => ({src: f.src || '',"
+                " same: (() => {try { return !!f.contentDocument; } catch (e) "
+                "{ return false; }})()}))", timeout=10.0) or []
+        except HarnessError:
+            same = []
+        if not isinstance(same, list):
+            same = []              # a page that answers with anything else has no iframes
         for f in same:
             if isinstance(f, dict) and f.get("same"):
                 out.append({"target_id": None, "url": f.get("src", ""),
