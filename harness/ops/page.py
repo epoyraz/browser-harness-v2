@@ -1733,40 +1733,13 @@ class Tab:
         # was not free. It cost a second fixed wait on every frameless page, which is most
         # of them: `prepare_application` measured p50 1225ms / p90 1246 / max 1351 across
         # 160 live calls, a spread far too tight to be work. It was two 0.6s sleeps.
-        got: list[dict[str, Any]] = []
-        with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
-            self.cdp("Target.setAutoAttach",
-                     {"autoAttach": False, "waitForDebuggerOnStart": False,
-                      "flatten": True}, timeout=10.0)
-            self.cdp("Target.setAutoAttach",
-                     {"autoAttach": True, "waitForDebuggerOnStart": False,
-                      "flatten": True}, timeout=10.0)
-            # Settle rather than sleep: stop as soon as a quiet window passes with no new
-            # announcement. This is also a correctness fix. The old `wait_match(lambda m:
-            # True, 0.6)` returned on the FIRST announcement and then read `w.hits`
-            # immediately, so a page with several OOPIFs reported only the ones that had
-            # happened to arrive by then — under-reporting frames, silently.
-            deadline = time.monotonic() + FRAMES_MAX_WAIT
-            counted = 0
-            while True:
-                left = deadline - time.monotonic()
-                if left <= 0:
-                    break
-                w.wait_match(lambda m: False, min(FRAMES_QUIET, left))
-                with w.cond:
-                    n = len(w.hits)
-                if n == counted:
-                    break                          # nothing new in a whole quiet window
-                counted = n
-            for _, msg in w.hits:
-                info = (msg.get("params") or {}).get("targetInfo") or {}
-                if info.get("type") == "iframe":
-                    got.append({"target_id": info["targetId"],
-                                "url": info.get("url", ""), "kind": "oopif",
-                                "reachable": "session.tab(target_id)"})
-        out = got
-        # Same-site iframes stay in the parent process and never become targets, so
-        # getTargets alone reads as "no iframes" on a page that plainly has one.
+        # A cross-origin child is announced only while auto-attach is on, and the
+        # announcement list is rebuilt by the off-on toggle below. But no child of any
+        # kind can exist without an `<iframe>` element in the parent document, and that
+        # is checkable in one cheap round trip — so on frameless pages (most of them:
+        # listings, walls, plain content) the whole attach dance is skipped outright.
+        # Measured on the 100-job batch: `prepare_application` re-scans per call, and
+        # this gate removes ~3 round trips plus the settle wait from ~60% of calls.
         try:
             same = self._world_js(
                 "[...document.querySelectorAll('iframe')].map(f => ({src: f.src || '',"
@@ -1776,6 +1749,43 @@ class Tab:
             same = []
         if not isinstance(same, list):
             same = []              # a page that answers with anything else has no iframes
+
+        got: list[dict[str, Any]] = []
+        if any(isinstance(f, dict) for f in same):
+            with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
+                self.cdp("Target.setAutoAttach",
+                         {"autoAttach": False, "waitForDebuggerOnStart": False,
+                          "flatten": True}, timeout=10.0)
+                self.cdp("Target.setAutoAttach",
+                         {"autoAttach": True, "waitForDebuggerOnStart": False,
+                          "flatten": True}, timeout=10.0)
+                # Settle rather than sleep: stop as soon as a quiet window passes with no
+                # new announcement. This is also a correctness fix. The old `wait_match(
+                # lambda m: True, 0.6)` returned on the FIRST announcement and then read
+                # `w.hits` immediately, so a page with several OOPIFs reported only the
+                # ones that had happened to arrive by then — under-reporting frames,
+                # silently.
+                deadline = time.monotonic() + FRAMES_MAX_WAIT
+                counted = 0
+                while True:
+                    left = deadline - time.monotonic()
+                    if left <= 0:
+                        break
+                    w.wait_match(lambda m: False, min(FRAMES_QUIET, left))
+                    with w.cond:
+                        n = len(w.hits)
+                    if n == counted:
+                        break                      # nothing new in a whole quiet window
+                    counted = n
+                for _, msg in w.hits:
+                    info = (msg.get("params") or {}).get("targetInfo") or {}
+                    if info.get("type") == "iframe":
+                        got.append({"target_id": info["targetId"],
+                                    "url": info.get("url", ""), "kind": "oopif",
+                                    "reachable": "session.tab(target_id)"})
+        out = got
+        # Same-site iframes stay in the parent process and never become targets, so
+        # getTargets alone reads as "no iframes" on a page that plainly has one.
         for f in same:
             if isinstance(f, dict) and f.get("same"):
                 out.append({"target_id": None, "url": f.get("src", ""),

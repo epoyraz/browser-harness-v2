@@ -218,6 +218,10 @@ def test_frames_collects_every_announcement_not_just_the_first(wired):
     under-reporting: the caller saw a short list and no indication it was short."""
     browser, _, _ = wired
     tab = _tab(wired)
+    # An OOPIF cannot exist without an <iframe> element in the parent document, and
+    # frames() now proves one exists before paying for the auto-attach dance.
+    browser.eval_hook = lambda e: [{"src": "https://x0.test/", "same": False}] \
+        if "querySelectorAll" in e else None
     for i, delay in enumerate((0.02, 0.06, 0.10)):
         threading.Timer(delay, lambda i=i: browser.emit(
             "Target.attachedToTarget",
