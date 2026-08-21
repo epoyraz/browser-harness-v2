@@ -44,6 +44,10 @@ class FakeBrowser:
         self.lifecycle_names: list[str] = ["load"]
         #: worldName of every Page.createIsolatedWorld — proves the machinery is off-window.
         self.isolated_worlds: list[str] = []
+        #: DOM.performSearch result for browsing-context hosts. Real Chrome searches open
+        #: and closed shadow roots; tests set this to model the measured document shape.
+        self.frame_host_count: int | None = 0
+        self.frame_host_error: str | None = None
 
         self._q: deque[dict[str, Any]] = deque()
         self._lock = threading.Lock()
@@ -231,6 +235,16 @@ class FakeBrowser:
         if method == "DOM.describeNode":
             # upload_file bridges a JS handle to a backendNodeId through here.
             return {"id": msg_id, "result": {"node": {"backendNodeId": 4242}}}
+
+        if method == "DOM.performSearch":
+            if self.frame_host_error:
+                return err(self.frame_host_error)
+            return {"id": msg_id, "result": {
+                "searchId": "D1", "resultCount": self.frame_host_count,
+            }}
+
+        if method == "DOM.discardSearchResults":
+            return {"id": msg_id, "result": {}}
 
         if method == "DOM.setFileInputFiles":
             self.uploaded = list(params.get("files") or [])

@@ -217,18 +217,23 @@ def test_frames_skips_the_attach_dance_on_a_frameless_page(wired):
     a probe answering a trustworthy zero must cost zero `setAutoAttach` calls."""
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.eval_hook = lambda e: 0 if "shadowRoot" in e else None
+    browser.frame_host_count = 0
     assert tab.frames() == []
     dances = [c for c in browser.calls if c.get("method") == "Target.setAutoAttach"]
     assert dances == []
+    searches = [c for c in browser.calls if c.get("method") == "DOM.performSearch"]
+    assert searches[0]["params"] == {
+        "query": "iframe,frame,object,embed", "includeUserAgentShadowDOM": True,
+    }
+    assert sum(c.get("method") == "DOM.discardSearchResults" for c in browser.calls) == 1
 
 
-def test_frames_runs_the_dance_when_the_probe_sees_a_child(wired):
-    """A child-hosting element — including one inside a shadow root, which plain
-    `querySelectorAll` never sees (measured live) — must trigger discovery."""
+def test_frames_runs_the_dance_when_pierced_search_sees_a_child(wired):
+    """A child host inside a closed shadow root is visible to DOM.performSearch even
+    though page JavaScript sees ``host.shadowRoot === null`` (measured live)."""
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.eval_hook = lambda e: 1 if "shadowRoot" in e else None
+    browser.frame_host_count = 1
     threading.Timer(0.02, lambda: browser.emit(
         "Target.attachedToTarget",
         {"targetInfo": {"targetId": "f0", "type": "iframe",
@@ -246,15 +251,7 @@ def test_frames_fails_open_when_the_probe_fails(wired):
     bot-walled pages frames() exists for."""
     browser, _, _ = wired
     tab = _tab(wired)
-
-    def flaky(expression, **kw):
-        if "shadowRoot" in expression:
-            # The documented way to make the fake answer with a JS exception.
-            return {"__raw__": {"result": {},
-                                "exceptionDetails": {"text": "isolated world is gone"}}}
-        return None
-
-    browser.eval_hook = flaky
+    browser.frame_host_error = "DOM search unavailable"
     threading.Timer(0.02, lambda: browser.emit(
         "Target.attachedToTarget",
         {"targetInfo": {"targetId": "f0", "type": "iframe",
@@ -264,14 +261,25 @@ def test_frames_fails_open_when_the_probe_fails(wired):
     assert [f["target_id"] for f in got] == ["f0"]
 
 
+def test_frames_fails_open_when_the_probe_answer_is_untrusted(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.frame_host_count = None
+    threading.Timer(0.02, lambda: browser.emit(
+        "Target.attachedToTarget",
+        {"targetInfo": {"targetId": "f0", "type": "iframe",
+                        "url": "https://x0.test/"}},
+        session_id=tab._session_id)).start()
+    assert [f["target_id"] for f in tab.frames()] == ["f0"]
+
+
 def test_frames_collects_every_announcement_not_just_the_first(wired):
     """The old wait returned on the FIRST announcement and read the buffer immediately, so
     a page with several OOPIFs reported only the ones that had arrived by then. Silent
     under-reporting: the caller saw a short list and no indication it was short."""
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.frame_tree = {"frame": {"id": "F1"},
-                          "childFrames": [{"frame": {"id": f"F{i}"}} for i in range(3)]}
+    browser.frame_host_count = 3
     for i, delay in enumerate((0.02, 0.06, 0.10)):
         threading.Timer(delay, lambda i=i: browser.emit(
             "Target.attachedToTarget",

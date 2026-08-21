@@ -44,6 +44,27 @@ setTimeout(() => {
 }, 1800);
 </script></body>"""
 
+CLOSED_SHADOW_PAGE = """<!doctype html><meta charset=utf-8><title>Closed shadow</title>
+<body><div id="host"></div><script>
+const root = document.querySelector('#host').attachShadow({mode: 'closed'});
+const frame = document.createElement('iframe');
+frame.src = '__IFRAME__';
+frame.style.cssText = 'width:300px;height:120px';
+root.append(frame);
+</script></body>"""
+
+
+class _QuietServer(ThreadingHTTPServer):
+    """Hide only the connection resets Chrome causes while scratch tabs close."""
+
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        if isinstance(sys.exception(),
+                      (BrokenPipeError, ConnectionAbortedError, ConnectionResetError)):
+            return
+        super().handle_error(request, client_address)
+
 
 def check(name: str, ok: bool, note: str = "") -> None:
     results.append((name, ok, note))
@@ -52,21 +73,23 @@ def check(name: str, ok: bool, note: str = "") -> None:
 
 def main() -> int:
     scratch = Path(tempfile.mkdtemp(prefix="bh-rec-"))
-    runtime = Path(tempfile.mkdtemp(prefix="bhr-", dir="/tmp"))
+    runtime = Path(tempfile.mkdtemp(prefix="bhr-"))
     recs = Path(tempfile.mkdtemp(prefix="bhrecs-"))
-    origin_a = ThreadingHTTPServer(("127.0.0.1", 0),
-                                   partial(SimpleHTTPRequestHandler, directory=str(FIXTURES)))
+    origin_a = _QuietServer(("127.0.0.1", 0),
+                            partial(SimpleHTTPRequestHandler, directory=str(FIXTURES)))
     threading.Thread(target=origin_a.serve_forever, daemon=True).start()
     other = f"http://localhost:{origin_a.server_port}/personio.html"
 
     slow_dir = Path(tempfile.mkdtemp(prefix="bhslow-"))
-    (slow_dir / "slow.html").write_text(SLOW_PAGE.replace("__IFRAME__", other),
-                                        encoding="utf-8")
+    (slow_dir / "slow.html").write_text(
+        SLOW_PAGE.replace("__IFRAME__", other), encoding="utf-8")
+    (slow_dir / "closed-shadow.html").write_text(
+        CLOSED_SHADOW_PAGE.replace("__IFRAME__", other), encoding="utf-8")
     # localhost vs 127.0.0.1 is a different HOST, which is what site isolation keys on.
     # Two ports on the same host are one site and stay in-process — the first version of
     # this fixture made that mistake and could never produce an OOPIF to find.
-    origin_b = ThreadingHTTPServer(("127.0.0.1", 0),
-                                   partial(SimpleHTTPRequestHandler, directory=str(slow_dir)))
+    origin_b = _QuietServer(("127.0.0.1", 0),
+                            partial(SimpleHTTPRequestHandler, directory=str(slow_dir)))
     threading.Thread(target=origin_b.serve_forever, daemon=True).start()
     base = f"http://127.0.0.1:{origin_b.server_port}"
 
@@ -162,6 +185,16 @@ print(len(t.page_text()) > 20, t.js("document.title"))
               r.returncode == 0 and "True" in r.stdout,
               (r.stdout.strip()[:60] if r.returncode == 0
                else r.stderr.strip().replace("\n", " ")[-150:]))
+
+        r = bh(f"""
+import json
+goto("{base}/closed-shadow.html")
+fs = frames()
+print(json.dumps({{"n": len(fs), "urls": [f["url"] for f in fs]}}))
+""")
+        ok = r.returncode == 0 and '"n": 1' in r.stdout and "personio.html" in r.stdout
+        check("frames() pierces a closed-shadow OOPIF host", ok,
+              (r.stdout.strip()[-100:] if ok else r.stderr.strip().replace("\n", " ")[-160:]))
 
         # ---- 4. agent-written helper is first-class ------------------------
         r = bh(f'goto("{base}/slow.html")\nimport json; print(json.dumps(page_summary()))')

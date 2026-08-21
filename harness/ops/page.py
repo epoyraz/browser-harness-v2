@@ -661,26 +661,14 @@ _SYNTH_SCROLL_JS = """/* bh-synth-scroll */ ((pre, x, y, dx, dy) => {
 #: bot wall lost 9 of 11 Ashby forms in a ten-tab run.  This probe reports strong terminal
 #: states immediately and otherwise arms a one-shot mutation observer; Python decides
 #: whether a quiet usable page or quiet empty page has been stable long enough.
-#: Counts child-browsing-context host elements, piercing shadow roots. Only the parent
-#: document knows an OOPIF-hosting element exists — there is no CDP-side gate for it
-#: (`Page.getFrameTree` was tried and is exactly inverted against real Chrome, measured
-#: 2026-08-21: it lists *in*-process children, which never become targets, and reports
-#: `childFrames: []` for an out-of-process child, the only kind the dance finds).
-#: The selector is broadened beyond `iframe` because `<frame>` in a `<frameset>` and a
-#: document hosted by `<object>`/`<embed>` are child contexts too; those match in light
-#: DOM exactly as a plain iframe does (measured: plain cross-site iframe → 1), while the
-#: shadow walk exists for consent managers, chat widgets and embedded ATS widgets that
-#: hide their iframes from `querySelectorAll` (measured: iframe inside a shadow root → 1,
-#: where the plain selector returns 0).
-FRAME_HOST_PROBE_JS = """(() => {
-  let n = 0;
-  const walk = (root) => {
-    n += root.querySelectorAll('iframe,frame,object,embed').length;
-    for (const el of root.querySelectorAll('*')) if (el.shadowRoot) walk(el.shadowRoot);
-  };
-  walk(document);
-  return n;
-})()"""
+#: A CSS query for every element that can host a child browsing context. frames() passes
+#: it to DOM.performSearch rather than querySelectorAll: CDP search pierces *closed* shadow
+#: roots, while page JavaScript sees `host.shadowRoot === null` there. Measured 2026-08-21
+#: against real Chrome: a frameless document returned zero, while plain and closed-shadow
+#: cross-site iframes each returned one. The broader host selector is conservative: a
+#: frame/object/embed false positive merely pays the attach dance. Page.getFrameTree is not
+#: a substitute: it reports in-process children and omits the OOPIF this gate discovers.
+FRAME_HOST_QUERY = "iframe,frame,object,embed"
 
 WATCH_APPLICATION_STATE_JS = """((token) => {
   const bh = window.__bh;
@@ -1757,20 +1745,35 @@ class Tab:
         # A cross-origin child is announced only while auto-attach is on, and the
         # announcement list is rebuilt by the off-on toggle below (measured: the toggle
         # re-announces an already-loaded OOPIF, and a same-site child — which never
-        # becomes a target — announces nothing). The gate on the dance is the DOM probe
-        # above, because only the parent document can know a child-hosting element
-        # exists; see FRAME_HOST_PROBE_JS for why every CDP-side alternative measured
-        # worse. On frameless pages (most of them) the whole dance is skipped outright;
-        # measured on the 100-job batch this removes ~3 round trips plus the settle
-        # wait from ~60% of `prepare_application` calls. And when the probe itself
-        # fails or answers with anything but a trustworthy zero, the dance runs anyway:
+        # becomes a target — announces nothing). DOM.performSearch is the gate: unlike
+        # querySelectorAll it pierces closed shadow roots, and unlike Page.getFrameTree it
+        # sees the host of an out-of-process child. On frameless pages (most of them) the
+        # whole dance is skipped outright; measured on the 100-job batch this removes the
+        # attach round trips plus settle wait from ~60% of `prepare_application` calls.
+        # The search handle is always discarded. When the probe fails or answers with
+        # anything but a trustworthy non-negative integer, the dance runs anyway:
         # a frame report that says "none" must be earned, not assumed. Failing closed
         # here silently dropped OOPIFs on exactly the bot-walled pages this method
         # exists for.
+        search_id: str | None = None
         try:
-            count = self._world_js(FRAME_HOST_PROBE_JS, timeout=10.0)
+            search = self.cdp(
+                "DOM.performSearch",
+                {"query": FRAME_HOST_QUERY, "includeUserAgentShadowDOM": True},
+                timeout=10.0,
+            )
+            raw_count = search.get("resultCount")
+            search_id = search.get("searchId") if isinstance(search.get("searchId"), str) else None
+            count = (raw_count if isinstance(raw_count, int) and not isinstance(raw_count, bool)
+                     and raw_count >= 0 else None)
         except HarnessError:
             count = None                       # unknown → pay the dance, fail open
+        finally:
+            if search_id is not None:
+                try:
+                    self.cdp("DOM.discardSearchResults", {"searchId": search_id}, timeout=5.0)
+                except HarnessError:
+                    pass                       # cleanup failure cannot suppress discovery
         got: list[dict[str, Any]] = []
         if count != 0:
             with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
