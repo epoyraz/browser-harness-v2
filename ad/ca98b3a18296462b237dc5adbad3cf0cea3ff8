@@ -1,0 +1,27 @@
+harness/ops/parallel.py
+  s_19d772ce0b5804::t_b3f66f6aa7b13c 59-96,187-189,224-256,270
+  s_19d772ce0b5804::t_2375a771768560 272-273
+tests/unit/test_parallel.py
+  s_19d772ce0b5804::t_b3f66f6aa7b13c 30,39,52-70,100-101,172-191
+  s_19d772ce0b5804::t_1b3e036b6b3ed0 192-193
+tests/live/parallel_check.py
+  s_19d772ce0b5804::t_8998a0f814406a 18,75,96,147-162,174-179
+tools/collect_job_form_telemetry.py
+  s_19d772ce0b5804::t_df758aff91ef20 681-682,721-730
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "adca98b3a18296462b237dc5adbad3cf0cea3ff8",
+  "prompts": {},
+  "sessions": {
+    "s_19d772ce0b5804": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a02421-51f6-7b52-a4dc-4848392c6354",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
