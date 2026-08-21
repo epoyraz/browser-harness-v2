@@ -1,11 +1,13 @@
 """Daemon tests. TODO 7's done-when is `test_two_clients_drive_two_tabs_concurrently`."""
+import json
 import os
 import threading
 import time
 
 import pytest
 
-from harness.connect.daemon import Daemon, request
+from harness.connect.cdp import MAX_FRAME
+from harness.connect.daemon import MAX_DAEMON_FRAME, Daemon, _encode_frame, request
 from harness.connect.session import DEFAULT_DOMAINS
 from harness.core.outcome import Class, HarnessError
 from tests.fake_browser import FakeBrowser
@@ -47,6 +49,16 @@ def _settle(predicate, timeout: float = 3.0) -> None:
             return
         time.sleep(0.01)
     raise AssertionError("event was never applied")
+
+
+def test_daemon_frame_encoding_does_not_expand_unicode_toward_the_cap():
+    encoded = _encode_frame({"value": "\N{EURO SIGN}" * 1000 + "\ud800"})
+
+    assert b"\\u20ac" not in encoded
+    assert b"\\ud800" in encoded
+    assert json.loads(encoded)["value"].endswith("\ud800")
+    assert encoded.endswith(b"\n")
+    assert MAX_DAEMON_FRAME == MAX_FRAME + (1 << 20)
 
 
 # --- TODO 7's done-when ------------------------------------------------------

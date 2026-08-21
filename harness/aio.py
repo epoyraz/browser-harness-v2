@@ -25,22 +25,51 @@ from __future__ import annotations
 
 import asyncio
 import json
+import weakref
 from collections.abc import Callable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Any, Self
 
-from harness.connect.cdp import MAX_FRAME
 from harness.connect.client import _validate_protocol
+from harness.connect.daemon import MAX_DAEMON_FRAME
 from harness.core import ipc
 from harness.core.outcome import (
     BrowserDisconnected,
     Class,
     HarnessError,
+    ProtocolMismatch,
     Timeout,
     fail,
 )
 
 __all__ = ["AsyncConnection", "AsyncSession"]
+
+def _wrap_result(value: Any, executor: ThreadPoolExecutor) -> Any:
+    """Keep every ``Tab`` returned by a session operation on the pinned worker."""
+    from harness.ops.page import Tab
+
+    return _Async(value, executor) if isinstance(value, Tab) else value
+
+
+def _schedule_session_close(sync: Any, executor: ThreadPoolExecutor) -> None:
+    """Best-effort non-blocking cleanup used by GC and cancelled ``connect()`` calls."""
+    try:
+        executor.submit(sync.close)
+    except RuntimeError:
+        pass
+    finally:
+        # Queued/running work still completes with wait=False; no new work is accepted.
+        executor.shutdown(wait=False)
+
+
+def _close_built_session(future: Future[Any], executor: ThreadPoolExecutor) -> None:
+    """Close a Session whose construction outlived a cancelled async connect."""
+    try:
+        sync = future.result()
+    except Exception:  # noqa: BLE001 - constructor failure only decides executor cleanup
+        executor.shutdown(wait=False)
+    else:
+        _schedule_session_close(sync, executor)
 
 
 class _Async:
@@ -62,18 +91,23 @@ class _Async:
             return attr
 
         async def call(*args: Any, **kwargs: Any) -> Any:
-            return await asyncio.get_running_loop().run_in_executor(
+            value = await asyncio.get_running_loop().run_in_executor(
                 self._ex, lambda: attr(*args, **kwargs))
+            return _wrap_result(value, self._ex)
         return call
 
 
 class AsyncSession:
     """`await session.goto(url)` — the full sync `Session`, off the event loop."""
 
-    def __init__(self, sync: Any, executor: ThreadPoolExecutor):
+    def __init__(self, sync: Any, executor: ThreadPoolExecutor,
+                 namespace: dict[str, Any] | None = None):
         self._proxy = _Async(sync, executor)
         self._sync = sync
         self._ex = executor
+        self._namespace = namespace or {}
+        self._closed = False
+        self._finalizer = weakref.finalize(self, _schedule_session_close, sync, executor)
 
     @classmethod
     async def connect(cls, name: str = "default", **kwargs: Any) -> Self:
@@ -81,25 +115,64 @@ class AsyncSession:
         not the default pool: `Session.__init__` can attach a tab (an explicit
         `BH_TARGET_LEASE`, opt-in recording), and the thread-local cursor it sets must
         live on the thread every later op runs on."""
-        loop = asyncio.get_running_loop()
         executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="bh-aio")
 
         def build() -> Any:
             from harness.session import Session
             return Session(name, **kwargs)
 
-        sync = await loop.run_in_executor(executor, build)
-        return cls(sync, executor)
+        # A concurrent future gives cancellation a cleanup hook that runs even if the
+        # event loop closes before Session.__init__ returns. Shielding prevents asyncio
+        # from cancelling the underlying construction and losing the resulting Session.
+        built = executor.submit(build)
+        try:
+            sync = await asyncio.shield(asyncio.wrap_future(built))
+        except asyncio.CancelledError:
+            built.add_done_callback(lambda future: _close_built_session(future, executor))
+            raise
+        except BaseException:
+            executor.shutdown(wait=False)
+            raise
+
+        try:
+            # This is the actual synchronous public surface used by `bh` scripts: it
+            # contains current-tab operations (`goto`, waits), form helpers, extensions,
+            # and Session methods. Build it on the pinned thread for the same reason as
+            # the Session itself.
+            namespace = await asyncio.get_running_loop().run_in_executor(
+                executor, sync.namespace)
+        except BaseException:
+            _schedule_session_close(sync, executor)
+            raise
+        return cls(sync, executor, namespace)
 
     def __getattr__(self, name: str) -> Any:
+        if name.startswith("_"):
+            raise AttributeError(name)
+        if name == "session":
+            return self
+        if name in self._namespace:
+            attr = self._namespace[name]
+            if isinstance(attr, type) or not callable(attr):
+                return attr
+
+            async def call(*args: Any, **kwargs: Any) -> Any:
+                value = await asyncio.get_running_loop().run_in_executor(
+                    self._ex, lambda: attr(*args, **kwargs))
+                return _wrap_result(value, self._ex)
+            return call
         return getattr(self._proxy, name)
 
     async def tab(self, target_id: str | None = None) -> _Async:
         loop = asyncio.get_running_loop()
         raw = await loop.run_in_executor(self._ex, lambda: self._sync.tab(target_id))
-        return _Async(raw, self._ex)
+        return _wrap_result(raw, self._ex)
 
     async def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._finalizer.detach()
         loop = asyncio.get_running_loop()
         try:
             await loop.run_in_executor(self._ex, self._sync.close)
@@ -130,6 +203,7 @@ class AsyncConnection:
         self._next_id = 0
         self._pending: dict[int, asyncio.Future[dict[str, Any]]] = {}
         self._events: list[Callable[[dict[str, Any]], None]] = []
+        self._closed = False
 
     @classmethod
     async def connect(cls, name: str = "default", *, timeout: float = 30.0) -> Self:
@@ -144,15 +218,18 @@ class AsyncConnection:
 
         sock, token = await loop.run_in_executor(None, dial)
         sock.setblocking(False)
-        # limit must cover the largest frame the daemon can send — a screenshot-bearing
-        # CDP reply dwarfs asyncio's 64 KiB default, and an over-limit readline kills
-        # the reader task and every pending call with it.
-        stream, writer = await asyncio.open_connection(sock=sock, limit=MAX_FRAME)
+        # _pump reads fixed-size chunks rather than StreamReader.readline(), so a normal
+        # screenshot or AX tree isn't constrained by asyncio's 64 KiB line limit.
+        stream, writer = await asyncio.open_connection(sock=sock)
         conn = cls(name, token, writer)
         conn._stream = stream
         conn._reader = asyncio.create_task(conn._pump(), name="bh-aio-reader")
-        subscribed = await conn._call({"meta": "subscribe"}, timeout=10.0)
-        _validate_protocol(subscribed.get("value") or {})
+        try:
+            subscribed = await conn._call({"meta": "subscribe"}, timeout=10.0)
+            _validate_protocol(subscribed.get("value") or {})
+        except BaseException:
+            await conn.close()
+            raise
         return conn
 
     def subscribe(self, fn: Callable[[dict[str, Any]], None]) -> None:
@@ -179,17 +256,26 @@ class AsyncConnection:
                                    **(reply.get("observed") or {})))
 
     async def close(self) -> None:
-        if self._reader is not None:
-            self._reader.cancel()
+        if self._closed:
+            return
+        self._closed = True
+        reader, self._reader = self._reader, None
+        if reader is not None:
+            reader.cancel()
         try:
             self._writer.close()
             await self._writer.wait_closed()
-        except (OSError, asyncio.CancelledError):
+        except OSError:
             pass
+        finally:
+            if reader is not None:
+                await asyncio.gather(reader, return_exceptions=True)
 
     # -- plumbing ----------------------------------------------------------
 
     async def _call(self, payload: dict[str, Any], *, timeout: float) -> dict[str, Any]:
+        if self._closed:
+            raise BrowserDisconnected("client connection is closed")
         loop = asyncio.get_running_loop()
         self._next_id += 1
         rid = self._next_id
@@ -201,27 +287,49 @@ class AsyncConnection:
         try:
             self._writer.write((json.dumps(body, default=str) + "\n").encode())
             await self._writer.drain()
+            try:
+                return await asyncio.wait_for(fut, timeout)
+            except TimeoutError:                 # asyncio.TimeoutError aliases the builtin
+                raise Timeout(
+                    f"daemon did not answer {payload.get('method') or payload.get('meta')}"
+                    f" in {timeout}s", daemon=self.name) from None
         except (OSError, ConnectionResetError) as e:
-            self._pending.pop(rid, None)
             raise BrowserDisconnected(f"daemon went away: {e}") from e
-        try:
-            return await asyncio.wait_for(fut, timeout)
-        except TimeoutError:                     # asyncio.TimeoutError aliases the builtin
-            self._pending.pop(rid, None)     # a late reply finds no slot, as everywhere
-            raise Timeout(
-                f"daemon did not answer {payload.get('method') or payload.get('meta')}"
-                f" in {timeout}s", daemon=self.name) from None
+        finally:
+            # Covers success, timeout, cancellation during drain/wait, and transport
+            # failure. A late reply therefore always finds no abandoned slot.
+            self._pending.pop(rid, None)
 
     async def _pump(self) -> None:
+        failure: BaseException = BrowserDisconnected("daemon connection lost")
+        buf = bytearray()
         try:
             assert self._stream is not None
-            while line := await self._stream.readline():
-                if line.strip():
-                    self._dispatch(line)
-        except (asyncio.CancelledError, ConnectionResetError, OSError):
-            pass
+            while chunk := await self._stream.read(1 << 16):
+                buf.extend(chunk)
+                while (newline := buf.find(b"\n")) >= 0:
+                    line = bytes(buf[:newline])
+                    del buf[:newline + 1]
+                    if len(line) > MAX_DAEMON_FRAME:
+                        raise ProtocolMismatch(
+                            f"daemon frame exceeds {MAX_DAEMON_FRAME} bytes")
+                    if line.strip():
+                        self._dispatch(line)
+                if len(buf) > MAX_DAEMON_FRAME:
+                    raise ProtocolMismatch(
+                        f"daemon frame exceeds {MAX_DAEMON_FRAME} bytes")
+            if buf.strip():
+                raise ProtocolMismatch("daemon closed in the middle of a JSON frame")
+        except asyncio.CancelledError:
+            raise
+        except ProtocolMismatch as error:
+            failure = error
+        except (ConnectionResetError, OSError) as error:
+            failure = BrowserDisconnected(f"daemon connection lost: {error}")
+        except (TypeError, ValueError) as error:
+            failure = ProtocolMismatch(f"invalid daemon frame: {error}")
         finally:
-            self._fail_all(BrowserDisconnected("daemon connection lost"))
+            self._fail_all(failure)
 
     def _dispatch(self, line: bytes) -> None:
         try:

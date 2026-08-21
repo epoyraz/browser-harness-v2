@@ -24,7 +24,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Self
 
-from harness.connect.cdp import Connection
+from harness.connect.cdp import MAX_FRAME, Connection
 from harness.connect.session import SessionRegistry
 from harness.core import ipc
 from harness.core.journal import Journal
@@ -44,6 +44,19 @@ _DAEMON_QUEUE = max(_DAEMON_WORKERS, int(os.environ.get("BH_DAEMON_QUEUE") or 64
 #: Raw-CDP methods that would otherwise produce a session behind the registry's back.
 _SESSION_METHODS = frozenset({"Target.attachToTarget", "Target.detachFromTarget"})
 
+#: A daemon frame contains one decoded CDP frame plus a small outcome/event envelope.
+#: `_encode_frame` uses compact UTF-8 JSON so decoding and re-encoding cannot multiply
+#: non-ASCII payloads. One MiB is consequently ample room for the fixed envelope while
+#: keeping the local protocol close to the browser transport's deliberate 100 MiB cap.
+MAX_DAEMON_FRAME = MAX_FRAME + (1 << 20)
+
+
+def _encode_frame(payload: dict[str, Any]) -> bytes:
+    """Encode one newline-delimited daemon frame without ASCII expansion."""
+    return (json.dumps(
+        payload, default=str, ensure_ascii=False, separators=(",", ":")) + "\n"
+    ).encode("utf-8", errors="backslashreplace")
+
 
 class _Peer:
     """One client socket, with the lock that keeps replies and events from interleaving.
@@ -59,7 +72,7 @@ class _Peer:
         self.closed = threading.Event()
 
     def send(self, payload: dict[str, Any]) -> bool:
-        line = (json.dumps(payload, default=str) + "\n").encode()
+        line = _encode_frame(payload)
         try:
             with self.lock:
                 self.sock.sendall(line)
