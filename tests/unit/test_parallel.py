@@ -27,6 +27,7 @@ class FakeSession:
         self.contexts: list[str] = []
         self.closed_contexts: list[str] = []
         self.open_tabs: set[str] = set()
+        self.target_infos: dict[str, dict] = {}
         self.peak_tabs = 0
 
     def new_tab(self, url="about:blank", *, context_id=None):
@@ -35,6 +36,7 @@ class FakeSession:
             tid = f"T{self._n}"
             self.created.append(tid)
             self.open_tabs.add(tid)
+            self.target_infos[tid] = {"targetId": tid, "type": "page"}
             self.peak_tabs = max(self.peak_tabs, len(self.open_tabs))
         self._local.current = tid
         return FakeTab(tid)
@@ -47,6 +49,25 @@ class FakeSession:
         with self._lock:
             self.closed.append(target_id)
             self.open_tabs.discard(target_id)
+            self.target_infos.pop(target_id, None)
+
+    def open_popup(self):
+        with self._lock:
+            self._n += 1
+            tid = f"P{self._n}"
+            opener = self.current
+            self.open_tabs.add(tid)
+            self.target_infos[tid] = {
+                "targetId": tid, "type": "page", "openerId": opener,
+                "canAccessOpener": False,
+            }
+            self.peak_tabs = max(self.peak_tabs, len(self.open_tabs))
+        self._local.current = tid
+        return tid
+
+    def targets(self):
+        with self._lock:
+            return [dict(info) for info in self.target_infos.values()]
 
     def new_context(self):
         with self._lock:
@@ -76,6 +97,8 @@ def test_results_come_back_in_input_order_not_completion_order():
     assert [r["item"] for r in out] == list(range(8))
     assert [r["value"] for r in out] == [i * 10 for i in range(8)]
     assert all(r["telemetry"]["completed_ms"] >= r["telemetry"]["queued_ms"] for r in out)
+    assert all(r["telemetry"]["cleanup_target_query_ms"] is not None for r in out)
+    assert all(r["telemetry"]["cleanup_descendants"] == 0 for r in out)
 
 
 def test_parallel_emits_start_and_completion_events_with_safe_identity():
@@ -144,6 +167,28 @@ def test_tabs_are_reused_across_items_and_cleaned_up():
     # threads up lazily, so trivial work can finish on fewer than max_workers.
     assert 1 <= len(s.created) <= 4
     assert set(s.closed) == set(s.created)
+
+
+def test_owned_popup_descendants_are_closed_before_the_worker_is_reused():
+    s = FakeSession()
+    roots = []
+    popups = []
+
+    def fn(item):
+        if item == 0:
+            roots.append(s.current)
+            popups.extend([s.open_popup(), s.open_popup()])
+            return s.current
+        roots.append(s.current)
+        return s.current
+
+    out = parallel(s, range(2), fn, workers=1)
+
+    assert roots == [roots[0], roots[0]]
+    assert out[0]["value"] == popups[-1]
+    assert set(popups).issubset(s.closed)
+    assert out[0]["telemetry"]["cleanup_descendants"] == 2
+    assert set(s.open_tabs) == set()
 
 
 def test_reuse_tabs_false_gives_each_item_a_clean_tab():

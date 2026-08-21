@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import statistics
 import sys
 import tempfile
 import threading
@@ -71,7 +72,7 @@ class _Site(BaseHTTPRequestHandler):
             self.end_headers()
             try:
                 self.wfile.write(body)
-            except (BrokenPipeError, ConnectionResetError):
+            except (BrokenPipeError, ConnectionAbortedError, ConnectionResetError):
                 pass                    # closing a worker tab may cancel its final read
         finally:
             with self.lock:
@@ -92,7 +93,7 @@ class _Site(BaseHTTPRequestHandler):
 
 def main() -> int:
     scratch = Path(tempfile.mkdtemp(prefix="bh-par-"))
-    runtime = Path(tempfile.mkdtemp(prefix="bhp-", dir="/tmp"))
+    runtime = Path(tempfile.mkdtemp(prefix="bhp-"))
     # THREADING server, deliberately: a plain HTTPServer handles one request at a time,
     # which serialises the very thing under test. The first run of this check reported
     # parallel as 0.5x *slower* than serial purely because of that.
@@ -143,6 +144,22 @@ def main() -> int:
                 time.sleep(0.05)
             return target_ids() == baseline_targets
 
+        # The popup-safety scan is one Target.getTargets round trip per item. Measure it
+        # independently on 100 no-op jobs so its cost is visible rather than hidden inside
+        # navigation timing.
+        cleanup_probe = parallel(session, range(100), lambda _: None, workers=WORKERS)
+        cleanup_ms = sorted(
+            float(record["telemetry"]["cleanup_target_query_ms"])
+            for record in cleanup_probe
+            if record["telemetry"]["cleanup_target_query_ms"] is not None
+        )
+        check("100 popup-cleanup target queries are measured", len(cleanup_ms) == 100,
+              (f"p50={statistics.median(cleanup_ms):.1f}ms "
+               f"p95={cleanup_ms[94]:.1f}ms max={cleanup_ms[-1]:.1f}ms")
+              if cleanup_ms else "no samples")
+        check("cleanup probe returns worker tabs to baseline", tabs_returned_to_baseline(),
+              f"baseline={len(baseline_targets)} now={len(target_ids())}")
+
         t0 = time.perf_counter()
         got = parallel(session, urls, visit, workers=WORKERS)
         par = time.perf_counter() - t0
@@ -153,6 +170,12 @@ def main() -> int:
         check("results in input order",
               [r["value"] for r in got] == [str(i) for i in range(12)],
               str([r["value"] for r in got])[:46])
+
+        cleanup_queries = [r["telemetry"]["cleanup_target_query_ms"] for r in got]
+        cleanup_total = sum(value for value in cleanup_queries if value is not None)
+        check("popup cleanup target queries are measured",
+              all(value is not None for value in cleanup_queries),
+              f"{cleanup_total:.1f}ms total / {len(cleanup_queries)} items")
 
         check("real requests overlapped", _Site.peak > 1, f"peak={_Site.peak}")
         check("worker tabs cleaned up", tabs_returned_to_baseline(),

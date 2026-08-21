@@ -678,6 +678,8 @@ def write_timing_reports(records: list[dict[str, Any]], whole_wall_ms: float) ->
             "completed_ms": telemetry.get("completed_ms"),
             "worker_id": telemetry.get("worker_id"),
             "target_id": telemetry.get("target_id"),
+            "cleanup_target_query_ms": telemetry.get("cleanup_target_query_ms"),
+            "cleanup_descendants": telemetry.get("cleanup_descendants"),
             "js_heap_used_bytes": metrics.get("JSHeapUsedSize"),
         }
         attempts.append(attempt)
@@ -716,6 +718,16 @@ def write_timing_reports(records: list[dict[str, Any]], whole_wall_ms: float) ->
             "attempt_duration_ms": numeric_summary([
                 float(row["duration_ms"]) for row in attempts if row.get("duration_ms") is not None
             ]),
+            "cleanup_target_query_ms": numeric_summary([
+                float(row["cleanup_target_query_ms"])
+                for row in attempts if row.get("cleanup_target_query_ms") is not None
+            ]),
+            "sum_cleanup_target_query_ms": round(sum(
+                float(row["cleanup_target_query_ms"])
+                for row in attempts if row.get("cleanup_target_query_ms") is not None
+            ), 1),
+            "cleanup_descendants": sum(
+                int(row.get("cleanup_descendants") or 0) for row in attempts),
         },
         "companies": company_rows,
         "attempts": attempts,

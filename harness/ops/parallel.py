@@ -56,6 +56,44 @@ def _cleanup_failed(record: dict[str, Any], failures: list[dict[str, Any]]) -> N
         record["error"] = "owned browser resources could not be released"
 
 
+def _owned_tab_descendants(session: Any, root: str) -> tuple[list[str], bool]:
+    """Return live page targets causally opened by one owned worker tab.
+
+    Chrome retains ``openerId`` even for ``rel=noopener`` targets while the opener is
+    alive (measured with ``canAccessOpener=false``).  Following that chain is therefore
+    both safer and more complete than diffing the global target list: concurrent workers'
+    tabs and pre-existing user tabs can never be mistaken for this worker's resources.
+    """
+    infos = session.targets()
+    live = {str(info.get("targetId")) for info in infos if info.get("targetId")}
+    owned = {root}
+    descendants: list[str] = []
+    while True:
+        found = [
+            str(info["targetId"])
+            for info in infos
+            if info.get("type") in {"page", "tab"}
+            and info.get("targetId")
+            and str(info["targetId"]) not in owned
+            and str(info.get("openerId") or "") in owned
+        ]
+        if not found:
+            break
+        owned.update(found)
+        descendants.extend(found)
+    return descendants, root in live
+
+
+def _cleanup_observation_failure(session: Any, kind: str, identifier: str,
+                                 error: Exception) -> dict[str, Any]:
+    failure = {"kind": kind, "identifier": identifier,
+               "error": f"{type(error).__name__}: {str(error)[:200]}"}
+    session.journal.write("note", event="resource_cleanup_failed",
+                          resource_kind=kind, identifier=identifier,
+                          error=failure["error"])
+    return failure
+
+
 def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
              workers: int = 0, reuse_tabs: bool = True, isolated: bool = False,
              worker_limit: int = MAX_WORKERS,
@@ -146,6 +184,9 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                 handled.append(index)
                 item_context: str | None = None
                 item_tab: str | None = None
+                target_id: str | None = None
+                cleanup_target_query_ms: float | None = None
+                cleanup_descendants = 0
                 record: dict[str, Any]
                 with progress_lock:
                     active += 1
@@ -180,6 +221,39 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                     record = _failure(item, error)
                 finally:
                     failures = []
+                    root_tab = worker_tab or item_tab
+                    if root_tab is not None:
+                        cleanup_query_started = time.perf_counter()
+                        try:
+                            descendants, root_live = _owned_tab_descendants(
+                                session, root_tab)
+                        except Exception as error:  # noqa: BLE001 — observable cleanup
+                            failures.append(_cleanup_observation_failure(
+                                session, "tab_descendants", root_tab, error))
+                        else:
+                            cleanup_descendants = len(descendants)
+                            # Deepest/newest targets close first.  A popup may itself have
+                            # opened an authentication or ATS child during this item.
+                            for descendant in reversed(descendants):
+                                ledger.acquire(
+                                    "tab", descendant,
+                                    lambda tid=descendant: session.close_tab(tid),
+                                )
+                                if failure := ledger.release("tab", descendant):
+                                    failures.append(failure)
+                            if reuse_tabs and root_live:
+                                try:
+                                    session.use_tab(root_tab)
+                                except Exception as error:  # noqa: BLE001 — observable cleanup
+                                    failures.append(_cleanup_observation_failure(
+                                        session, "tab_cursor", root_tab, error))
+                            elif reuse_tabs:
+                                # The page replaced/closed its opener. Create a fresh owned
+                                # worker tab for the next item instead of reusing a dead id.
+                                worker_tab = None
+                        finally:
+                            cleanup_target_query_ms = round(
+                                (time.perf_counter() - cleanup_query_started) * 1000, 1)
                     if (not reuse_tabs and item_tab is not None
                             and (failure := ledger.release("tab", item_tab))):
                         failures.append(failure)
@@ -193,8 +267,10 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                     active_after = active
                 record["telemetry"] = {
                     "item_id": safe_id, "item_index": index, "worker_id": worker_id,
-                    "target_id": worker_tab or item_tab,
+                    "target_id": target_id,
                     "browser_context_id": worker_context if reuse_tabs else item_context,
+                    "cleanup_target_query_ms": cleanup_target_query_ms,
+                    "cleanup_descendants": cleanup_descendants,
                     "queued_ms": round((claimed_at - run_started) * 1000, 1),
                     "duration_ms": round((completed_at - claimed_at) * 1000, 1),
                     "completed_ms": round((completed_at - run_started) * 1000, 1),
