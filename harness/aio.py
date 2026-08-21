@@ -29,6 +29,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Self
 
+from harness.connect.cdp import MAX_FRAME
 from harness.connect.client import _validate_protocol
 from harness.core import ipc
 from harness.core.outcome import (
@@ -76,15 +77,19 @@ class AsyncSession:
 
     @classmethod
     async def connect(cls, name: str = "default", **kwargs: Any) -> Self:
-        """Spawn/reuse the daemon and open the session, off-loop."""
+        """Spawn/reuse the daemon and open the session, off-loop — on the pinned worker,
+        not the default pool: `Session.__init__` can attach a tab (an explicit
+        `BH_TARGET_LEASE`, opt-in recording), and the thread-local cursor it sets must
+        live on the thread every later op runs on."""
+        loop = asyncio.get_running_loop()
+        executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="bh-aio")
+
         def build() -> Any:
             from harness.session import Session
             return Session(name, **kwargs)
 
-        loop = asyncio.get_running_loop()
-        sync = await loop.run_in_executor(None, build)
-        # One persistent worker thread: the sync session's thread-local cursor lives here.
-        return cls(sync, ThreadPoolExecutor(max_workers=1, thread_name_prefix="bh-aio"))
+        sync = await loop.run_in_executor(executor, build)
+        return cls(sync, executor)
 
     def __getattr__(self, name: str) -> Any:
         return getattr(self._proxy, name)
@@ -139,7 +144,10 @@ class AsyncConnection:
 
         sock, token = await loop.run_in_executor(None, dial)
         sock.setblocking(False)
-        stream, writer = await asyncio.open_connection(sock=sock)
+        # limit must cover the largest frame the daemon can send — a screenshot-bearing
+        # CDP reply dwarfs asyncio's 64 KiB default, and an over-limit readline kills
+        # the reader task and every pending call with it.
+        stream, writer = await asyncio.open_connection(sock=sock, limit=MAX_FRAME)
         conn = cls(name, token, writer)
         conn._stream = stream
         conn._reader = asyncio.create_task(conn._pump(), name="bh-aio-reader")
