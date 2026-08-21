@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 sys.path.insert(0, str(ROOT / "tools"))
 
-from refresh_joblens_jobs import (  # noqa: E402
+from refresh_joblens_jobs import (
     MIN_SECONDS_BETWEEN_REQUESTS,
     application,
     mcp_call,

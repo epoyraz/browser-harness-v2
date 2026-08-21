@@ -34,10 +34,28 @@ from pathlib import Path
 
 from harness.core.resources import BrowserLease, kill_chrome_for_profile
 
-CHROME = (os.environ.get("BH_CHROME")
-          or ("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-              if sys.platform == "darwin" else shutil.which("google-chrome")
-              or shutil.which("chromium") or "google-chrome"))
+
+def _chrome_executable() -> str:
+    """Find Chrome on every supported desktop, with ``BH_CHROME`` as override."""
+    if configured := os.environ.get("BH_CHROME"):
+        return configured
+    if sys.platform == "darwin":
+        return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    if os.name == "nt":
+        roots = [os.environ.get("PROGRAMFILES"), os.environ.get("PROGRAMFILES(X86)"),
+                 os.environ.get("LOCALAPPDATA")]
+        for root in filter(None, roots):
+            for relative in ("Google/Chrome/Application/chrome.exe",
+                             "Google/Chrome SxS/Application/chrome.exe",
+                             "Chromium/Application/chrome.exe"):
+                candidate = Path(root) / relative
+                if candidate.is_file():
+                    return str(candidate)
+        return shutil.which("chrome.exe") or "chrome.exe"
+    return shutil.which("google-chrome") or shutil.which("chromium") or "google-chrome"
+
+
+CHROME = _chrome_executable()
 
 #: Windows-only: the occlusion calculator suspends renderers in offscreen windows, which
 #: makes a headed CI run look like a hang.

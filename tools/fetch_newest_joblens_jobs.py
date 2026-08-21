@@ -21,8 +21,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "tools"))
 
-from fetch_new_joblens_jobs import already_seen  # noqa: E402
-from refresh_joblens_jobs import (  # noqa: E402
+from fetch_new_joblens_jobs import already_seen
+from refresh_joblens_jobs import (
     MIN_SECONDS_BETWEEN_REQUESTS,
     application,
     mcp_call,
