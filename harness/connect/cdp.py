@@ -66,13 +66,35 @@ class WebSocketTransport:
     """The live wire. Translates the websocket library's exceptions into two the rest of
     the tree understands — `TimeoutError` and `EOFError` — so `Connection` never imports
     `websockets` and a cassette can stand in for it unchanged.
+
+    Keepalive pings are **off** (`ping_interval=None`). Measured (repro vs a server that
+    never pongs): with the library defaults the connection is force-closed with
+    `1011 keepalive ping timeout` ~40 s in — indistinguishable from a real disconnect,
+    and here one false positive kills the one multiplexed websocket for every client.
+    Real CDP traffic is already our liveness evidence; the reader thread, per-request
+    timeouts and lifecycle events own that job (the same root cause as cdp-use PR #25 /
+    browser-use#4688 "random mid-session drops"). Callers who want the transport-level
+    check back can pass explicit values.
     """
 
-    def __init__(self, url: str, *, open_timeout: float = 30.0):
+    def __init__(
+        self,
+        url: str,
+        *,
+        open_timeout: float = 30.0,
+        ping_interval: float | None = None,
+        ping_timeout: float = 20.0,
+    ):
         from websockets.sync.client import connect
 
         self.url = url
-        self._ws = connect(url, max_size=MAX_FRAME, open_timeout=open_timeout)
+        self._ws = connect(
+            url,
+            max_size=MAX_FRAME,
+            open_timeout=open_timeout,
+            ping_interval=ping_interval,
+            ping_timeout=ping_timeout,
+        )
 
     def send(self, msg: dict[str, Any]) -> None:
         from websockets.exceptions import ConnectionClosed

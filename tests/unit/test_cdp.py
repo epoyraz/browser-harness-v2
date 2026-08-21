@@ -1,10 +1,13 @@
 """Connection tests: id-multiplexing, typed errors, and the single prose boundary."""
+import base64
+import hashlib
+import socket
 import threading
 import time
 
 import pytest
 
-from harness.connect.cdp import Connection, classify
+from harness.connect.cdp import Connection, WebSocketTransport, classify
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError, Timeout
 from tests.fake_browser import FakeBrowser
 
@@ -160,3 +163,102 @@ def _settle(predicate, timeout: float = 2.0) -> None:
             return
         time.sleep(0.01)
     raise AssertionError("event never arrived")
+
+
+# --- keepalive pings -----------------------------------------------------------
+# A busy browser (or a slow cloud link) can leave a ws ping unanswered longer than
+# ping_timeout; the library then force-closes with `1011 keepalive ping timeout` —
+# indistinguishable from a real disconnect, and fatal here because one websocket
+# serves every client. Reproduced live against a never-ponging endpoint before the
+# fix (same root cause as cdp-use PR #25 / browser-use#4688).
+
+_WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+
+class _SilentServer:
+    """RFC6455 upgrade handshake, then total silence: no reads, so no pongs ever."""
+
+    def __init__(self):
+        self._srv = socket.socket()
+        self._srv.bind(("127.0.0.1", 0))
+        self._srv.listen(1)
+        threading.Thread(target=self._serve, daemon=True).start()
+
+    @property
+    def url(self) -> str:
+        return f"ws://127.0.0.1:{self._srv.getsockname()[1]}"
+
+    def _serve(self):
+        conn, _ = self._srv.accept()
+        req = b""
+        while b"\r\n\r\n" not in req:
+            chunk = conn.recv(4096)
+            if not chunk:
+                return
+            req += chunk
+        key = next(
+            line.split(":", 1)[1].strip()
+            for line in req.decode("latin1").split("\r\n")
+            if line.lower().startswith("sec-websocket-key:")
+        )
+        accept = base64.b64encode(hashlib.sha1((key + _WS_GUID).encode()).digest()).decode()
+        conn.sendall(
+            (
+                "HTTP/1.1 101 Switching Protocols\r\n"
+                "Upgrade: websocket\r\n"
+                "Connection: Upgrade\r\n"
+                f"Sec-WebSocket-Accept: {accept}\r\n\r\n"
+            ).encode()
+        )
+        time.sleep(60)                       # silence
+
+
+def test_transport_defaults_to_no_keepalive_pings(monkeypatch):
+    """The default must not inherit websockets' `ping_interval=20`: that config was
+    measured force-closing the connection with 1011 against a browser that merely
+    stayed busy past 40 s."""
+    captured: dict = {}
+
+    class _FakeWS:
+        def send(self, msg): ...
+        def recv(self, timeout=None): raise TimeoutError()
+        def close(self): ...
+
+    def fake_connect(url, **kwargs):
+        captured.update(kwargs)
+        return _FakeWS()
+
+    monkeypatch.setattr("websockets.sync.client.connect", fake_connect)
+    WebSocketTransport("ws://127.0.0.1:1")
+    assert captured["ping_interval"] is None
+
+
+def test_keepalive_ping_timeout_closes_a_silent_connection():
+    """Control for the tests above: with pings ON, the silent endpoint really does
+    produce the 1011 EOFError — proving the mechanism, not just the absence of pings."""
+    t = WebSocketTransport(_SilentServer().url, ping_interval=0.5, ping_timeout=0.5)
+    try:
+        deadline = time.monotonic() + 25   # close_timeout=10 can stretch the teardown
+        while time.monotonic() < deadline:
+            try:
+                t.recv(timeout=1)
+            except TimeoutError:
+                continue
+            except EOFError as e:
+                assert "keepalive" in str(e)
+                return
+        pytest.fail("connection survived a silent browser despite keepalive pings")
+    finally:
+        t.close()
+
+
+def test_no_keepalive_survives_a_silent_browser():
+    """The fix: production defaults hold the connection open well past the old ~40 s
+    kill window. Real liveness is CDP traffic + per-request timeouts, not ws pings."""
+    t = WebSocketTransport(_SilentServer().url)
+    try:
+        for _ in range(3):
+            with pytest.raises(TimeoutError):
+                t.recv(timeout=1)          # still open; only our own poll timed out
+    finally:
+        t.close()
