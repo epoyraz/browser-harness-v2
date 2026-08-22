@@ -711,3 +711,89 @@ def test_a_plain_python_error_is_not_swallowed(served):
     must still surface as the exception it is."""
     with pytest.raises(ZeroDivisionError):
         run_script("1/0", name="sesstest")
+
+
+# -- stdio encoding (upstream #359) ------------------------------------------
+
+def test_force_utf8_streams_pins_all_three_streams(monkeypatch):
+    """On Windows, stdout defaults to the ANSI code page, so `print(page_text())` — shown on
+    nearly every SKILL.md example — dies with UnicodeEncodeError on any CJK or emoji page."""
+    import sys
+
+    from harness.session import force_utf8_streams
+
+    calls = {}
+
+    class Stream:
+        def __init__(self, tag):
+            self.tag = tag
+
+        def reconfigure(self, **kw):
+            calls[self.tag] = kw
+
+    monkeypatch.setattr(sys, "stdin", Stream("stdin"))
+    monkeypatch.setattr(sys, "stdout", Stream("stdout"))
+    monkeypatch.setattr(sys, "stderr", Stream("stderr"))
+
+    force_utf8_streams()
+
+    assert set(calls) == {"stdin", "stdout", "stderr"}
+    # stdin strips a BOM (PowerShell redirects write one); writes must never emit one.
+    assert calls["stdin"] == {"encoding": "utf-8-sig", "errors": "replace"}
+    assert calls["stdout"] == {"encoding": "utf-8", "errors": "replace"}
+    assert calls["stderr"] == {"encoding": "utf-8", "errors": "replace"}
+
+
+def test_force_utf8_streams_survives_streams_that_cannot_reconfigure(monkeypatch):
+    """pytest's capture, a plain StringIO, and an already-read stdin all turn up here. A
+    convenience that crashes the run it was meant to protect is worse than no convenience."""
+    import io
+    import sys
+
+    from harness.session import force_utf8_streams
+
+    class Refuses:
+        def reconfigure(self, **kw):
+            raise ValueError("underlying buffer has been detached")
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO())          # no reconfigure attribute
+    monkeypatch.setattr(sys, "stdout", Refuses())             # raises
+    monkeypatch.setattr(sys, "stderr", object())              # not a stream at all
+
+    force_utf8_streams()                                       # must not raise
+
+
+def test_a_non_ascii_page_dump_does_not_kill_the_script(monkeypatch):
+    """The end the fix exists for: replacement beats losing the run. The harness promised
+    the page's *text*, never its exact bytes."""
+    import sys
+
+    from harness.session import force_utf8_streams
+
+    class AnsiStdout:
+        """Stands in for a cp1252 stdout: refuses non-latin-1 until it is reconfigured."""
+
+        def __init__(self):
+            self.encoding = "cp1252"
+            self.buf = []
+
+        def write(self, s):
+            s.encode(self.encoding, "strict")     # raises UnicodeEncodeError under cp1252
+            self.buf.append(s)
+            return len(s)
+
+        def flush(self):
+            pass
+
+        def reconfigure(self, *, encoding=None, errors=None):
+            self.encoding = encoding or self.encoding
+
+    stream = AnsiStdout()
+    monkeypatch.setattr(sys, "stdout", stream)
+
+    with pytest.raises(UnicodeEncodeError):
+        print("\u6c42\u4eba \u5fdc\u52df")
+
+    force_utf8_streams()
+    print("\u6c42\u4eba \u5fdc\u52df")
+    assert "\u6c42\u4eba" in "".join(stream.buf)

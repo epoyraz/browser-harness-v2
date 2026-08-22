@@ -117,17 +117,24 @@ class Recorder:
                 return None
             # Bind the tab before waiting: Session's current-tab cursor is thread-local,
             # and looking it up from a different thread later would capture the wrong page.
-            with self._capture_lock:
-                return self._capture(tab)
+            return self._capture(tab)
         except Exception:      # noqa: BLE001 — a recording must never break the run
             return None
         finally:
             self._local.busy = False
 
     def _capture(self, tab: Any) -> dict[str, Any] | None:
+        # The lock covers frame numbering and NOTHING else. It used to wrap this whole
+        # method, which made one global recorder serialise every worker: with BH_RECORD=1
+        # and parallel() running 10 tabs, each capture held the lock across SETTLE plus a
+        # screenshot round trip. A measured 100-job run took ~256 captures — roughly 40 s
+        # of pure lock-held sleep, on ten threads that had nothing to contend over. The
+        # sleep is per-tab paint time and the screenshot is per-target; only the counter is
+        # shared.
         time.sleep(SETTLE)
-        self.frames += 1
-        name = f"{self.frames:04d}.jpg"
+        with self._capture_lock:
+            self.frames += 1
+            name = f"{self.frames:04d}.jpg"
         tab.capture_screenshot(self.dir / name, max_dim=self.max_dim, quality=self.quality)
         extra: dict[str, Any] = {"frame": name}
         try:

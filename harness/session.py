@@ -767,6 +767,37 @@ class Session:
         return ns
 
 
+def force_utf8_streams() -> None:
+    """Pin stdio to UTF-8 before an agent script runs. Idempotent.
+
+    Upstream #359: on Windows, Python <3.15 defaults `sys.stdout` to the ANSI code page, so
+    the plain `print(page_text())` that SKILL.md shows on nearly every example raises
+    `UnicodeEncodeError` the moment a page contains CJK or an emoji — and it surfaces as a
+    raw traceback through `run_script`'s `except BaseException: raise`, which is precisely
+    the failure shape D11 exists to abolish. v1 fixed this in run.py; v2 had not.
+
+    `stdin` is reconfigured for the same reason and it matters more: the *script* is read
+    from it, so an umlaut in a form value could fail to decode before a single line ran.
+    `errors="replace"` because a mangled character in a page dump is a far better outcome
+    than losing the run — the harness never promised the page's bytes, only its text.
+    """
+    import sys
+    # stdin gets utf-8-sig, the others plain utf-8: PowerShell's `>` and `Out-File` write a
+    # UTF-8 BOM, and `bh < script.py` would otherwise hand the compiler a leading U+FEFF and
+    # die on line 1 with an unhelpful SyntaxError. utf-8-sig strips it when present and is
+    # identical to utf-8 when it is not; on the write side a BOM is never wanted.
+    for stream, encoding in ((sys.stdin, "utf-8-sig"),
+                             (sys.stdout, "utf-8"),
+                             (sys.stderr, "utf-8")):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue                     # pytest capture, a plain StringIO, a closed stream
+        try:
+            reconfigure(encoding=encoding, errors="replace")
+        except (ValueError, OSError):
+            continue                     # already-read stdin, or a stream that refuses
+
+
 def run_script(source: str, *, name: str = "default", filename: str = "<bh>") -> int:
     """Execute an agent-written script in a live session.
 
@@ -777,6 +808,7 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
     import sys
     import time
 
+    force_utf8_streams()
     t0 = time.perf_counter()
     connected = exec_start = None
     session = None
@@ -824,4 +856,4 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
     return 0
 
 
-__all__ = ["Session", "TargetGone", "run_script"]
+__all__ = ["Session", "TargetGone", "force_utf8_streams", "run_script"]

@@ -139,3 +139,100 @@ def test_the_journal_moves_into_the_recording(wired):
 def test_the_allowlist_is_state_changing_calls_only():
     assert {"goto", "click", "fill_form", "scroll", "press_key"} <= ACTIONS
     assert not ({"snapshot", "see", "page_text", "js", "form_schema"} & ACTIONS)
+
+
+def test_the_capture_hook_does_not_serialise_parallel_workers(tmp_path):
+    """The capture lock covers frame numbering only.
+
+    It used to wrap the whole capture at the hook's call site, so ONE global Recorder
+    serialised every parallel() worker across SETTLE (0.15 s) plus a screenshot round trip.
+    Driving the real hook (`_on_call`) is the point — calling `_capture` directly would
+    bypass exactly the lock that was the bug. Ten concurrent hook firings must overlap:
+    serialised they cost >= 10 x SETTLE, overlapped roughly 1 x SETTLE.
+    """
+    import threading
+    import time as _time
+
+    from harness.core.journal import Journal, Span
+    from harness.ops import record as rec_mod
+
+    workers = 10
+
+    class SlowTab:
+        def capture_screenshot(self, path, **kw):
+            _time.sleep(0.02)                    # stand in for the screenshot round trips
+            path.write_bytes(b"\xff\xd8\xff")
+            return path
+
+        def js(self, *a, **kw):
+            return {}
+
+    tabs = [SlowTab() for _ in range(workers)]
+    local = threading.local()
+    recorder = rec_mod.Recorder(lambda: local.tab, Journal(tmp_path / "j.jsonl"), tmp_path)
+
+    barrier = threading.Barrier(workers)
+    errors: list[BaseException] = []
+
+    def work(t):
+        local.tab = t
+        try:
+            barrier.wait(timeout=5)
+            recorder._on_call(Span(id="s", fn="goto", started=_time.perf_counter()), {})
+        except BaseException as e:               # noqa: BLE001 — surfaced by the assert below
+            errors.append(e)
+
+    threads = [threading.Thread(target=work, args=(t,)) for t in tabs]
+    start = _time.perf_counter()
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=15)
+    elapsed = _time.perf_counter() - start
+
+    assert not errors, errors
+    assert recorder.frames == workers, "every worker must have produced a frame"
+    serialised = workers * rec_mod.SETTLE
+    assert elapsed < serialised / 2, (
+        f"{workers} hook captures took {elapsed:.2f}s; serialised would be >= {serialised:.2f}s")
+
+
+def test_frame_numbers_stay_unique_and_contiguous_under_concurrency(tmp_path):
+    """Shrinking the lock must not reintroduce a numbering race."""
+    import threading
+    import time as _time
+
+    from harness.core.journal import Journal, Span
+    from harness.ops import record as rec_mod
+
+    names: list[str] = []
+    lock = threading.Lock()
+
+    class Tab:
+        def capture_screenshot(self, path, **kw):
+            with lock:
+                names.append(path.name)
+            path.write_bytes(b"\xff\xd8\xff")
+            return path
+
+        def js(self, *a, **kw):
+            return {}
+
+    tab = Tab()
+    recorder = rec_mod.Recorder(lambda: tab, Journal(tmp_path / "j.jsonl"), tmp_path)
+    local = threading.local()
+
+    def work():
+        local.tab = tab
+        recorder._on_call(Span(id="s", fn="click", started=_time.perf_counter()), {})
+
+    threads = [threading.Thread(target=work) for _ in range(24)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=15)
+
+    assert len(names) == 24
+    assert len(set(names)) == 24, "duplicate frame numbers — the counter raced"
+    assert sorted(names) == [f"{i:04d}.jpg" for i in range(1, 25)]
+    assert recorder.frames == 24
