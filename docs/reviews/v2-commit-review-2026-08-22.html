@@ -1,0 +1,1364 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Evidence-based review of the browser-harness v2 commits from 20–22 August 2026.">
+  <title>v2 Commit Review</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f5;
+      --panel: #ffffff;
+      --panel-2: #eef0ed;
+      --ink: #171a1f;
+      --ink-2: #505761;
+      --ink-3: #747c86;
+      --rule: #daddd8;
+      --accent: #304d9b;
+      --accent-soft: #e8edfb;
+      --high: #a43b32;
+      --high-soft: #fae9e6;
+      --medium: #8a6115;
+      --medium-soft: #f8efd9;
+      --low: #3a6960;
+      --low-soft: #e2f0ec;
+      --good: #2e7658;
+      --good-soft: #e3f2eb;
+      --shadow: rgba(26, 34, 43, 0.08);
+      --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #13161a;
+        --panel: #1a1e23;
+        --panel-2: #22272d;
+        --ink: #edf0eb;
+        --ink-2: #b0b7c0;
+        --ink-3: #858e99;
+        --rule: #30363d;
+        --accent: #91a7ef;
+        --accent-soft: #242f50;
+        --high: #ef8c81;
+        --high-soft: #422724;
+        --medium: #e2b866;
+        --medium-soft: #40361f;
+        --low: #83c6b8;
+        --low-soft: #203b35;
+        --good: #79c69f;
+        --good-soft: #203a2d;
+        --shadow: rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #13161a;
+      --panel: #1a1e23;
+      --panel-2: #22272d;
+      --ink: #edf0eb;
+      --ink-2: #b0b7c0;
+      --ink-3: #858e99;
+      --rule: #30363d;
+      --accent: #91a7ef;
+      --accent-soft: #242f50;
+      --high: #ef8c81;
+      --high-soft: #422724;
+      --medium: #e2b866;
+      --medium-soft: #40361f;
+      --low: #83c6b8;
+      --low-soft: #203b35;
+      --good: #79c69f;
+      --good-soft: #203a2d;
+      --shadow: rgba(0, 0, 0, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 0.18em;
+    }
+
+    a:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    code,
+    pre {
+      font-family: var(--mono);
+    }
+
+    code {
+      padding: 0.08em 0.34em;
+      border-radius: 3px;
+      background: var(--panel-2);
+      font-size: 0.88em;
+    }
+
+    .page {
+      width: min(1160px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 56px 0 96px;
+    }
+
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
+      gap: 44px;
+      align-items: end;
+      padding-bottom: 34px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: var(--ink);
+      text-wrap: balance;
+    }
+
+    h1 {
+      max-width: 17ch;
+      margin: 0;
+      font-size: clamp(34px, 5vw, 58px);
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1.02;
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1.3;
+      letter-spacing: -0.015em;
+    }
+
+    p {
+      max-width: 78ch;
+      margin: 0 0 14px;
+      color: var(--ink-2);
+    }
+
+    .lede {
+      max-width: 66ch;
+      margin-top: 22px;
+      color: var(--ink-2);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .scope {
+      display: grid;
+      gap: 13px;
+      margin: 0;
+    }
+
+    .scope div {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .scope dt {
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .scope dd {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      text-align: right;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      margin-top: 28px;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--rule);
+    }
+
+    .metric {
+      min-height: 104px;
+      padding: 18px 20px;
+      background: var(--panel);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink);
+      font-size: 25px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 650;
+    }
+
+    .metric small {
+      display: block;
+      margin-top: 2px;
+      color: var(--ink-3);
+      font-size: 12px;
+    }
+
+    .contents {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin-top: 24px;
+      padding: 15px 0;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .contents a {
+      color: var(--ink-2);
+      font-family: var(--mono);
+      font-size: 11.5px;
+      text-decoration: none;
+    }
+
+    .contents a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    section {
+      margin-top: 58px;
+      scroll-margin-top: 24px;
+    }
+
+    .verdict {
+      padding: 24px 28px;
+      border: 1px solid var(--rule);
+      border-left: 4px solid var(--high);
+      border-radius: 0 4px 4px 0;
+      background: var(--panel);
+      box-shadow: 0 12px 34px var(--shadow);
+    }
+
+    .verdict strong {
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .verdict p:last-child {
+      margin-bottom: 0;
+    }
+
+    .method {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 34px;
+      margin-top: 24px;
+    }
+
+    .method div {
+      padding-top: 12px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .method strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .method p {
+      margin: 0;
+      font-size: 13.5px;
+    }
+
+    .findings {
+      display: grid;
+      gap: 16px;
+    }
+
+    .finding {
+      display: grid;
+      grid-template-columns: 106px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--panel);
+    }
+
+    .finding-rail {
+      padding: 20px 14px;
+      border-right: 1px solid var(--rule);
+      background: var(--panel-2);
+    }
+
+    .finding-id {
+      display: block;
+      margin-top: 11px;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+    }
+
+    .severity {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .severity.high {
+      background: var(--high-soft);
+      color: var(--high);
+    }
+
+    .severity.medium {
+      background: var(--medium-soft);
+      color: var(--medium);
+    }
+
+    .severity.low {
+      background: var(--low-soft);
+      color: var(--low);
+    }
+
+    .finding-body {
+      padding: 20px 24px 22px;
+    }
+
+    .finding-meta {
+      margin: 6px 0 13px;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .finding-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px 28px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .finding-grid h4 {
+      margin: 0 0 5px;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    .finding-grid p {
+      margin: 0;
+      font-size: 13.5px;
+    }
+
+    pre.proof {
+      margin: 16px 0 0;
+      padding: 14px 16px;
+      overflow-x: auto;
+      border: 1px solid var(--rule);
+      border-radius: 3px;
+      background: var(--panel-2);
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .note {
+      padding: 18px 21px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .note p:last-child {
+      margin-bottom: 0;
+    }
+
+    .diagram-shell {
+      padding: 20px;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--panel);
+    }
+
+    .diagram-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 22px;
+      margin: 0 0 17px;
+      color: var(--ink-2);
+      font-size: 12.5px;
+    }
+
+    .diagram-legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .line {
+      width: 29px;
+      height: 0;
+      border-top: 2px solid var(--ink-2);
+    }
+
+    .line.dashed {
+      border-top-style: dashed;
+    }
+
+    pre.mermaid {
+      min-height: 560px;
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      border-radius: 3px;
+      background: var(--bg);
+      color: var(--ink-2);
+      font-size: 11px;
+      white-space: pre;
+    }
+
+    pre.mermaid[data-processed="true"] {
+      min-height: 0;
+      padding: 4px;
+      overflow: visible;
+      background: transparent;
+      white-space: normal;
+    }
+
+    .mermaid svg {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+    }
+
+    .diagram-status {
+      margin: 10px 0 0;
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .diagram-ready .diagram-status {
+      display: none;
+    }
+
+    .diagram-error .diagram-status {
+      color: var(--high);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--panel);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--rule);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    td:first-child,
+    .number {
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .decision {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .decision.approve {
+      color: var(--good);
+    }
+
+    .decision.revise {
+      color: var(--medium);
+    }
+
+    .decision.block {
+      color: var(--high);
+    }
+
+    .evidence-list,
+    .strength-list,
+    .repair-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .evidence-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1px;
+      overflow: hidden;
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      background: var(--rule);
+    }
+
+    .evidence-list li {
+      padding: 17px 19px;
+      background: var(--panel);
+    }
+
+    .evidence-list strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .evidence-list span {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink-2);
+      font-size: 13px;
+    }
+
+    .strength-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .strength-list li {
+      padding: 17px 19px;
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--good);
+      background: var(--panel);
+    }
+
+    .strength-list strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+
+    .strength-list span {
+      color: var(--ink-2);
+      font-size: 13px;
+    }
+
+    .repair-list {
+      counter-reset: repair;
+      border-top: 1px solid var(--rule);
+    }
+
+    .repair-list li {
+      counter-increment: repair;
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr);
+      gap: 14px;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .repair-list li::before {
+      content: counter(repair, decimal-leading-zero);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .repair-list strong {
+      display: block;
+      color: var(--ink);
+    }
+
+    .repair-list span {
+      display: block;
+      margin-top: 3px;
+      color: var(--ink-2);
+      font-size: 13.5px;
+    }
+
+    .limitations {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .limitations div {
+      padding-top: 13px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .limitations strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--ink);
+    }
+
+    footer {
+      margin-top: 64px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      color: var(--ink-3);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 820px) {
+      .masthead {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .method,
+      .finding-grid,
+      .evidence-list,
+      .strength-list,
+      .limitations {
+        grid-template-columns: 1fr;
+      }
+
+      .finding {
+        grid-template-columns: 1fr;
+      }
+
+      .finding-rail {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 18px;
+        border-right: 0;
+        border-bottom: 1px solid var(--rule);
+      }
+
+      .finding-id {
+        margin: 0;
+      }
+
+      pre.mermaid {
+        min-height: 460px;
+      }
+
+      pre.mermaid[data-processed="true"] {
+        overflow-x: auto;
+      }
+
+      .mermaid svg {
+        min-width: 680px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        width: min(100% - 24px, 1160px);
+        padding-top: 30px;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+
+      .metric {
+        min-height: 86px;
+      }
+
+      .finding-body {
+        padding: 18px;
+      }
+
+      .diagram-shell {
+        padding: 12px;
+      }
+
+      .mermaid svg {
+        min-width: 760px;
+      }
+    }
+
+    @media print {
+      :root {
+        --bg: #ffffff;
+        --panel: #ffffff;
+        --panel-2: #f2f3f1;
+        --ink: #111418;
+        --ink-2: #3e454e;
+        --ink-3: #626a74;
+        --rule: #cdd1cc;
+        --accent: #263f81;
+        --shadow: transparent;
+      }
+
+      body {
+        font-size: 11pt;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0;
+      }
+
+      .finding,
+      .diagram-shell,
+      .table-wrap {
+        break-inside: avoid;
+      }
+
+      .contents {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">browser-harness · v2 · two-day commit review</p>
+        <h1>Strong core, unsafe edges.</h1>
+        <p class="lede">The transport and recovery work is materially better. Four remaining
+          correctness and safety failures prevent a clean sign-off, including one newest-commit
+          claim that Git did not actually implement.</p>
+      </div>
+      <dl class="scope">
+        <div><dt>Reviewed range</dt><dd>aa5147f..8ac2873</dd></div>
+        <div><dt>Window</dt><dd>20–22 Aug 2026</dd></div>
+        <div><dt>Current head</dt><dd>8ac2873</dd></div>
+        <div><dt>Repository</dt><dd>browser-harness/v2</dd></div>
+      </dl>
+    </header>
+
+    <div class="metrics" aria-label="Review summary">
+      <div class="metric"><span>Commits</span><strong>20</strong><small>41 changed files</small></div>
+      <div class="metric"><span>Diff</span><strong>+5,682</strong><small>−1,648 lines</small></div>
+      <div class="metric"><span>Validation</span><strong>521</strong><small>unit tests passed</small></div>
+      <div class="metric"><span>Release blockers</span><strong>4</strong><small>high-severity findings</small></div>
+    </div>
+
+    <nav class="contents" aria-label="Report sections">
+      <a href="#verdict">Verdict</a>
+      <a href="#method">Method</a>
+      <a href="#findings">Findings</a>
+      <a href="#transcript">Transcript context</a>
+      <a href="#architecture">Communication flow</a>
+      <a href="#commits">Commit assessment</a>
+      <a href="#validation">Validation</a>
+      <a href="#strengths">What worked</a>
+      <a href="#recommendations">Repair order</a>
+    </nav>
+
+    <section id="verdict">
+      <h2>Executive verdict</h2>
+      <div class="verdict">
+        <p><strong>Do not describe the current head as release-ready or privacy-clean.</strong></p>
+        <p>The async client, dead-browser recovery, verified skill loading, recorder concurrency,
+          UTF-8 handling, and package allowlist are credible improvements. The remaining blockers
+          sit at the boundaries where factual routing becomes action: Git index state, click
+          ownership, popup attribution, and macOS consent. Those boundaries need to fail closed.</p>
+        <p>The current head is suitable for continued internal development. It is not yet suitable
+          for a public release, strict parallel-isolation claim, or unattended multi-browser
+          operation.</p>
+      </div>
+    </section>
+
+    <section id="method">
+      <h2>Scope and method</h2>
+      <p>The review covers the rolling two-day range <code>aa5147f..8ac2873</code>, including the
+        seven-commit batch added after the initial review. Today’s Claude conversation was read as
+        design and implementation context, then checked against Git and the current code rather
+        than treated as proof.</p>
+      <div class="method">
+        <div><strong>Commit audit</strong><p>Reviewed the 20 commits individually and the aggregate
+          41-file diff, separating semantic changes from line-ending and lockfile noise.</p></div>
+        <div><strong>Static contract review</strong><p>Traced target identity, IPC framing, daemon
+          fan-out, click fallback, OOPIF discovery, cleanup, skills, and packaging boundaries.</p></div>
+        <div><strong>Automated validation</strong><p>Ran the full test suite, Ruff, compile checks,
+          diff checks, and wheel/source-distribution builds.</p></div>
+        <div><strong>Adversarial browser checks</strong><p>Used real Chrome for overlay clicks,
+          delayed cross-origin frames, late popups, parallel execution, recorder behavior, and
+          dead-browser recovery.</p></div>
+      </div>
+    </section>
+
+    <section id="findings">
+      <h2>Severity-ranked findings</h2>
+      <div class="findings">
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity high">High</span>
+            <span class="finding-id">BH2D-001</span>
+          </aside>
+          <div class="finding-body">
+            <h3>The personal-data commit did not untrack the personal files</h3>
+            <p class="finding-meta">Commit 8ac2873 · .gitignore:26–29 · pyproject.toml:27–31</p>
+            <p><code>jobs.json</code> and <code>required.txt</code> are ignored but remain in Git’s
+              index. The commit changes <code>.gitignore</code>, the package allowlist, and an
+              example file; it contains no deletion entries for the two tracked files.</p>
+            <pre class="proof">git ls-files --stage -- jobs.json required.txt
+100644 … jobs.json
+100644 … required.txt</pre>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>A clean clone still receives both files. The repository is not
+                privacy-clean despite the commit subject and final transcript claim.</p></div>
+              <div><h4>Recommendation</h4><p>Run <code>git rm --cached jobs.json required.txt</code>
+                and commit the index deletion. Decide separately whether rewriting older history is
+                warranted.</p></div>
+              <div><h4>What did work</h4><p>The explicit source-distribution allowlist is effective:
+                neither file appeared in the built wheel or source archive.</p></div>
+              <div><h4>Acceptance test</h4><p>A clean clone omits both files, both
+                <code>git ls-files --error-unmatch</code> checks fail, and package archives remain
+                clean.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity high">High</span>
+            <span class="finding-id">BH2D-002</span>
+          </aside>
+          <div class="finding-body">
+            <h3>The inert-click fallback can activate a control behind an overlay</h3>
+            <p class="finding-meta">Commit 9037307 · harness/ops/page.py:1567–1655</p>
+            <p>The DOM retry selects <code>__bh.refs[ref]</code> before
+              <code>document.elementFromPoint(x, y)</code> whenever a ref exists. That special case
+              was needed for an unpainted zero-rectangle Apply control, but it now bypasses hit
+              testing for every referenced element.</p>
+            <pre class="proof">elementFromPoint = "cover"
+button handler hits = 1
+reported modality = "dom"
+reported mutations = 0</pre>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>A modal, cookie sheet, or other overlay no longer owns the
+                point. The harness may synthesize activation on the obscured element underneath.</p></div>
+              <div><h4>Recommendation</h4><p>Use the ref-only path solely when the intended target
+                has no usable rectangle. Otherwise require the point hit to be the target or its
+                descendant.</p></div>
+              <div><h4>Comparative evidence</h4><p>The base revision left the covered control at
+                zero handler hits. Current head activated it once.</p></div>
+              <div><h4>Acceptance test</h4><p>Keep both real-Chrome fixtures: the zero-rectangle
+                control activates, while an ordinary covered control never does.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity high">High</span>
+            <span class="finding-id">BH2D-003</span>
+          </aside>
+          <div class="finding-body">
+            <h3>macOS approval is not scoped to the browser being connected</h3>
+            <p class="finding-meta">Commit c88b4ad · harness/connect/macos.py:37–76 · daemon.py:171–203</p>
+            <p>The AppleScript searches every process named <code>Google Chrome</code> for an
+              English consent sheet and presses the first English Allow button. The daemon starts
+              it without the resolved browser, profile, PID, or endpoint.</p>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>Multiple Chrome instances can lead to approval of the wrong
+                WebSocket. Localization breaks matching. Canary, Arc, Dia, Edge, Brave, and
+                Chromium are discoverable but cannot be approved by this helper.</p></div>
+              <div><h4>Recommendation</h4><p>Carry resolved endpoint identity into the handshake.
+                Scope automation to the matching application and PID, and arm it only while a newly
+                created WebSocket handshake is actually pending.</p></div>
+              <div><h4>Positive result</h4><p>The commit correctly identified that Chrome exposes
+                the HTTP endpoint before WebSocket consent, so HTTP readiness cannot terminate the
+                approval pump.</p></div>
+              <div><h4>Acceptance test</h4><p>With two browser instances and a decoy sheet, only the
+                resolved process is touched. Non-Google variants either work explicitly or return a
+                typed unsupported result.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity high">High</span>
+            <span class="finding-id">BH2D-004</span>
+          </aside>
+          <div class="finding-body">
+            <h3>Foreign target events still terminate another tab’s click wait</h3>
+            <p class="finding-meta">Commit 8a5fcf1 · harness/ops/page.py:1063–1080 and 1463–1485</p>
+            <p>The commit correctly filters stored target deltas with
+              <code>openerId == self.target_id</code> and replaces the bounded-deque length cursor
+              with a monotonic sequence. The active waiter still regards every browser-level
+              <code>Target.targetCreated</code> event as a consequence of the current click.</p>
+            <pre class="proof">requested settle = 300 ms
+foreign target event = immediate
+click returned = 1.0 ms
+reported new_targets = []
+own popup arrived = 80 ms after dispatch, after return</pre>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>A concurrent worker can wake this click early. The real popup
+                may be missed and the inert-click fallback may then repeat an activation.</p></div>
+              <div><h4>Recommendation</h4><p>Give the waiter the same opener-aware predicate as the
+                target-delta bookkeeping. Do not use session ID for browser-level target events;
+                they do not carry one.</p></div>
+              <div><h4>Positive result</h4><p>The new sequence counter fixes the permanent
+                post-sixteen-target blind spot and should remain.</p></div>
+              <div><h4>Acceptance test</h4><p>A foreign popup neither wakes nor enters the delta;
+                an owned popup arriving inside the settle window is returned exactly once.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity medium">Medium</span>
+            <span class="finding-id">BH2D-005</span>
+          </aside>
+          <div class="finding-body">
+            <h3>The zero-iframe fast path can miss a dynamically inserted OOPIF</h3>
+            <p class="finding-meta">Commits f1183df, 65b908a, cf2c2cb · harness/ops/page.py:1818–1907</p>
+            <p>If <code>DOM.performSearch</code> reports zero iframe hosts at one instant,
+              <code>frames()</code> skips the auto-attach quiet window entirely. A real-Chrome page
+              that inserted a cross-site iframe 80 ms later returned no frame on the first call.</p>
+            <pre class="proof">current head: [] in 5.2 ms
+600 ms later: cross-origin iframe present and discoverable
+base revision: waited about 246 ms and caught it on the first call</pre>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p><code>prepare_application()</code> can miss an SPA-inserted
+                application or bot-wall frame and classify a reachable page as empty.</p></div>
+              <div><h4>Recommendation</h4><p>Retain the fast probe but give zero a short bounded
+                observation window, preferably driven by DOM or target events rather than a fixed
+                sleep.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity medium">Medium</span>
+            <span class="finding-id">BH2D-006</span>
+          </aside>
+          <div class="finding-body">
+            <h3>Popup cleanup is causally correct but temporally incomplete</h3>
+            <p class="finding-meta">Commit adca98b · harness/ops/parallel.py:59–84 and 224–256</p>
+            <p>Following the <code>openerId</code> descendant chain is safer than comparing global
+              target snapshots. Cleanup nevertheless takes only one snapshot immediately after the
+              item function returns.</p>
+            <pre class="proof">popup scheduled = 150 ms after item return
+first cleanup descendants = 0
+popup visible to next item = 1
+second cleanup eventually closed it</pre>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>A late popup can survive into the next job on a reused worker
+                tab, violating the claimed between-job isolation boundary.</p></div>
+              <div><h4>Recommendation</h4><p>Add a bounded target quiet window or a second
+                opener-chain scan before making the worker tab available for reuse.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity medium">Medium</span>
+            <span class="finding-id">BH2D-007</span>
+          </aside>
+          <div class="finding-body">
+            <h3>Malformed IPC JSON is silently ignored instead of failing the connection</h3>
+            <p class="finding-meta">Commit acaa69a context · harness/connect/client.py:346–350 · harness/aio.py:350–354</p>
+            <p>Both client frontends catch <code>JSONDecodeError</code> and return. After an invalid
+              frame, the reader stays alive and pending requests keep waiting without a recorded
+              failure cause.</p>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>The caller eventually receives a timeout instead of the
+                immediate <code>ProtocolMismatch</code> that identifies the broken framing.</p></div>
+              <div><h4>Recommendation</h4><p>Treat malformed newline-delimited JSON as a terminal
+                protocol failure, close the connection, and fail every pending request with the
+                original parse cause.</p></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="finding">
+          <aside class="finding-rail">
+            <span class="severity low">Medium/low</span>
+            <span class="finding-id">BH2D-008</span>
+          </aside>
+          <div class="finding-body">
+            <h3>The new Joblens collector can underfill and duplicate its output</h3>
+            <p class="finding-meta">Commit 0b47f0b · tools/fetch_new_joblens_jobs.py:83–137</p>
+            <p>Search stops when 100 unseen IDs are collected. Direct-URL deduplication happens only
+              during later detail resolution, but rejected rows are not replaced. Accepted direct
+              URLs are not added to the in-run seen set.</p>
+            <div class="finding-grid">
+              <div><h4>Impact</h4><p>The command can emit fewer than 100 jobs even when later pages
+                contain eligible replacements, and two fresh IDs can emit the same application URL.</p></div>
+              <div><h4>Recommendation</h4><p>Resolve and deduplicate incrementally until 100 accepted
+                rows are obtained or all sources are exhausted. Rank only accepted rows and add
+                every accepted URL to the set immediately.</p></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="transcript">
+      <h2>What today’s Claude transcript clarified</h2>
+      <div class="note">
+        <p><strong>The transcript explains intent and root cause, but it does not override the
+          repository.</strong> Its selected top-five work included target ownership, the bounded
+          target cursor, skill path containment, untracking personal data, and an outbound daemon
+          queue.</p>
+        <p>The privacy files were initially staged for index deletion. A later
+          <code>git reset</code> split the work into seven commits; the final staging command added
+          the still-present files instead of restoring their deletions. That sequence produced the
+          mismatch between the commit subject and Git state.</p>
+        <p>The transcript also confirms that target filtering was designed around
+          <code>_on_event</code> bookkeeping, which explains why the separate click waiter escaped
+          the fix. The daemon outbound queue was explicitly left for later. The macOS helper was
+          intended as a v1-style port with automatic handshake timing; browser/PID scoping was not
+          part of that design.</p>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <h2>Model, harness, daemon, and CDP communication</h2>
+      <p>The model owns semantic interpretation and chooses an explicit operation. The harness
+        owns target identity, mechanical safety, routing, transport, typed outcomes, and cleanup.
+        There is deliberately no direct model-to-CDP path.</p>
+      <div class="diagram-shell">
+        <div class="diagram-legend" aria-label="Diagram legend">
+          <span><i class="line" aria-hidden="true"></i>Requests, replies, and ownership</span>
+          <span><i class="line dashed" aria-hidden="true"></i>Context and side channels</span>
+        </div>
+        <pre class="mermaid" aria-label="Communication flow between the model, browser harness, daemon, CDP, and Chromium">
+flowchart TB
+    accTitle: Browser harness v2 communication flow
+    accDescr: The model exchanges semantic intent and factual evidence with a planner. Explicit tab operations pass through a mechanical safety boundary and a typed client connection. Local IPC reaches a daemon that owns target identity and one CDP WebSocket. Commands, replies, and browser events return over the same path. The model never talks directly to CDP.
+
+    subgraph Semantic["Semantic decision layer"]
+        direction LR
+        Skills["Verified skill registry&lt;br/&gt;domain knowledge and provenance"]
+        Model["Model / agent&lt;br/&gt;interprets evidence&lt;br/&gt;chooses target and operation"]
+        Planner["Application planner / script&lt;br/&gt;explicit workflow intent"]
+        Skills -. "verified context" .-> Model
+        Model &lt;--&gt;|"intent / factual evidence"| Planner
+    end
+
+    subgraph Client["Harness client process"]
+        direction LR
+        Workers["Parallel workers"]
+        Session["Session + Tab&lt;br/&gt;explicit target or lease&lt;br/&gt;snapshot · click · fill · wait"]
+        Safety["Mechanical safety boundary&lt;br/&gt;dry-run guard and scoped capabilities"]
+        Connection["RemoteConnection&lt;br/&gt;request IDs and typed outcomes"]
+        Journal["Journal / recorder&lt;br/&gt;evidence for telemetry and replay"]
+        Workers --> Session
+        Session &lt;--&gt;|"operation / observation"| Safety
+        Safety &lt;--&gt;|"authorized request / typed outcome"| Connection
+        Session --> Journal
+    end
+
+    subgraph Core["Harness daemon"]
+        direction LR
+        IPC["Local newline-JSON IPC"]
+        Router["Daemon router&lt;br/&gt;admission and event fan-out"]
+        Registry["Session registry&lt;br/&gt;targetId ↔ sessionId&lt;br/&gt;lease ownership"]
+        IPC &lt;--&gt;|"framed request / reply + event"| Router
+        Router &lt;--&gt;|"resolve target / session"| Registry
+    end
+
+    subgraph Chromium["Chromium process"]
+        direction LR
+        Approver["macOS consent approver&lt;br/&gt;handshake sidecar"]
+        WebSocket["Single CDP WebSocket"]
+        BrowserTarget["Browser target"]
+        PageTarget["Page / tab target"]
+        ChildTargets["OOPIF and worker targets"]
+        DOM["Page DOM&lt;br/&gt;main-world safety guard"]
+        Approver -. "approves WebSocket sheet" .-> WebSocket
+        WebSocket &lt;--&gt;|"CDP commands / replies + events"| BrowserTarget
+        BrowserTarget --> PageTarget
+        BrowserTarget --> ChildTargets
+        PageTarget --> DOM
+    end
+
+    Planner &lt;--&gt;|"explicit operation / evidence"| Session
+    Connection &lt;--&gt;|"rid + newline JSON"| IPC
+    Router &lt;--&gt;|"CDP command / reply + event"| WebSocket
+    Safety -. "installs and enforces guard" .-> DOM
+        </pre>
+        <p class="diagram-status" id="diagram-status" aria-live="polite">Rendering the communication diagram…</p>
+        <noscript>
+          <p class="diagram-status">JavaScript is disabled. The Mermaid source above remains the
+            textual representation of the flow.</p>
+        </noscript>
+      </div>
+    </section>
+
+    <section id="commits">
+      <h2>Commit-by-commit assessment</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Commit</th><th>Change</th><th>Decision</th><th>Review note</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0b47f0b</td><td>Background-input claim and Joblens collector</td><td class="decision revise">Revise</td><td>Claim correction is useful; collector underfills and deduplicates too late.</td></tr>
+            <tr><td>9037307</td><td>Unpainted Apply-button fallback</td><td class="decision block">Block</td><td>Fixes a real zero-rectangle case but pierces overlays for ordinary refs.</td></tr>
+            <tr><td>231d121</td><td>Disable WebSocket keepalives</td><td class="decision approve">Approve</td><td>Avoids misreading a busy renderer as disconnected.</td></tr>
+            <tr><td>f1183df</td><td>Skip OOPIF attach without an iframe</td><td class="decision revise">Revise</td><td>Fast but converts an instantaneous zero into a stable assertion.</td></tr>
+            <tr><td>dca0c6f</td><td>Add async frontends</td><td class="decision approve">Approve</td><td>Good reuse of the daemon protocol; later commits repair lifecycle details.</td></tr>
+            <tr><td>65b908a</td><td>Shadow-piercing OOPIF gate</td><td class="decision revise">Revise</td><td>The probe is stronger; the temporal gap remains.</td></tr>
+            <tr><td>252c71e</td><td>Keepalive test cleanup</td><td class="decision approve">Approve</td><td>Removes non-discriminating checks and closes fixture leakage.</td></tr>
+            <tr><td>333fb49</td><td>Full async replies and pinned worker</td><td class="decision approve">Approve</td><td>Correct response framing and event-loop affinity.</td></tr>
+            <tr><td>ea85dd8</td><td>Async framing and lifecycle hardening</td><td class="decision revise">Revise</td><td>Broadly sound; malformed JSON still disappears silently.</td></tr>
+            <tr><td>cf2c2cb</td><td>Final OOPIF evidence gate</td><td class="decision revise">Revise</td><td>Good fail-open handling of unknown probe results; zero still races insertion.</td></tr>
+            <tr><td>adca98b</td><td>Close worker-owned popup trees</td><td class="decision revise">Revise</td><td>Ownership logic is correct; cleanup needs a quiet window.</td></tr>
+            <tr><td>b462700</td><td>Portable Windows Chrome discovery</td><td class="decision approve">Approve</td><td>Useful platform coverage with focused tests.</td></tr>
+            <tr><td>b6be53b</td><td>Ignore local artifacts</td><td class="decision approve">Approve</td><td>Repository hygiene only.</td></tr>
+            <tr><td>c88b4ad</td><td>Automatic macOS consent approval</td><td class="decision block">Block</td><td>Correct timing diagnosis, but automatic UI action lacks browser identity.</td></tr>
+            <tr><td>acaa69a</td><td>Dead-browser truth and recovery</td><td class="decision approve">Approve</td><td>Strong typed recovery; real-browser replacement succeeded.</td></tr>
+            <tr><td>94b814f</td><td>Broader browser profile discovery</td><td class="decision approve">Approve</td><td>Good coverage, while exposing the macOS approver mismatch.</td></tr>
+            <tr><td>b7be20b</td><td>Skill-root containment</td><td class="decision approve">Approve</td><td>Traversal, absolute paths, symlinks, digests, and load-time swaps are covered.</td></tr>
+            <tr><td>8a5fcf1</td><td>Target delta ownership and world repair</td><td class="decision revise">Revise</td><td>Good bookkeeping and sequence fix; click waiter remains browser-global.</td></tr>
+            <tr><td>389b0b9</td><td>Recorder concurrency and UTF-8 streams</td><td class="decision approve">Approve</td><td>Measured concurrency gain and good cross-platform stream handling.</td></tr>
+            <tr><td>8ac2873</td><td>Personal application data</td><td class="decision block">Block</td><td>Package filtering works; Git untracking did not occur.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="validation">
+      <h2>Validation evidence</h2>
+      <ul class="evidence-list">
+        <li><strong>Full unit suite</strong><span>521 passed on current head.</span></li>
+        <li><strong>Static quality</strong><span>Ruff, compile checks, and Git diff checks passed.</span></li>
+        <li><strong>Forms in real Chrome</strong><span>61 of 61 checks passed.</span></li>
+        <li><strong>Recorder in real Chrome</strong><span>17 of 17 checks passed.</span></li>
+        <li><strong>Parallel execution</strong><span>20 of 20 checks passed; approximately 3.4× speedup.</span></li>
+        <li><strong>Cleanup latency</strong><span>Target cleanup p50 1.8 ms; p95 4.5 ms; max 9.1 ms.</span></li>
+        <li><strong>Dead-browser recovery</strong><span>Old socket released and replacement browser became healthy.</span></li>
+        <li><strong>Package inspection</strong><span>Wheel and source archive contain neither personal-data file.</span></li>
+      </ul>
+    </section>
+
+    <section id="strengths">
+      <h2>What the range got right</h2>
+      <ul class="strength-list">
+        <li><strong>Dead connections now tell the truth.</strong><span>The connection records the
+          actual pump failure, daemon health follows browser health, and stale sockets can be
+          replaced.</span></li>
+        <li><strong>Skill bodies are meaningfully contained.</strong><span>The loader now defends
+          against traversal, absolute paths, symlink escape, digest mismatch, and load-time
+          replacement.</span></li>
+        <li><strong>Parallel recording no longer serializes workers.</strong><span>The lock protects
+          frame numbering rather than the entire capture operation.</span></li>
+        <li><strong>The async frontend is now credible.</strong><span>Large replies, lifecycle
+          ownership, and loop affinity are tested, including the corrected short macOS socket
+          fixture path.</span></li>
+        <li><strong>Target bookkeeping is directionally correct.</strong><span>Opener ownership and
+          monotonic sequence numbers are the right invariants even though one waiter still bypasses
+          them.</span></li>
+        <li><strong>Packaging is explicit.</strong><span>The source distribution is an allowlist,
+          preventing arbitrary working-tree files from silently entering an immutable release.</span></li>
+      </ul>
+    </section>
+
+    <section id="recommendations">
+      <h2>Recommended repair order</h2>
+      <ol class="repair-list">
+        <li><div><strong>Correct the Git index immediately.</strong><span>Untrack
+          <code>jobs.json</code> and <code>required.txt</code>; verify from a clean clone. Treat
+          history rewriting as a separate owner decision.</span></div></li>
+        <li><div><strong>Restore real hit-test ownership for click fallback.</strong><span>Keep the
+          zero-rectangle rescue without allowing painted, obscured refs to bypass the element at
+          the click point.</span></div></li>
+        <li><div><strong>Make popup waiting opener-aware.</strong><span>Apply the target-ownership
+          predicate before an event can wake the click, not only before it enters the returned
+          delta.</span></div></li>
+        <li><div><strong>Bind macOS approval to resolved browser identity.</strong><span>Pass
+          application/PID/profile context into the approver and arm it only for the new handshake
+          that needs consent.</span></div></li>
+        <li><div><strong>Add bounded quiet windows at asynchronous boundaries.</strong><span>Cover
+          late OOPIF insertion and late popup creation without restoring unconditional fixed
+          sleeps.</span></div></li>
+        <li><div><strong>Fail malformed IPC frames immediately.</strong><span>Both sync and async
+          clients should close and fail pending requests with a typed protocol cause.</span></div></li>
+        <li><div><strong>Remove the daemon reader’s blocking peer write.</strong><span>Use a bounded
+          outbound queue or a short send timeout and peer eviction so one client cannot stall all
+          CDP traffic.</span></div></li>
+        <li><div><strong>Make the collector fill after deduplication.</strong><span>Resolve,
+          deduplicate, and continue searching until the accepted target count is reached or sources
+          are exhausted.</span></div></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Known limits of this review</h2>
+      <div class="limitations">
+        <div><strong>No destructive privacy cleanup was performed.</strong><p>The review did not
+          rewrite history, untrack files, or otherwise modify product state.</p></div>
+        <div><strong>No real consent sheet was auto-approved.</strong><p>The macOS scoping finding
+          is based on the concrete AppleScript and daemon call path; triggering unrelated UI would
+          have crossed the safe review boundary.</p></div>
+        <div><strong>Browser checks were dry-run safe.</strong><p>No application submission or
+          server-side receipt is claimed.</p></div>
+        <div><strong>CI status is not substituted for local evidence.</strong><p>The test counts in
+          this report are from the reviewed checkout and focused real-browser probes.</p></div>
+      </div>
+    </section>
+
+    <footer>
+      Prepared 22 August 2026 · Europe/Zurich<br>
+      Source: browser-harness/v2 at 8ac2873, rolling range aa5147f..8ac2873, plus contextual review
+      of the same-day Claude development transcript. No personal-data contents are reproduced.
+    </footer>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+
+    const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const status = document.getElementById("diagram-status");
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "base",
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis",
+        nodeSpacing: 28,
+        rankSpacing: 42,
+        useMaxWidth: true
+      },
+      themeVariables: dark ? {
+        background: "#1a1e23",
+        primaryColor: "#242f50",
+        primaryTextColor: "#edf0eb",
+        primaryBorderColor: "#91a7ef",
+        secondaryColor: "#203a2d",
+        secondaryTextColor: "#edf0eb",
+        secondaryBorderColor: "#79c69f",
+        tertiaryColor: "#22272d",
+        tertiaryTextColor: "#edf0eb",
+        tertiaryBorderColor: "#858e99",
+        lineColor: "#b0b7c0",
+        clusterBkg: "#1a1e23",
+        clusterBorder: "#30363d",
+        edgeLabelBackground: "#1a1e23",
+        fontFamily: "ui-sans-serif, system-ui, sans-serif"
+      } : {
+        background: "#ffffff",
+        primaryColor: "#e8edfb",
+        primaryTextColor: "#171a1f",
+        primaryBorderColor: "#304d9b",
+        secondaryColor: "#e3f2eb",
+        secondaryTextColor: "#171a1f",
+        secondaryBorderColor: "#2e7658",
+        tertiaryColor: "#eef0ed",
+        tertiaryTextColor: "#171a1f",
+        tertiaryBorderColor: "#747c86",
+        lineColor: "#505761",
+        clusterBkg: "#ffffff",
+        clusterBorder: "#daddd8",
+        edgeLabelBackground: "#ffffff",
+        fontFamily: "ui-sans-serif, system-ui, sans-serif"
+      }
+    });
+
+    try {
+      await mermaid.run({ querySelector: ".mermaid" });
+      document.documentElement.classList.add("diagram-ready");
+      if (status) {
+        status.textContent = "Communication diagram rendered.";
+      }
+    } catch (error) {
+      document.documentElement.classList.add("diagram-error");
+      if (status) {
+        status.textContent = "The diagram could not be rendered; its Mermaid source remains visible.";
+      }
+    }
+  </script>
+</body>
+</html>
