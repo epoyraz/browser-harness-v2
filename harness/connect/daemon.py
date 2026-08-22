@@ -21,6 +21,7 @@ import os
 import secrets
 import socket
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Self
 
@@ -40,6 +41,12 @@ _DRIVABLE = ("http://", "https://", "file://", "about:blank", "data:")
 #: the old serial loop always had, but only once genuinely saturated.
 _DAEMON_WORKERS = int(os.environ.get("BH_DAEMON_WORKERS") or 16)
 _DAEMON_QUEUE = max(_DAEMON_WORKERS, int(os.environ.get("BH_DAEMON_QUEUE") or 64))
+
+#: How long a daemon whose browser connection is settled-and-dead keeps answering before it
+#: exits. Not a retry budget — the daemon never re-handshakes (see `_browser_is_dead`). It is
+#: the window in which a client already blocked in `ensure_daemon` can still read the typed
+#: `reason` off a pong; after it, the socket goes away so the NAME is free to be respawned.
+DEATH_LINGER = 5.0
 
 #: Raw-CDP methods that would otherwise produce a session behind the registry's back.
 _SESSION_METHODS = frozenset({"Target.attachToTarget", "Target.detachFromTarget"})
@@ -92,7 +99,7 @@ class Daemon:
     """Serves the IPC socket. Owns exactly one `Connection` and one `SessionRegistry`."""
 
     def __init__(self, name: str, transport: Any, *, journal: Journal | None = None,
-                 token: str | None = None):
+                 token: str | None = None, linger: float = DEATH_LINGER):
         self.name = ipc.check_name(name)
         self.journal = journal or Journal(None)
         # A callable defers the handshake until after the endpoint is published; a live
@@ -130,6 +137,9 @@ class Daemon:
         self._settled = threading.Event()
         self._connect_error = ""
         self._connect_started = False
+        #: An argument, never an env var (§6) — the tests need a short one.
+        self._linger = linger
+        self._died_at: float | None = None
         self._request_pool = ThreadPoolExecutor(max_workers=_DAEMON_WORKERS,
                                                 thread_name_prefix="bh-daemon-req")
         self._admission = threading.BoundedSemaphore(_DAEMON_QUEUE)
@@ -161,6 +171,20 @@ class Daemon:
     def _open_browser(self) -> None:
         """The browser half of startup. Failures are recorded, never raised: this runs on
         its own thread, and a client asking `ping` deserves the reason, not a dead socket."""
+        # The sheet cannot be pressed before the handshake starts (it does not exist yet)
+        # or after it returns (it is already answered), only alongside it. No-op off macOS
+        # and under BH_MAC_APPROVE=0.
+        #
+        # Guarded, and deliberately so: this sat outside the try below, so a raise from the
+        # import or from arm() skipped the `finally` and left `_settled` unset — which makes
+        # `_browser_is_dead` False forever, so `_expired` never fires and the daemon wedges
+        # answering `connecting: true`. A convenience must never be able to do that.
+        approved = threading.Event()
+        try:
+            from harness.connect import macos
+            macos.arm(approved)
+        except Exception as e:                       # noqa: BLE001 — noted, never fatal
+            self.journal.write("daemon", event="mac_approve_unavailable", error=str(e)[:200])
         try:
             if self._make_transport is not None:
                 # THIS is the call Chrome blocks: the websocket handshake waits on the
@@ -176,6 +200,7 @@ class Daemon:
             self._connect_error = f"{type(e).__name__}: {str(e)[:200]}"
             self.journal.write("daemon", event="connect_failed", error=self._connect_error)
         finally:
+            approved.set()
             self._settled.set()
 
     def _browser_pending(self, timeout: float) -> dict[str, Any] | None:
@@ -191,11 +216,37 @@ class Daemon:
             return fail(Class.BROWSER_DISCONNECTED,
                         f"browser connection failed: {self._connect_error}",
                         daemon=self.name).to_json()
+        if self.conn.closed:
+            # Rule 1: say what was observed. "The websocket this daemon holds is gone" is
+            # verified; letting the call fall through to `ready_session` would have reported
+            # whatever class the registry happened to raise first instead.
+            return fail(Class.BROWSER_DISCONNECTED,
+                        "browser connection dropped — this daemon is shutting down so a "
+                        "fresh one can reconnect", daemon=self.name).to_json()
         return None
 
     def serve_forever(self) -> None:
         assert self._server is not None, "call start() first"
         while not self._stop.is_set():
+            if self._expired():
+                # Recovery is by EXIT, not by reconnect (finding C, option b).
+                #
+                # Reconnecting in place looked cheaper and is not. The handshake is a fresh
+                # `WebSocketTransport`, and Chrome prompts per websocket (D7) — a background
+                # retry loop would raise modals at a user who is not there, and cannot tell
+                # "Chrome restarted" from "the user said no". Worse, every session id in the
+                # registry, every lease and every adoption is void the moment the socket
+                # dies, so a reconnect would have to re-run the whole cold-start path from a
+                # second, rarely-exercised branch. Exiting reuses the spawn path
+                # `ensure_daemon` takes every day: the socket is unlinked, `ipc.ping` returns
+                # None, and the next client spawns a daemon that handshakes once, arms the
+                # macOS sheet presser once, and starts from clean state. The wedge this
+                # replaces was permanent — the name answered forever with `browser: false`
+                # and only a manual kill freed it.
+                self.journal.write("daemon", event="exit_browser_dead",
+                                   reason=self._connect_error or "cdp connection closed")
+                self.stop()
+                return
             try:
                 client, _ = self._server.accept()
             except TimeoutError:
@@ -206,6 +257,32 @@ class Daemon:
             thread.start()
             self._threads = [existing for existing in self._threads if existing.is_alive()]
             self._threads.append(thread)
+
+    def _browser_is_dead(self) -> bool:
+        """Settled, and the browser is not coming back **on this process**.
+
+        Not settled is not dead: the handshake blocks on Chrome's consent prompt for as long
+        as the user takes to answer it, and killing the daemon out from under a click that is
+        still pending is how the pending case would turn back into silence.
+        """
+        if not self._connect_started:
+            return False        # conn is driven directly (unit tests): nothing to judge
+        if not self._settled.is_set():
+            return False
+        return bool(self._connect_error) or self.conn.closed
+
+    def _expired(self) -> bool:
+        """True once the browser has been dead for longer than the linger window."""
+        if not self._browser_is_dead():
+            self._died_at = None            # a daemon only dies once; nothing to hold open
+            return False
+        if self._died_at is None:
+            self._died_at = time.monotonic()
+            self.journal.write("daemon", event="browser_dead",
+                               reason=self._connect_error or "cdp connection closed",
+                               linger=self._linger)
+            return False
+        return (time.monotonic() - self._died_at) >= self._linger
 
     def stop(self) -> None:
         self._stop.set()
@@ -396,7 +473,11 @@ class Daemon:
             # is false, which is the difference between "still waiting on your click" and
             # "never coming up".
             settled = self._settled.is_set() or not self._connect_started
-            live = settled and not self._connect_error and not self.conn._closed
+            # `conn.closed`, not `conn._closed`: until the reader started writing that flag
+            # this line could only ever see a *locally* closed connection, so a browser that
+            # quit or crashed left the pong reading `browser: true` — the very report the
+            # comment above claims was fixed.
+            live = settled and not self._connect_error and not self.conn.closed
             out: dict[str, Any] = {"pong": True, "browser": live,
                                    "protocol": PROTOCOL_VERSION, "version": VERSION,
                                    "targets": self.sessions.live_targets}
@@ -405,7 +486,8 @@ class Daemon:
                 out["reason"] = self._connect_error or (
                     "browser handshake still open — Chrome prompts per websocket and "
                     "blocks until it is answered" if not settled
-                    else "browser connection is closed")
+                    else "browser connection dropped — this daemon is exiting so the next "
+                         "client can spawn one that reconnects")
             return out
         if (pending := self._browser_pending(20.0)) is not None and meta in (
                 "attach", "forget", "adopt",

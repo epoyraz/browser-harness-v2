@@ -208,3 +208,129 @@ def _settle(predicate, timeout: float = 3.0) -> None:
             return
         time.sleep(0.01)
     raise AssertionError("event was never applied")
+
+
+# -- the reader's death is the connection's death -----------------------------
+
+def test_a_dead_reader_marks_the_connection_closed_instead_of_looking_open(served):
+    """`_pump` used to `_fail_all` and return, leaving `_closed` False and the socket open.
+
+    The reader is the only thing that can resolve a pending request, so once it is gone the
+    connection is gone — but it went on advertising itself as usable.
+    """
+    import socket
+    _browser, _daemon = served
+    conn = RemoteConnection("clienttest")
+    conn.request("Runtime.evaluate", {"expression": "x"})   # works before we break it
+
+    # Shutting the read side makes recv() return b"" — byte for byte what the reader sees
+    # when the daemon closes the connection, without racing the daemon's teardown.
+    conn._sock.shutdown(socket.SHUT_RD)
+    deadline = time.monotonic() + 5
+    while not conn._closed and time.monotonic() < deadline:
+        time.sleep(0.01)
+
+    assert conn._closed is True
+    assert conn._failure is not None
+
+
+def test_a_call_after_the_reader_dies_fails_fast_with_the_real_cause(served):
+    """D11 rule 2 — never discard a cause you were handed.
+
+    The old shape wrote into a dead socket and waited out the FULL timeout, then reported
+    `Timeout` for a connection whose true cause (`BrowserDisconnected`) had already been
+    computed and thrown away. Wrong class, and the evidence destroyed.
+    """
+    import socket
+    _browser, _daemon = served
+    conn = RemoteConnection("clienttest")
+    conn.request("Runtime.evaluate", {"expression": "x"})
+
+    conn._sock.shutdown(socket.SHUT_RD)
+    deadline = time.monotonic() + 5
+    while not conn._closed and time.monotonic() < deadline:
+        time.sleep(0.01)
+
+    started = time.monotonic()
+    with pytest.raises(HarnessError) as caught:
+        conn.request("Target.getTargets", timeout=3.0)
+    elapsed = time.monotonic() - started
+
+    assert caught.value.outcome.cls is Class.BROWSER_DISCONNECTED, "not a Timeout"
+    assert elapsed < 0.5, f"took {elapsed:.2f}s — it waited out the timeout instead"
+
+
+def test_a_deliberate_close_keeps_its_own_account_of_itself(served):
+    """`close()` is not a failure, so it must not be overwritten by the reader's obituary."""
+    _browser, _daemon = served
+    conn = RemoteConnection("clienttest")
+    conn.request("Runtime.evaluate", {"expression": "x"})
+    conn.close()
+
+    assert conn._closed is True
+    with pytest.raises(HarnessError) as caught:
+        conn.request("Target.getTargets", timeout=1.0)
+    assert caught.value.outcome.cls is Class.BROWSER_DISCONNECTED
+
+
+def test_an_unexpected_reader_error_still_claims_the_connection(served, monkeypatch):
+    """Any escape from the pump loop ends the only thread that can resolve a request, so
+    every exit has to go through `_die` — including one nobody predicted."""
+    _browser, _daemon = served
+    conn = RemoteConnection("clienttest")
+    conn.request("Runtime.evaluate", {"expression": "x"})
+
+    def boom(_line):
+        raise RuntimeError("unexpected dispatch failure")
+    monkeypatch.setattr(conn, "_dispatch", boom)
+
+    conn._sock.sendall(b'{"event": {"method": "X"}}\n')   # provoke a dispatch
+    deadline = time.monotonic() + 5
+    while not conn._closed and time.monotonic() < deadline:
+        time.sleep(0.01)
+
+    assert conn._closed is True
+    assert isinstance(conn._failure, ProtocolMismatch)
+
+
+def test_a_client_arriving_during_the_death_linger_spawns_a_replacement(runtime, monkeypatch):
+    """The client half of exit-on-death recovery.
+
+    The only spawn used to sit BEFORE the poll loop, gated on `ping is None`. A client that
+    arrived while the dying daemon was still answering (`browser: False`) therefore never
+    spawned anything; the daemon then exited underneath it, ping went None, and the loop had
+    no spawn branch — so the first `bh` after Chrome restarts hung for the full
+    SPAWN_TIMEOUT and hard-failed, with only a SECOND invocation recovering.
+    """
+    from harness.connect import client as client_mod
+    from harness.core import ipc
+
+    pongs = iter([
+        {"pong": True, "browser": False, "reason": "dropped"},   # dying, still answering
+        None,                                                    # it has now exited
+        None,
+        {"pong": True, "browser": True, "protocol": PROTOCOL_VERSION},   # replacement is up
+    ])
+    monkeypatch.setattr(ipc, "ping", lambda name: next(pongs, None))
+    spawned = []
+    monkeypatch.setattr(client_mod, "_spawn_daemon", lambda name: spawned.append(name))
+
+    pong = ensure_daemon("lingertest", timeout=5.0)
+
+    assert pong["browser"] is True
+    assert spawned == ["lingertest"], f"expected exactly one replacement spawn, got {spawned}"
+
+
+def test_a_daemon_that_dies_on_startup_cannot_loop_the_spawner(runtime, monkeypatch):
+    """The respawn is bounded: a daemon that never comes up must fail, not fork forever."""
+    from harness.connect import client as client_mod
+    from harness.core import ipc
+
+    monkeypatch.setattr(ipc, "ping", lambda name: None)
+    spawned = []
+    monkeypatch.setattr(client_mod, "_spawn_daemon", lambda name: spawned.append(name))
+
+    with pytest.raises(HarnessError):
+        ensure_daemon("deadtest", timeout=1.0)
+
+    assert len(spawned) == 1, f"spawned {len(spawned)} times — one is enough"

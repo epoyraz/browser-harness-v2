@@ -204,6 +204,8 @@ class AsyncConnection:
         self._pending: dict[int, asyncio.Future[dict[str, Any]]] = {}
         self._events: list[Callable[[dict[str, Any]], None]] = []
         self._closed = False
+        #: Why the reader stopped, if it stopped on its own. See `_pump`'s finally.
+        self._failure: BaseException | None = None
 
     @classmethod
     async def connect(cls, name: str = "default", *, timeout: float = 30.0) -> Self:
@@ -275,7 +277,11 @@ class AsyncConnection:
 
     async def _call(self, payload: dict[str, Any], *, timeout: float) -> dict[str, Any]:
         if self._closed:
-            raise BrowserDisconnected("client connection is closed")
+            # D11 rule 2 — "never discard a cause you were handed": when the reader died of
+            # a diagnosed fault it already computed the honest class (ProtocolMismatch, say),
+            # so that is what the caller gets. The generic disconnect is only for a
+            # connection we closed ourselves, where there is no cause to hand on.
+            raise self._failure or BrowserDisconnected("client connection is closed")
         loop = asyncio.get_running_loop()
         self._next_id += 1
         rid = self._next_id
@@ -329,6 +335,16 @@ class AsyncConnection:
         except (TypeError, ValueError) as error:
             failure = ProtocolMismatch(f"invalid daemon frame: {error}")
         finally:
+            # The reader is the only thing that can ever resolve a pending future, so its
+            # death is the connection's death. Leaving `_closed` False let the next `_call`
+            # write into a dead socket and then wait out the full timeout, reporting
+            # `Timeout` 25s later for a connection we had *already* diagnosed — D11 rule 2
+            # broken twice over: wrong class, and the real cause thrown away. Only claim the
+            # connection if `close()` has not already done so, so a deliberate close keeps
+            # its own account of itself.
+            if not self._closed:
+                self._closed = True
+                self._failure = failure
             self._fail_all(failure)
 
     def _dispatch(self, line: bytes) -> None:

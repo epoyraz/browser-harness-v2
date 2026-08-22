@@ -137,6 +137,109 @@ def test_requesting_on_a_closed_connection_fails_fast():
         c.request("Runtime.evaluate")
 
 
+class _DeafTransport:
+    """A socket that takes writes and will never answer.
+
+    The shape of a dropped connection as the *writer* sees it: `send` succeeds into the
+    void while the reader is already at EOF. A FakeBrowser cannot model this — its `send`
+    raises once it is closed, which hides the hang behind an accidental fast failure.
+    """
+
+    def __init__(self, error: BaseException | None = None):
+        self.sent: list[dict] = []
+        self.closed = False
+        self.read_failed = threading.Event()
+        self._error = error or EOFError("browser closed the connection")
+
+    def send(self, msg):
+        self.sent.append(msg)
+
+    def recv(self, timeout=None):
+        self.read_failed.set()
+        raise self._error
+
+    def close(self):
+        self.closed = True
+
+
+def test_a_reader_that_dies_closes_the_connection_and_fails_the_next_call_fast():
+    """Neither terminal path in `_pump` used to mark the connection closed, so after Chrome
+    quit the reader thread was gone while the object still called itself open: the next call
+    wrote into the void and waited out its whole per-call timeout."""
+    t = _DeafTransport()
+    c = Connection(t).start()
+    assert t.read_failed.wait(2), "the reader never reached its terminal path"
+
+    started = time.monotonic()
+    with pytest.raises(BrowserDisconnected) as e:
+        c.request("Runtime.evaluate", timeout=5.0)
+    elapsed = time.monotonic() - started
+
+    assert e.value.cls is Class.BROWSER_DISCONNECTED
+    assert elapsed < 1.0, f"the call waited {elapsed:.2f}s — it hung on the per-call timeout"
+    assert t.sent == [], "a closed connection must not write into the void"
+    assert c.closed is True
+
+
+def test_a_reader_killed_by_an_unexpected_error_also_closes_the_connection():
+    """The blanket `except` is a terminal path too. A frame the decoder cannot handle kills
+    the reader just as finally as EOF does, and used to leave the same open-looking corpse."""
+    c = Connection(_DeafTransport(ValueError("frame decoder blew up"))).start()
+    _settle(lambda: c.closed)
+    with pytest.raises(BrowserDisconnected):
+        c.request("Runtime.evaluate", timeout=5.0)
+
+
+def test_a_waiter_woken_by_the_dying_reader_finds_the_connection_already_closed():
+    """Ordering, not just eventual consistency: the flag is set before the waiters are woken.
+    A caller that retries the instant its call fails must get the typed fast failure rather
+    than sailing into another full-timeout wait against a reader that is already gone."""
+    browser = FakeBrowser("a", latency=5.0)
+    c = Connection(browser).start()
+    seen: dict = {}
+
+    def ask():
+        try:
+            c.request("Runtime.evaluate", timeout=30.0)
+        except HarnessError as e:
+            seen["error"] = e
+            seen["closed_when_woken"] = c.closed
+
+    thread = threading.Thread(target=ask)
+    thread.start()
+    time.sleep(0.1)
+    browser.close()
+    thread.join(5)
+
+    assert isinstance(seen.get("error"), BrowserDisconnected)
+    assert seen["closed_when_woken"] is True
+
+
+def test_closing_after_the_reader_died_still_shuts_the_transport_down():
+    """`_closed` cannot double as the "teardown already ran" latch once the reader writes it:
+    `close()` would short-circuit and leave the socket open for the life of the daemon — and
+    the daemon calls `close()` on exactly this path."""
+    t = _DeafTransport()
+    c = Connection(t).start()
+    _settle(lambda: c.closed)
+    c.close()
+    assert t.closed is True
+
+
+def test_a_vanished_reader_thread_reports_the_connection_closed():
+    """Belt and braces for what `_pump`'s excepts cannot catch — a reader that ended without
+    running either terminal path. A connection with no reader can never complete a request,
+    so reporting it open is the healthy-corpse answer `ping` exists to prevent."""
+    c = Connection(FakeBrowser("a"))
+    assert c.closed is False, "a connection that was never started has no dead reader"
+
+    finished = threading.Thread(target=lambda: None)
+    finished.start()
+    finished.join()
+    c._reader = finished
+    assert c.closed is True
+
+
 # --- events ------------------------------------------------------------------
 
 def test_events_reach_subscribers(conn):
@@ -281,3 +384,90 @@ def test_keepalive_ping_timeout_closes_a_silent_connection():
     finally:
         t.close()
         server.close()
+
+
+# -- the reader's death, tested so the fix cannot be deleted silently ---------
+
+def test_reader_death_sets_the_closed_flag_itself_not_just_the_liveness_fallback():
+    """Discriminates the fix from the safety net behind it.
+
+    `_dead()` has two signals: the `_closed` flag, and a reader-thread liveness check. A
+    mutation that drops `closing=True` from `_reader_stopped` still passes any test reading
+    the `closed` PROPERTY, because by then the thread has ended and liveness answers. So
+    this asserts the raw flag while the reader is still alive — the only assertion that
+    fails if the headline fix is removed.
+    """
+    browser = FakeBrowser("a", "b")
+    conn = Connection(browser).start()
+    try:
+        assert conn._closed is False
+        assert conn._reader is not None and conn._reader.is_alive()
+
+        conn._reader_stopped(BrowserDisconnected("chrome went away"))
+
+        assert conn._closed is True, "the flag itself must be set, not inferred from liveness"
+        assert conn._reader.is_alive(), "the reader is still up: liveness cannot be the signal"
+    finally:
+        conn.close()
+
+
+def test_a_pending_request_is_failed_with_the_readers_cause_not_a_timeout():
+    """Rule 2 — never discard a cause you were handed."""
+    browser = FakeBrowser("a", "b")
+    conn = Connection(browser).start()
+    try:
+        results: list[BaseException] = []
+
+        def waiter():
+            try:
+                conn.request("Target.getTargets", timeout=10.0)
+            except BaseException as e:      # noqa: BLE001 — recorded for the assert
+                results.append(e)
+
+        t = threading.Thread(target=waiter)
+        t.start()
+        deadline = time.monotonic() + 3
+        while not conn._pending and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert conn._pending, "no in-flight request to fail"
+
+        started = time.monotonic()
+        conn._reader_stopped(BrowserDisconnected("chrome went away"))
+        t.join(timeout=5)
+        elapsed = time.monotonic() - started
+
+        assert results and isinstance(results[0], HarnessError)
+        assert results[0].outcome.cls is Class.BROWSER_DISCONNECTED
+        assert elapsed < 1.0, f"waited {elapsed:.2f}s — it sat out the timeout instead"
+    finally:
+        conn.close()
+
+
+def test_a_dispatch_failure_claims_the_connection_instead_of_killing_the_reader_silently():
+    """The third terminal path.
+
+    `_dispatch` sat outside the try, so a frame it could not handle killed the reader with
+    `_closed` False and `_pending` never drained — every in-flight caller then waited out
+    its full timeout. The next call recovers via the liveness fallback; the calls already
+    waiting do not, which is why this path has to claim the connection itself.
+    """
+    browser = FakeBrowser("a", "b")
+    conn = Connection(browser).start()
+    try:
+        boom = []
+
+        def explode(_msg):
+            boom.append(1)
+            raise AttributeError("'list' object has no attribute 'get'")
+        conn._dispatch = explode                       # a frame shaped wrong
+
+        browser.emit("Page.lifecycleEvent", {"name": "load"})
+
+        deadline = time.monotonic() + 5
+        while not conn._closed and time.monotonic() < deadline:
+            time.sleep(0.01)
+
+        assert boom, "the dispatch was never reached"
+        assert conn._closed is True, "a dispatch failure must claim the connection"
+    finally:
+        conn.close()

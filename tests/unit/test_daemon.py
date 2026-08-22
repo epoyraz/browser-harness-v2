@@ -7,9 +7,15 @@ import time
 import pytest
 
 from harness.connect.cdp import MAX_FRAME
-from harness.connect.daemon import MAX_DAEMON_FRAME, Daemon, _encode_frame, request
+from harness.connect.daemon import (
+    DEATH_LINGER,
+    MAX_DAEMON_FRAME,
+    Daemon,
+    _encode_frame,
+    request,
+)
 from harness.connect.session import DEFAULT_DOMAINS
-from harness.core.outcome import Class, HarnessError
+from harness.core.outcome import BrowserDisconnected, Class, HarnessError
 from tests.fake_browser import FakeBrowser
 
 
@@ -23,7 +29,7 @@ def runtime(monkeypatch):
     return d
 
 
-def _serve(name, browser):
+def _serve(name, browser, *, linger=DEATH_LINGER):
     """A daemon that is actually ready, not merely bound.
 
     `start()` publishes the IPC endpoint and opens the browser on a background thread, so
@@ -34,7 +40,7 @@ def _serve(name, browser):
     reports readiness rather than waiting for it — so without this the ping test failed
     roughly one full-suite run in ten, and only under load.
     """
-    daemon = Daemon(name, browser).start()
+    daemon = Daemon(name, browser, linger=linger).start()
     thread = threading.Thread(target=daemon.serve_forever, daemon=True)
     thread.start()
     assert daemon._settled.wait(10), "daemon never finished connecting"
@@ -142,6 +148,113 @@ def test_ping_reports_the_browser_not_just_the_daemon(runtime):
     assert reply["pong"] is True and reply["browser"] is True
     assert reply["protocol"] >= 1 and reply["version"] == "0.1.0"
     daemon.stop()
+
+
+def test_ping_reports_browser_false_once_the_reader_dies(runtime):
+    """The docstring above this daemon's ping branch has always claimed this; until the CDP
+    reader started marking the connection closed it was aspirational. `_closed` was written
+    only by `close()`, so a Chrome that quit left the pong reading `browser: true` — the
+    healthy corpse v1 needed six PRs to stop reporting."""
+    browser = FakeBrowser("a")
+    # A long linger: this test is about what the pong SAYS, not about the exit that follows.
+    daemon = _serve("deadping", browser, linger=60.0)
+    try:
+        assert request("deadping", {"meta": "ping"})["browser"] is True
+        browser.close()                                   # Chrome quits
+        _settle(lambda: request("deadping", {"meta": "ping"})["browser"] is False, timeout=5)
+        pong = request("deadping", {"meta": "ping"})
+        assert pong["pong"] is True                       # the daemon is still answering
+        assert pong["browser"] is False                   # but it no longer claims a browser
+        assert pong["connecting"] is False                # and not by blaming a pending click
+        assert "drop" in pong["reason"]
+        # A real request is refused with a class, not left to hang out its per-call timeout.
+        assert daemon.handle({"method": "Runtime.evaluate", "target_id": "a", "timeout": 5.0},
+                             )["class"] == Class.BROWSER_DISCONNECTED.value
+    finally:
+        daemon.stop()
+
+
+def test_a_daemon_whose_browser_died_can_be_used_again(runtime):
+    """Finding C's done-when: recovery must not require killing a process by hand.
+
+    There was no recovery path at all — `_open_browser` ran once from `start()`, nothing ever
+    re-attached, and `ensure_daemon` refuses to spawn while something answers on the socket.
+    One Chrome restart therefore wedged the NAME permanently. The daemon now exits once its
+    connection is settled-and-dead, which frees the socket for the spawn path that already
+    exists.
+    """
+    from harness.core import ipc
+
+    browser = FakeBrowser("a")
+    daemon = _serve("recover", browser, linger=0.2)
+    assert request("recover", {"method": "Runtime.evaluate", "target_id": "a"})["ok"]
+
+    browser.close()                                        # Chrome restarts under us
+    # No manual kill: the daemon takes itself down and unlinks its endpoint, so `ipc.ping`
+    # returns None — which is exactly the condition `ensure_daemon` spawns on.
+    _settle(lambda: ipc.ping("recover", timeout=1.0) is None, timeout=10)
+
+    replacement = _serve("recover", FakeBrowser("a"))       # what ensure_daemon would spawn
+    try:
+        assert request("recover", {"meta": "ping"})["browser"] is True
+        assert request("recover", {"method": "Runtime.evaluate", "target_id": "a"})["ok"]
+    finally:
+        replacement.stop()
+        daemon.stop()                                      # already stopped itself; idempotent
+
+
+def test_a_handshake_that_never_succeeds_frees_the_name_instead_of_wedging_it(runtime):
+    """The other half of finding C. `_connect_error` was written once and never cleared, so a
+    refused or unanswered handshake left a daemon answering `browser: false` forever. It now
+    lingers only long enough for a client already waiting in `ensure_daemon` to read the
+    reason off a pong, then gets out of the way."""
+    from harness.core import ipc
+
+    def refused():
+        raise OSError("connection refused by the browser")
+
+    daemon = Daemon("wedged", refused, linger=1.0).start()
+    threading.Thread(target=daemon.serve_forever, daemon=True).start()
+    seen = []
+
+    def gone():
+        pong = ipc.ping("wedged", timeout=1.0)
+        if pong is not None:
+            seen.append(pong)
+        return pong is None
+
+    try:
+        _settle(gone, timeout=10)
+        assert seen, "the daemon exited before any client could read the reason"
+        assert "connection refused" in seen[-1]["reason"]   # the diagnosis was reachable
+        assert seen[-1]["browser"] is False
+    finally:
+        daemon.stop()
+
+
+def test_a_daemon_whose_browser_is_merely_slow_to_be_allowed_is_not_killed(runtime):
+    """The exit path must fire on dead, never on pending. Chrome's consent prompt blocks the
+    handshake for as long as the user takes to answer it, and a daemon that took itself down
+    mid-click would turn the pending case straight back into the silence that binding early
+    exists to remove."""
+    gate = threading.Event()
+
+    def blocked_handshake():
+        gate.wait(10)
+        return FakeBrowser("a")
+
+    daemon = Daemon("patient", blocked_handshake, linger=0.1).start()
+    threading.Thread(target=daemon.serve_forever, daemon=True).start()
+    try:
+        from harness.core import ipc
+        time.sleep(0.5)                                    # several linger windows
+        pong = ipc.ping("patient", timeout=3.0)
+        assert pong is not None and pong["connecting"] is True
+        gate.set()                                         # "user clicks Allow"
+        _settle(lambda: (ipc.ping("patient", timeout=3.0) or {}).get("browser") is True)
+    finally:
+        gate.set()
+        daemon.stop()
 
 
 def test_a_malformed_request_is_an_outcome_not_a_crash(runtime):
@@ -352,3 +465,53 @@ def test_a_handshake_that_fails_reports_why_instead_of_going_quiet(runtime):
         assert "connection refused" in pong["reason"]
     finally:
         daemon.stop()
+
+
+def test_a_dropped_browser_is_refused_with_the_reason_the_daemon_actually_observed(runtime):
+    """Discriminates the typed refusal from the registry's incidental one.
+
+    Deleting `_browser_pending`'s `conn.closed` branch still yields BROWSER_DISCONNECTED,
+    because the registry path raises it anyway — so asserting the class proves nothing.
+    The DETAIL is what only this branch can produce, and rule 1 is precisely about saying
+    what was observed rather than whatever error happened to surface first.
+    """
+    browser = FakeBrowser("a", "b")
+    d = Daemon("refusetest", browser).start()
+    threading.Thread(target=d.serve_forever, daemon=True).start()
+    try:
+        assert d._settled.wait(timeout=5), "startup never settled"
+        d.conn._reader_stopped(BrowserDisconnected("chrome went away"))
+        assert d.conn.closed is True
+
+        refusal = d._browser_pending(timeout=1.0)
+
+        assert refusal is not None, "a dead browser must be refused, not passed through"
+        assert refusal["class"] == Class.BROWSER_DISCONNECTED.value
+        assert "shutting down so a fresh one can reconnect" in refusal["detail"], (
+            "the refusal must carry the cause this daemon observed")
+    finally:
+        d.stop()
+
+
+def test_an_unavailable_mac_approver_cannot_wedge_startup(runtime, monkeypatch):
+    """The approver is a convenience and must never gate the handshake.
+
+    It used to sit outside `_open_browser`'s try, so a raise skipped the `finally` and left
+    `_settled` unset — which makes `_browser_is_dead` False forever, so `_expired` never
+    fires and the daemon wedges answering `connecting: true`: the exact failure the
+    exit-on-death recovery exists to remove.
+    """
+    from harness.connect import macos
+
+    def boom(*a, **kw):
+        raise RuntimeError("osascript is not installed")
+    monkeypatch.setattr(macos, "arm", boom)
+
+    browser = FakeBrowser("a", "b")
+    d = Daemon("approvertest", browser).start()
+    threading.Thread(target=d.serve_forever, daemon=True).start()
+    try:
+        assert d._settled.wait(timeout=5), "startup never settled — the daemon is wedged"
+        assert d._browser_pending(timeout=1.0) is None, "the browser should be usable"
+    finally:
+        d.stop()

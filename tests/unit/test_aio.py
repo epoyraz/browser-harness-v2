@@ -6,6 +6,8 @@ dependency surface at exactly pytest + ruff.
 """
 import asyncio
 import gc
+import shutil
+import tempfile
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -15,20 +17,29 @@ import pytest
 from harness.aio import AsyncConnection, AsyncSession
 from harness.connect.client import RemoteConnection
 from harness.connect.daemon import Daemon
-from harness.core.outcome import Class, HarnessError, ProtocolMismatch
+from harness.core import ipc
+from harness.core.outcome import (
+    BrowserDisconnected,
+    Class,
+    HarnessError,
+    ProtocolMismatch,
+)
 from tests.fake_browser import FakeBrowser
 
 
 @pytest.fixture
-def served(monkeypatch, tmp_path):
-    runtime = tmp_path / "bhaio"
-    runtime.mkdir()
-    monkeypatch.setenv("BH_RUNTIME_DIR", str(runtime))
+def served(monkeypatch):
+    # NOT tmp_path: pytest's is ~128 bytes on macOS, over the 104-byte AF_UNIX limit the
+    # transport enforces (ipc.sock_path). test_daemon.py and test_ipc.py already say so;
+    # using tmp_path here errored all 13 tests on macOS and turned CI red for three commits.
+    runtime = tempfile.mkdtemp(prefix="bhaio", dir=None if ipc.IS_WINDOWS else "/tmp")
+    monkeypatch.setenv("BH_RUNTIME_DIR", runtime)
     browser = FakeBrowser("a", "b")
     daemon = Daemon("aiotest", browser).start()
     threading.Thread(target=daemon.serve_forever, daemon=True).start()
     yield browser, daemon
     daemon.stop()
+    shutil.rmtree(runtime, ignore_errors=True)
 
 
 def _run(coro):
@@ -282,7 +293,41 @@ def test_async_connection_reports_an_oversized_daemon_frame_as_protocol_error(mo
         with pytest.raises(ProtocolMismatch, match="exceeds 64 bytes"):
             await future
 
-    _run(main())
+        # The reader is the only thing that can resolve a future, so once it dies the
+        # connection is provably dead and must say so — see the next assertion.
+        assert conn._closed is True
+
+        # D11 rule 2: the caller gets the cause the reader already computed, at once.
+        # Before the fix this wrote into a dead socket and raised `Timeout` a full
+        # timeout later, discarding the ProtocolMismatch entirely.
+        started = time.monotonic()
+        with pytest.raises(ProtocolMismatch, match="exceeds 64 bytes"):
+            await conn._call({"meta": "subscribe"}, timeout=1.0)
+        return time.monotonic() - started
+
+    elapsed = _run(main())
+    assert elapsed < 0.5, f"a dead connection took {elapsed:.2f}s to admit it — that is a Timeout"
+
+
+def test_a_connection_whose_reader_saw_a_disconnect_reports_disconnect_not_timeout():
+    """The fallback half of the same contract: no framing diagnosis to hand on, so the
+    caller gets the honest generic cause — still immediately, still not `Timeout`."""
+    class ResetStream:
+        async def read(self, size):
+            raise ConnectionResetError("peer went away")
+
+    async def main():
+        conn = AsyncConnection("fake", None, _ImmediateWriter())
+        conn._stream = ResetStream()
+        await conn._pump()
+        assert conn._closed is True
+        started = time.monotonic()
+        with pytest.raises(BrowserDisconnected, match="daemon connection lost"):
+            await conn._call({"meta": "subscribe"}, timeout=1.0)
+        return time.monotonic() - started
+
+    elapsed = _run(main())
+    assert elapsed < 0.5, f"a dead connection took {elapsed:.2f}s to admit it — that is a Timeout"
 
 
 def test_async_connection_close_awaits_the_cancelled_reader():

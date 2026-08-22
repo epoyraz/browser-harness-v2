@@ -145,6 +145,11 @@ class Connection:
         self._lock = threading.Lock()
         self._next_id = 0
         self._closed = False
+        #: `_closed` is now written by the reader too, so it can no longer double as the
+        #: "teardown already ran" latch `close()` used it for. Separating them keeps a
+        #: browser that dropped its socket from short-circuiting `close()` and leaving the
+        #: transport's fd open for the life of the daemon.
+        self._torn_down = False
         self._reader: threading.Thread | None = None
 
     # -- lifecycle ---------------------------------------------------------
@@ -161,17 +166,44 @@ class Connection:
     def start(self) -> Self:
         if self._t is None:
             raise BrowserDisconnected("connection has no transport; call attach() first")
-        self._reader = threading.Thread(target=self._pump, name="cdp-reader", daemon=True)
-        self._reader.start()
+        reader = threading.Thread(target=self._pump, name="cdp-reader", daemon=True)
+        reader.start()
+        # Published only after `start()` returns: `Thread.is_alive()` is False *before* a
+        # thread starts as well as after it ends, and `closed` reads that flag. Assigning
+        # first would make a connection look dead for the microseconds between the two.
+        self._reader = reader
         return self
 
     def close(self) -> None:
         with self._lock:
-            if self._closed:
-                return
             self._closed = True
+            if self._torn_down:
+                return
+            self._torn_down = True
         self._t.close()
         self._fail_pending(BrowserDisconnected("connection closed locally"))
+
+    @property
+    def closed(self) -> bool:
+        """Whether this connection can still carry a request. Truthful after the browser
+        goes away, which it was not: `_closed` used to be written only by `close()`, so a
+        Chrome that quit or crashed left this object reporting itself open — and the daemon
+        above went on advertising `browser: true` over it."""
+        with self._lock:
+            return self._dead()
+
+    def _dead(self) -> bool:
+        """Callers must hold `_lock`.
+
+        Two signals, because one is not enough. `_closed` is authoritative — `close()` and
+        every terminal path in `_pump` set it. The reader-liveness check behind it covers
+        what `_pump` cannot: a thread that ended somewhere no `except` of ours runs. A
+        connection with no reader can never complete a request, so reporting it open is the
+        exact v1 "healthy corpse" this liveness path exists to prevent.
+        """
+        if self._closed:
+            return True
+        return self._reader is not None and not self._reader.is_alive()
 
     def __enter__(self) -> Self:
         return self.start()
@@ -215,7 +247,7 @@ class Connection:
         value was chosen was wrong for one of them.
         """
         with self._lock:
-            if self._closed:
+            if self._dead():
                 raise BrowserDisconnected("connection is closed", method=method)
             self._next_id += 1
             msg_id = self._next_id
@@ -266,12 +298,36 @@ class Connection:
             except TimeoutError:
                 continue
             except EOFError as e:
-                self._fail_pending(BrowserDisconnected(str(e)))
+                self._reader_stopped(BrowserDisconnected(str(e)))
                 return
             except Exception as e:  # noqa: BLE001 — a dead reader must wake its waiters
-                self._fail_pending(BrowserDisconnected(f"reader failed: {e}"))
+                self._reader_stopped(BrowserDisconnected(f"reader failed: {e}"))
                 return
-            self._dispatch(msg)
+            try:
+                self._dispatch(msg)
+            except Exception as e:  # noqa: BLE001 — the third terminal path
+                # `_dispatch` used to sit outside the try, so a malformed frame (a JSON
+                # array, say, where `msg.get` is an AttributeError) killed the reader with
+                # `_closed` still False and `_pending` never drained — every in-flight
+                # caller then waited out its FULL per-call timeout. That is precisely the
+                # failure the two branches above exist to prevent, reachable by a third
+                # door. The next call recovers via the `is_alive()` fallback; the calls
+                # already waiting do not, which is why this has to claim the connection.
+                self._reader_stopped(BrowserDisconnected(f"reader failed in dispatch: {e}"))
+                return
+
+    def _reader_stopped(self, error: BrowserDisconnected) -> None:
+        """The reader is gone; the connection goes with it.
+
+        Neither terminal path used to mark the connection closed, and `_closed` was written
+        nowhere else but `close()`. So after Chrome quit, crashed or dropped the socket, the
+        reader thread was gone while the object still called itself open: every later call
+        wrote into the void and waited out its full per-call timeout, and `Daemon._meta`'s
+        ping kept answering `browser: true` — the healthy-corpse report v1 needed six PRs to
+        stop making. Closing here is what makes `closed` (and the pong above it) truthful.
+        """
+        self._j.write("note", msg="cdp reader stopped", error=str(error))
+        self._fail_pending(error, closing=True)
 
     def _dispatch(self, msg: dict[str, Any]) -> None:
         if "id" in msg:
@@ -301,10 +357,18 @@ class Connection:
             except Exception as e:  # noqa: BLE001 — one bad handler must not kill the reader
                 self._j.write("note", msg=f"event handler failed: {e}", event=msg.get("method"))
 
-    def _fail_pending(self, error: BaseException) -> None:
+    def _fail_pending(self, error: BaseException, *, closing: bool = False) -> None:
         """Wake every waiter. A reader that dies silently turns each in-flight call into a
-        full-timeout hang, which is how a dropped connection used to read as slowness."""
+        full-timeout hang, which is how a dropped connection used to read as slowness.
+
+        `closing` folds the `_closed` write into the same critical section as the drain, so
+        the flag is set before any waiter is woken and a concurrent `request()` cannot slip
+        a fresh slot into `_pending` between the two — that one would have waited out its
+        full timeout against a reader that is already gone.
+        """
         with self._lock:
+            if closing:
+                self._closed = True
             slots = list(self._pending.values())
             self._pending.clear()
         for slot in slots:
