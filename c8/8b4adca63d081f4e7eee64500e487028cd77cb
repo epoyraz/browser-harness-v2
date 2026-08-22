@@ -1,0 +1,33 @@
+tests/unit/test_macos.py
+  s_6670e0c6debd43::t_b2aad65fba5db3 254-341
+  s_6670e0c6debd43::t_26201abdf4c58a 1-185,187-203,205-219,221-234,236-253
+  s_6670e0c6debd43::t_d9d193e0a1c520 186,204,220,235
+harness/connect/macos.py
+  s_6670e0c6debd43::t_f48c137dfbc2e5 23,26,207-208
+  s_6670e0c6debd43::t_9228c992ccdec5 167-172
+  s_6670e0c6debd43::t_cd94702f656f90 1-22,24-25,27-119,132-136,138-166,173-192
+  s_6670e0c6debd43::t_22a5aebf36657d 193-206,209-225,229-230,234,237-241
+  s_6670e0c6debd43::t_e22decc84695a7 120-131,137,226-228,231-233,235-236
+harness/core/outcome.py
+  s_6670e0c6debd43::t_a3fc4c16f7bee5 50-59
+harness/cli/main.py
+  s_6670e0c6debd43::t_86e0274ff6f778 227-230
+  s_6670e0c6debd43::t_94809aec2081e2 24,66-68
+  s_6670e0c6debd43::t_6459dbcbcd7a54 69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "c88b4adca63d081f4e7eee64500e487028cd77cb",
+  "prompts": {},
+  "sessions": {
+    "s_6670e0c6debd43": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2350b03f-6200-4281-b930-cf1a4b5294ca",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
