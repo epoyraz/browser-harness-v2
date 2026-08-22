@@ -12,8 +12,10 @@ from harness.connect.daemon import (
     MAX_DAEMON_FRAME,
     Daemon,
     _encode_frame,
+    _Peer,
     request,
 )
+from harness.connect.endpoint import BrowserIdentity
 from harness.connect.session import DEFAULT_DOMAINS
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError
 from tests.fake_browser import FakeBrowser
@@ -65,6 +67,102 @@ def test_daemon_frame_encoding_does_not_expand_unicode_toward_the_cap():
     assert json.loads(encoded)["value"].endswith("\ud800")
     assert encoded.endswith(b"\n")
     assert MAX_DAEMON_FRAME == MAX_FRAME + (1 << 20)
+
+
+class _BlockingSendSocket:
+    """A deterministic peer whose kernel send buffer never drains."""
+
+    def __init__(self):
+        self.entered = threading.Event()
+        self.released = threading.Event()
+        self.closed = False
+
+    def sendall(self, data):
+        self.entered.set()
+        self.released.wait(3)
+        if self.closed:
+            raise OSError("socket closed")
+
+    def shutdown(self, how):
+        self.closed = True
+        self.released.set()
+
+    def close(self):
+        self.closed = True
+        self.released.set()
+
+
+class _CapturingSendSocket:
+    def __init__(self):
+        self.frames = []
+        self.changed = threading.Condition()
+
+    def sendall(self, data):
+        with self.changed:
+            self.frames.append(data)
+            self.changed.notify_all()
+
+    def wait_for(self, count, timeout=3.0):
+        deadline = time.monotonic() + timeout
+        with self.changed:
+            while len(self.frames) < count:
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    return False
+                self.changed.wait(left)
+        return True
+
+    def shutdown(self, how):
+        pass
+
+    def close(self):
+        pass
+
+
+def test_full_peer_queue_closes_and_terminates_its_blocked_writer():
+    """Overflow is eviction, including when there is no queue slot for the sentinel."""
+    sock = _BlockingSendSocket()
+    peer = _Peer(sock, max_frames=1, max_bytes=4096)
+
+    assert peer.send({"n": 1})
+    assert sock.entered.wait(2), "writer never entered the simulated blocked sendall"
+    assert peer.send({"n": 2})                 # occupies the sole queued slot
+    assert not peer.send({"n": 3})             # full: close, shutdown, drop
+
+    peer._writer.join(timeout=2)
+    assert peer.closed.is_set()
+    assert not peer._writer.is_alive(), "a full queue must not strand its writer"
+
+
+def test_one_stalled_peer_cannot_delay_events_for_a_healthy_peer():
+    stalled_sock = _BlockingSendSocket()
+    healthy_sock = _CapturingSendSocket()
+    stalled = _Peer(stalled_sock, max_frames=1, max_bytes=4096)
+    healthy = _Peer(healthy_sock, max_frames=8, max_bytes=8192)
+    daemon = Daemon("peer-output-test", FakeBrowser("a"))
+    with daemon._plock:
+        daemon._peers.update((stalled, healthy))
+
+    try:
+        daemon._broadcast({"method": "First"})
+        assert stalled_sock.entered.wait(2)
+
+        started = time.monotonic()
+        daemon._broadcast({"method": "Second"})
+        daemon._broadcast({"method": "Third"})  # overflows and evicts only stalled
+        elapsed = time.monotonic() - started
+
+        assert elapsed < 0.1, f"CDP fan-out blocked for {elapsed:.3f}s on one peer"
+        assert healthy_sock.wait_for(3), "healthy peer did not receive all events"
+        methods = [json.loads(frame)["event"]["method"] for frame in healthy_sock.frames]
+        assert methods == ["First", "Second", "Third"]
+        with daemon._plock:
+            assert stalled not in daemon._peers
+            assert healthy in daemon._peers
+    finally:
+        stalled.close()
+        healthy.close()
+        daemon.stop()
 
 
 # --- TODO 7's done-when ------------------------------------------------------
@@ -508,10 +606,41 @@ def test_an_unavailable_mac_approver_cannot_wedge_startup(runtime, monkeypatch):
     monkeypatch.setattr(macos, "arm", boom)
 
     browser = FakeBrowser("a", "b")
-    d = Daemon("approvertest", browser).start()
+    d = Daemon("approvertest", lambda: browser).start()
     threading.Thread(target=d.serve_forever, daemon=True).start()
     try:
         assert d._settled.wait(timeout=5), "startup never settled — the daemon is wedged"
         assert d._browser_pending(timeout=1.0) is None, "the browser should be usable"
+    finally:
+        d.stop()
+
+
+def test_daemon_scopes_approval_to_resolution_and_only_while_factory_is_pending(
+        runtime, monkeypatch):
+    from harness.connect import macos
+
+    identity = BrowserIdentity(
+        pid=8128, application="Brave Browser", profile_dir="/tmp/brave")
+    captured = {}
+
+    def arm(stop, *, identity=None, pending=None, **kwargs):
+        captured.update(stop=stop, identity=identity, pending=pending)
+        assert not pending.is_set(), "authority must not begin before the transport factory"
+    monkeypatch.setattr(macos, "arm", arm)
+
+    browser = FakeBrowser("a")
+
+    def handshake():
+        assert captured["pending"].is_set()
+        return browser
+
+    d = Daemon(
+        "scoped-approver", handshake, browser_identity=identity).start()
+    try:
+        assert d._settled.wait(timeout=5)
+        assert captured["identity"] == identity
+        assert not captured["pending"].is_set()
+        assert captured["stop"].is_set()
+        assert d._browser_pending(timeout=1.0) is None
     finally:
         d.stop()

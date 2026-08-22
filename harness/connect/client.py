@@ -284,6 +284,12 @@ class RemoteConnection:
         except OSError as e:
             with self._lock:
                 self._pending.pop(rid, None)
+                failure = self._failure
+            if failure is not None:
+                # The reader can diagnose a malformed reply and close the transport while
+                # this thread is still inside sendall(). Its ProtocolMismatch is the cause;
+                # the resulting write error is only fallout from that terminal decision.
+                raise failure
             raise BrowserDisconnected(f"daemon went away: {e}") from e
         if not slot["done"].wait(timeout):
             with self._lock:
@@ -304,11 +310,18 @@ class RemoteConnection:
         claim it if `close()` has not already done so, so a deliberate close keeps its own
         account of itself. Mirrors AsyncConnection._pump in harness/aio.py.
         """
+        claimed = False
         with self._lock:
             if not self._closed:
                 self._closed = True
                 self._failure = failure
+                claimed = True
         self._fail_all(failure)
+        if claimed:
+            try:
+                self._sock.close()
+            except OSError:
+                pass
 
     def _pump(self) -> None:
         # The blanket handler is not defensive padding: ANY escape from this loop ends the
@@ -334,6 +347,12 @@ class RemoteConnection:
                     self._buf = bytearray(rest)
                     if line.strip():
                         self._dispatch(line)
+        except ProtocolMismatch as error:
+            # Preserve a framing diagnosis exactly as computed by `_dispatch`, including
+            # its JSON decoder cause. Wrapping it in another ProtocolMismatch here would
+            # make the original parse failure disappear from the exception chain.
+            self._j.write("note", msg=str(error))
+            self._die(error)
         except Exception as e:          # noqa: BLE001 — recorded, never raised
             # Not re-raised: this is a daemon thread, so raising only prints to stderr and
             # tells no one who could act. The cause is stored on the connection instead,
@@ -346,8 +365,8 @@ class RemoteConnection:
     def _dispatch(self, line: bytes) -> None:
         try:
             frame = json.loads(line)
-        except json.JSONDecodeError:
-            return
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            raise ProtocolMismatch(f"invalid daemon JSON frame: {error}") from error
         if "event" in frame:
             with self._lock:
                 handlers = list(self._events)

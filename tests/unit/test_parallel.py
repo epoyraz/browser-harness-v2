@@ -84,6 +84,48 @@ class FakeSession:
         return getattr(self._local, "current", None)
 
 
+class FakeEventConnection:
+    def __init__(self):
+        self._handlers = []
+        self._lock = threading.Lock()
+
+    def subscribe(self, fn):
+        with self._lock:
+            self._handlers.append(fn)
+
+    def unsubscribe(self, fn):
+        with self._lock:
+            self._handlers.remove(fn)
+
+    def emit(self, msg):
+        with self._lock:
+            handlers = list(self._handlers)
+        for fn in handlers:
+            fn(msg)
+
+
+class EventFakeSession(FakeSession):
+    """A fake with the browser-level target event channel used by cleanup settling."""
+
+    def __init__(self):
+        super().__init__()
+        self.conn = FakeEventConnection()
+
+    def open_popup_from(self, opener):
+        with self._lock:
+            self._n += 1
+            tid = f"P{self._n}"
+            self.open_tabs.add(tid)
+            info = {
+                "targetId": tid, "type": "page", "openerId": opener,
+                "canAccessOpener": False,
+            }
+            self.target_infos[tid] = info
+            self.peak_tabs = max(self.peak_tabs, len(self.open_tabs))
+        self.conn.emit({"method": "Target.targetCreated", "params": {"targetInfo": info}})
+        return tid
+
+
 def test_results_come_back_in_input_order_not_completion_order():
     """Completion order would be the natural implementation and silently wrong: callers
     zip results against the input."""
@@ -189,6 +231,61 @@ def test_owned_popup_descendants_are_closed_before_the_worker_is_reused():
     assert set(popups).issubset(s.closed)
     assert out[0]["telemetry"]["cleanup_descendants"] == 2
     assert set(s.open_tabs) == set()
+
+
+def test_late_owned_popup_is_closed_before_the_worker_is_reused(monkeypatch):
+    """A popup announced after fn() returns still belongs to that item, not the next one."""
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_QUIET", 0.04)
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_MAX_WAIT", 0.2)
+    s = EventFakeSession()
+    roots = []
+    popups = []
+    timers = []
+
+    def fn(item):
+        roots.append(s.current)
+        if item == 0:
+            opener = s.current
+            timer = threading.Timer(
+                0.015, lambda: popups.append(s.open_popup_from(opener)))
+            timers.append(timer)
+            timer.start()
+        return s.current
+
+    out = parallel(s, range(2), fn, workers=1)
+    for timer in timers:
+        timer.join(timeout=1)
+
+    assert roots == [roots[0], roots[0]]
+    assert len(popups) == 1
+    assert popups[0] in s.closed
+    assert out[0]["telemetry"]["cleanup_descendants"] == 1
+    assert set(s.open_tabs) == set()
+
+
+def test_foreign_target_event_neither_extends_nor_enters_popup_cleanup(monkeypatch):
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_QUIET", 0.03)
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_MAX_WAIT", 0.2)
+    s = EventFakeSession()
+    foreign = []
+    timer = None
+
+    def fn(item):
+        nonlocal timer
+        if item == 0:
+            timer = threading.Timer(
+                0.01, lambda: foreign.append(s.open_popup_from("some-other-tab")))
+            timer.start()
+        return s.current
+
+    out = parallel(s, range(2), fn, workers=1)
+    assert timer is not None
+    timer.join(timeout=1)
+
+    assert len(foreign) == 1
+    assert foreign[0] not in s.closed
+    assert foreign[0] in s.open_tabs
+    assert out[0]["telemetry"]["cleanup_descendants"] == 0
 
 
 def test_reuse_tabs_false_gives_each_item_a_clean_tab():

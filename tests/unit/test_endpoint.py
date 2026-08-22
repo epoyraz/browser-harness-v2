@@ -10,9 +10,12 @@ from pathlib import Path
 
 import pytest
 
+from harness.connect import endpoint
 from harness.connect.endpoint import (
     Binding,
+    BrowserIdentity,
     binding_for,
+    browser_identity,
     discover,
     probe_http,
     profile_dirs,
@@ -115,6 +118,79 @@ def test_active_port_file_parses_and_rejects_garbage(tmp_path):
     (tmp_path / "DevToolsActivePort").write_text("not a port\nwhatever")
     assert read_active_port(tmp_path) is None
     assert read_active_port(tmp_path / "missing") is None
+
+
+def test_macos_identity_binds_a_known_profile_to_the_unique_listener(monkeypatch):
+    monkeypatch.setattr(endpoint.sys, "platform", "darwin")
+    monkeypatch.setattr(endpoint, "mac_listener_pid", lambda ws: 7391)
+    profile = Path.home() / "Library/Application Support/BraveSoftware/Brave-Browser"
+
+    identity = browser_identity("ws://127.0.0.1:9222/devtools/browser/x", profile)
+
+    assert identity == BrowserIdentity(
+        pid=7391, application="Brave Browser", profile_dir=str(profile),
+        ws_url="ws://127.0.0.1:9222/devtools/browser/x")
+
+
+def test_macos_listener_identity_never_guesses_between_multiple_pids(monkeypatch):
+    monkeypatch.setattr(endpoint.sys, "platform", "darwin")
+    completed = type("Completed", (), {
+        "returncode": 0, "stdout": "p101\np202\n", "stderr": "",
+    })()
+    monkeypatch.setattr(endpoint.subprocess, "run", lambda *a, **kw: completed)
+
+    assert endpoint.mac_listener_pid(
+        "ws://127.0.0.1:9222/devtools/browser/x") is None
+
+
+@pytest.mark.parametrize("profile_count", [0, 2])
+def test_macos_explicit_endpoint_profile_matching_fails_closed(
+        tmp_path, monkeypatch, profile_count):
+    monkeypatch.setattr(endpoint.sys, "platform", "darwin")
+    monkeypatch.setattr(endpoint, "mac_listener_pid", lambda ws: 7391)
+    monkeypatch.setattr(endpoint, "_mac_process_name", lambda pid: "Google Chrome")
+    profiles = [tmp_path / f"profile-{index}" for index in range(profile_count)]
+    for profile in profiles:
+        profile.mkdir()
+        (profile / "DevToolsActivePort").write_text(
+            "9222\n/devtools/browser/same", encoding="utf-8")
+
+    configured = profiles or [tmp_path / "missing"]
+    identity = browser_identity(
+        "ws://127.0.0.1:9222/devtools/browser/same",
+        env={"BH_PROFILE_DIRS": os.pathsep.join(map(str, configured))},
+    )
+
+    assert identity == BrowserIdentity(
+        pid=7391, application="Google Chrome", profile_dir="",
+        ws_url="ws://127.0.0.1:9222/devtools/browser/same")
+
+
+def test_a_persisted_local_pin_recovers_its_exact_profile_on_respawn(
+        runtime, tmp_path, monkeypatch):
+    listener = socket.socket()
+    listener.bind(("127.0.0.1", 0))
+    listener.listen(1)
+    port = listener.getsockname()[1]
+    path = "/devtools/browser/persisted"
+    monkeypatch.setenv("HOME", str(tmp_path))
+    profile = tmp_path / "Library/Application Support/Google/Chrome"
+    profile.mkdir(parents=True)
+    (profile / "DevToolsActivePort").write_text(f"{port}\n{path}", encoding="utf-8")
+    ws_url = f"ws://127.0.0.1:{port}{path}"
+    monkeypatch.setattr(endpoint.sys, "platform", "darwin")
+    monkeypatch.setattr(endpoint, "mac_listener_pid", lambda ws: 8844)
+    env = {"BU_CDP_WS": ws_url}
+
+    try:
+        binding_for("identity-respawn", env)
+        respawned = binding_for("identity-respawn", {})
+        resolution = resolve(respawned, {})
+    finally:
+        listener.close()
+
+    assert resolution.identity == BrowserIdentity(
+        pid=8844, application="Google Chrome", profile_dir=str(profile), ws_url=ws_url)
 
 
 # --- discovery (TODO 11's done-when: winners and losers both report) ---------

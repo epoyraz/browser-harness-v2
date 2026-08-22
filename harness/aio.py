@@ -300,6 +300,14 @@ class AsyncConnection:
                     f"daemon did not answer {payload.get('method') or payload.get('meta')}"
                     f" in {timeout}s", daemon=self.name) from None
         except (OSError, ConnectionResetError) as e:
+            # `_pump` may diagnose malformed JSON, fail this future, and close the writer
+            # while drain() is still suspended. Prefer that stored protocol cause over the
+            # secondary write error, and retrieve the future's exception so the event loop
+            # does not report an unhandled future from this losing race.
+            if fut.done() and not fut.cancelled():
+                fut.exception()
+            if self._failure is not None:
+                raise self._failure
             raise BrowserDisconnected(f"daemon went away: {e}") from e
         finally:
             # Covers success, timeout, cancellation during drain/wait, and transport
@@ -342,16 +350,24 @@ class AsyncConnection:
             # broken twice over: wrong class, and the real cause thrown away. Only claim the
             # connection if `close()` has not already done so, so a deliberate close keeps
             # its own account of itself.
+            claimed = False
             if not self._closed:
                 self._closed = True
                 self._failure = failure
+                claimed = True
             self._fail_all(failure)
+            if claimed:
+                self._writer.close()
+                try:
+                    await self._writer.wait_closed()
+                except OSError:
+                    pass
 
     def _dispatch(self, line: bytes) -> None:
         try:
             frame = json.loads(line)
-        except json.JSONDecodeError:
-            return
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            raise ProtocolMismatch(f"invalid daemon JSON frame: {error}") from error
         if "event" in frame:
             for fn in list(self._events):
                 try:

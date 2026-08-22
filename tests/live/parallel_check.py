@@ -13,6 +13,7 @@ workers. If the speedup is not there, the concurrency is a lie somewhere below t
 """
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import statistics
@@ -106,7 +107,7 @@ def main() -> int:
                        "BU_CDP_URL": "", "BU_CDP_WS": "", "BH_RECORD": "0"})
     daemon = None
     session = None
-    _browser.launch(scratch, window="1100,800")
+    _browser.launch(scratch, window="1100,800", extra=["--disable-popup-blocking"])
     try:
         # Keep the daemon in this process so the check owns its entire lifecycle. The old
         # auto-spawned shape left a detached daemon behind after every run.
@@ -158,6 +159,88 @@ def main() -> int:
                f"p95={cleanup_ms[94]:.1f}ms max={cleanup_ms[-1]:.1f}ms")
               if cleanup_ms else "no samples")
         check("cleanup probe returns worker tabs to baseline", tabs_returned_to_baseline(),
+              f"baseline={len(baseline_targets)} now={len(target_ids())}")
+
+        popup_timer_errors = []
+
+        def open_popup_from(tab, url):
+            try:
+                tab.js(
+                    "(() => { window.open("
+                    f"{json.dumps(url)}, '_blank'); return true; }})()")
+            except Exception as error:  # noqa: BLE001 — surfaced by assertions below
+                popup_timer_errors.append(f"{type(error).__name__}: {error}")
+
+        late_timers = []
+
+        def delayed_popup(item: int):
+            root = session.tab().target_id
+            if item == 0:
+                namespace["goto"](f"{base}/late-opener")
+                root_tab = session.tab(root)
+                timer = threading.Timer(
+                    0.15, open_popup_from, args=(root_tab, f"{base}/late-popup"))
+                late_timers.append(timer)
+                timer.start()
+                return "scheduled"
+            return [
+                target["targetId"] for target in session.targets()
+                if target.get("openerId") == root
+            ]
+
+        late = parallel(session, [0, 1], delayed_popup, workers=1)
+        for timer in late_timers:
+            timer.join(timeout=2)
+        check("late owned popup is closed before worker-tab reuse",
+              (not popup_timer_errors
+               and late[0]["telemetry"]["cleanup_descendants"] == 1
+               and late[1]["value"] == []),
+              (f"closed={late[0]['telemetry']['cleanup_descendants']} "
+               f"visible_to_next={late[1]['value']} errors={popup_timer_errors}"))
+        check("late-popup probe returns targets to baseline", tabs_returned_to_baseline(),
+              f"baseline={len(baseline_targets)} now={len(target_ids())}")
+
+        click_tab = session.new_tab(f"{base}/click-owner")
+        foreign_tab = session.new_tab(f"{base}/foreign-owner")
+        click_tab.js("""(() => {
+          const button = document.createElement('button');
+          button.type = 'button'; button.textContent = 'Inert control';
+          document.body.prepend(button); return true;
+        })()""")
+        button = next(element for element in click_tab.snapshot()
+                      if element.get("name") == "Inert control")
+
+        foreign_timer = threading.Timer(
+            0.1, open_popup_from, args=(foreign_tab, f"{base}/foreign-popup"))
+        owned_timer = threading.Timer(
+            0.2, open_popup_from, args=(click_tab, f"{base}/owned-popup"))
+        foreign_timer.start()
+        owned_timer.start()
+        click_started = time.monotonic()
+        click_delta = click_tab.click_ref(button["ref"], settle=0.4)
+        click_elapsed = time.monotonic() - click_started
+        foreign_timer.join(timeout=2)
+        owned_timer.join(timeout=2)
+        popup_infos = session.targets()
+        owned_popups = [
+            target["targetId"] for target in popup_infos
+            if target.get("openerId") == click_tab.target_id
+        ]
+        foreign_popups = [
+            target["targetId"] for target in popup_infos
+            if target.get("openerId") == foreign_tab.target_id
+        ]
+        check("foreign popup does not terminate another tab's click wait",
+              (not popup_timer_errors and click_elapsed >= 0.15 and len(owned_popups) == 1
+               and len(foreign_popups) == 1
+               and click_delta["new_targets"] == owned_popups),
+              (f"elapsed={click_elapsed * 1000:.0f}ms "
+               f"owned={owned_popups} foreign={foreign_popups} "
+               f"delta={click_delta['new_targets']} errors={popup_timer_errors}"))
+        for target_id in [*owned_popups, *foreign_popups,
+                          click_tab.target_id, foreign_tab.target_id]:
+            session.close_tab(target_id)
+        check("popup-race tabs return to baseline", tabs_returned_to_baseline(),
               f"baseline={len(baseline_targets)} now={len(target_ids())}")
 
         t0 = time.perf_counter()

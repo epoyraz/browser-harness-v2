@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import subprocess
 import sys
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -68,6 +69,122 @@ class Resolution:
     http_url: str          # "" when the strategy never had an HTTP side (M147 profiles)
     strategy: str
     attempts: list[Attempt] = field(default_factory=list)
+    identity: BrowserIdentity | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class BrowserIdentity:
+    """Mechanically resolved owner of a local browser endpoint.
+
+    The macOS consent sheet is native UI, outside CDP's target model.  A websocket URL
+    alone therefore cannot scope an AXPress: the listener PID is the capability that ties
+    the sheet to the endpoint we resolved.  ``application`` is checked as a second factor
+    so a recycled PID cannot silently widen the action to an unrelated process.
+    """
+
+    pid: int | None
+    application: str
+    profile_dir: str = ""
+    ws_url: str = ""
+
+
+_MAC_PROFILE_APPLICATIONS = (
+    ("Library/Application Support/Google/Chrome Canary", "Google Chrome Canary"),
+    ("Library/Application Support/Google/Chrome", "Google Chrome"),
+    ("Library/Application Support/Comet", "Comet"),
+    ("Library/Application Support/Arc/User Data", "Arc"),
+    ("Library/Application Support/Dia/User Data", "Dia"),
+    ("Library/Application Support/Microsoft Edge Beta", "Microsoft Edge Beta"),
+    ("Library/Application Support/Microsoft Edge Dev", "Microsoft Edge Dev"),
+    ("Library/Application Support/Microsoft Edge Canary", "Microsoft Edge Canary"),
+    ("Library/Application Support/Microsoft Edge", "Microsoft Edge"),
+    ("Library/Application Support/BraveSoftware/Brave-Browser", "Brave Browser"),
+    ("Library/Application Support/Chromium", "Chromium"),
+)
+
+
+def _mac_application_for_profile(profile_dir: Path | None) -> str:
+    if profile_dir is None:
+        return ""
+    path = str(profile_dir.expanduser())
+    for suffix, application in _MAC_PROFILE_APPLICATIONS:
+        if path.endswith(suffix):
+            return application
+    return ""
+
+
+def mac_listener_pid(ws_url: str) -> int | None:
+    """Return the one local process listening for this endpoint, or fail closed.
+
+    ``lsof`` is part of macOS and exposes the kernel-owned port-to-PID relation without
+    opening another websocket.  Zero or multiple owners are deliberately not guessed.
+    """
+    if sys.platform != "darwin":
+        return None
+    parsed = urlsplit(ws_url)
+    host = (parsed.hostname or "").lower()
+    if host not in {"127.0.0.1", "localhost", "::1"} or parsed.port is None:
+        return None
+    try:
+        completed = subprocess.run(
+            ["/usr/sbin/lsof", "-nP", "-a", f"-iTCP@{host}:{parsed.port}",
+             "-sTCP:LISTEN", "-Fp"],
+            capture_output=True, text=True, timeout=2, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
+        return None
+    pids = {
+        int(line[1:])
+        for line in completed.stdout.splitlines()
+        if line.startswith("p") and line[1:].isdigit()
+    }
+    return next(iter(pids)) if len(pids) == 1 else None
+
+
+def _mac_process_name(pid: int | None) -> str:
+    if sys.platform != "darwin" or pid is None:
+        return ""
+    try:
+        completed = subprocess.run(
+            ["/bin/ps", "-p", str(pid), "-o", "comm="],
+            capture_output=True, text=True, timeout=2, check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if completed.returncode != 0:
+        return ""
+    command = completed.stdout.strip()
+    return Path(command).name if command else ""
+
+
+def _endpoint_profile_matches(ws_url: str, env: Mapping[str, str] | None) -> list[Path]:
+    """Profiles whose active-port record names this exact browser websocket."""
+    parsed = urlsplit(ws_url)
+    if parsed.port is None:
+        return []
+    expected = (parsed.port, parsed.path)
+    env = os.environ if env is None else env
+    return [base for base in profile_dirs(env) if read_active_port(base) == expected]
+
+
+def browser_identity(ws_url: str, profile_dir: Path | None = None,
+                     env: Mapping[str, str] | None = None) -> BrowserIdentity | None:
+    """Resolve the local macOS UI process that owns ``ws_url`` without opening it."""
+    if sys.platform != "darwin":
+        return None
+    pid = mac_listener_pid(ws_url)
+    if profile_dir is None:
+        matches = _endpoint_profile_matches(ws_url, env)
+        profile_dir = matches[0] if len(matches) == 1 else None
+    application = _mac_application_for_profile(profile_dir) or _mac_process_name(pid)
+    return BrowserIdentity(
+        pid=pid,
+        application=application,
+        profile_dir=str(profile_dir.expanduser()) if profile_dir is not None else "",
+        ws_url=ws_url,
+    )
 
 
 # -- probes (websocket-free, see module docstring) --------------------------
@@ -215,7 +332,8 @@ def discover(env: Mapping[str, str] | None = None) -> Resolution:
         u = urlsplit(ws)
         if u.port and tcp_alive(u.hostname or "127.0.0.1", u.port):
             attempts.append(Attempt("explicit-ws", ws, won=True))
-            return Resolution(ws, "", "explicit-ws", attempts)
+            return Resolution(ws, "", "explicit-ws", attempts,
+                              identity=browser_identity(ws, env=env))
         attempts.append(Attempt("explicit-ws", ws,
                                 reason=f"nothing listening on {u.hostname}:{u.port}"))
     else:
@@ -225,7 +343,8 @@ def discover(env: Mapping[str, str] | None = None) -> Resolution:
         try:
             got = probe_http(http)
             attempts.append(Attempt("explicit-http", http, won=True))
-            return Resolution(got["ws"], got["http"], "explicit-http", attempts)
+            return Resolution(got["ws"], got["http"], "explicit-http", attempts,
+                              identity=browser_identity(got["ws"], env=env))
         except HarnessError as e:
             attempts.append(Attempt("explicit-http", http, reason=e.args[0]))
     else:
@@ -259,8 +378,9 @@ def discover(env: Mapping[str, str] | None = None) -> Resolution:
                 f"cleaning up")))
             continue
         attempts.append(Attempt("profile", cand, won=True))
-        return Resolution(f"ws://127.0.0.1:{port}{path}", f"http://127.0.0.1:{port}",
-                          "profile", attempts)
+        ws_url = f"ws://127.0.0.1:{port}{path}"
+        return Resolution(ws_url, f"http://127.0.0.1:{port}", "profile", attempts,
+                          identity=browser_identity(ws_url, d, env))
 
     if absent:
         attempts.append(Attempt("profile", f"{len(absent)} profile dir(s) not present",
@@ -333,10 +453,12 @@ def resolve(binding: Binding, env: Mapping[str, str] | None = None) -> Resolutio
     if u.scheme in ("ws", "wss"):
         if u.port and tcp_alive(u.hostname or "127.0.0.1", u.port):
             return Resolution(binding.url, "", "pinned",
-                              [Attempt("pinned", binding.url, won=True)])
+                              [Attempt("pinned", binding.url, won=True)],
+                              identity=browser_identity(binding.url, env=env))
         raise EndpointUnreachable(
             f"pinned endpoint {binding.url} is unreachable; staying pinned rather than "
             f"discovering another browser", pinned=binding.url)
     got = probe_http(binding.url)               # 404/refused raise typed, naming the pin
     return Resolution(got["ws"], got["http"], "pinned",
-                      [Attempt("pinned", binding.url, won=True)])
+                      [Attempt("pinned", binding.url, won=True)],
+                      identity=browser_identity(got["ws"], env=env))

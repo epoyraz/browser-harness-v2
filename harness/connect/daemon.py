@@ -18,6 +18,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import queue
 import secrets
 import socket
 import threading
@@ -26,6 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Self
 
 from harness.connect.cdp import MAX_FRAME, Connection
+from harness.connect.endpoint import BrowserIdentity
 from harness.connect.session import SessionRegistry
 from harness.core import ipc
 from harness.core.journal import Journal
@@ -57,6 +59,15 @@ _SESSION_METHODS = frozenset({"Target.attachToTarget", "Target.detachFromTarget"
 #: keeping the local protocol close to the browser transport's deliberate 100 MiB cap.
 MAX_DAEMON_FRAME = MAX_FRAME + (1 << 20)
 
+#: Per-client output is owned by one writer thread.  Count and bytes are both bounded:
+#: bounding only the frame count would still permit dozens of 100 MiB CDP frames to sit
+#: behind a peer that stopped reading.
+_PEER_OUTBOUND_FRAMES = max(1, int(os.environ.get("BH_PEER_OUTBOUND_FRAMES") or 64))
+_PEER_OUTBOUND_BYTES = max(
+    MAX_DAEMON_FRAME + 1,  # one maximum legal line plus its newline delimiter
+    int(os.environ.get("BH_PEER_OUTBOUND_BYTES") or (MAX_DAEMON_FRAME + 1)),
+)
+
 
 def _encode_frame(payload: dict[str, Any]) -> bytes:
     """Encode one newline-delimited daemon frame without ASCII expansion."""
@@ -66,29 +77,92 @@ def _encode_frame(payload: dict[str, Any]) -> bytes:
 
 
 class _Peer:
-    """One client socket, with the lock that keeps replies and events from interleaving.
+    """One client socket with bounded, single-writer output ownership.
 
-    Two threads write here — the client's own handler thread (replies) and the CDP reader
-    thread (events) — so an unguarded `sendall` would splice two JSON lines together.
+    Reply workers and the CDP reader only enqueue complete newline frames.  Exactly one
+    peer-local writer calls ``sendall``, so framing and enqueue order are preserved without
+    ever putting a slow client's socket on the browser reader thread.
     """
 
-    __slots__ = ("closed", "lock", "sock")
+    __slots__ = (
+        "_buffered", "_max_bytes", "_outbound", "_state_lock", "_writer",
+        "closed", "sock",
+    )
 
-    def __init__(self, sock: socket.socket):
-        self.sock, self.lock = sock, threading.Lock()
+    _STOP = object()
+
+    def __init__(self, sock: socket.socket, *, max_frames: int = _PEER_OUTBOUND_FRAMES,
+                 max_bytes: int = _PEER_OUTBOUND_BYTES):
+        self.sock = sock
         self.closed = threading.Event()
+        self._outbound: queue.Queue[bytes | object] = queue.Queue(maxsize=max(1, max_frames))
+        self._max_bytes = max(1, max_bytes)
+        self._buffered = 0
+        self._state_lock = threading.Lock()
+        self._writer = threading.Thread(
+            target=self._write, name="bh-daemon-peer-writer", daemon=True)
+        self._writer.start()
 
     def send(self, payload: dict[str, Any]) -> bool:
         line = _encode_frame(payload)
-        try:
-            with self.lock:
-                self.sock.sendall(line)
-            return True
-        except OSError:
+        overflow = False
+        with self._state_lock:
+            if self.closed.is_set():
+                return False
+            if self._buffered + len(line) > self._max_bytes:
+                overflow = True
+            else:
+                try:
+                    self._outbound.put_nowait(line)
+                except queue.Full:
+                    overflow = True
+                else:
+                    # Includes the frame while sendall is in progress.  A writer blocked
+                    # in the kernel therefore still consumes the peer's byte budget.
+                    self._buffered += len(line)
+                    return True
+        if overflow:
+            self.close()
             return False
 
+    def _write(self) -> None:
+        while True:
+            # The timeout is a teardown backstop for the full-queue case: close() cannot
+            # insert its sentinel when every slot is occupied, but the closed flag still
+            # makes this writer terminate instead of eventually blocking on an empty queue.
+            if self.closed.is_set():
+                return
+            try:
+                frame = self._outbound.get(timeout=0.1)
+            except queue.Empty:
+                continue
+            if frame is self._STOP:
+                return
+            assert isinstance(frame, bytes)
+            if self.closed.is_set():
+                with self._state_lock:
+                    self._buffered -= len(frame)
+                return
+            try:
+                self.sock.sendall(frame)
+            except OSError:
+                self.close()
+                return
+            finally:
+                with self._state_lock:
+                    self._buffered -= len(frame)
+
     def close(self) -> None:
-        self.closed.set()
+        with self._state_lock:
+            if self.closed.is_set():
+                return
+            self.closed.set()
+            with contextlib.suppress(queue.Full):
+                self._outbound.put_nowait(self._STOP)
+        # shutdown is what releases a writer already blocked in sendall; close alone is
+        # not guaranteed to wake a syscall running in another thread on every platform.
+        with contextlib.suppress(OSError):
+            self.sock.shutdown(socket.SHUT_RDWR)
         try:
             self.sock.close()
         except OSError:
@@ -99,7 +173,8 @@ class Daemon:
     """Serves the IPC socket. Owns exactly one `Connection` and one `SessionRegistry`."""
 
     def __init__(self, name: str, transport: Any, *, journal: Journal | None = None,
-                 token: str | None = None, linger: float = DEATH_LINGER):
+                 token: str | None = None, linger: float = DEATH_LINGER,
+                 browser_identity: BrowserIdentity | None = None):
         self.name = ipc.check_name(name)
         self.journal = journal or Journal(None)
         # A callable defers the handshake until after the endpoint is published; a live
@@ -109,6 +184,7 @@ class Daemon:
                                journal=self.journal)
         self.sessions = SessionRegistry(self.conn, journal=self.journal)
         self._token = token
+        self._browser_identity = browser_identity
         self._server: socket.socket | None = None
         self._threads: list[threading.Thread] = []
         self._stop = threading.Event()
@@ -179,18 +255,30 @@ class Daemon:
         # import or from arm() skipped the `finally` and left `_settled` unset — which makes
         # `_browser_is_dead` False forever, so `_expired` never fires and the daemon wedges
         # answering `connecting: true`. A convenience must never be able to do that.
-        approved = threading.Event()
-        try:
-            from harness.connect import macos
-            macos.arm(approved)
-        except Exception as e:                       # noqa: BLE001 — noted, never fatal
-            self.journal.write("daemon", event="mac_approve_unavailable", error=str(e)[:200])
+        approval_stop = threading.Event()
+        handshake_pending = threading.Event()
         try:
             if self._make_transport is not None:
                 # THIS is the call Chrome blocks: the websocket handshake waits on the
                 # consent prompt. It happens here, after bind(), so the daemon is already
                 # answering pings and can report that it is waiting.
-                self.conn.attach(self._make_transport())
+                try:
+                    from harness.connect import macos
+                    macos.arm(
+                        approval_stop,
+                        identity=self._browser_identity,
+                        pending=handshake_pending,
+                    )
+                except Exception as e:               # noqa: BLE001 — noted, never fatal
+                    self.journal.write(
+                        "daemon", event="mac_approve_unavailable", error=str(e)[:200])
+                handshake_pending.set()
+                try:
+                    self.conn.attach(self._make_transport())
+                finally:
+                    # This exact constructor either returned or raised.  The sidecar has
+                    # no authority to inspect UI after that handshake ceased to be pending.
+                    handshake_pending.clear()
             self.conn.start()
             self.conn.subscribe(self._watch_disconnect)
             self.conn.subscribe(self._watch_leases)
@@ -200,7 +288,7 @@ class Daemon:
             self._connect_error = f"{type(e).__name__}: {str(e)[:200]}"
             self.journal.write("daemon", event="connect_failed", error=self._connect_error)
         finally:
-            approved.set()
+            approval_stop.set()
             self._settled.set()
 
     def _browser_pending(self, timeout: float) -> dict[str, Any] | None:
@@ -295,6 +383,11 @@ class Daemon:
         # must not turn teardown into an exception.
         with contextlib.suppress(Exception):
             self.conn.close()
+        with self._plock:
+            peers = list(self._peers)
+            self._peers.clear()
+        for peer in peers:
+            peer.close()
         self._request_pool.shutdown(wait=False, cancel_futures=True)
         ipc.cleanup(self.name)
 
@@ -318,8 +411,8 @@ class Daemon:
         took as long as 12 pages one at a time).
 
         Dispatching is safe because nothing here assumes reply order: every reply carries
-        the client's `rid`, `_Peer.send` is serialised by its own lock so replies and
-        pushed events cannot splice, and the CDP connection below already multiplexes.
+        the client's `rid`, `_Peer.send` atomically enqueues complete frames for its sole
+        writer, and the CDP connection below already multiplexes.
         """
         peer = _Peer(client)
         buf = bytearray()
@@ -651,7 +744,7 @@ def serve(name: str = "default", *, journal_path: str | None = None) -> int:
     # handshake, and doing that before Daemon.start() meant the port file appeared only
     # after Chrome's consent prompt was answered.
     daemon = Daemon(name, lambda: WebSocketTransport(resolution.ws_url),
-                    journal=journal).start()
+                    journal=journal, browser_identity=resolution.identity).start()
     try:
         daemon.serve_forever()
     except KeyboardInterrupt:

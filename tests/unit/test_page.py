@@ -254,20 +254,44 @@ def test_frames_does_not_sleep_out_a_fixed_budget_on_a_frameless_page(wired):
     assert time.monotonic() - started < 0.5
 
 
-def test_frames_skips_the_attach_dance_on_a_frameless_page(wired):
-    """The gate's whole point, pinned so a refactor cannot silently reinstate the dance:
-    a probe answering a trustworthy zero must cost zero `setAutoAttach` calls."""
+def test_frames_zero_probe_uses_one_way_observation_not_the_reannouncement_dance(wired):
+    """A trustworthy zero skips the off/on reannouncement dance. It arms auto-attach
+    once so a shortly inserted child can wake the bounded observation window."""
     browser, _, _ = wired
     tab = _tab(wired)
     browser.frame_host_count = 0
     assert tab.frames() == []
     dances = [c for c in browser.calls if c.get("method") == "Target.setAutoAttach"]
-    assert dances == []
+    assert [c["params"]["autoAttach"] for c in dances] == [True]
     searches = [c for c in browser.calls if c.get("method") == "DOM.performSearch"]
     assert searches[0]["params"] == {
         "query": "iframe,frame,object,embed", "includeUserAgentShadowDOM": True,
     }
     assert sum(c.get("method") == "DOM.discardSearchResults" for c in browser.calls) == 1
+
+
+def test_frames_catches_an_oopif_inserted_shortly_after_a_zero_probe(wired):
+    """The fast probe is an instant, not a stability claim. Real Chrome reproduced this
+    with an SPA inserting a cross-site iframe 80ms later: the old first call returned in
+    ~5ms and only a second call could see the OOPIF."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.frame_host_count = 0
+    timer = threading.Timer(0.08, lambda: browser.emit(
+        "Target.attachedToTarget",
+        {"targetInfo": {"targetId": "late-frame", "type": "iframe",
+                        "url": "https://late-frame.test/"}},
+        session_id=tab._session_id))
+    timer.start()
+    started = time.monotonic()
+    got = tab.frames()
+    elapsed = time.monotonic() - started
+    timer.join()
+
+    assert [f["target_id"] for f in got] == ["late-frame"]
+    assert 0.05 < elapsed < 0.5
+    calls = [c for c in browser.calls if c.get("method") == "Target.setAutoAttach"]
+    assert [c["params"]["autoAttach"] for c in calls] == [True]
 
 
 def test_frames_runs_the_dance_when_pierced_search_sees_a_child(wired):
@@ -815,6 +839,40 @@ def test_a_foreign_tab_never_reaches_this_tabs_click_delta(wired):
                                "openerId": "some-other-target"})
     delta = tab.click_ref("e1", settle=0.3)
     assert delta["new_targets"] == []
+
+
+def test_a_foreign_popup_does_not_end_the_wait_before_this_tabs_popup(wired):
+    """Filtering storage is too late: the waiter itself must ignore the foreign browser-
+    level event or the click returns before its own popup arrives and may retry the action."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = _click_hook()
+    real_send = browser.send
+    timers: list[threading.Timer] = []
+
+    def send_foreign_then_owned(msg):
+        real_send(msg)
+        if (msg.get("method") == "Input.dispatchMouseEvent"
+                and msg["params"]["type"] == "mouseReleased"):
+            browser.emit("Target.targetCreated", {"targetInfo": {
+                "type": "page", "targetId": "foreign-popup",
+                "openerId": "some-other-target"}})
+            timer = threading.Timer(0.08, lambda: browser.emit(
+                "Target.targetCreated", {"targetInfo": {
+                    "type": "page", "targetId": "owned-popup",
+                    "openerId": tab.target_id}}))
+            timer.start()
+            timers.append(timer)
+
+    browser.send = send_foreign_then_owned
+    started = time.monotonic()
+    delta = tab.click_ref("e1", settle=0.3)
+    elapsed = time.monotonic() - started
+    for timer in timers:
+        timer.join()
+
+    assert elapsed >= 0.05
+    assert delta["new_targets"] == ["owned-popup"]
 
 
 def test_a_foreign_tab_does_not_suppress_this_tabs_inert_click_retry(wired):

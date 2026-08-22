@@ -20,6 +20,14 @@ from harness.core.resources import ResourceLedger
 MAX_WORKERS = 10
 DEFAULT_WORKERS = 8
 
+# A worker tab is not reusable until its opener tree has stayed quiet for a short bounded
+# window.  Chrome can announce a popup after the item function has returned (measured at
+# 150 ms), so a single immediate Target.getTargets snapshot is not an isolation boundary.
+# The event-driven wait adds only the quiet window, never an unconditional max-duration
+# sleep, and the cap prevents a page that continuously opens targets from holding a worker.
+POPUP_CLEANUP_QUIET = 0.2
+POPUP_CLEANUP_MAX_WAIT = 0.8
+
 
 class CancelToken:
     """Shared cooperative cancellation with an optional whole-run deadline."""
@@ -82,6 +90,72 @@ def _owned_tab_descendants(session: Any, root: str) -> tuple[list[str], bool]:
         owned.update(found)
         descendants.extend(found)
     return descendants, root in live
+
+
+def _owned_tab_descendants_after_quiet(
+    session: Any,
+    root: str,
+) -> tuple[list[str], bool]:
+    """Observe the root's opener tree until it is briefly quiet, then snapshot it.
+
+    ``Target.targetCreated`` is browser-level, so session ids cannot establish ownership.
+    The opener chain can: only a page/tab whose ``openerId`` is the root or an already
+    observed descendant extends the wait.  Foreign workers and the user's own tabs never
+    delay or enter this cleanup set.
+
+    Small test doubles and alternate Session implementations may not expose event
+    subscription.  They retain the original immediate, causally scoped snapshot rather
+    than failing cleanup merely because the optional observation channel is absent.
+    """
+    conn = getattr(session, "conn", None)
+    if conn is None or not callable(getattr(conn, "subscribe", None)) \
+            or not callable(getattr(conn, "unsubscribe", None)):
+        return _owned_tab_descendants(session, root)
+
+    cond = threading.Condition()
+    owned = {root}
+    last_owned_event = time.monotonic()
+
+    def observe(msg: dict[str, Any]) -> None:
+        nonlocal last_owned_event
+        if msg.get("method") != "Target.targetCreated":
+            return
+        info = (msg.get("params") or {}).get("targetInfo") or {}
+        target_id = str(info.get("targetId") or "")
+        opener_id = str(info.get("openerId") or "")
+        if info.get("type") not in {"page", "tab"} or not target_id:
+            return
+        with cond:
+            if opener_id not in owned:
+                return
+            owned.add(target_id)
+            last_owned_event = time.monotonic()
+            cond.notify_all()
+
+    conn.subscribe(observe)
+    started = time.monotonic()
+    try:
+        # Seed ownership from targets already present when cleanup begins.  Subscribing
+        # first closes the gap between this snapshot and the quiet-window wait.
+        descendants, _root_live = _owned_tab_descendants(session, root)
+        with cond:
+            owned.update(descendants)
+
+        deadline = started + POPUP_CLEANUP_MAX_WAIT
+        while True:
+            with cond:
+                now = time.monotonic()
+                until = min(last_owned_event + POPUP_CLEANUP_QUIET, deadline)
+                if now >= until:
+                    break
+                cond.wait(until - now)
+
+        # Take the authoritative snapshot while still subscribed.  A target announced
+        # during the wait is therefore either present here or has already disappeared and
+        # no longer needs cleanup.
+        return _owned_tab_descendants(session, root)
+    finally:
+        conn.unsubscribe(observe)
 
 
 def _cleanup_observation_failure(session: Any, kind: str, identifier: str,
@@ -225,7 +299,7 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                     if root_tab is not None:
                         cleanup_query_started = time.perf_counter()
                         try:
-                            descendants, root_live = _owned_tab_descendants(
+                            descendants, root_live = _owned_tab_descendants_after_quiet(
                                 session, root_tab)
                         except Exception as error:  # noqa: BLE001 — observable cleanup
                             failures.append(_cleanup_observation_failure(

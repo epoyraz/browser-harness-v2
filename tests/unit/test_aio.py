@@ -6,6 +6,7 @@ dependency surface at exactly pytest + ruff.
 """
 import asyncio
 import gc
+import json
 import shutil
 import tempfile
 import threading
@@ -272,9 +273,12 @@ def test_a_cancelled_async_request_drops_its_pending_slot(served):
 
 
 class _ImmediateWriter:
+    def __init__(self):
+        self.closed = False
     def write(self, data): ...
     async def drain(self): ...
-    def close(self): ...
+    def close(self):
+        self.closed = True
     async def wait_closed(self): ...
 
 
@@ -307,6 +311,76 @@ def test_async_connection_reports_an_oversized_daemon_frame_as_protocol_error(mo
 
     elapsed = _run(main())
     assert elapsed < 0.5, f"a dead connection took {elapsed:.2f}s to admit it — that is a Timeout"
+
+
+def test_malformed_json_fails_async_pending_and_future_calls_immediately():
+    async def main():
+        stream = asyncio.StreamReader()
+        stream.feed_data(b'{"rid": 1, nope}\n')
+        stream.feed_eof()
+        writer = _ImmediateWriter()
+        conn = AsyncConnection("fake", None, writer)
+        conn._stream = stream
+        future = asyncio.get_running_loop().create_future()
+        conn._pending[1] = future
+
+        await conn._pump()
+        with pytest.raises(ProtocolMismatch, match="invalid daemon JSON frame") as caught:
+            await future
+
+        assert isinstance(caught.value.__cause__, json.JSONDecodeError)
+        assert conn._failure is caught.value
+        assert conn._closed is True
+        assert writer.closed is True
+
+        started = time.monotonic()
+        with pytest.raises(ProtocolMismatch) as later:
+            await conn._call({"meta": "subscribe"}, timeout=1.0)
+        assert later.value is caught.value
+        return time.monotonic() - started
+
+    elapsed = _run(main())
+    assert elapsed < 0.5, f"malformed JSON took {elapsed:.2f}s to fail"
+
+
+def test_malformed_json_cause_wins_a_concurrent_async_drain_failure():
+    class FailingDrainWriter(_ImmediateWriter):
+        def __init__(self):
+            super().__init__()
+            self.draining = asyncio.Event()
+            self.transport_closed = asyncio.Event()
+
+        async def drain(self):
+            self.draining.set()
+            await self.transport_closed.wait()
+            raise OSError("drain lost the close race")
+
+        def close(self):
+            super().close()
+            self.transport_closed.set()
+
+    class MalformedDuringDrainStream:
+        def __init__(self, writer):
+            self.writer = writer
+
+        async def read(self, _size):
+            await self.writer.draining.wait()
+            return b'{"rid": 1, nope}\n'
+
+    async def main():
+        writer = FailingDrainWriter()
+        conn = AsyncConnection("fake", None, writer)
+        conn._stream = MalformedDuringDrainStream(writer)
+        pump = asyncio.create_task(conn._pump())
+
+        with pytest.raises(ProtocolMismatch, match="invalid daemon JSON frame") as caught:
+            await conn._call({"meta": "subscribe"}, timeout=1.0)
+        await pump
+
+        assert isinstance(caught.value.__cause__, json.JSONDecodeError)
+        assert caught.value is conn._failure
+
+    _run(main())
 
 
 def test_a_connection_whose_reader_saw_a_disconnect_reports_disconnect_not_timeout():

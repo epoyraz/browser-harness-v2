@@ -13,17 +13,29 @@ from types import SimpleNamespace
 import pytest
 
 from harness.connect import macos
+from harness.connect.endpoint import BrowserIdentity
 from harness.core.outcome import Class
+
+IDENTITY = BrowserIdentity(
+    pid=4242, application="Google Chrome", profile_dir="/tmp/Chrome",
+    ws_url="ws://127.0.0.1:9222/devtools/browser/test")
 
 
 @pytest.fixture
 def on_darwin(monkeypatch):
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
     monkeypatch.setattr(macos, "_already_reachable", lambda env: False)
+    monkeypatch.setattr(macos, "mac_listener_pid", lambda ws: 4242)
 
 
 def _toggle_on(monkeypatch):
     monkeypatch.setattr(macos, "toggle_enabled_profiles", lambda env=None: [Path("/tmp/Chrome")])
+
+
+def _arm(stop, **kwargs):
+    pending = macos.threading.Event()
+    pending.set()
+    return macos.arm(stop, identity=IDENTITY, pending=pending, **kwargs)
 
 
 def _osascript(monkeypatch, *, stdout="", stderr="", returncode=0, record=None):
@@ -36,7 +48,7 @@ def _osascript(monkeypatch, *, stdout="", stderr="", returncode=0, record=None):
 
 def test_off_macos_it_declines_instead_of_pretending(monkeypatch):
     monkeypatch.setattr(macos.platform, "system", lambda: "Linux")
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
     assert not out.ok and out.cls is Class.PLATFORM_UNSUPPORTED
     assert out.observed["status"] == "unsupported"
 
@@ -46,7 +58,7 @@ def test_a_reachable_browser_needs_no_approval_and_no_osascript(monkeypatch):
     monkeypatch.setattr(macos, "_already_reachable", lambda env: True)
     called = []
     _osascript(monkeypatch, stdout="ready", record=called)
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
     assert out.ok and out.observed == {"status": "ready", "clicked": False}
     assert called == [], "osascript must not run when the browser already answers"
 
@@ -56,7 +68,7 @@ def test_the_one_time_checkbox_is_demanded_before_any_ui_poking(on_darwin, monke
     called = []
     _osascript(monkeypatch, stdout="ready", record=called)
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
     assert not out.ok and out.cls is Class.ENDPOINT_UNREACHABLE
     assert out.observed["status"] == "setup-required"
@@ -69,16 +81,76 @@ def test_it_presses_only_the_exact_sheet_and_never_activates_chrome(on_darwin, m
     called = []
     _osascript(monkeypatch, stdout="ready\n", record=called)
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
-    assert out.ok and out.observed == {"status": "ready", "clicked": True}
+    assert out.ok and out.observed == {
+        "status": "ready", "clicked": True,
+        "pid": 4242, "application": "Google Chrome",
+    }
     (args, kwargs) = called[0]
-    assert args == (["osascript"],)
+    assert args == (["osascript", "-", "4242", "Google Chrome"],)
     script = kwargs["input"]
     assert 'is "Allow remote debugging?"' in script
+    assert "unix id is targetPid" in script
+    assert 'process "Google Chrome"' not in script
     assert "AXPress" in script
     assert "activate" not in script, "approving must never steal focus"
     assert kwargs["timeout"] == 5
+
+
+def test_missing_endpoint_identity_is_a_typed_no_action(on_darwin, monkeypatch):
+    _toggle_on(monkeypatch)
+    called = []
+    _osascript(monkeypatch, stdout="ready\n", record=called)
+
+    out = macos.approve_remote_debugging(assume_pending=True)
+
+    assert out.cls is Class.SCOPE_REFUSED
+    assert out.observed == {"status": "identity-required", "clicked": False}
+    assert called == []
+
+
+def test_a_recycled_pid_identity_mismatch_is_never_clicked(on_darwin, monkeypatch):
+    _toggle_on(monkeypatch)
+    _osascript(monkeypatch, stdout="identity-mismatch\n")
+
+    out = macos.approve_remote_debugging(identity=IDENTITY, assume_pending=True)
+
+    assert out.cls is Class.SCOPE_REFUSED
+    assert out.observed["status"] == "identity-mismatch"
+    assert out.observed["clicked"] is False
+
+
+def test_a_changed_endpoint_owner_is_refused_before_osascript(on_darwin, monkeypatch):
+    _toggle_on(monkeypatch)
+    monkeypatch.setattr(macos, "mac_listener_pid", lambda ws: 9001)
+    called = []
+    _osascript(monkeypatch, stdout="ready\n", record=called)
+
+    out = macos.approve_remote_debugging(identity=IDENTITY, assume_pending=True)
+
+    assert out.cls is Class.SCOPE_REFUSED
+    assert out.observed["status"] == "endpoint-owner-changed"
+    assert called == []
+
+
+@pytest.mark.parametrize("application", [
+    "Google Chrome Canary", "Arc", "Dia", "Microsoft Edge", "Brave Browser", "Chromium",
+])
+def test_browser_variants_are_passed_explicitly_to_the_scoped_process(
+        on_darwin, monkeypatch, application):
+    _toggle_on(monkeypatch)
+    called = []
+    _osascript(monkeypatch, stdout="ready\n", record=called)
+    identity = BrowserIdentity(
+        pid=5151, application=application, profile_dir="/tmp/Chrome",
+        ws_url="ws://127.0.0.1:9222/devtools/browser/variant")
+    monkeypatch.setattr(macos, "mac_listener_pid", lambda ws: 5151)
+
+    out = macos.approve_remote_debugging(identity=identity, assume_pending=True)
+
+    assert out.ok
+    assert called[0][0] == (["osascript", "-", "5151", application],)
 
 
 def test_no_sheet_is_not_reported_as_a_pending_permission(on_darwin, monkeypatch):
@@ -86,7 +158,7 @@ def test_no_sheet_is_not_reported_as_a_pending_permission(on_darwin, monkeypatch
     _toggle_on(monkeypatch)
     _osascript(monkeypatch, stdout="not-found\n")
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
     assert not out.ok
     assert out.cls is Class.APPROVAL_NOT_PENDING
@@ -101,7 +173,7 @@ def test_a_sheet_answered_by_hand_mid_flight_still_reports_ready(on_darwin, monk
     seen = iter([False, True])   # not reachable at entry, reachable by the re-check
     monkeypatch.setattr(macos, "_already_reachable", lambda env: next(seen))
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
     assert out.ok and out.observed["clicked"] is False
 
@@ -113,7 +185,7 @@ def test_a_hung_osascript_reads_as_a_missing_accessibility_grant(on_darwin, monk
         raise macos.subprocess.TimeoutExpired(cmd="osascript", timeout=5)
     monkeypatch.setattr(macos.subprocess, "run", hang)
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
     assert out.cls is Class.HOST_PERMISSION_REQUIRED
     assert out.observed["status"] == "accessibility-required"
@@ -128,7 +200,7 @@ def test_osascript_authorisation_errors_name_the_real_fix(on_darwin, monkeypatch
     _toggle_on(monkeypatch)
     _osascript(monkeypatch, returncode=1, stderr=stderr)
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
     assert out.cls is Class.HOST_PERMISSION_REQUIRED
     assert "System Settings" in out.detail
@@ -138,7 +210,7 @@ def test_an_unrecognised_osascript_result_is_not_silently_a_success(on_darwin, m
     _toggle_on(monkeypatch)
     _osascript(monkeypatch, stdout="banana\n")
 
-    out = macos.approve_remote_debugging()
+    out = macos.approve_remote_debugging(identity=IDENTITY)
 
     assert not out.ok and out.cls is Class.CDP_ERROR
     assert "banana" in out.detail
@@ -179,18 +251,40 @@ def test_arm_is_a_no_op_where_it_does_not_apply(monkeypatch):
     assert macos.arm(macos.threading.Event()) is None
 
 
+def test_arm_has_no_ui_authority_outside_the_named_pending_handshake(monkeypatch):
+    monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
+    called = macos.threading.Event()
+
+    def approve(env=None, *, identity=None, assume_pending=False):
+        called.set()
+        from harness.core.outcome import ok
+        return ok(None, status="ready")
+    monkeypatch.setattr(macos, "approve_remote_debugging", approve)
+
+    stop = macos.threading.Event()
+    pending = macos.threading.Event()
+    t = macos.arm(stop, identity=IDENTITY, pending=pending,
+                  attempts=100, interval=0.01, env={})
+    assert not called.wait(0.05), "approver ran before a websocket handshake was pending"
+
+    pending.set()
+    assert called.wait(2), "approver did not run during the pending handshake"
+    t.join(timeout=2)
+    assert not t.is_alive()
+
+
 def test_arm_stops_pressing_once_the_sheet_is_answered(monkeypatch):
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
     calls = []
 
-    def approve(env=None, *, assume_pending=False):
+    def approve(env=None, *, identity=None, assume_pending=False):
         calls.append(1)
         from harness.core.outcome import ok
         return ok(None, status="ready")
     monkeypatch.setattr(macos, "approve_remote_debugging", approve)
 
     stop = macos.threading.Event()
-    t = macos.arm(stop, attempts=5, interval=0.01, env={})
+    t = _arm(stop, attempts=5, interval=0.01, env={})
     t.join(timeout=2)
 
     assert not t.is_alive()
@@ -201,14 +295,14 @@ def test_arm_gives_up_on_a_missing_accessibility_grant_instead_of_spinning(monke
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
     calls = []
 
-    def approve(env=None, *, assume_pending=False):
+    def approve(env=None, *, identity=None, assume_pending=False):
         calls.append(1)
         from harness.core.outcome import fail
         return fail(Class.HOST_PERMISSION_REQUIRED, "grant it")
     monkeypatch.setattr(macos, "approve_remote_debugging", approve)
 
     stop = macos.threading.Event()
-    t = macos.arm(stop, attempts=8, interval=0.01, env={})
+    t = _arm(stop, attempts=8, interval=0.01, env={})
     t.join(timeout=2)
 
     assert not t.is_alive() and len(calls) == 1
@@ -217,12 +311,12 @@ def test_arm_gives_up_on_a_missing_accessibility_grant_instead_of_spinning(monke
 def test_arm_never_lets_a_helper_crash_reach_the_daemon(monkeypatch):
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
 
-    def boom(env=None, *, assume_pending=False):
+    def boom(env=None, *, identity=None, assume_pending=False):
         raise RuntimeError("osascript exploded")
     monkeypatch.setattr(macos, "approve_remote_debugging", boom)
 
     stop = macos.threading.Event()
-    t = macos.arm(stop, attempts=3, interval=0.01, env={})
+    t = _arm(stop, attempts=3, interval=0.01, env={})
     t.join(timeout=2)
 
     assert not t.is_alive()
@@ -232,14 +326,14 @@ def test_stopping_the_event_ends_the_pump(monkeypatch):
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
     calls = []
 
-    def approve(env=None, *, assume_pending=False):
+    def approve(env=None, *, identity=None, assume_pending=False):
         calls.append(1)
         from harness.core.outcome import fail
         return fail(Class.APPROVAL_NOT_PENDING, "no sheet")
     monkeypatch.setattr(macos, "approve_remote_debugging", approve)
 
     stop = macos.threading.Event()
-    t = macos.arm(stop, attempts=100, interval=0.01, env={})
+    t = _arm(stop, attempts=100, interval=0.01, env={})
     stop.set()
     t.join(timeout=2)
 
@@ -264,11 +358,12 @@ def test_an_armed_approver_presses_the_sheet_even_though_the_endpoint_answers(mo
     """
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
     monkeypatch.setattr(macos, "_already_reachable", lambda env: True)   # endpoint answers
+    monkeypatch.setattr(macos, "mac_listener_pid", lambda ws: 4242)
     _toggle_on(monkeypatch)
     called = []
     _osascript(monkeypatch, stdout="ready\n", record=called)
 
-    out = macos.approve_remote_debugging(assume_pending=True)
+    out = macos.approve_remote_debugging(identity=IDENTITY, assume_pending=True)
 
     assert called, "armed approval must run the AppleScript even when the endpoint answers"
     assert out.ok and out.observed["clicked"] is True
@@ -279,10 +374,11 @@ def test_no_sheet_yet_keeps_the_armed_pump_looking(monkeypatch):
     reach Chrome before Chrome can ask."""
     monkeypatch.setattr(macos.platform, "system", lambda: "Darwin")
     monkeypatch.setattr(macos, "_already_reachable", lambda env: True)
+    monkeypatch.setattr(macos, "mac_listener_pid", lambda ws: 4242)
     _toggle_on(monkeypatch)
     _osascript(monkeypatch, stdout="not-found\n")
 
-    out = macos.approve_remote_debugging(assume_pending=True)
+    out = macos.approve_remote_debugging(identity=IDENTITY, assume_pending=True)
 
     assert out.cls is Class.APPROVAL_NOT_PENDING, "armed mode must not report ready here"
 
@@ -307,7 +403,7 @@ def test_arm_keeps_polling_until_a_sheet_appears(monkeypatch):
     from harness.core.outcome import ok as _ok
     seen = []
 
-    def approve(env=None, *, assume_pending=False):
+    def approve(env=None, *, identity=None, assume_pending=False):
         seen.append(assume_pending)
         if len(seen) < 4:
             return _fail(Class.APPROVAL_NOT_PENDING, "no sheet", status="not-found")
@@ -315,7 +411,7 @@ def test_arm_keeps_polling_until_a_sheet_appears(monkeypatch):
     monkeypatch.setattr(macos, "approve_remote_debugging", approve)
 
     stop = macos.threading.Event()
-    t = macos.arm(stop, attempts=10, interval=0.01, env={})
+    t = _arm(stop, attempts=10, interval=0.01, env={})
     t.join(timeout=3)
 
     assert not t.is_alive()
@@ -329,13 +425,13 @@ def test_arm_gives_up_when_the_chrome_checkbox_is_off(monkeypatch):
     from harness.core.outcome import fail as _fail
     calls = []
 
-    def approve(env=None, *, assume_pending=False):
+    def approve(env=None, *, identity=None, assume_pending=False):
         calls.append(1)
         return _fail(Class.ENDPOINT_UNREACHABLE, "tick the box", status="setup-required")
     monkeypatch.setattr(macos, "approve_remote_debugging", approve)
 
     stop = macos.threading.Event()
-    t = macos.arm(stop, attempts=10, interval=0.01, env={})
+    t = _arm(stop, attempts=10, interval=0.01, env={})
     t.join(timeout=3)
 
     assert not t.is_alive() and len(calls) == 1

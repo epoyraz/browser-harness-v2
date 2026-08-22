@@ -63,9 +63,12 @@ WORLD = "__bh_world"
 
 #: `frames()` collects OOPIF announcements until this long passes with none arriving.
 #: They follow `Target.setAutoAttach` by one round trip, so a quiet window this size is
-#: many times the gap it has to bridge — while a frameless page now costs one window
-#: instead of two 0.6s sleeps.
+#: many times the gap it has to bridge.
 FRAMES_QUIET = 0.12
+#: A trustworthy zero host probe is only a snapshot. Give an SPA this short window to
+#: materialise an OOPIF after the probe, with `Target.attachedToTarget` as the wakeup.
+#: Truly frameless pages pay 200ms, not the historical pair of 600ms fixed sleeps.
+FRAMES_ZERO_OBSERVE = 0.2
 #: Ceiling for the settle loop, so a page that keeps spawning iframes still terminates.
 FRAMES_MAX_WAIT = 0.8
 
@@ -1015,6 +1018,20 @@ class Tab:
             except HarnessError:
                 raise original from None
 
+    def _owned_page_creation(self, msg: dict[str, Any]) -> dict[str, Any] | None:
+        """The page target causally opened by this tab, if ``msg`` announces one.
+
+        ``Target.targetCreated`` is browser-level and therefore has no session id. Every
+        place that treats it as this tab's consequence must use this opener predicate;
+        filtering only the stored delta still lets a foreign event terminate a wait.
+        """
+        if msg.get("method") != "Target.targetCreated":
+            return None
+        info = ((msg.get("params") or {}).get("targetInfo") or {})
+        if info.get("type") == "page" and info.get("openerId") == self.target_id:
+            return info
+        return None
+
     def _on_event(self, msg: dict[str, Any]) -> None:
         """Reader thread: bookkeeping and waiter wakeups only, never a request."""
         sid = msg.get("sessionId")
@@ -1074,8 +1091,8 @@ class Tab:
             # `_owned_tab_descendants` in ops/parallel.py documents: Chrome retains it even
             # for `rel=noopener` targets while the opener is alive (measured with
             # `canAccessOpener=false`).
-            info = params.get("targetInfo") or {}
-            if info.get("type") == "page" and info.get("openerId") == self.target_id:
+            info = self._owned_page_creation(msg)
+            if info is not None:
                 self._created_seq += 1
                 self._created.append((self._created_seq, info))
         with self._wlock:
@@ -1462,10 +1479,20 @@ class Tab:
                retry_inert: bool = True, control_before: Any = None) -> dict[str, Any]:
         interesting = ("Page.lifecycleEvent", "Page.frameNavigated",
                        "Page.javascriptDialogOpening", "Target.targetCreated")
+
+        def click_consequence(message: dict[str, Any]) -> bool:
+            method = message.get("method")
+            if method not in interesting:
+                return False
+            # Browser-level target events carry no session id. A popup elsewhere in the
+            # browser is not this click's consequence and must not end its settle window.
+            return (method != "Target.targetCreated"
+                    or self._owned_page_creation(message) is not None)
+
         seq_before = self._created_seq
         dispatch_started = time.monotonic()
         with self._j.call("click", x=x, y=y, ref=ref) , \
-             self._armed(lambda m: m.get("method") in interesting) as w:
+             self._armed(click_consequence) as w:
             for kind in ("mousePressed", "mouseReleased"):
                 try:
                     self.cdp("Input.dispatchMouseEvent",
@@ -1845,42 +1872,70 @@ class Tab:
         # re-announces an already-loaded OOPIF, and a same-site child — which never
         # becomes a target — announces nothing). DOM.performSearch is the gate: unlike
         # querySelectorAll it pierces closed shadow roots, and unlike Page.getFrameTree it
-        # sees the host of an out-of-process child. On frameless pages (most of them) the
-        # whole dance is skipped outright; measured on the 100-job batch this removes the
-        # attach round trips plus settle wait from ~60% of `prepare_application` calls.
+        # sees the host of an out-of-process child. On a trustworthy zero, the expensive
+        # off/on re-announcement dance is skipped: one idempotent enable arms future
+        # children and a short event window covers late SPA insertion. A truly frameless
+        # page never pays the disable call or the longer multi-frame settle loop.
         # The search handle is always discarded. When the probe fails or answers with
         # anything but a trustworthy non-negative integer, the dance runs anyway:
         # a frame report that says "none" must be earned, not assumed. Failing closed
         # here silently dropped OOPIFs on exactly the bot-walled pages this method
         # exists for.
-        search_id: str | None = None
-        try:
-            search = self.cdp(
-                "DOM.performSearch",
-                {"query": FRAME_HOST_QUERY, "includeUserAgentShadowDOM": True},
-                timeout=10.0,
-            )
-            raw_count = search.get("resultCount")
-            search_id = search.get("searchId") if isinstance(search.get("searchId"), str) else None
-            count = (raw_count if isinstance(raw_count, int) and not isinstance(raw_count, bool)
-                     and raw_count >= 0 else None)
-        except HarnessError:
-            count = None                       # unknown → pay the dance, fail open
-        finally:
-            if search_id is not None:
-                try:
-                    self.cdp("DOM.discardSearchResults", {"searchId": search_id}, timeout=5.0)
-                except HarnessError:
-                    pass                       # cleanup failure cannot suppress discovery
         got: list[dict[str, Any]] = []
-        if count != 0:
-            with self._armed(lambda m: m.get("method") == "Target.attachedToTarget") as w:
+
+        def iframe_announcement(message: dict[str, Any]) -> bool:
+            return (message.get("method") == "Target.attachedToTarget"
+                    and ((message.get("params") or {}).get("targetInfo") or {}).get("type")
+                    == "iframe")
+
+        # Arm before the DOM probe. If auto-attach was already enabled, an OOPIF that
+        # appears between the probe and the next command can otherwise announce itself in
+        # that gap and be lost. On a fresh tab the one-way enable below re-announces any
+        # child which won the same race.
+        with self._armed(iframe_announcement) as w:
+            search_id: str | None = None
+            try:
+                search = self.cdp(
+                    "DOM.performSearch",
+                    {"query": FRAME_HOST_QUERY, "includeUserAgentShadowDOM": True},
+                    timeout=10.0,
+                )
+                raw_count = search.get("resultCount")
+                search_id = (search.get("searchId")
+                             if isinstance(search.get("searchId"), str) else None)
+                count = (raw_count
+                         if isinstance(raw_count, int) and not isinstance(raw_count, bool)
+                         and raw_count >= 0 else None)
+            except HarnessError:
+                count = None                   # unknown → pay the dance, fail open
+            finally:
+                if search_id is not None:
+                    try:
+                        self.cdp("DOM.discardSearchResults", {"searchId": search_id},
+                                 timeout=5.0)
+                    except HarnessError:
+                        pass                   # cleanup failure cannot suppress discovery
+
+            if count == 0:
+                # Zero is evidence that no host existed at probe time, not that an SPA
+                # will not insert one on its next task. Arm auto-attach once and wait on
+                # Chrome's target event for a short bounded window. This avoids both a
+                # guessed sleep and the expensive off/on re-announcement dance on the
+                # common truly-frameless path.
+                self.cdp("Target.setAutoAttach",
+                         {"autoAttach": True, "waitForDebuggerOnStart": False,
+                          "flatten": True}, timeout=10.0)
+                announced = w.wait_match(lambda _m: True, FRAMES_ZERO_OBSERVE) is not None
+            else:
                 self.cdp("Target.setAutoAttach",
                          {"autoAttach": False, "waitForDebuggerOnStart": False,
                           "flatten": True}, timeout=10.0)
                 self.cdp("Target.setAutoAttach",
                          {"autoAttach": True, "waitForDebuggerOnStart": False,
                           "flatten": True}, timeout=10.0)
+                announced = True
+
+            if announced:
                 # Settle rather than sleep: stop as soon as a quiet window passes with no
                 # new announcement. This is also a correctness fix. The old `wait_match(
                 # lambda m: True, 0.6)` returned on the FIRST announcement and then read
@@ -1888,7 +1943,8 @@ class Tab:
                 # ones that had happened to arrive by then — under-reporting frames,
                 # silently.
                 deadline = time.monotonic() + FRAMES_MAX_WAIT
-                counted = 0
+                with w.cond:
+                    counted = len(w.hits)
                 while True:
                     left = deadline - time.monotonic()
                     if left <= 0:
@@ -1899,12 +1955,15 @@ class Tab:
                     if n == counted:
                         break                      # nothing new in a whole quiet window
                     counted = n
-                for _, msg in w.hits:
-                    info = (msg.get("params") or {}).get("targetInfo") or {}
-                    if info.get("type") == "iframe":
-                        got.append({"target_id": info["targetId"],
-                                    "url": info.get("url", ""), "kind": "oopif",
-                                    "reachable": "session.tab(target_id)"})
+            seen: set[str] = set()
+            for _, msg in w.hits:
+                info = (msg.get("params") or {}).get("targetInfo") or {}
+                target_id = str(info.get("targetId") or "")
+                if target_id and target_id not in seen:
+                    seen.add(target_id)
+                    got.append({"target_id": target_id,
+                                "url": info.get("url", ""), "kind": "oopif",
+                                "reachable": "session.tab(target_id)"})
         out = got
         # Same-site iframes stay in the parent process and never become targets, so
         # getTargets alone reads as "no iframes" on a page that plainly has one.

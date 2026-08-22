@@ -1,7 +1,9 @@
 """Client-side daemon transport. These run a REAL daemon over a REAL unix socket against
 the fake browser — the IPC layer is the thing under test, so mocking it would test nothing.
 """
+import json
 import os
+import queue
 import threading
 import time
 
@@ -291,6 +293,107 @@ def test_an_unexpected_reader_error_still_claims_the_connection(served, monkeypa
 
     assert conn._closed is True
     assert isinstance(conn._failure, ProtocolMismatch)
+
+
+def test_malformed_daemon_json_fails_pending_and_future_calls_immediately(monkeypatch):
+    """A complete newline is a complete protocol frame: invalid JSON is terminal.
+
+    Returning from `_dispatch` left the in-flight request parked until Timeout and kept the
+    broken stream available for later calls. The decoder's exact failure is useful protocol
+    evidence, so it remains the ProtocolMismatch's chained cause too.
+    """
+    class MalformedDaemonSocket:
+        def __init__(self):
+            self.chunks: queue.Queue[bytes | None] = queue.Queue()
+            self.closed = False
+
+        def settimeout(self, _timeout): ...
+
+        def sendall(self, data):
+            request = json.loads(data)
+            if request.get("meta") == "subscribe":
+                self.chunks.put(json.dumps({
+                    "rid": request["rid"],
+                    "ok": True,
+                    "value": {"protocol": PROTOCOL_VERSION, "version": "test"},
+                }).encode() + b"\n")
+            else:
+                self.chunks.put(b'{"rid": 2, nope}\n')
+
+        def recv(self, _size):
+            chunk = self.chunks.get(timeout=5)
+            return b"" if chunk is None else chunk
+
+        def close(self):
+            self.closed = True
+            self.chunks.put(None)
+
+    sock = MalformedDaemonSocket()
+    monkeypatch.setattr("harness.connect.client.ipc.connect",
+                        lambda _name, timeout: (sock, None))
+    conn = RemoteConnection("malformed")
+
+    started = time.monotonic()
+    with pytest.raises(ProtocolMismatch, match="invalid daemon JSON frame") as caught:
+        conn.request("Runtime.evaluate", timeout=1.0)
+    elapsed = time.monotonic() - started
+
+    assert elapsed < 0.5, f"malformed JSON took {elapsed:.2f}s to fail"
+    assert isinstance(caught.value.__cause__, json.JSONDecodeError)
+    assert conn._failure is caught.value
+    assert conn._closed is True
+    _settle(lambda: sock.closed)
+
+    started = time.monotonic()
+    with pytest.raises(ProtocolMismatch) as later:
+        conn.request("Target.getTargets", timeout=1.0)
+    assert time.monotonic() - started < 0.5
+    assert later.value is caught.value
+
+
+def test_malformed_json_cause_wins_a_concurrent_sync_send_failure(monkeypatch):
+    """Closing a malformed stream can make an in-progress send fail too.
+
+    That OSError is an effect of the protocol failure, not a replacement diagnosis.
+    """
+    class FailingSendSocket:
+        def __init__(self):
+            self.chunks: queue.Queue[bytes | None] = queue.Queue()
+            self.closed = threading.Event()
+
+        def settimeout(self, _timeout): ...
+
+        def sendall(self, data):
+            request = json.loads(data)
+            if request.get("meta") == "subscribe":
+                self.chunks.put(json.dumps({
+                    "rid": request["rid"],
+                    "ok": True,
+                    "value": {"protocol": PROTOCOL_VERSION, "version": "test"},
+                }).encode() + b"\n")
+                return
+            self.chunks.put(b'{"rid": 2, nope}\n')
+            assert self.closed.wait(2), "reader did not close the malformed connection"
+            raise OSError("write lost the close race")
+
+        def recv(self, _size):
+            chunk = self.chunks.get(timeout=5)
+            return b"" if chunk is None else chunk
+
+        def close(self):
+            self.closed.set()
+            self.chunks.put(None)
+
+    sock = FailingSendSocket()
+    monkeypatch.setattr("harness.connect.client.ipc.connect",
+                        lambda _name, timeout: (sock, None))
+    conn = RemoteConnection("malformed-send-race")
+
+    with pytest.raises(ProtocolMismatch, match="invalid daemon JSON frame") as caught:
+        conn.request("Runtime.evaluate", timeout=1.0)
+
+    assert isinstance(caught.value.__cause__, json.JSONDecodeError)
+    assert caught.value is conn._failure
 
 
 def test_a_client_arriving_during_the_death_linger_spawns_a_replacement(runtime, monkeypatch):

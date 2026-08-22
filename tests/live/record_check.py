@@ -53,6 +53,9 @@ frame.style.cssText = 'width:300px;height:120px';
 root.append(frame);
 </script></body>"""
 
+DYNAMIC_FRAME_PAGE = """<!doctype html><meta charset=utf-8><title>Dynamic frame</title>
+<body><p>frame will be inserted by the live check</p></body>"""
+
 
 class _QuietServer(ThreadingHTTPServer):
     """Hide only the connection resets Chrome causes while scratch tabs close."""
@@ -85,6 +88,7 @@ def main() -> int:
         SLOW_PAGE.replace("__IFRAME__", other), encoding="utf-8")
     (slow_dir / "closed-shadow.html").write_text(
         CLOSED_SHADOW_PAGE.replace("__IFRAME__", other), encoding="utf-8")
+    (slow_dir / "dynamic-frame.html").write_text(DYNAMIC_FRAME_PAGE, encoding="utf-8")
     # localhost vs 127.0.0.1 is a different HOST, which is what site isolation keys on.
     # Two ports on the same host are one site and stay in-process — the first version of
     # this fixture made that mistake and could never produce an OOPIF to find.
@@ -195,6 +199,31 @@ print(json.dumps({{"n": len(fs), "urls": [f["url"] for f in fs]}}))
         ok = r.returncode == 0 and '"n": 1' in r.stdout and "personio.html" in r.stdout
         check("frames() pierces a closed-shadow OOPIF host", ok,
               (r.stdout.strip()[-100:] if ok else r.stderr.strip().replace("\n", " ")[-160:]))
+
+        r = bh(f"""
+import json, threading, time
+goto("{base}/dynamic-frame.html")
+tab = session.tab()
+timer = threading.Timer(0.08, lambda: tab.js('''(() => {{
+  const frame = document.createElement('iframe');
+  frame.src = {json.dumps(other)};
+  document.body.append(frame);
+  return true;
+}})()'''))
+timer.start()
+t0 = time.perf_counter()
+fs = tab.frames()
+timer.join()
+print(json.dumps({{"n": len(fs), "ms": round((time.perf_counter()-t0)*1000),
+                   "urls": [f["url"] for f in fs]}}))
+""")
+        # Chrome announces the new OOPIF before its first navigation commits, so the
+        # targetInfo URL may honestly still be empty. The target id is the discovery
+        # contract; callers attach to it and observe navigation through that session.
+        ok = r.returncode == 0 and '"n": 1' in r.stdout
+        check("frames() catches an OOPIF inserted after its zero probe", ok,
+              (r.stdout.strip()[-120:] if r.returncode == 0
+               else r.stderr.strip().replace("\n", " ")[-160:]))
 
         # ---- 4. agent-written helper is first-class ------------------------
         r = bh(f'goto("{base}/slow.html")\nimport json; print(json.dumps(page_summary()))')

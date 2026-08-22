@@ -27,12 +27,11 @@ import threading
 from collections.abc import Mapping
 from pathlib import Path
 
-from harness.connect.endpoint import profile_dirs
-from harness.core.outcome import Class, Outcome, fail, ok
+from harness.connect.endpoint import BrowserIdentity, mac_listener_pid, profile_dirs
+from harness.core.outcome import Class, HarnessError, Outcome, fail, ok
 
-#: Walks the sheet's accessibility tree and presses the button whose description is
-#: "Allow". Kept byte-for-byte from v1: it is the load-bearing part, it never calls
-#: `activate`, and not activating is the whole point — approving must not steal focus
+#: Walks only the resolved PID's accessibility tree and presses the button whose
+#: description is "Allow".  It never calls `activate`; approving must not steal focus
 #: from whatever the user is doing.
 _APPLESCRIPT = r'''using terms from application "System Events"
     on clickAllow(nodeRef)
@@ -52,10 +51,17 @@ _APPLESCRIPT = r'''using terms from application "System Events"
     end clickAllow
 end using terms from
 
-set resultText to "not-found"
-tell application "System Events"
-    if exists process "Google Chrome" then
-        tell process "Google Chrome"
+on run argv
+    set targetPid to (item 1 of argv) as integer
+    set expectedApplication to item 2 of argv
+    set resultText to "not-found"
+    tell application "System Events"
+        set matchingProcesses to every process whose unix id is targetPid
+        if (count of matchingProcesses) is not 1 then return "process-not-found"
+        set browserProcess to item 1 of matchingProcesses
+        if (name of browserProcess as text) is not expectedApplication then ¬
+            return "identity-mismatch"
+        tell browserProcess
             repeat with w in windows
                 try
                     repeat with s in sheets of w
@@ -70,9 +76,9 @@ tell application "System Events"
                 if resultText is "ready" then exit repeat
             end repeat
         end tell
-    end if
-end tell
-return resultText
+    end tell
+    return resultText
+end run
 '''
 
 _ACCESSIBILITY_DETAIL = (
@@ -86,6 +92,11 @@ _SETUP_DETAIL = (
 )
 
 _RETRY_DETAIL = "retry the browser command and run `bh mac-approve` while the prompt is up"
+
+_IDENTITY_DETAIL = (
+    "the resolved endpoint could not be tied to one local browser PID, so no consent "
+    "sheet was touched"
+)
 
 
 def toggle_enabled_profiles(env: Mapping[str, str] | None = None) -> list[Path]:
@@ -118,6 +129,7 @@ def _already_reachable(env: Mapping[str, str] | None) -> bool:
 
 
 def approve_remote_debugging(env: Mapping[str, str] | None = None, *,
+                             identity: BrowserIdentity | None = None,
                              assume_pending: bool = False) -> Outcome:
     """Press Chrome's Allow sheet without activating Chrome. One shot, no polling.
 
@@ -137,12 +149,38 @@ def approve_remote_debugging(env: Mapping[str, str] | None = None, *,
     if not assume_pending and _already_reachable(env):
         return ok(None, status="ready", clicked=False)
 
-    if not toggle_enabled_profiles(env):
+    if (identity is None or identity.pid is None or not identity.application
+            or not identity.ws_url):
+        return fail(Class.SCOPE_REFUSED, _IDENTITY_DETAIL,
+                    status="identity-required", clicked=False)
+
+    if mac_listener_pid(identity.ws_url) != identity.pid:
+        return fail(
+            Class.SCOPE_REFUSED,
+            "the resolved endpoint is no longer owned by the same browser PID; no consent "
+            "sheet was touched",
+            status="endpoint-owner-changed", clicked=False, pid=identity.pid,
+            application=identity.application,
+        )
+
+    if not identity.profile_dir:
+        return fail(
+            Class.SCOPE_REFUSED,
+            "the endpoint owner was found, but its remote-debugging profile was not; "
+            "no consent sheet was touched",
+            status="profile-required", clicked=False, pid=identity.pid,
+            application=identity.application,
+        )
+
+    enabled_profiles = toggle_enabled_profiles(env)
+    target_profile = Path(identity.profile_dir).expanduser()
+    if target_profile not in enabled_profiles:
         return fail(Class.ENDPOINT_UNREACHABLE, _SETUP_DETAIL, status="setup-required")
 
     try:
         completed = subprocess.run(
-            ["osascript"], input=_APPLESCRIPT, text=True,
+            ["osascript", "-", str(identity.pid), identity.application],
+            input=_APPLESCRIPT, text=True,
             capture_output=True, timeout=5, check=False)
     except subprocess.TimeoutExpired:
         # osascript hanging for 5s on a one-shot tree walk is what a missing Accessibility
@@ -162,7 +200,24 @@ def approve_remote_debugging(env: Mapping[str, str] | None = None, *,
 
     status = completed.stdout.strip()
     if status == "ready":
-        return ok(None, status="ready", clicked=True)
+        return ok(None, status="ready", clicked=True, pid=identity.pid,
+                  application=identity.application)
+    if status == "identity-mismatch":
+        return fail(
+            Class.SCOPE_REFUSED,
+            "the endpoint PID now belongs to a different application; no consent sheet "
+            "was touched",
+            status="identity-mismatch", clicked=False, pid=identity.pid,
+            application=identity.application,
+        )
+    if status == "process-not-found":
+        return fail(
+            Class.APPROVAL_NOT_PENDING,
+            "the resolved browser process exited before approval; no consent sheet was "
+            "touched",
+            status="process-not-found", clicked=False, pid=identity.pid,
+            application=identity.application,
+        )
     if status == "not-found":
         # The user may have answered the sheet by hand while AppleScript was looking. Under
         # `assume_pending` that consolation does not apply for the same reason as above —
@@ -187,6 +242,16 @@ def run_cli(args: list[str]) -> int:
         print("usage: bh mac-approve", flush=True)
         return 2
     outcome = approve_remote_debugging()
+    if (outcome.cls is Class.SCOPE_REFUSED
+            and outcome.observed.get("status") == "identity-required"):
+        try:
+            # Resolve exactly as the default daemon would, but do not open a websocket.
+            # The listener PID scopes the native UI action to that browser instance.
+            from harness.connect.endpoint import binding_for, resolve
+            identity = resolve(binding_for("default"), os.environ).identity
+            outcome = approve_remote_debugging(identity=identity)
+        except HarnessError as exc:
+            outcome = exc.outcome
     for line in render(outcome):
         print(line, flush=True)
     return 0 if outcome.ok else 1
@@ -204,7 +269,9 @@ def auto_approve_enabled(env: Mapping[str, str] | None = None) -> bool:
     return platform.system() == "Darwin" and env.get("BH_MAC_APPROVE", "1") != "0"
 
 
-def arm(stop: threading.Event, *, attempts: int = 12, interval: float = 0.5,
+def arm(stop: threading.Event, *, identity: BrowserIdentity | None = None,
+        pending: threading.Event | None = None, attempts: int = 12,
+        interval: float = 0.5,
         env: Mapping[str, str] | None = None) -> threading.Thread | None:
     """Press the sheet in the background while the caller's handshake blocks on it.
 
@@ -215,17 +282,25 @@ def arm(stop: threading.Event, *, attempts: int = 12, interval: float = 0.5,
     Never raises: this is a convenience, and a failure here must leave the handshake's own
     error as the reported cause rather than masking it.
     """
-    if not auto_approve_enabled(env):
+    if (not auto_approve_enabled(env) or identity is None or identity.pid is None
+            or not identity.application or not identity.profile_dir or not identity.ws_url
+            or pending is None):
         return None
 
     def _pump() -> None:
         for _ in range(attempts):
             if stop.wait(interval):
                 return
+            # The daemon owns this event and holds it only around construction of the one
+            # new websocket transport.  A reusable approver must never outlive that exact
+            # handshake and start inspecting native UI for some later browser operation.
+            if not pending.is_set():
+                continue
             try:
                 # assume_pending: we were armed *because* a handshake is in flight, so the
                 # endpoint being reachable proves nothing about the sheet. See above.
-                outcome = approve_remote_debugging(env, assume_pending=True)
+                outcome = approve_remote_debugging(
+                    env, identity=identity, assume_pending=True)
             except Exception:        # noqa: BLE001 — a helper must not break the daemon
                 return
             # Stop on success, and on the three states retrying cannot fix. Notably NOT on
@@ -233,7 +308,7 @@ def arm(stop: threading.Event, *, attempts: int = 12, interval: float = 0.5,
             # has to reach Chrome before Chrome can ask.
             if outcome.ok or outcome.cls in (
                     Class.PLATFORM_UNSUPPORTED, Class.HOST_PERMISSION_REQUIRED,
-                    Class.ENDPOINT_UNREACHABLE):
+                    Class.ENDPOINT_UNREACHABLE, Class.SCOPE_REFUSED):
                 return
 
     t = threading.Thread(target=_pump, name="bh-mac-approve", daemon=True)
