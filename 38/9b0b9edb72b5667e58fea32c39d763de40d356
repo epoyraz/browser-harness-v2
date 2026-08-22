@@ -1,0 +1,29 @@
+harness/ops/record.py
+  s_6670e0c6debd43::t_0965efce13e2b6 120,127-133,135-137
+harness/session.py
+  s_6670e0c6debd43::t_218f14a001df95 785-791,796
+  s_6670e0c6debd43::t_86e0274ff6f778 770-784,792-795,797-800,811,859
+tests/unit/test_session.py
+  s_6670e0c6debd43::t_54daae7cc18c8b 766,773-774,778,781-783,785-787,789,793,795,798-799
+  s_6670e0c6debd43::t_222168cc6d6621 714-740,745-765,767-772,775-777,779-780,784,788,790-792,794,796-797
+  s_6670e0c6debd43::t_218f14a001df95 741-744
+tests/unit/test_record.py
+  s_6670e0c6debd43::t_1abbdfb5021a91 144,147-151,156,172,181,194,197,203,205,223-227,229
+  s_6670e0c6debd43::t_38e11a99bff49a 142-143,145-146,152-155,157-171,173-180,182-193,195-196,198-202,204,206-222,228,230-238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "389b0b9edb72b5667e58fea32c39d763de40d356",
+  "prompts": {},
+  "sessions": {
+    "s_6670e0c6debd43": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2350b03f-6200-4281-b930-cf1a4b5294ca",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
