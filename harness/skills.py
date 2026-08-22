@@ -10,11 +10,11 @@ import subprocess
 import time
 import tomllib
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any, Self
 from urllib.parse import urlsplit
 
-from harness.core.outcome import SkillIntegrityFailed
+from harness.core.outcome import Class, Outcome, SkillIntegrityFailed, fail
 
 TRUST = frozenset({"owner", "team", "public"})
 
@@ -74,6 +74,33 @@ def _digest(body: bytes) -> str:
     return "sha256:" + hashlib.sha256(body).hexdigest()
 
 
+def _body_path(root: Path, rel: str) -> Path | None:
+    """The single gate every skill body path passes through. None means refused.
+
+    An index is data from a party we may not trust: `bh skills sync` clones public Git
+    sources, and `Session.run_application()` splices matching bodies straight into the
+    planner's model_context. A row naming `../../.ssh/id_rsa` therefore turns a hostile
+    index into an exfiltration primitive — the secret lands in the model's context and
+    from there anywhere the agent writes.
+
+    Resolving before comparing, rather than testing the string for `..`, is the point: a
+    symlink *inside* the tree pointing out of it satisfies any lexical check. The lexical
+    rejections still come first, because `root / "/etc/passwd"` discards `root` entirely
+    and a resolved `..` chain that lands back inside the root is still a row lying about
+    what it reads.
+    """
+    pure = PurePath(rel)
+    if not rel or pure.is_absolute() or ".." in pure.parts or pure.suffix != ".md":
+        return None
+    path = root / pure
+    try:
+        if not path.resolve().is_relative_to(root.resolve()):
+            return None
+    except (OSError, RuntimeError):  # unreadable component, or a symlink loop
+        return None
+    return path
+
+
 def _scalar(value: str) -> str:
     value = value.strip()
     if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
@@ -115,6 +142,10 @@ class Registry:
         self.config = Path(config).expanduser() if config else Path(
             os.environ.get("BH_SKILLS_SOURCES") or _config_root() / "sources.toml")
         self.sources = self._sources()
+        #: Rows refused while indexing, still typed (outcome rule 4): a dropped skill is
+        #: not a skill that never existed, and a refusal here is evidence of an index
+        #: trying to read outside its own tree.
+        self.failures: list[Outcome] = []
         self.refs = self._index()
 
     def _sources(self) -> list[Source]:
@@ -142,8 +173,13 @@ class Registry:
             return Path(source.location).expanduser()
         return _cache_root() / "skills" / source.name
 
+    def _refuse(self, source: Source, detail: str, **observed: Any) -> None:
+        self.failures.append(fail(Class.SKILL_INTEGRITY_FAILED, detail,
+                                  source=source.name, **observed))
+
     def _index(self) -> list[SkillRef]:
         refs = []
+        self.failures = []
         for source in self.sources:
             root = self._root(source)
             index = root / "index.json"
@@ -153,10 +189,28 @@ class Registry:
                 except (OSError, ValueError, AttributeError):
                     rows = []
                 for row in rows:
-                    path = root / str(row.get("path") or (str(row.get("id")) + ".md"))
+                    rel = str(row.get("path") or (str(row.get("id")) + ".md"))
+                    skill = str(row.get("id") or "")
+                    path = _body_path(root, rel)
+                    if path is None:
+                        self._refuse(source, "indexed skill path escapes its source root",
+                                     skill=skill, path=rel)
+                        continue
+                    # An index row with no digest verifies the body against itself, so
+                    # load() would report success over a body nobody ever vouched for —
+                    # the same silent pass as the escape above, one field further on.
+                    if not str(row.get("digest") or "").strip():
+                        self._refuse(source, "indexed skill declares no digest to verify",
+                                     skill=skill, path=rel)
+                        continue
                     refs.extend(self._refs_for(source, path, row))
                 continue
             for path in root.rglob("*.md") if root.is_dir() else []:
+                # rglob will happily hand back a symlinked `*.md` aimed out of the tree.
+                if _body_path(root, str(path.relative_to(root))) is None:
+                    self._refuse(source, "scanned skill body escapes its source root",
+                                 path=str(path))
+                    continue
                 try:
                     meta = _frontmatter(path.read_text(encoding="utf-8"))
                 except OSError:
@@ -165,8 +219,24 @@ class Registry:
                     refs.extend(self._refs_for(source, path, meta))
         return sorted(refs, key=lambda ref: (ref.priority, ref.id, ref.version), reverse=True)
 
+    def _contained(self, ref: SkillRef) -> bool:
+        """Re-check at load time: indexing and loading are separated by arbitrary time,
+        and `sync` rewrites the tree in between — a directory swapped for a symlink after
+        indexing would otherwise be read without ever passing the gate."""
+        source = next((item for item in self.sources if item.name == ref.source), None)
+        if source is None:
+            return False
+        root = self._root(source)
+        try:
+            rel = ref.path.relative_to(root)
+        except ValueError:
+            return False
+        return _body_path(root, str(rel)) is not None
+
     def _refs_for(self, source: Source, path: Path, row: dict[str, Any]) -> list[SkillRef]:
         try:
+            # Only reached for bodies discovered by scanning, where the file *is* the
+            # authority; indexed rows without a digest are refused before they get here.
             digest = str(row.get("digest") or _digest(path.read_bytes()))
         except OSError:
             digest = str(row.get("digest") or "")
@@ -193,6 +263,9 @@ class Registry:
         return matches
 
     def load(self, ref: SkillRef) -> SkillBody:
+        if not self._contained(ref):
+            raise SkillIntegrityFailed("skill body lies outside its source root",
+                                       skill=ref.id, source=ref.source, path=str(ref.path))
         try:
             body = ref.path.read_bytes()
         except OSError as error:
@@ -247,7 +320,13 @@ class Registry:
                        if item.type == "path" and item.trust == "owner"), None)
         if source is None:
             raise ValueError("no owner path source is configured")
-        path = self._root(source) / (skill_id + ".md")
+        # An agent-supplied id is no more trustworthy than an index row: `../../.zshrc`
+        # would make this a write primitive aimed anywhere on the machine.
+        root = self._root(source)
+        path = _body_path(root, skill_id + ".md")
+        if path is None:
+            raise SkillIntegrityFailed("skill id escapes its source root",
+                                       skill=skill_id, source=source.name, root=str(root))
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(body, encoding="utf-8")
         self.refs = self._index()
