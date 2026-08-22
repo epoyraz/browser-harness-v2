@@ -24,6 +24,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["harness"]
 
+# Without an explicit list the sdist is an unfiltered copy of the working tree, which is
+# how jobs.json and a required.txt holding a real salary would have shipped to PyPI — and
+# PyPI never lets a filename be re-uploaded.
+[tool.hatch.build.targets.sdist]
+include = ["harness", "tests", "docs", "SKILL.md", "README.md", "LICENSE", "pyproject.toml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
