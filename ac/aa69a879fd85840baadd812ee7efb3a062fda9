@@ -1,0 +1,50 @@
+tests/unit/test_daemon.py
+  s_6670e0c6debd43::t_10b0fc31e5db00 18
+  s_6670e0c6debd43::t_6efc6b985db75f 161,173,185,198,201,226,231,248,255,468-517
+  s_6670e0c6debd43::t_9acdeb01199064 10-16,32,43,153-160,162-172,174-184,186-197,199-200,202-225,227-230,232-247,249-254,256-259
+harness/connect/client.py
+  s_6670e0c6debd43::t_785b5b17604559 158-160,270-273,297-311
+  s_6670e0c6debd43::t_5c437a5d59701b 337-344
+  s_6670e0c6debd43::t_3855d352b7a0f5 314-329,331-336
+  s_6670e0c6debd43::t_12d9b2e06a2f51 63-77,93,96-97,109-117,119
+  s_6670e0c6debd43::t_0b56a67324d77c 94,98,107-108,118
+  s_6670e0c6debd43::t_b43f98a2b63a1a 312
+harness/aio.py
+  s_6670e0c6debd43::t_613b09b15ea151 207-208,280-284,338-347
+harness/connect/daemon.py
+  s_6670e0c6debd43::t_834a3dfd8b46a0 219-225,231-249,261-286,476-480
+  s_6670e0c6debd43::t_7379d76e39fe02 177-181,183-187
+  s_6670e0c6debd43::t_753ebb1327d301 174-176,182,203
+  s_6670e0c6debd43::t_438e6e8f4b2d59 24,45-50,102,140-142,489-490
+harness/connect/cdp.py
+  s_6670e0c6debd43::t_7379d76e39fe02 306-316
+  s_6670e0c6debd43::t_834a3dfd8b46a0 204-206,330
+  s_6670e0c6debd43::t_e43ed69975c0ec 148-152,169-174,180-182,186-203,207,250,301,304-305,318-329,360,362-368,370-371
+tests/unit/test_aio.py
+  s_6670e0c6debd43::t_715f685049aaca 9-10,20,31-36,42
+  s_6670e0c6debd43::t_736eb75e8b8af1 21-26,296-330
+tests/unit/test_cdp.py
+  s_6670e0c6debd43::t_b70d4997473286 146,387-473
+  s_6670e0c6debd43::t_aec9b226b131c1 140-145,147-242
+tests/unit/test_client.py
+  s_6670e0c6debd43::t_0b56a67324d77c 336
+  s_6670e0c6debd43::t_0c88071c152e5d 224,247,267,281
+  s_6670e0c6debd43::t_a8fae481a17b7a 211-223,225-246,248-266,268-280,282-293,304
+  s_6670e0c6debd43::t_31837cbd58e07a 294-303,305-335
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "acaa69a879fd85840baadd812ee7efb3a062fda9",
+  "prompts": {},
+  "sessions": {
+    "s_6670e0c6debd43": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2350b03f-6200-4281-b930-cf1a4b5294ca",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
