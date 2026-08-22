@@ -21,6 +21,7 @@ USAGE = """bh — browser-harness v2
   bh <<'PY' ... PY      run a script against the browser (stdin)
   bh -                  same, explicit
   bh --doctor           classify why the browser can or cannot be reached
+  bh mac-approve        answer Chrome's macOS "Allow remote debugging?" sheet
   bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
   bh stats [path…]      what you actually use, and what actually fails
   bh bench <journal…>   steps taken and where the wall clock went (-v per step)
@@ -61,6 +62,10 @@ def main() -> int:
         for line in render(outcome):
             print(line)
         return 0 if outcome.ok else 1
+
+    if args and args[0] == "mac-approve":
+        from harness.connect.macos import run_cli
+        return run_cli(args[1:])
 
     if args and args[0] == "daemon":
         from harness.connect.daemon import serve
@@ -219,7 +224,10 @@ def main() -> int:
             return 2
         import os
 
-        from harness.session import run_script
+        from harness.session import force_utf8_streams, run_script
+        # Before the read, not after: the script itself arrives on stdin, so a non-ASCII
+        # literal in it would fail to decode under Windows' ANSI default (upstream #359).
+        force_utf8_streams()
         return run_script(sys.stdin.read(), name=os.environ.get("BU_NAME", "default"))
 
     print(f"bh: unknown command {args[0]!r}\n\n{USAGE}", file=sys.stderr)

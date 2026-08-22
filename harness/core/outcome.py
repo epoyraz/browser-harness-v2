@@ -47,6 +47,16 @@ class Class(str, Enum):
     PROTOCOL_MISMATCH = "protocol_mismatch"    # client and daemon cannot safely communicate
     SKILL_INTEGRITY_FAILED = "skill_integrity_failed"  # body differs from indexed digest
 
+    # host / OS-level (macOS approval helper). These are not CDP failures: the browser is
+    # not refusing anything, the *machine* is. Kept distinct because each has a different
+    # and non-guessable recovery — one needs a different OS, one needs a System Settings
+    # grant, and one needs the user to retry while the sheet is actually up.
+    PLATFORM_UNSUPPORTED = "platform_unsupported"
+    HOST_PERMISSION_REQUIRED = "host_permission_required"
+    #: Rule 1's counterpart to PERMISSION_PENDING: no prompt was observed, so we must NOT
+    #: claim one is pending. "There was nothing to approve" is a different fact.
+    APPROVAL_NOT_PENDING = "approval_not_pending"
+
     # session / target (D1, D11)
     TARGET_GONE = "target_gone"
     SESSION_STALE = "session_stale"
