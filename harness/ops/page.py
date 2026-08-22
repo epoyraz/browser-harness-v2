@@ -816,11 +816,27 @@ class Tab:
         #: (monotonic ts, params) of the last dialog the auto-resolver dismissed — how a
         #: click whose dispatch was blocked learns its dialog was already handled.
         self._auto_dialog: tuple[float, dict[str, Any]] | None = None
-        self._created: deque[dict[str, Any]] = deque(maxlen=16)
+        #: (sequence number, targetInfo) for every page target THIS tab opened. Bounded,
+        #: because a page that opens popups in a loop must not grow it without limit — and
+        #: therefore paired with a counter, because a bounded deque's length stops changing
+        #: once it is full and so cannot serve as the position a click reads its delta
+        #: from. Written only by the reader thread (see `_on_event`).
+        self._created: deque[tuple[int, dict[str, Any]]] = deque(maxlen=16)
+        self._created_seq = 0
         self._diagnostic_events: deque[dict[str, Any]] = deque(maxlen=128)
         self._diagnostics_enabled = False
         self._diagnostics_started = 0.0
         self._world_ctx: int | None = None
+        #: Worlds we have already tried to repopulate. One heal per world: enough to fix a
+        #: world the document-start registration missed, bounded so a genuine bug in this
+        #: module's JS cannot re-run on every call.
+        self._healed_worlds: set[int] = set()
+        #: Main-frame id, learned from `Page.frameNavigated` and kept for the life of the
+        #: Tab. A frame belongs to the target, not to the session (a session is only a
+        #: lease), and Chrome keeps the main frame's id stable across its navigations — so
+        #: this survives both a document replacement and a session recovery, and
+        #: `Page.getFrameTree` is only ever paid before the first navigation is seen.
+        self._main_frame: str | None = None
         self._bound = False
         conn.subscribe(self._on_event)
         try:
@@ -887,23 +903,41 @@ class Tab:
         """Isolated-world context id for the main frame, created on demand.
 
         Worlds die with their document, so this is re-resolved rather than cached across
-        navigations; `executionContextsCleared` drops the stale id (see `_on_event`).
+        main-frame navigations; `executionContextsCleared` and a main-frame
+        `Page.frameNavigated` drop the stale id (see `_on_event`).
+
+        The frame id itself is NOT re-resolved. `Page.getFrameTree` was issued on every
+        rebuild to read one field — `frameTree.frame.id` — out of a reply that carries the
+        whole tree (~750 bytes on a real posting), while `Page.frameNavigated` already
+        hands the reader thread that same id for free.
         """
         if self._world_ctx is not None:
             return self._world_ctx
         sid = self._sid()
         try:
-            frame = self._conn.request("Page.getFrameTree", session_id=sid,
-                                       timeout=10.0)["frameTree"]["frame"]["id"]
+            frame = self._main_frame or self._conn.request(
+                "Page.getFrameTree", session_id=sid,
+                timeout=10.0)["frameTree"]["frame"]["id"]
+            self._main_frame = frame
             ctx = self._conn.request(
                 "Page.createIsolatedWorld",
                 {"frameId": frame, "worldName": WORLD, "grantUniveralAccess": True},
                 session_id=sid, timeout=10.0)["executionContextId"]
         except HarnessError:
+            # A cached frame id Chrome no longer recognises is the one new way this can
+            # fail, and it must not become permanent: forgetting it costs one
+            # `Page.getFrameTree` on the next call — which is what every call used to pay.
+            self._main_frame = None
             return None            # degrade to the main world rather than fail the call
-        self._conn.request("Runtime.evaluate",
-                           {"expression": RUNTIME_JS, "contextId": ctx},
-                           session_id=sid, timeout=10.0)
+        # No `Runtime.evaluate(RUNTIME_JS)` here any more. Measured against Chrome
+        # 151.0.7922.174 over raw CDP: `createIsolatedWorld(worldName=W)` returns the SAME
+        # world `addScriptToEvaluateOnNewDocument(worldName=W)` populates — a counter set
+        # by the registered script read back as 1 through the freshly "created" world,
+        # both for an already-loaded document (`runImmediately`, the attach path) and for a
+        # document loaded afterwards (the rebuild path); a second createIsolatedWorld
+        # returned the identical context id. So the injection was a round trip that
+        # re-ran an idempotent script over itself. That is Chrome behaviour and not a
+        # protocol guarantee, so `_world_js` heals a world that does come back empty.
         if not self._bound:
             try:
                 # executionContextName scopes the binding to the isolated world, so the
@@ -953,7 +987,33 @@ class Tab:
                 return self.js(expression, timeout=timeout)
             params["contextId"] = ctx
             r = self.cdp("Runtime.evaluate", params, timeout=timeout)
-        return _unwrap_eval(r)
+        try:
+            return _unwrap_eval(r)
+        except JsException as original:
+            # An isolated world the document-start registration did not populate is the one
+            # failure here we can repair, and injecting on that signal rather than before
+            # every call moves the cost from every rebuild to the Chrome builds that
+            # actually need it. What we must NOT do is guess the symptom: keying on
+            # "__bh is not defined" looked precise and was unreachable, because this
+            # module's own JS either self-creates `__bh` (`window.__bh || (window.__bh =
+            # ...)`) or guards it, so an empty world answers with a TypeError about
+            # something else entirely — never that ReferenceError. Matching prose for a
+            # condition is the `str`-typed error disease D11 exists to kill.
+            #
+            # `_world_js` only ever runs THIS module's JS, never a caller's, so any
+            # exception here is harness JS failing. Re-running the idempotent registration
+            # once is cheap and safe; a genuine bug in that JS simply fails the same way
+            # again, and then the caller gets the ORIGINAL cause, not the retry's (rule 2).
+            ctx = params["contextId"]
+            if ctx in self._healed_worlds:
+                raise                      # already repopulated: this is a real JS bug
+            self._healed_worlds.add(ctx)
+            try:
+                self.cdp("Runtime.evaluate",
+                         {"expression": RUNTIME_JS, "contextId": ctx}, timeout=timeout)
+                return _unwrap_eval(self.cdp("Runtime.evaluate", params, timeout=timeout))
+            except HarnessError:
+                raise original from None
 
     def _on_event(self, msg: dict[str, Any]) -> None:
         """Reader thread: bookkeeping and waiter wakeups only, never a request."""
@@ -966,8 +1026,20 @@ class Tab:
             diagnostic = self._sanitize_diagnostic_event(method, params)
             if diagnostic is not None:
                 self._diagnostic_events.append(diagnostic)
-        if method in ("Runtime.executionContextsCleared", "Page.frameNavigated"):
+        if method == "Runtime.executionContextsCleared":
             self._world_ctx = None            # the world died with its document
+        elif method == "Page.frameNavigated":
+            # Only the MAIN frame's navigation replaces the document our world lives in.
+            # Subframes announce themselves through this same event — with `parentId` set —
+            # and an ATS posting fires it for every ad, tracker and embedded video it
+            # loads: measured over one run, 149 navigations produced 233 invalidations, so
+            # 84 of the rebuilds resurrected a world that had never died. Absent params
+            # (or an absent frame) stay on the conservative side and invalidate.
+            frame = params.get("frame") or {}
+            if not frame.get("parentId"):
+                self._world_ctx = None
+                # The id `_ensure_world` used to buy with a whole frame tree, for free.
+                self._main_frame = frame.get("id") or self._main_frame
         if method == "Page.javascriptDialogOpening":
             with self._wlock:
                 self._dialog = params
@@ -989,9 +1061,23 @@ class Tab:
                 daemon=True,
             ).start()
         elif method == "Target.targetCreated":
+            # `Target.targetCreated` is a BROWSER-level event: it carries no sessionId, so
+            # the session short-circuit at the top of this method never sees it and cannot
+            # filter it. Without the opener check every Tab in the process recorded every
+            # page target the whole browser opened — the other `parallel()` workers' tabs,
+            # other `bh` processes' tabs, the user's own browsing — and `follow_application`
+            # does `use_tab(new_targets[-1])`, so worker A went on to fill its form in
+            # worker B's tab. The same leak told the inert-click guard that a click which
+            # had done nothing had opened a tab.
+            #
+            # `openerId` is the causal link and it is reliable here for the reason
+            # `_owned_tab_descendants` in ops/parallel.py documents: Chrome retains it even
+            # for `rel=noopener` targets while the opener is alive (measured with
+            # `canAccessOpener=false`).
             info = params.get("targetInfo") or {}
-            if info.get("type") == "page" and info.get("targetId") != self.target_id:
-                self._created.append(info)
+            if info.get("type") == "page" and info.get("openerId") == self.target_id:
+                self._created_seq += 1
+                self._created.append((self._created_seq, info))
         with self._wlock:
             waiters = list(self._waiters)
         for w in waiters:
@@ -1359,12 +1445,24 @@ class Tab:
         raise SideEffectRefused(
             "submit controls are disabled by the browser-harness dry-run policy", **evidence)
 
+    def _targets_since(self, seq: int) -> list[str]:
+        """Page targets this tab opened after `seq`, in the order Chrome announced them.
+
+        The cursor is the sequence number, never `len(self._created)`: the buffer is
+        bounded, so its length stops changing once sixteen targets have been seen, and a
+        length-as-position read then reports an empty delta for every click that follows
+        — for the rest of the process's life, with no error anywhere. Popups simply stop
+        being followed, and the inert-click guard reads "no new target" forever.
+        """
+        return [str(info["targetId"]) for entry_seq, info in list(self._created)
+                if entry_seq > seq and info.get("targetId")]
+
     def _click(self, x: float, y: float, url_before: str, mut_before: int,
                settle: float, timeout: float, ref: str | None = None,
                retry_inert: bool = True, control_before: Any = None) -> dict[str, Any]:
         interesting = ("Page.lifecycleEvent", "Page.frameNavigated",
                        "Page.javascriptDialogOpening", "Target.targetCreated")
-        targets_before = len(self._created)
+        seq_before = self._created_seq
         dispatch_started = time.monotonic()
         with self._j.call("click", x=x, y=y, ref=ref) , \
              self._armed(lambda m: m.get("method") in interesting) as w:
@@ -1429,7 +1527,7 @@ class Tab:
         modality = "compositor"
         if (retry_inert and not navigated and not mutations and not control_state_changed
                 and dialog is None
-                and len(self._created) == targets_before):
+                and not self._targets_since(seq_before)):
             landed = self._activate_click(x, y, url_before, mut_before, settle, timeout,
                                           ref=ref)
             if landed is not None:
@@ -1462,7 +1560,7 @@ class Tab:
             "dom_mutations": mutations,
             "control_state_changed": control_state_changed,
             "modality": modality,
-            "new_targets": [t.get("targetId") for t in list(self._created)[targets_before:]],
+            "new_targets": self._targets_since(seq_before),
             "dialog": dialog,
         }
 

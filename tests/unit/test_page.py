@@ -20,7 +20,7 @@ from harness.core.outcome import (
     Timeout,
     ValueRejected,
 )
-from harness.ops.page import ANNOTATE_JS, WORLD, Tab
+from harness.ops.page import ANNOTATE_JS, RUNTIME_JS, SNAPSHOT_JS, WORLD, Tab
 from tests.fake_browser import FakeBrowser
 
 
@@ -36,6 +36,48 @@ def wired():
 def _tab(wired, **kw):
     _browser, conn, registry = wired
     return Tab(conn, registry, "a", **kw)
+
+
+def _click_hook(*, activates: bool = False):
+    """eval_hook for a click on ref `e1` that changes nothing observable — same URL, no
+    mutations, no control-state change — which is what makes a click "inert" and puts the
+    DOM-activation retry in play. `activates` decides whether that retry claims it clicked
+    something, so the delta's `modality` reports whether the retry ran at all."""
+    def hook(expression):
+        if "getBoundingClientRect" in expression:
+            return [10.0, 10.0, "https://a.test/", 0]
+        if "pointerdown" in expression:
+            return activates
+        return ["https://a.test/", 0, None]
+    return hook
+
+
+def _reader_caught_up(tab):
+    """Barrier for events emitted from the test thread.
+
+    They are already sitting in the fake's queue and a reply can only be pushed behind
+    them, so one completed round trip proves the single reader thread has dispatched every
+    one of them. That is how a test asserts an event did NOT have an effect without
+    sleeping on a thread that has no other way to say it is done.
+    """
+    tab.cdp("Page.getLayoutMetrics")
+
+
+def _open_on_release(browser, info):
+    """Announce a page target the instant the click lands, as Chrome announces a popup.
+
+    Emitted with NO sessionId, because `Target.targetCreated` is a browser-level event —
+    that is precisely why the session short-circuit in `_on_event` cannot filter it and
+    the `openerId` check has to.
+    """
+    real_send = browser.send
+
+    def send_and_open(msg):
+        real_send(msg)
+        if (msg.get("method") == "Input.dispatchMouseEvent"
+                and msg["params"]["type"] == "mouseReleased"):
+            browser.emit("Target.targetCreated", {"targetInfo": info})
+    browser.send = send_and_open
 
 
 # --- item 15: js() -----------------------------------------------------------
@@ -749,18 +791,67 @@ def test_a_click_that_navigates_reports_it_and_voids_the_dom_delta(wired):
 def test_a_click_that_opens_a_new_tab_reports_the_target(wired):
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.eval_hook = lambda e: (
-        [10.0, 10.0, "https://a.test/", 0] if "getBoundingClientRect" in e
-        else ["https://a.test/", 0, None])
-    real_send = browser.send
+    browser.eval_hook = _click_hook()
+    # `openerId` is what makes this popup THIS tab's: Chrome sets it on the target the
+    # click opened, and only on that one.
+    _open_on_release(browser, {"type": "page", "targetId": "popup1",
+                               "openerId": "a"})
+    delta = tab.click_ref("e1", settle=0.3)
+    assert delta["new_targets"] == ["popup1"]
 
-    def send_and_open(msg):
-        real_send(msg)
-        if msg.get("method") == "Input.dispatchMouseEvent" \
-                and msg["params"]["type"] == "mouseReleased":
-            browser.emit("Target.targetCreated",
-                         {"targetInfo": {"type": "page", "targetId": "popup1"}})
-    browser.send = send_and_open
+
+def test_a_foreign_tab_never_reaches_this_tabs_click_delta(wired):
+    """`Target.targetCreated` is browser-level and carries no sessionId, so the session
+    short-circuit at the top of `_on_event` cannot filter it: without an `openerId` check
+    every Tab in the process recorded every page target the whole browser opened — other
+    `parallel()` workers' tabs, other `bh` processes' tabs, the user's own browsing.
+    `follow_application` then does `use_tab(new_targets[-1])`, so worker A went on to fill
+    its form in worker B's tab.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = _click_hook()
+    _open_on_release(browser, {"type": "page", "targetId": "another-workers-tab",
+                               "openerId": "some-other-target"})
+    delta = tab.click_ref("e1", settle=0.3)
+    assert delta["new_targets"] == []
+
+
+def test_a_foreign_tab_does_not_suppress_this_tabs_inert_click_retry(wired):
+    """The same leak corrupted the retry guard from the other side: a tab opening anywhere
+    in the browser made this click look as though it had done something, so the
+    DOM-activation retry — the only thing that rescues a click a background renderer
+    dropped — was skipped for a click that had in fact been inert."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = _click_hook(activates=True)
+    _open_on_release(browser, {"type": "page", "targetId": "another-workers-tab",
+                               "openerId": "some-other-target"})
+    delta = tab.click_ref("e1", settle=0.3)
+    assert delta["modality"] == "dom"                  # the retry ran
+    assert delta["new_targets"] == []
+
+
+def test_a_popup_is_still_reported_after_sixteen_targets_have_been_seen(wired):
+    """`_created` is bounded at 16 — a runaway popup loop must not grow it without limit —
+    and its LENGTH was the click's cursor. Once the buffer saturated, `len()` stopped
+    changing, so every subsequent click's slice was empty: popups silently stopped being
+    followed for the rest of the process's life, and the inert-click guard read as "no new
+    target" forever. Bounding the buffer is right; taking a position off a bounded length
+    is not.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    for n in range(20):
+        browser.emit("Target.targetCreated",
+                     {"targetInfo": {"type": "page", "targetId": f"earlier{n}",
+                                     "openerId": tab.target_id}})
+    _reader_caught_up(tab)
+    assert len(tab._created) == 16                     # bounded, and now saturated
+
+    browser.eval_hook = _click_hook()
+    _open_on_release(browser, {"type": "page", "targetId": "popup1",
+                               "openerId": tab.target_id})
     delta = tab.click_ref("e1", settle=0.3)
     assert delta["new_targets"] == ["popup1"]
 
@@ -1045,6 +1136,168 @@ def test_a_dead_world_is_rebuilt_rather_than_failing_the_call(wired):
     assert tab._world_ctx is None
     tab.snapshot()
     assert len(browser.isolated_worlds) == before + 1
+
+
+def test_a_subframe_navigation_does_not_kill_the_main_frames_world(wired):
+    """Subframes announce themselves through `Page.frameNavigated` too — with `parentId`
+    set — and an ATS posting fires one for every ad, tracker and embedded video it loads.
+    Treating them all as document replacements threw away live worlds: measured over one
+    run, 149 navigations produced 233 invalidations, so 84 rebuilds resurrected a world
+    that had never died."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    tab.snapshot()
+    ctx, worlds = tab._world_ctx, len(browser.isolated_worlds)
+    assert ctx is not None
+
+    browser.emit("Page.frameNavigated",
+                 {"frame": {"id": "AD1", "parentId": "F1", "url": "https://ads.test/"}},
+                 session_id=tab._session_id)
+    _reader_caught_up(tab)
+    assert tab._world_ctx == ctx
+    tab.snapshot()
+    assert len(browser.isolated_worlds) == worlds          # nothing was rebuilt
+
+
+def test_a_main_frame_navigation_clears_the_world_and_caches_its_frame_id(wired):
+    """The frame id in the event is the one `_ensure_world` used to buy with a whole frame
+    tree. The fake reports a DIFFERENT id from the one `Page.getFrameTree` gave at attach
+    purely so this assertion can only be satisfied by the event — real Chrome keeps the
+    main frame's id stable across its navigations, which is what makes caching it safe."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    tab.snapshot()
+    assert (tab._world_ctx, tab._main_frame) == (77, "F1")
+
+    browser.emit("Page.frameNavigated",
+                 {"frame": {"id": "F2", "url": "https://a.test/next"}},
+                 session_id=tab._session_id)
+    _reader_caught_up(tab)
+    assert tab._world_ctx is None                # the world died with its document
+    assert tab._main_frame == "F2"               # the frame it lived in did not
+
+
+def test_a_known_main_frame_id_replaces_the_frame_tree_round_trip(wired):
+    """`Page.getFrameTree` was issued on every rebuild to read one field —
+    `frameTree.frame.id` — out of a reply that carries the whole tree, while
+    `Page.frameNavigated` had already handed the reader thread that same id for free."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    browser.emit("Page.frameNavigated", {"frame": {"id": "F2"}},
+                 session_id=tab._session_id)
+    _reader_caught_up(tab)
+    assert tab._world_ctx is None
+
+    mark = len(browser.calls)
+    tab.snapshot()
+    # The whole rebuild, exactly: create the world, then run the caller's expression in it.
+    assert [c.get("method") for c in browser.calls[mark:]] == [
+        "Page.createIsolatedWorld", "Runtime.evaluate"]
+    created = browser.calls[mark]
+    assert created["params"]["frameId"] == "F2"            # straight off the event
+
+
+def test_a_cleared_context_invalidates_the_world_but_not_the_frame_it_lived_in(wired):
+    """A world is a property of the document and dies with it; the frame is a property of
+    the target and outlives every document loaded into it. Dropping both on this event
+    would put the frame-tree round trip back on the next rebuild."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    tab.snapshot()
+    assert (tab._world_ctx, tab._main_frame) == (77, "F1")
+
+    browser.emit("Runtime.executionContextsCleared", {}, session_id=tab._session_id)
+    _reader_caught_up(tab)
+    assert tab._world_ctx is None
+    assert tab._main_frame == "F1"
+
+    mark = len(browser.calls)
+    tab.snapshot()
+    assert [c.get("method") for c in browser.calls[mark:]] == [
+        "Page.createIsolatedWorld", "Runtime.evaluate"]
+
+
+def test_building_a_world_no_longer_re_injects_the_runtime_into_it(wired):
+    """`createIsolatedWorld(worldName=W)` returns the SAME world
+    `addScriptToEvaluateOnNewDocument(worldName=W)` populates, so the evaluate that used to
+    follow every rebuild was a round trip that re-ran an idempotent script over itself."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: []
+    browser.emit("Page.frameNavigated", {"frame": {"id": "F2"}},
+                 session_id=tab._session_id)
+    _reader_caught_up(tab)
+    tab.snapshot()                                         # rebuilds the world
+    assert not [c for c in browser.calls if c.get("method") == "Runtime.evaluate"
+                and c["params"].get("expression") == RUNTIME_JS]
+
+
+def test_an_isolated_world_that_answers_empty_injects_the_runtime_once_and_retries(wired):
+    """Chrome sharing the world by name is measured behaviour, not a protocol guarantee,
+    so `_world_js` heals a world that comes back unpopulated instead of paying for an
+    injection before every call.
+
+    The ReferenceError is fabricated here, and deliberately so: no expression the harness
+    currently sends can produce it. SNAPSHOT_JS and RUNTIME_JS both open with
+    `window.__bh || (window.__bh = {...})`, and every other reference is guarded by
+    `window.__bh &&` / `window.__bh ?`, so an unpopulated world answers with
+    `TypeError: bh.visible is not a function` or with a silently empty ref lookup — not
+    with `__bh is not defined`. This test pins the mechanism; the trigger it keys on does
+    not yet fire on the real symptom.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    injections = {"n": 0}
+
+    def hook(expression):
+        if expression == RUNTIME_JS:
+            injections["n"] += 1
+            return None
+        if injections["n"] == 0:                  # the empty world, before it is healed
+            return {"__raw__": {"result": {"type": "undefined"}, "exceptionDetails": {
+                "text": "Uncaught", "lineNumber": 0, "exception": {
+                    "description": "ReferenceError: __bh is not defined\n  at <anon>"}}}}
+        return [{"ref": "e1", "tag": "input"}]
+
+    browser.eval_hook = hook
+    assert tab.snapshot() == [{"ref": "e1", "tag": "input"}]
+    assert injections["n"] == 1                   # healed once, not before every call
+    evaluated = [c["params"] for c in browser.calls
+                 if c.get("method") == "Runtime.evaluate"]
+    assert [p["expression"] for p in evaluated[-3:]] == [SNAPSHOT_JS, RUNTIME_JS, SNAPSHOT_JS]
+    assert {p.get("contextId") for p in evaluated[-3:]} == {77}   # all of it in the world
+
+
+def test_a_page_error_that_is_not_an_empty_world_is_never_papered_over_by_injection(wired):
+    """A real scripting bug must surface as itself, and must not re-run forever.
+
+    The heal cannot key on error prose — "__bh is not defined" was unreachable, because this
+    module's JS self-creates `__bh` or guards it, so an unpopulated world never says that.
+    So the repair is attempted once per world and the ORIGINAL cause is what the caller
+    sees; the second failure in the same world does not even try.
+    """
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: {"__raw__": {
+        "result": {"type": "undefined"},
+        "exceptionDetails": {"text": "Uncaught", "lineNumber": 2, "exception": {
+            "description": "TypeError: el.matches is not a function"}}}}
+    with pytest.raises(JsException) as first:
+        tab.snapshot()
+    assert "el.matches is not a function" in str(first.value.args[0]), "the real cause"
+    injections = [c for c in browser.calls if c.get("method") == "Runtime.evaluate"
+                  and c["params"].get("expression") == RUNTIME_JS]
+    assert len(injections) == 1, "one repair attempt, not zero and not per-call"
+
+    with pytest.raises(JsException):
+        tab.snapshot()
+    again = [c for c in browser.calls if c.get("method") == "Runtime.evaluate"
+             and c["params"].get("expression") == RUNTIME_JS]
+    assert len(again) == 1, "a healed world must never be re-injected"
 
 
 # --- upload_file: the return must distinguish success from a wrong element ----
