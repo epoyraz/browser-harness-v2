@@ -3,8 +3,10 @@
 import json
 import os
 import socket
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -13,6 +15,7 @@ from harness.connect.endpoint import (
     binding_for,
     discover,
     probe_http,
+    profile_dirs,
     read_active_port,
     resolve,
 )
@@ -149,13 +152,138 @@ def test_a_stale_active_port_file_is_named_stale(tmp_path):
 
 
 def test_total_failure_carries_every_verdict(tmp_path):
+    """Both profile dirs are absent, so they arrive as one rollup rather than two lines —
+    but the rollup still names each of them, so no verdict is lost."""
+    a, b = tmp_path / "a", tmp_path / "b"
     with pytest.raises(EndpointUnreachable) as e:
-        discover({"BH_PROFILE_DIRS": os.pathsep.join(
-                      (str(tmp_path / "a"), str(tmp_path / "b"))),
+        discover({"BH_PROFILE_DIRS": os.pathsep.join((str(a), str(b))),
                   "BU_CDP_URL": f"http://127.0.0.1:{_closed_port()}"})
     attempts = e.value.observed["attempts"]
-    assert len(attempts) == 4                       # ws, http, and both profile dirs
-    assert all(not a["won"] for a in attempts)
+    assert len(attempts) == 3                       # ws, http, and the absent-dirs rollup
+    assert all(not a_["won"] for a_ in attempts)
+    rollup = attempts[-1]
+    assert str(a) in rollup["reason"] and str(b) in rollup["reason"]
+
+
+# --- the profile table (the out-of-the-box case: find the browser v1 found) ---
+
+MAC_TABLE = [
+    "Library/Application Support/Google/Chrome",
+    "Library/Application Support/Google/Chrome Canary",
+    "Library/Application Support/Comet",
+    "Library/Application Support/Arc/User Data",
+    "Library/Application Support/Dia/User Data",
+    "Library/Application Support/Microsoft Edge",
+    "Library/Application Support/Microsoft Edge Beta",
+    "Library/Application Support/Microsoft Edge Dev",
+    "Library/Application Support/Microsoft Edge Canary",
+    "Library/Application Support/BraveSoftware/Brave-Browser",
+    "Library/Application Support/Chromium",
+]
+LINUX_TABLE = [
+    ".config/google-chrome",
+    ".config/chromium",
+    ".config/chromium-browser",
+    ".config/microsoft-edge",
+    ".config/microsoft-edge-beta",
+    ".config/microsoft-edge-dev",
+    ".var/app/org.chromium.Chromium/config/chromium",
+    ".var/app/com.google.Chrome/config/google-chrome",
+    ".var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser",
+    ".var/app/com.microsoft.Edge/config/microsoft-edge",
+]
+WINDOWS_TABLE = [
+    "Google/Chrome/User Data",
+    "Google/Chrome SxS/User Data",
+    "Google/Chrome Beta/User Data",
+    "Google/Chrome Dev/User Data",
+    "Chromium/User Data",
+    "Microsoft/Edge/User Data",
+    "Microsoft/Edge Beta/User Data",
+    "Microsoft/Edge Dev/User Data",
+    "Microsoft/Edge SxS/User Data",
+    "BraveSoftware/Brave-Browser/User Data",
+]
+
+
+@pytest.fixture
+def fake_home(monkeypatch):
+    """Path.home() reads $HOME on posix, which is what the tests run on."""
+    monkeypatch.setenv("HOME", "/home/tester")
+    return Path("/home/tester")
+
+
+def test_macos_probes_every_v1_vendor_path(monkeypatch, fake_home):
+    """v1 looked in ten places; v2's first cut looked in two, so a Brave/Edge/Arc/Canary
+    user simply got 'endpoint unreachable'. The whole table is the contract."""
+    monkeypatch.setattr(sys, "platform", "darwin")
+    assert profile_dirs({}) == [fake_home / p for p in MAC_TABLE]
+
+
+def test_linux_probes_every_v1_vendor_path_including_flatpak(monkeypatch, fake_home):
+    """The .var/app entries are the ones that matter most: a Flatpak-only desktop has no
+    ~/.config/google-chrome at all and looked browserless without them."""
+    monkeypatch.setattr(sys, "platform", "linux")
+    assert profile_dirs({}) == [fake_home / p for p in LINUX_TABLE]
+
+
+def test_windows_probes_every_v1_vendor_path_under_localappdata(monkeypatch, fake_home):
+    monkeypatch.setattr(sys, "platform", "win32")
+    dirs = profile_dirs({"LOCALAPPDATA": "/local/app/data"})
+    assert dirs == [Path("/local/app/data") / p for p in WINDOWS_TABLE]
+
+
+def test_windows_falls_back_to_home_appdata_when_localappdata_is_missing(
+        monkeypatch, fake_home):
+    """A stripped service env has no %LOCALAPPDATA%; the old code fell back to bare ~,
+    which points at no profile that has ever existed."""
+    monkeypatch.setattr(sys, "platform", "win32")
+    assert profile_dirs({})[0] == fake_home / "AppData/Local/Google/Chrome/User Data"
+
+
+@pytest.mark.parametrize("platform", ["darwin", "linux", "win32"])
+def test_mainstream_chrome_is_probed_first_on_every_platform(monkeypatch, fake_home,
+                                                             platform):
+    """Order is probe order. Widening the table must not make the common case pay for the
+    long tail behind it."""
+    monkeypatch.setattr(sys, "platform", platform)
+    first = profile_dirs({"LOCALAPPDATA": "/local"})[0]
+    assert "Chrome" in str(first) or "chrome" in str(first)
+    assert "Canary" not in str(first) and "Beta" not in str(first)
+
+
+@pytest.mark.parametrize("platform", ["darwin", "linux", "win32"])
+def test_every_candidate_is_absolute_and_has_no_unexpanded_tilde(monkeypatch, fake_home,
+                                                                 platform):
+    monkeypatch.setattr(sys, "platform", platform)
+    dirs = profile_dirs({"LOCALAPPDATA": "/local"})
+    assert len(dirs) >= 10
+    assert all(d.is_absolute() for d in dirs)
+    assert not any("~" in str(d) for d in dirs)
+
+
+def test_bh_profile_dirs_still_replaces_the_table_entirely(monkeypatch, fake_home):
+    """The override is a replacement, not an addition: someone driving a throwaway
+    --user-data-dir must not also get their daily-driver Chrome offered up (#479)."""
+    monkeypatch.setattr(sys, "platform", "darwin")
+    dirs = profile_dirs({"BH_PROFILE_DIRS": os.pathsep.join(("~/one", "/two"))})
+    assert dirs == [fake_home / "one", Path("/two")]
+
+
+def test_absent_profile_dirs_collapse_into_one_readable_attempt(monkeypatch, fake_home,
+                                                                tmp_path):
+    """Eleven identical 'no DevToolsActivePort file' lines is worse UX than two. The
+    uninstalled browsers roll up; the installed-but-not-debugging one keeps its own line."""
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    (tmp_path / "Library/Application Support/Google/Chrome").mkdir(parents=True)
+    with pytest.raises(EndpointUnreachable) as e:
+        discover({})
+    profile = [a for a in e.value.observed["attempts"] if a["strategy"] == "profile"]
+    assert len(profile) == 2                        # the real Chrome line + one rollup
+    assert "not running with remote debugging" in profile[0]["reason"]
+    assert "not present" in profile[1]["candidate"]
+    assert "Brave-Browser" in profile[1]["reason"]  # the rollup still names every path
 
 
 # --- binding (TODO 12: pinned never widens scope) ----------------------------

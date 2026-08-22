@@ -121,18 +121,86 @@ def read_active_port(profile_dir: Path) -> tuple[int, str] | None:
     return port, path
 
 
+# -- profile tables ----------------------------------------------------------
+#
+# v1 carried these ten paths per platform (v1 src/browser_harness/daemon.py:38-77). v2's
+# first cut replaced them with Chrome + Chromium and called BH_PROFILE_DIRS the answer.
+# That is only an answer for someone who already knows the variable exists: a Brave / Edge
+# / Arc / Comet / Canary / Flatpak user got a bare "endpoint unreachable" with no hint that
+# their browser had never been looked for at all. The tables are back.
+#
+# The list order *is* the probe order, and mainstream Chrome is deliberately first on every
+# platform: the overwhelmingly common case must win on candidate #1 and never pay for the
+# long tail behind it. The tail is nearly free — a candidate whose directory does not exist
+# costs one stat() and never reaches the port file (see discover()).
+
+_MAC_PROFILES = (
+    "Library/Application Support/Google/Chrome",
+    "Library/Application Support/Google/Chrome Canary",
+    "Library/Application Support/Comet",
+    "Library/Application Support/Arc/User Data",
+    "Library/Application Support/Dia/User Data",
+    "Library/Application Support/Microsoft Edge",
+    "Library/Application Support/Microsoft Edge Beta",
+    "Library/Application Support/Microsoft Edge Dev",
+    "Library/Application Support/Microsoft Edge Canary",
+    "Library/Application Support/BraveSoftware/Brave-Browser",
+    # Not in v1's mac table, but v2 has probed it since its first cut. Restoring v1's list
+    # must not quietly drop a path v2 users already rely on, so it stays — at the back.
+    "Library/Application Support/Chromium",
+)
+_LINUX_PROFILES = (
+    ".config/google-chrome",
+    ".config/chromium",
+    ".config/chromium-browser",          # Debian/Ubuntu's package name for the same browser
+    ".config/microsoft-edge",
+    ".config/microsoft-edge-beta",
+    ".config/microsoft-edge-dev",
+    # Flatpak relocates the whole config tree per app id; without these four a Flatpak-only
+    # desktop looks browserless no matter how many windows are open.
+    ".var/app/org.chromium.Chromium/config/chromium",
+    ".var/app/com.google.Chrome/config/google-chrome",
+    ".var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser",
+    ".var/app/com.microsoft.Edge/config/microsoft-edge",
+)
+_WINDOWS_PROFILES = (                    # relative to %LOCALAPPDATA%; SxS = Canary channel
+    "Google/Chrome/User Data",
+    "Google/Chrome SxS/User Data",
+    "Google/Chrome Beta/User Data",
+    "Google/Chrome Dev/User Data",
+    "Chromium/User Data",
+    "Microsoft/Edge/User Data",
+    "Microsoft/Edge Beta/User Data",
+    "Microsoft/Edge Dev/User Data",
+    "Microsoft/Edge SxS/User Data",
+    "BraveSoftware/Brave-Browser/User Data",
+)
+
+
 def profile_dirs(env: Mapping[str, str]) -> list[Path]:
-    """Candidate profile dirs. One env override replaces v1's 30 hardcoded vendor paths."""
+    """Candidate profile dirs in probe order, Chrome first. `BH_PROFILE_DIRS` **replaces**
+    the whole table (os.pathsep-separated) — that is the escape hatch for a throwaway
+    `--user-data-dir`, not the thing a normal user is expected to discover."""
     if raw := env.get("BH_PROFILE_DIRS"):
         return [Path(p).expanduser() for p in raw.split(os.pathsep) if p]
     home = Path.home()
     if sys.platform == "darwin":
-        base = home / "Library" / "Application Support"
-        return [base / "Google" / "Chrome", base / "Chromium"]
+        return [home / p for p in _MAC_PROFILES]
     if sys.platform == "win32":
-        base = Path(env.get("LOCALAPPDATA", home))
-        return [base / "Google" / "Chrome" / "User Data", base / "Chromium" / "User Data"]
-    return [home / ".config" / "google-chrome", home / ".config" / "chromium"]
+        # Every Chromium fork on Windows puts User Data under %LOCALAPPDATA%; the ~ fallback
+        # is what a stripped service env leaves us holding.
+        base = Path(env.get("LOCALAPPDATA") or home / "AppData" / "Local").expanduser()
+        return [base / p for p in _WINDOWS_PROFILES]
+    return [home / p for p in _LINUX_PROFILES]
+
+
+def _tilde(p: Path) -> str:
+    """Home-relative form for diagnosis lines. Ten absolute mac paths on one line is a
+    wall; ten `~/Library/...` paths is a list a human reads."""
+    try:
+        return f"~/{p.relative_to(Path.home())}"
+    except (ValueError, OSError, RuntimeError):
+        return str(p)
 
 
 # -- discovery (TODO 11) -----------------------------------------------------
@@ -163,11 +231,26 @@ def discover(env: Mapping[str, str] | None = None) -> Resolution:
     else:
         attempts.append(Attempt("explicit-http", "BU_CDP_URL", reason="not set"))
 
+    # doctor.render prints every attempt verbatim, one line each. With a two-entry table
+    # that was fine; with eleven it would bury the one line that matters under ten
+    # identical "no DevToolsActivePort file" lines. A directory that does not exist means
+    # that browser is not installed, which is not a diagnosis anyone needs per-vendor — so
+    # those roll up into a single attempt, emitted below only when nothing won. Nothing is
+    # hidden: the rollup names every path it stands for.
+    absent: list[Path] = []
     for d in profile_dirs(env):
+        if not d.is_dir():
+            absent.append(d)
+            continue
         cand = str(d / "DevToolsActivePort")
         found = read_active_port(d)
         if found is None:
-            attempts.append(Attempt("profile", cand, reason="no DevToolsActivePort file"))
+            # This one *is* per-vendor news: the browser is installed and was not started
+            # with remote debugging. Saying only "no DevToolsActivePort file" made users
+            # think the file was missing rather than the flag.
+            attempts.append(Attempt("profile", cand, reason=(
+                "profile exists but is not running with remote debugging (no "
+                "DevToolsActivePort file)")))
             continue
         port, path = found
         if not tcp_alive("127.0.0.1", port):
@@ -179,6 +262,10 @@ def discover(env: Mapping[str, str] | None = None) -> Resolution:
         return Resolution(f"ws://127.0.0.1:{port}{path}", f"http://127.0.0.1:{port}",
                           "profile", attempts)
 
+    if absent:
+        attempts.append(Attempt("profile", f"{len(absent)} profile dir(s) not present",
+                                reason="no such browser installed: "
+                                       + ", ".join(_tilde(p) for p in absent)))
     raise EndpointUnreachable("no strategy produced a live endpoint",
                               attempts=[a.to_json() for a in attempts])
 
