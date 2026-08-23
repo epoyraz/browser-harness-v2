@@ -79,7 +79,8 @@ class Span:
 class Journal:
     """Append-only JSONL. Thread-safe; every write is one line, flushed."""
 
-    def __init__(self, path: str | os.PathLike[str] | None, *, session: str = ""):
+    def __init__(self, path: str | os.PathLike[str] | None, *, session: str = "",
+                 cdp_origin: str = ""):
         #: Called as the span closes, before its entry is written, with (span, payload).
         #: Whatever it returns is merged into the entry — which is how a recording adds
         #: `frame` to the very call it belongs to instead of writing a second file that
@@ -88,6 +89,7 @@ class Journal:
         self.on_call: Callable[[Span, dict[str, Any]], dict[str, Any] | None] | None = None
         self.path = Path(path) if path else None
         self.session = session or f"s{int(time.time())}"
+        self.cdp_origin = cdp_origin
         self.trace_cdp = os.environ.get("BH_CDP_TRACE", "").strip().lower() \
             not in ("", "0", "false", "no")
         self._n = 0
@@ -238,6 +240,8 @@ class Journal:
             "request_bytes": request_bytes, "response_bytes": response_bytes,
             "param_keys": param_keys, "ok": error is None,
         }
+        if self.cdp_origin:
+            payload["origin"] = self.cdp_origin
         if parent:
             payload["parent"] = parent
         if isinstance(result, dict):

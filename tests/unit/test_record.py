@@ -5,7 +5,7 @@ import threading
 import pytest
 
 from harness.core.journal import Journal
-from harness.ops.record import ACTIONS, scrub, start
+from harness.ops.record import ACTIONS, ALREADY_SETTLED, scrub, start
 
 
 class _FakeTab:
@@ -15,7 +15,9 @@ class _FakeTab:
     def capture_screenshot(self, path, **kw):
         self.shots.append(str(path))
         __import__("pathlib").Path(path).write_bytes(b"jpeg")
-        return {"bytes": 4}
+        return {"bytes": 4, "context": {
+            "u": "https://x.test/cb?code=SECRET&a=1", "t": "Title",
+            "box": [1.4, 2.6, 30.2, 10.0]}}
 
     def js(self, expr, **kw):
         return {"u": "https://x.test/cb?code=SECRET&a=1", "t": "Title",
@@ -139,6 +141,21 @@ def test_the_journal_moves_into_the_recording(wired):
 def test_the_allowlist_is_state_changing_calls_only():
     assert {"goto", "click", "fill_form", "scroll", "press_key"} <= ACTIONS
     assert not ({"snapshot", "see", "page_text", "js", "form_schema"} & ACTIONS)
+    assert {"goto", "wait_lifecycle", "wait_for"} <= ALREADY_SETTLED
+
+
+def test_loaded_navigation_frame_does_not_pay_an_extra_fixed_sleep(wired, monkeypatch):
+    slept = []
+    monkeypatch.setattr("harness.ops.record.time.sleep", slept.append)
+    journal, _, _ = wired
+
+    with journal.call("goto"):
+        pass
+    assert slept == []
+
+    with journal.call("click"):
+        pass
+    assert slept == [0.15]
 
 
 def test_the_capture_hook_does_not_serialise_parallel_workers(tmp_path):
@@ -178,7 +195,7 @@ def test_the_capture_hook_does_not_serialise_parallel_workers(tmp_path):
         local.tab = t
         try:
             barrier.wait(timeout=5)
-            recorder._on_call(Span(id="s", fn="goto", started=_time.perf_counter()), {})
+            recorder._on_call(Span(id="s", fn="click", started=_time.perf_counter()), {})
         except BaseException as e:               # noqa: BLE001 — surfaced by the assert below
             errors.append(e)
 

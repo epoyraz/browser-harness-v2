@@ -11,6 +11,7 @@ newlines and embedded JS, which is most of what a browser script contains.
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -69,7 +70,14 @@ def main() -> int:
 
     if args and args[0] == "daemon":
         from harness.connect.daemon import serve
-        return serve(args[1] if len(args) > 1 else "default")
+        # Foreground daemons used to ignore the same BH_JOURNAL contract every client
+        # honors. That hid the only evidence capable of distinguishing a browser-websocket
+        # failure from an overloaded client event queue. Share the append-only journal;
+        # records contain protocol shape and counts, never page content.
+        return serve(
+            args[1] if len(args) > 1 else "default",
+            journal_path=os.environ.get("BH_JOURNAL") or None,
+        )
 
     if args and args[0] == "stats":
         import json as _json
@@ -222,8 +230,6 @@ def main() -> int:
         if sys.stdin.isatty():
             print(USAGE, file=sys.stderr)
             return 2
-        import os
-
         from harness.session import force_utf8_streams, run_script
         # Before the read, not after: the script itself arrives on stdin, so a non-ASCII
         # literal in it would fail to decode under Windows' ANSI default (upstream #359).

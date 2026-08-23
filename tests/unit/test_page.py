@@ -218,6 +218,77 @@ def test_goto_returns_a_usable_document_even_with_no_lifecycle_event(wired):
     assert r["landed"] == "https://a.test/"
 
 
+def test_goto_returns_when_a_page_is_usable_before_its_timeout(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = []
+    browser.eval_hook = lambda e: (["interactive", 2, 900] if "readyState" in e
+                                   else "https://a.test/" if "location" in e else None)
+    started = time.monotonic()
+    r = tab.goto("https://a.test/", timeout=2.0, usable_after=0.05)
+    assert r["lifecycle"] == "usable"
+    assert time.monotonic() - started < 0.5
+
+
+def test_goto_can_require_the_exact_lifecycle_until_deadline(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = []
+    browser.eval_hook = lambda e: (["interactive", 2, 900] if "readyState" in e
+                                   else "https://a.test/" if "location" in e else None)
+    started = time.monotonic()
+    r = tab.goto("https://a.test/", timeout=0.15, usable_after=None)
+    assert r["lifecycle"] == "timeout"
+    assert time.monotonic() - started >= 0.1
+
+
+def test_open_page_folds_digest_into_the_landing_check(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    page = {"url": "https://a.test/landed", "title": "A", "text": "hello",
+            "links": [], "challenge": {"detected": False}}
+    browser.eval_hook = lambda e: page if "maxChars" in e else None
+    before = len([c for c in browser.calls if c.get("method") == "Runtime.evaluate"])
+    out = tab.open_page("https://a.test/")
+    after = len([c for c in browser.calls if c.get("method") == "Runtime.evaluate"])
+    assert after - before == 1
+    assert out["landed"] == page["url"] and out["page"] == page
+
+
+def test_page_text_is_bounded_by_default_and_supports_paging(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    expressions = []
+    browser.eval_hook = lambda e: expressions.append(e) or "window"
+    assert tab.page_text(start=12_000) == "window"
+    assert ".slice(12000, 24000)" in expressions[-1]
+
+
+def test_read_page_supports_paging_without_a_second_helper(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    expressions = []
+    browser.eval_hook = lambda e: expressions.append(e) or {
+        "text": "window", "text_start": 6_000, "text_remaining": 12_000,
+    }
+
+    out = tab.read_page(max_chars=3_000, start=6_000)
+
+    assert out["text"] == "window"
+    assert "start = 6000" in expressions[-1]
+    assert "raw.slice(start, start + maxChars)" in expressions[-1]
+
+
+def test_diagnostics_does_not_reenable_default_session_domains(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    before = len(browser.calls)
+    out = tab.start_diagnostics()
+    methods = [c.get("method") for c in browser.calls[before:]]
+    assert methods == ["Log.enable", "Performance.enable"]
+    assert out["enabled"] == ["Log", "Performance"]
+
+
 def test_wait_lifecycle_wakes_on_the_event_not_on_a_poll(wired):
     browser, _, _ = wired
     tab = _tab(wired)
@@ -1074,12 +1145,51 @@ def test_the_runtime_is_installed_for_every_future_document(wired):
     assert installed and "__bh" in installed[0]["params"]["source"]
 
 
+def test_short_lived_tabs_share_session_scoped_runtime_setup(wired):
+    browser, _, _ = wired
+    first = _tab(wired)
+    first.close()
+    second = _tab(wired)
+    second.close()
+
+    assert len(
+        [
+            call
+            for call in browser.calls
+            if call.get("method") == "Page.addScriptToEvaluateOnNewDocument"
+        ]
+    ) == 2
+    assert len(
+        [call for call in browser.calls if call.get("method") == "Runtime.addBinding"]
+    ) == 1
+    assert not [
+        call
+        for call in browser.calls
+        if call.get("method") in {"Page.getFrameTree", "Page.createIsolatedWorld"}
+    ], "read-only tab construction must not eagerly build an isolated world"
+
+
+def test_diagnostic_domains_are_enabled_once_per_session(wired):
+    browser, _, _ = wired
+    first = _tab(wired)
+    first.start_diagnostics()
+    first.close()
+    second = _tab(wired)
+    second.start_diagnostics()
+    second.close()
+
+    for method in ("Log.enable", "Performance.enable"):
+        assert len([call for call in browser.calls if call.get("method") == method]) == 1
+
+
 # --- item 21: screenshot ------------------------------------------------------
 
 def test_screenshot_scale_is_the_inverse_of_dpr(wired, tmp_path):
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.eval_hook = lambda e: 2 if "devicePixelRatio" in e else None
+    browser.eval_hook = lambda e: ({"x": 0, "y": 0, "width": 1200, "height": 800,
+                                    "dpr": 2, "u": "https://a.test/", "t": "A"}
+                                   if "window.innerWidth" in e else None)
     out = tab.capture_screenshot(tmp_path / "shot.jpeg")
     call = next(c for c in browser.calls if c.get("method") == "Page.captureScreenshot")
     assert call["params"]["clip"]["scale"] == 0.5    # dpr 2 → CSS pixels out
@@ -1091,7 +1201,8 @@ def test_screenshot_scale_is_the_inverse_of_dpr(wired, tmp_path):
 def test_max_dim_lowers_the_scale_instead_of_resizing_after(wired):
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.eval_hook = lambda e: 2 if "devicePixelRatio" in e else None
+    browser.eval_hook = lambda e: ({"x": 0, "y": 0, "width": 1200, "height": 800,
+                                    "dpr": 2} if "window.innerWidth" in e else None)
     tab.capture_screenshot(max_dim=600)              # css 1200 wide → scale 600/2400
     call = [c for c in browser.calls if c.get("method") == "Page.captureScreenshot"][-1]
     assert call["params"]["clip"]["scale"] == 0.25
@@ -1100,10 +1211,25 @@ def test_max_dim_lowers_the_scale_instead_of_resizing_after(wired):
 def test_png_when_the_path_says_so(wired, tmp_path):
     browser, _, _ = wired
     tab = _tab(wired)
-    browser.eval_hook = lambda e: 1 if "devicePixelRatio" in e else None
+    browser.eval_hook = lambda e: ({"x": 0, "y": 0, "width": 1200, "height": 800,
+                                    "dpr": 1} if "window.innerWidth" in e else None)
     tab.capture_screenshot(tmp_path / "s.png")
     call = [c for c in browser.calls if c.get("method") == "Page.captureScreenshot"][-1]
     assert call["params"]["format"] == "png" and "quality" not in call["params"]
+
+
+def test_recording_context_rides_on_the_viewport_evaluation(wired, tmp_path):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: ({"x": 2, "y": 3, "width": 1200, "height": 800,
+                                    "dpr": 1, "u": "https://a.test/", "t": "A",
+                                    "box": [1.2, 2.8, 30, 10]}
+                                   if "window.innerWidth" in e else None)
+    before = len(browser.calls)
+    out = tab.capture_screenshot(tmp_path / "s.jpg", include_context=True)
+    methods = [c.get("method") for c in browser.calls[before:]]
+    assert methods == ["Runtime.evaluate", "Page.captureScreenshot"]
+    assert out["context"]["box"] == [1.2, 2.8, 30, 10]
 
 
 # --- isolation ----------------------------------------------------------------

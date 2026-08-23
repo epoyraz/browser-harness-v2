@@ -239,6 +239,7 @@ class Connection:
         *,
         session_id: str | None = None,
         timeout: float = 20.0,
+        trace: bool = True,
     ) -> dict[str, Any]:
         """One CDP round trip. Returns `result`, or raises the typed error for its class.
 
@@ -258,7 +259,7 @@ class Connection:
         if session_id:
             msg["sessionId"] = session_id
 
-        marker = self._j.cdp_start(method, params)
+        marker = self._j.cdp_start(method, params) if trace else None
         try:
             self._t.send(msg)
         except EOFError as e:

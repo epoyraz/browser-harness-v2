@@ -56,13 +56,122 @@ Measured with the same AST-based counter: 5,654 → 5,560 code lines and 8,042 �
 runtime lines. The full unit suite, 45/45 live form checks, 17/17 parallel/safety checks,
 and the late-form observer benchmark preserve behavior with zero submissions.
 
+## Harness benchmark telemetry follow-up — 2026-08-23
+
+Evidence came from the first v2-only harness benchmark: 38 attempted cells produced 25
+non-CAPTCHA tasks (five in each category), with 13 CAPTCHA exclusions. Candidate c02 did
+not beat its five matched baseline tasks: agent time was 14.3% higher, input tokens 80.2%
+higher, actual CDP calls 1.2% higher, and commands 8.8% higher; it scored 3/5 versus an
+audited 4/5 baseline. Treat that as a stop signal, not as evidence that an optimization
+worked. The full report and raw-run analysis are intentionally outside this repository in
+the workspace root's `tmp/` directory.
+
+The same telemetry justified and live-validated the runtime/session work already present in
+the working tree: bounded navigation bursts, session-scoped runtime/domain setup, lazy
+isolated worlds, cached page adoption, bounded `open_page`/`open_pages` digests, and removal
+of duplicate recording waits. Five sequential fresh read-only clients used 17 actual CDP
+calls in the post-run live check, with four target-cache hits. The unchecked items below are
+the remaining general-purpose work; none may depend on benchmark task IDs, answer strings,
+or site-specific selectors.
+
+- [ ] **P0. Versioned semantic digest and reversible output budget**
+      (extends canonical item 16 and phase item 25b)
+
+      Cache the bounded page digest as versioned semantic blocks (headings, paragraphs,
+      lists, tables, controls, and link groups). A repeated read of an unchanged document
+      should return block references and metadata instead of replaying the same text. A
+      meaningful DOM mutation should return only changed blocks. Continue through stable
+      block cursors rather than raw character offsets. Apply one output ceiling to every
+      agent-facing helper and batch; spill overflow to the content-addressed store required
+      by item 16. Journal counts, truncation, block digests, and repeated-output bytes, never
+      page text or form values.
+
+      *Done when:* an unchanged second read emits no repeated content; a fixture mutation
+      returns only its changed semantic blocks; a stale cursor fails with a typed document-
+      version outcome; an accidental multi-megabyte value cannot flood stdout; and the full
+      value remains losslessly retrievable by digest.
+
+- [ ] **P1. Action-result fusion above the completed click delta**
+
+      Phase item 17 already makes clicks report URL, target, dialog, and DOM-mutation deltas.
+      Extend the general action boundary so click, type, select, and form writes can also
+      return the bounded changed semantic region plus their observed validation state. This
+      should replace the common action → `snapshot()`/`read_page()` → model-decision loop,
+      not add another unconditional full-page read. Never infer success merely because a
+      mutation happened.
+
+      *Done when:* representative navigation, modal, validation-error, combobox, and form
+      fixtures each need one action helper to expose the relevant consequence; the result is
+      hard-capped and typed; and a no-op or unrelated mutation cannot be reported as success.
+
+- [ ] **P1. Adaptive usable-navigation grace with a strict invariant**
+
+      Use session-local measurements of parsed-content readiness, lifecycle timing, and
+      network quiescence to reduce conservative waiting without storing cross-user origin
+      history. Clamp adaptation to documented bounds and keep `usable_after=None` as exact
+      strict lifecycle behavior. Optimization must never turn a partially rendered SPA header
+      into a complete-page claim.
+
+      *Done when:* stalled-subresource fixtures return useful content earlier, delayed-data
+      SPA fixtures remain complete, strict mode is byte-for-byte unchanged, and real-browser
+      telemetry shows the saved wait without increasing navigation or content failures.
+
+- [ ] **P1. Recording profiles with measured cost**
+
+      Add explicit `evidence`, `review`, and `cinematic` profiles over the concurrency-safe
+      recorder. Evidence mode captures the minimum state-changing proof required by a fixed
+      benchmark manifest; review keeps richer diagnostic state; cinematic may retain every
+      visual beat. Record screenshot wall time, CDP calls, bytes, and frame suppression by
+      reason. Never silently drop the only frame proving an action's consequence.
+
+      *Done when:* one workflow produces deterministic profile-specific frame counts, every
+      retained frame remains bound to its helper span and target, the benchmark pins its
+      profile, and telemetry reports the observability overhead separately from browser work.
+
+- [ ] **P2. Automatic bounded read-only endpoint extraction**
+      (extends completed phase item 22)
+
+      Promote already observed, same-origin public GET/HEAD JSON endpoints into one counted
+      `fetch_all` plan when doing so replaces repeated page navigation. Require explicit URL,
+      response-count, byte, concurrency, and retry ceilings; preserve input order and typed
+      failures. Never invent endpoints, widen origin scope, issue mutating methods, or treat an
+      authenticated response as authority to transmit data.
+
+      *Done when:* a fixture with discoverable pagination reduces N navigation/decision loops
+      to one bounded read, returns complete ordered accounting, refuses cross-origin and
+      mutating candidates, and falls back to normal browser interaction when evidence is
+      ambiguous.
+
+- [ ] **Proof gate. Semantically preflight and rerun c03 before claiming a win**
+
+      Before paying for a model run, verify that each task dependency is usable: no CAPTCHA or
+      authentication wall, supplied pages still contain the promised subject, and the
+      configured search page returns at least one real result rather than merely HTTP 200.
+      Compare the saved v2 baseline with the post-run v2 tree only—never v1—in randomized
+      paired order with at least three repeats per task and one immutable full-response judge
+      contract. Keep task availability, browser capability, and product safety as separate
+      outcomes.
+
+      *Done when:* the report includes paired distributions for agent time, input tokens,
+      actual CDP calls, model command count, and pass preservation; CAPTCHA/stale-source
+      replacements come from a predeclared category queue; and no speed claim survives a
+      material reliability regression.
+
+Existing canonical item 7 remains the owner of resource-aware adaptive parallelism. The
+completed phase items for action deltas, event-driven waits, and `fetch_all` are foundations
+for the extensions above, not evidence that those extensions are already complete. V1's
+total-output-length telemetry, binary recording switch, immediate `Page.navigate`, and
+write-only input helpers are adjacent mechanisms only; they do not satisfy these tasks.
+
 ---
 
 ## Top 20 impact backlog — execute in this order
 
-This is the canonical next-work queue. The phase plan below remains the build history and
-design evidence; open items repeated there are cross-referenced here rather than being a
-second priority list.
+This architectural queue and the dated benchmark follow-up immediately above are the
+canonical next-work record. The follow-up's P0 extends item 16; its P1/P2 work must not jump
+unresolved correctness, safety, or lifecycle prerequisites in this queue. The phase plan
+below remains the build history and design evidence; open items repeated there are
+cross-referenced here rather than being a second priority list.
 
 - [x] **1. Browser-context isolation and leases (D12)**
 
@@ -154,6 +263,10 @@ second priority list.
 
       *Done when:* a repeatable pressure fixture makes concurrency scale down predictably,
       preserves complete results, and never launches another Chrome instance as compensation.
+
+      *2026-08-23 benchmark follow-up:* this item remains the sole owner of the report's P2
+      resource-aware parallelism idea. Queue delay, target count, renderer pressure, and
+      event-loop telemetry must drive the decision; do not add a second parallel scheduler.
 
 - [ ] **8. Fair global daemon admission control**
 
@@ -262,6 +375,11 @@ second priority list.
 
       *Done when:* multi-megabyte values cannot flood stdout or the journal and can be fetched
       losslessly later by digest.
+
+      *2026-08-23 benchmark follow-up:* this item now also owns versioned semantic page blocks,
+      stable block cursors, unchanged-content references, and per-invocation output/truncation
+      counters described in the P0 follow-up above. One cache and budget mechanism must serve
+      page reads, batches, raw `js()`/`cdp()` values, diagnostics, and journals.
 
 - [ ] **17. Browser/daemon chaos suite**
 

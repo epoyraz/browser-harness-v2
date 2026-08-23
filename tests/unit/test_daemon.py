@@ -17,6 +17,7 @@ from harness.connect.daemon import (
 )
 from harness.connect.endpoint import BrowserIdentity
 from harness.connect.session import DEFAULT_DOMAINS
+from harness.core.journal import Journal
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError
 from tests.fake_browser import FakeBrowser
 
@@ -31,7 +32,7 @@ def runtime(monkeypatch):
     return d
 
 
-def _serve(name, browser, *, linger=DEATH_LINGER):
+def _serve(name, browser, *, linger=DEATH_LINGER, journal=None, trace_cdp=True):
     """A daemon that is actually ready, not merely bound.
 
     `start()` publishes the IPC endpoint and opens the browser on a background thread, so
@@ -42,11 +43,62 @@ def _serve(name, browser, *, linger=DEATH_LINGER):
     reports readiness rather than waiting for it — so without this the ping test failed
     roughly one full-suite run in ten, and only under load.
     """
-    daemon = Daemon(name, browser, linger=linger).start()
+    daemon = Daemon(
+        name, browser, linger=linger, journal=journal, trace_cdp=trace_cdp
+    ).start()
     thread = threading.Thread(target=daemon.serve_forever, daemon=True)
     thread.start()
     assert daemon._settled.wait(10), "daemon never finished connecting"
     return daemon
+
+
+def test_operational_daemon_journal_can_omit_duplicate_cdp(runtime, tmp_path):
+    journal = Journal(tmp_path / "daemon.jsonl", session="daemon-only")
+    daemon = _serve(
+        "operational-journal", FakeBrowser("a"), journal=journal, trace_cdp=False
+    )
+    try:
+        request("operational-journal", {"meta": "attach", "target_id": "a"})
+        request(
+            "operational-journal",
+            {"method": "Runtime.evaluate", "target_id": "a"},
+        )
+    finally:
+        daemon.stop()
+
+    entries = journal.entries()
+    assert any(entry.get("kind") == "daemon" for entry in entries)
+    assert not [entry for entry in entries if entry.get("kind") == "cdp"]
+
+
+def test_runtime_and_diagnostic_setup_are_cached_across_clients(runtime):
+    browser = FakeBrowser("a")
+    daemon = _serve("prepared-session", browser)
+    try:
+        for _ in range(2):
+            assert request(
+                "prepared-session", {"meta": "prepare_runtime", "target_id": "a"}
+            )["ok"]
+            assert request(
+                "prepared-session",
+                {
+                    "meta": "ensure_domains",
+                    "target_id": "a",
+                    "domains": ["Log", "Performance"],
+                },
+            )["ok"]
+    finally:
+        daemon.stop()
+
+    assert len(
+        [
+            call
+            for call in browser.calls
+            if call.get("method") == "Page.addScriptToEvaluateOnNewDocument"
+        ]
+    ) == 2
+    for method in ("Runtime.addBinding", "Log.enable", "Performance.enable"):
+        assert len([call for call in browser.calls if call.get("method") == method]) == 1
 
 
 def _settle(predicate, timeout: float = 3.0) -> None:
@@ -132,6 +184,25 @@ def test_full_peer_queue_closes_and_terminates_its_blocked_writer():
     peer._writer.join(timeout=2)
     assert peer.closed.is_set()
     assert not peer._writer.is_alive(), "a full queue must not strand its writer"
+    assert peer.stats()["overflows"] == 1
+
+
+def test_default_peer_queue_absorbs_a_normal_navigation_event_burst():
+    """A client reading normally must not be evicted by one scheduler-sized event burst."""
+    sock = _BlockingSendSocket()
+    peer = _Peer(sock)
+
+    try:
+        assert peer.send({"event": {"method": "Page.frameStartedLoading"}})
+        assert sock.entered.wait(2), "writer never entered the simulated blocked sendall"
+        for index in range(256):
+            assert peer.send({"event": {"method": "Network.dataReceived", "n": index}})
+        stats = peer.stats()
+        assert stats["overflows"] == 0
+        assert stats["peak_frames"] >= 256
+    finally:
+        peer.close()
+        peer._writer.join(timeout=2)
 
 
 def test_one_stalled_peer_cannot_delay_events_for_a_healthy_peer():
@@ -166,6 +237,45 @@ def test_one_stalled_peer_cannot_delay_events_for_a_healthy_peer():
 
 
 # --- TODO 7's done-when ------------------------------------------------------
+
+def test_sequential_clients_reuse_a_live_page_without_rediscovery(runtime):
+    browser = FakeBrowser("a")
+    daemon = _serve("cached-adoption", browser)
+    try:
+        first = daemon._meta("adopt", {})
+        target_id = first["value"]["target_id"]
+        daemon._meta("attach", {"target_id": target_id})
+        discoveries = len(
+            [call for call in browser.calls if call.get("method") == "Target.getTargets"]
+        )
+
+        second = daemon._meta("adopt", {})
+
+        assert second["value"]["target_id"] == target_id
+        assert len(
+            [call for call in browser.calls if call.get("method") == "Target.getTargets"]
+        ) == discoveries
+    finally:
+        daemon.stop()
+
+
+def test_target_info_change_removes_non_drivable_cached_page(runtime):
+    browser = FakeBrowser("a")
+    daemon = _serve("invalidated-adoption", browser)
+    try:
+        first = daemon._meta("adopt", {})
+        daemon._meta("attach", {"target_id": first["value"]["target_id"]})
+        browser.targets["a"]["url"] = "chrome://settings/"
+        browser.emit(
+            "Target.targetInfoChanged",
+            {"targetInfo": dict(browser.targets["a"])},
+        )
+        _settle(lambda: "a" not in daemon._page_infos)
+
+        second = daemon._meta("adopt", {})
+        assert second["value"]["target_id"] != "a"
+    finally:
+        daemon.stop()
 
 def test_two_clients_drive_two_tabs_concurrently(runtime):
     """Two clients, two tabs, one websocket — overlapping, not queued, and never crossed.

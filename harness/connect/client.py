@@ -426,6 +426,44 @@ class RemoteRegistry:
     def ensure_live(self, target_id: str) -> Session:
         return self.ready_session(target_id)
 
+    def prepare_runtime(self, target_id: str) -> Session:
+        """Ask the persistent daemon to prepare this session generation once."""
+        got = self._conn._call(
+            {"meta": "prepare_runtime", "target_id": target_id}, timeout=30.0
+        )
+        if not got.get("ok"):
+            raise HarnessError.of(
+                fail(
+                    Class(got.get("class", Class.TARGET_GONE.value)),
+                    got.get("detail", ""),
+                    **(got.get("observed") or {}),
+                )
+            )
+        value = got["value"]
+        session = Session(target_id=target_id, session_id=value["session_id"])
+        with self._lock:
+            self._cache[target_id] = session
+        return session
+
+    def ensure_domains(self, target_id: str, domains: tuple[str, ...]) -> Session:
+        got = self._conn._call(
+            {"meta": "ensure_domains", "target_id": target_id, "domains": list(domains)},
+            timeout=30.0,
+        )
+        if not got.get("ok"):
+            raise HarnessError.of(
+                fail(
+                    Class(got.get("class", Class.TARGET_GONE.value)),
+                    got.get("detail", ""),
+                    **(got.get("observed") or {}),
+                )
+            )
+        value = got["value"]
+        session = Session(target_id=target_id, session_id=value["session_id"])
+        with self._lock:
+            self._cache[target_id] = session
+        return session
+
     def forget(self, target_id: str) -> None:
         with self._lock:
             self._cache.pop(target_id, None)

@@ -62,7 +62,13 @@ MAX_DAEMON_FRAME = MAX_FRAME + (1 << 20)
 #: Per-client output is owned by one writer thread.  Count and bytes are both bounded:
 #: bounding only the frame count would still permit dozens of 100 MiB CDP frames to sit
 #: behind a peer that stopped reading.
-_PEER_OUTBOUND_FRAMES = max(1, int(os.environ.get("BH_PEER_OUTBOUND_FRAMES") or 64))
+# A complex navigation can emit well over 64 small Page/Runtime/Network events before the
+# Windows socket writer gets its next time slice. 64 therefore treated a healthy reader as
+# stalled and severed its IPC connection in the middle of goto(); the next `bh` invocation
+# could immediately read the loaded page, proving that neither Chrome nor the daemon had
+# died. Keep the byte ceiling as the real memory bound, but give ordinary event bursts room
+# to drain. A genuinely stalled peer is still evicted by that byte ceiling (or this count).
+_PEER_OUTBOUND_FRAMES = max(1, int(os.environ.get("BH_PEER_OUTBOUND_FRAMES") or 2048))
 _PEER_OUTBOUND_BYTES = max(
     MAX_DAEMON_FRAME + 1,  # one maximum legal line plus its newline delimiter
     int(os.environ.get("BH_PEER_OUTBOUND_BYTES") or (MAX_DAEMON_FRAME + 1)),
@@ -85,8 +91,9 @@ class _Peer:
     """
 
     __slots__ = (
-        "_buffered", "_max_bytes", "_outbound", "_state_lock", "_writer",
-        "closed", "sock",
+        "_buffered", "_enqueued_bytes", "_enqueued_frames", "_max_bytes",
+        "_outbound", "_overflows", "_peak_bytes", "_peak_frames", "_sent_bytes",
+        "_sent_frames", "_state_lock", "_writer", "closed", "sock",
     )
 
     _STOP = object()
@@ -98,6 +105,13 @@ class _Peer:
         self._outbound: queue.Queue[bytes | object] = queue.Queue(maxsize=max(1, max_frames))
         self._max_bytes = max(1, max_bytes)
         self._buffered = 0
+        self._enqueued_frames = 0
+        self._enqueued_bytes = 0
+        self._sent_frames = 0
+        self._sent_bytes = 0
+        self._peak_frames = 0
+        self._peak_bytes = 0
+        self._overflows = 0
         self._state_lock = threading.Lock()
         self._writer = threading.Thread(
             target=self._write, name="bh-daemon-peer-writer", daemon=True)
@@ -120,8 +134,14 @@ class _Peer:
                     # Includes the frame while sendall is in progress.  A writer blocked
                     # in the kernel therefore still consumes the peer's byte budget.
                     self._buffered += len(line)
+                    self._enqueued_frames += 1
+                    self._enqueued_bytes += len(line)
+                    self._peak_frames = max(self._peak_frames, self._outbound.qsize())
+                    self._peak_bytes = max(self._peak_bytes, self._buffered)
                     return True
         if overflow:
+            with self._state_lock:
+                self._overflows += 1
             self.close()
             return False
 
@@ -145,12 +165,30 @@ class _Peer:
                 return
             try:
                 self.sock.sendall(frame)
+                with self._state_lock:
+                    self._sent_frames += 1
+                    self._sent_bytes += len(frame)
             except OSError:
                 self.close()
                 return
             finally:
                 with self._state_lock:
                     self._buffered -= len(frame)
+
+    def stats(self) -> dict[str, int]:
+        """Privacy-safe transport pressure for diagnosing retries and disconnects."""
+        with self._state_lock:
+            return {
+                "enqueued_frames": self._enqueued_frames,
+                "enqueued_bytes": self._enqueued_bytes,
+                "sent_frames": self._sent_frames,
+                "sent_bytes": self._sent_bytes,
+                "peak_frames": self._peak_frames,
+                "peak_bytes": self._peak_bytes,
+                "overflows": self._overflows,
+                "buffered_bytes": self._buffered,
+                "queued_frames": self._outbound.qsize(),
+            }
 
     def close(self) -> None:
         with self._state_lock:
@@ -174,14 +212,21 @@ class Daemon:
 
     def __init__(self, name: str, transport: Any, *, journal: Journal | None = None,
                  token: str | None = None, linger: float = DEATH_LINGER,
-                 browser_identity: BrowserIdentity | None = None):
+                 browser_identity: BrowserIdentity | None = None,
+                 trace_cdp: bool = True):
         self.name = ipc.check_name(name)
         self.journal = journal or Journal(None)
         # A callable defers the handshake until after the endpoint is published; a live
         # transport is used as-is, which is what every unit test passes.
         self._make_transport = transport if callable(transport) else None
+        # A foreground daemon and every short-lived client can inherit the same
+        # ``BH_JOURNAL`` path. Tracing here as well as at the client boundary writes every
+        # protocol round trip twice and turns telemetry into measurable I/O. Directly
+        # constructed daemons retain their traced default for tests and embedders; the
+        # foreground server disables only that duplicate protocol stream.
+        cdp_journal = self.journal if trace_cdp else Journal(None)
         self.conn = Connection(None if self._make_transport else transport,
-                               journal=self.journal)
+                               journal=cdp_journal)
         self.sessions = SessionRegistry(self.conn, journal=self.journal)
         self._token = token
         self._browser_identity = browser_identity
@@ -207,6 +252,12 @@ class Daemon:
         # connection rather than needing release calls.
         self._adoptions: dict[_Peer, str] = {}
         self._adopt_lock = threading.Lock()
+        # Page target metadata is already streamed by Target.setDiscoverTargets. Retaining
+        # it lets the next short-lived client reuse an attached page without issuing
+        # Target.getTargets merely to rediscover the same target. Lifecycle events remove
+        # dead/non-drivable entries; reservations are still decided under _adopt_lock.
+        self._page_infos: dict[str, dict[str, Any]] = {}
+        self._target_info_lock = threading.Lock()
         #: Set once the browser handshake has *finished*, successfully or not. The IPC
         #: endpoint is published before this, so a client can always reach the daemon and
         #: be told what is pending instead of waiting out a silent timeout.
@@ -282,6 +333,7 @@ class Daemon:
             self.conn.start()
             self.conn.subscribe(self._watch_disconnect)
             self.conn.subscribe(self._watch_leases)
+            self.conn.subscribe(self._watch_target_infos)
             self.conn.subscribe(self._broadcast)
             self.sessions.discover()
         except Exception as e:                       # noqa: BLE001 — reported, not raised
@@ -462,6 +514,7 @@ class Daemon:
             # longer holds `_adopt_lock` across CDP, so it can otherwise reserve a target
             # in the tiny gap after cleanup found no mapping but before close was visible.
             peer.close()
+            self.journal.write("daemon", event="client_closed", **peer.stats())
             with self._plock:
                 self._peers.discard(peer)
             with self._adopt_lock:
@@ -499,6 +552,9 @@ class Daemon:
         frame = {"event": msg}
         for peer in peers:
             if not peer.send(frame):
+                self.journal.write(
+                    "daemon", event="peer_evicted", method=msg.get("method"),
+                    **peer.stats())
                 with self._plock:
                     self._peers.discard(peer)
 
@@ -528,6 +584,10 @@ class Daemon:
                 method, request.get("params") or {},
                 session_id=session_id,
                 timeout=float(request.get("timeout", 20.0)),
+                # The client journals this exact forwarded method and helper parent. The
+                # daemon journal is reserved for browser calls the daemon adds itself
+                # (attach/domain/runtime preparation), yielding one record per real call.
+                trace=False,
             )
             return _value(ok(result))
         except HarnessError as e:
@@ -583,7 +643,7 @@ class Daemon:
                          "client can spawn one that reconnects")
             return out
         if (pending := self._browser_pending(20.0)) is not None and meta in (
-                "attach", "forget", "adopt",
+                "attach", "prepare_runtime", "ensure_domains", "forget", "adopt",
                 "lease_create", "lease_claim", "lease_release"):
             return pending
         if meta == "adopt":
@@ -595,14 +655,41 @@ class Daemon:
             # the page the first is working in, and never yanks the user's focus either.
             exclude = {str(t) for t in (request.get("exclude") or [])}
             try:
+                pick = None
+                created = False
+                cache_hit = False
+                # Only reuse targets with a live registered session. That makes a missed
+                # target event degrade to the old discovery path instead of handing a new
+                # client a stale id.
+                live = set(self.sessions.live_targets)
+                with self._adopt_lock, self._lease_lock:
+                    taken = set(self._adoptions.values()) | set(self._lease_for_target) | exclude
+                    with self._target_info_lock:
+                        pick = next(
+                            (
+                                target_id
+                                for target_id, info in self._page_infos.items()
+                                if target_id in live
+                                and target_id not in taken
+                                and info.get("type") == "page"
+                                and str(info.get("url", "")).startswith(_DRIVABLE)
+                            ),
+                            None,
+                        )
+                    if pick is not None:
+                        if peer is not None and not peer.closed.is_set():
+                            self._adoptions[peer] = pick
+                        cache_hit = True
+
                 # Never hold either state lock across a CDP round trip. Event subscribers
                 # run on the one CDP reader thread, and `_watch_leases` needs `_lease_lock`;
                 # blocking that reader while waiting for its reply deadlocks until timeout.
                 # The target list may be stale by the time we lock, but `taken` is current,
                 # so concurrent leases/adoptions still cannot select the same target.
-                while True:
+                while pick is None:
                     infos = self.conn.request("Target.getTargets", timeout=10.0) \
                         .get("targetInfos") or []
+                    self._remember_target_infos(infos)
                     with self._adopt_lock, self._lease_lock:
                         # An opaque lease reserves its target from all implicit adoption.
                         # Selection and reservation are one atomic state transition.
@@ -636,15 +723,33 @@ class Daemon:
                         if peer is not None and not peer.closed.is_set():
                             self._adoptions[peer] = pick
                         created = True
+                        self._remember_target_infos(
+                            [{"targetId": pick, "type": "page", "url": "about:blank"}]
+                        )
                         break
             except HarnessError as e:
                 return e.outcome.to_json()
             self.journal.write("daemon", event="target_adopted", target_id=pick,
-                               created=created)
+                               created=created, cache_hit=cache_hit)
             return _value(ok({"target_id": pick, "created": created}))
         if meta == "attach":
             try:
                 return _value(ok(self.sessions.ready_session(request["target_id"]).to_json()))
+            except HarnessError as e:
+                return e.outcome.to_json()
+        if meta == "prepare_runtime":
+            try:
+                session = self.sessions.prepare_runtime(request["target_id"])
+                return _value(ok(session.to_json()))
+            except HarnessError as e:
+                return e.outcome.to_json()
+        if meta == "ensure_domains":
+            domains = tuple(
+                str(domain) for domain in (request.get("domains") or []) if domain
+            )
+            try:
+                session = self.sessions.ensure_domains(request["target_id"], domains)
+                return _value(ok(session.to_json()))
             except HarnessError as e:
                 return e.outcome.to_json()
         if meta == "forget":
@@ -707,6 +812,34 @@ class Daemon:
             if lease is not None:
                 self._leases.pop(lease, None)
 
+    def _watch_target_infos(self, msg: dict[str, Any]) -> None:
+        """Maintain the drivable-page cache from the lifecycle stream already enabled."""
+        method = msg.get("method")
+        params = msg.get("params") or {}
+        if method in ("Target.targetCreated", "Target.targetInfoChanged"):
+            info = params.get("targetInfo") or {}
+            self._remember_target_infos([info])
+            return
+        if method not in ("Target.targetDestroyed", "Target.targetCrashed"):
+            return
+        target_id = str(params.get("targetId") or "")
+        if target_id:
+            with self._target_info_lock:
+                self._page_infos.pop(target_id, None)
+
+    def _remember_target_infos(self, infos: list[dict[str, Any]]) -> None:
+        with self._target_info_lock:
+            for info in infos:
+                target_id = str(info.get("targetId") or "")
+                if not target_id:
+                    continue
+                if info.get("type") == "page" and str(info.get("url", "")).startswith(
+                    _DRIVABLE
+                ):
+                    self._page_infos[target_id] = dict(info)
+                else:
+                    self._page_infos.pop(target_id, None)
+
     def _drop_lease(self, lease: str) -> bool:
         with self._lease_lock:
             target_id = self._leases.pop(lease, None)
@@ -737,7 +870,11 @@ def serve(name: str = "default", *, journal_path: str | None = None) -> int:
     from harness.connect.endpoint import binding_for, resolve
 
     resolution = resolve(binding_for(name))
-    journal = Journal(journal_path, session=name) if journal_path else Journal(None)
+    journal = (
+        Journal(journal_path, session=name, cdp_origin="daemon_internal")
+        if journal_path
+        else Journal(None)
+    )
     journal.write("daemon", event="serving", ws=resolution.ws_url,
                   strategy=resolution.strategy)
     # A factory, not a live transport: constructing WebSocketTransport performs the

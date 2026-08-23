@@ -840,7 +840,6 @@ class Tab:
         #: this survives both a document replacement and a session recovery, and
         #: `Page.getFrameTree` is only ever paid before the first navigation is seen.
         self._main_frame: str | None = None
-        self._bound = False
         conn.subscribe(self._on_event)
         try:
             self._install_runtime()
@@ -869,7 +868,6 @@ class Tab:
             # here, before the call that noticed the change proceeds.
             self._session_id = sid
             self._world_ctx = None
-            self._bound = False
             self._rearm_session(sid)
         else:
             self._session_id = sid
@@ -878,29 +876,19 @@ class Tab:
     def _rearm_session(self, sid: str) -> None:
         """Reinstall per-session state on a replacement session, quietly but journaled."""
         self._j.write("note", event="session_rearmed", target_id=self.target_id)
-        self._register_runtime(sid)
-        self._ensure_world()
-
-    def _register_runtime(self, sid: str) -> None:
-        """The one place the injected scripts are registered — first attach and every
-        session recovery go through the same two calls, so they cannot drift apart.
-        SAFETY_JS is a safety property; a drifted copy that forgot it would announce
-        nothing."""
-        self._conn.request(
-            "Page.addScriptToEvaluateOnNewDocument",
-            {"source": SAFETY_JS, "runImmediately": True},
-            session_id=sid, timeout=10.0)
-        self._conn.request(
-            "Page.addScriptToEvaluateOnNewDocument",
-            {"source": RUNTIME_JS, "worldName": WORLD, "runImmediately": True},
-            session_id=sid, timeout=10.0)
+        prepared = self._reg.prepare_runtime(self.target_id)
+        if prepared.session_id != sid:
+            self._session_id = prepared.session_id
 
     def _install_runtime(self) -> None:
         """Item 18: the registry + mutation counter exist on every document this tab will
         ever load, so refs survive navigation by reinstallation, not by luck — and they
         live in an isolated world, so the page never sees them."""
-        self._register_runtime(self._sid())
-        self._ensure_world()                                   # and for the current document
+        prepared = self._reg.prepare_runtime(self.target_id)
+        self._session_id = prepared.session_id
+        # Do not create an isolated world here. Read-only navigation, page digests,
+        # screenshots, and raw main-world JS do not use it. The first ref/wait operation
+        # creates it lazily, avoiding frame-tree/world calls in research-only processes.
 
     def _ensure_world(self) -> int | None:
         """Isolated-world context id for the main frame, created on demand.
@@ -941,16 +929,6 @@ class Tab:
         # returned the identical context id. So the injection was a round trip that
         # re-ran an idempotent script over itself. That is Chrome behaviour and not a
         # protocol guarantee, so `_world_js` heals a world that does come back empty.
-        if not self._bound:
-            try:
-                # executionContextName scopes the binding to the isolated world, so the
-                # page's own `window` never gains a `__bhNotify` to detect.
-                self._conn.request("Runtime.addBinding",
-                                   {"name": BINDING, "executionContextName": WORLD},
-                                   session_id=sid, timeout=10.0)
-                self._bound = True
-            except HarnessError:
-                pass                  # waits fall back to their timeout, nothing else breaks
         self._world_ctx = ctx
         return ctx
 
@@ -1174,12 +1152,13 @@ class Tab:
         self._diagnostic_events.clear()
         self._diagnostics_started = time.time()
         enabled = []
-        for method in ("Runtime.enable", "Network.enable", "Log.enable", "Performance.enable"):
-            try:
-                self.cdp(method, timeout=5.0)
-                enabled.append(method.split(".", 1)[0])
-            except HarnessError:
-                pass
+        # Domains persist for the CDP session, just like injected scripts. Ask the daemon's
+        # registry to enable these once instead of paying two CDP calls in every process.
+        try:
+            self._reg.ensure_domains(self.target_id, ("Log", "Performance"))
+            enabled.extend(("Log", "Performance"))
+        except HarnessError:
+            pass
         self._diagnostics_enabled = True
         return {"enabled": enabled, "event_limit": self._diagnostic_events.maxlen}
 
@@ -1196,24 +1175,28 @@ class Tab:
                        for row in raw if row.get("name") in keep}
         except HarnessError:
             pass
+        # Resource aggregation and the event-loop probe both read the same Performance
+        # timeline. One evaluation returns both, rather than rebuilding an isolated world
+        # and crossing CDP twice. This is observability code, so keep it in the main world
+        # and independent of the harness runtime.
         try:
-            resources = self._world_js("""(() => {
-              const rows = performance.getEntriesByType('resource');
-              const kinds = {}; let transfer = 0; let longest = 0;
-              for (const r of rows) { const k = r.initiatorType || 'other';
-                kinds[k] = (kinds[k] || 0) + 1; transfer += r.transferSize || 0;
-                longest = Math.max(longest, r.duration || 0); }
-              return {count: rows.length, by_type: kinds, transfer_bytes: transfer,
-                      longest_ms: Math.round(longest)};
-            })()""", timeout=5.0) or {}
-        except HarnessError:
-            resources = {}
-        try:
-            event_loop_ms = float(self._world_js("""await new Promise(resolve => {
-              const start = performance.now(); setTimeout(() => resolve(performance.now()-start), 0);
-            })""", timeout=5.0) or 0)
-        except (HarnessError, TypeError, ValueError):
-            event_loop_ms = 0.0
+            probe = self._main_js("""await new Promise(resolve => {
+              const start = performance.now();
+              setTimeout(() => {
+                const rows = performance.getEntriesByType('resource');
+                const kinds = {}; let transfer = 0; let longest = 0;
+                for (const r of rows) { const k = r.initiatorType || 'other';
+                  kinds[k] = (kinds[k] || 0) + 1; transfer += r.transferSize || 0;
+                  longest = Math.max(longest, r.duration || 0); }
+                resolve({resources: {count: rows.length, by_type: kinds,
+                         transfer_bytes: transfer, longest_ms: Math.round(longest)},
+                         event_loop_ms: performance.now() - start});
+              }, 0);
+            })""", timeout=5.0) or {}
+            resources = probe.get("resources") or {}
+            event_loop_ms = float(probe.get("event_loop_ms") or 0)
+        except (HarnessError, AttributeError, TypeError, ValueError):
+            resources, event_loop_ms = {}, 0.0
         try:
             frame_tree = self.cdp("Page.getFrameTree", timeout=5.0).get("frameTree") or {}
             def count_frames(node: dict[str, Any]) -> int:
@@ -1278,17 +1261,21 @@ class Tab:
 
     # -- item 16 + 19: navigation and event-driven waits -------------------
 
-    def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load") -> dict[str, Any]:
+    def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load",
+             usable_after: float | None = 3.0, digest: bool = False,
+             max_chars: int = 6_000, max_links: int = 20,
+             content_only: bool = True) -> dict[str, Any]:
         """Returns `{requested, landed, lifecycle}` or raises `NavigationFailed`/`Timeout`.
         A 404 error page cannot be reported as a title (v1 did exactly that).
 
-        `lifecycle` says which condition ended the wait, and there are three:
+        `lifecycle` says which condition ended the wait, and there are four:
 
         | value       | meaning |
         |-------------|---------|
         | `"load"`    | the requested event arrived — the normal case |
         | `"settled"` | it did not, but the document parsed and the network went quiet |
-        | `"timeout"` | neither, yet the document is demonstrably usable |
+        | `"usable"`  | after `usable_after`, the parsed document already had content |
+        | `"timeout"` | neither, yet the document was usable at the final deadline |
 
         The last two exist because *one stalled subresource holds `load` forever*. A single
         image, stylesheet or iframe that is accepted and never answered is enough: measured
@@ -1305,6 +1292,10 @@ class Tab:
         healthy page Chrome emits `DOMContentLoaded` → `load` → `networkAlmostIdle`, so
         `load` wins the race and nothing changes. Only when `load` is absent does the pair
         arrive without it, which is precisely the stalled case.
+
+        Set `usable_after=None` when the exact lifecycle event is a hard requirement.
+        `digest=True` folds a bounded page read into the URL check, so `open_page()` costs
+        no more CDP round trips than `goto()` followed by its ordinary landing check.
         """
         seen: set[str] = set()
 
@@ -1328,23 +1319,65 @@ class Tab:
                                              "networkAlmostIdle"} <= seen
 
         loader = None
+        lifecycle = "timeout"
+        wait_started = time.perf_counter()
+        deadline = time.monotonic() + timeout
         with self._j.call("goto", url=url), \
              self._armed(lambda m: m.get("method") == "Page.lifecycleEvent") as w:
             nav = self.cdp("Page.navigate", {"url": url}, timeout=timeout)
             if err := nav.get("errorText"):
                 raise NavigationFailed(err, requested=url, landed=self._try_url())
             loader = nav.get("loaderId")
-            hit = w.wait_match(satisfied, timeout)
+            remaining = max(0.0, deadline - time.monotonic())
+            hit = None
+            usable = False
+            # The protocol event remains the zero-extra-call fast path. Only a page that
+            # is still waiting after the grace window pays one tiny readiness evaluation.
+            # On the benchmark, Page.navigate itself averaged ~0.5 s while goto averaged
+            # ~2.3 s: most of the difference was waiting after useful content existed.
+            grace = None if usable_after is None else max(0.0, float(usable_after))
+            if wait_until == "load" and grace is not None and grace < remaining:
+                hit = w.wait_match(satisfied, grace)
+                if hit is None:
+                    usable = self._usable_document(min(2.0, max(
+                        0.1, deadline - time.monotonic())))
+                    # Prefer an exact/settled event that raced the readiness evaluation.
+                    raced = w.wait_match(satisfied, 0.0)
+                    if raced is not None:
+                        hit, usable = raced, False
+            if hit is None and not usable:
+                hit = w.wait_match(satisfied, max(0.0, deadline - time.monotonic()))
             got = (hit.get("params") or {}).get("name") if hit else None
             lifecycle = ("load" if got == wait_until
-                         else "settled" if hit is not None else "timeout")
-            if hit is None and not self._usable_document(timeout):
+                         else "settled" if hit is not None
+                         else "usable" if usable else "timeout")
+            if hit is None and not usable and not self._usable_document(
+                    min(timeout, 5.0)):
                 raise Timeout(f"no {wait_until!r} lifecycle event in {timeout}s",
                               requested=url, wait_until=wait_until, lifecycle_seen=sorted(seen))
-        landed = self._try_url() or url
+        self._j.write("note", event="navigation_wait", target_id=self.target_id,
+                      lifecycle=lifecycle, lifecycle_seen=sorted(seen),
+                      wait_ms=round((time.perf_counter() - wait_started) * 1000, 1),
+                      usable_after=usable_after)
+        page = self._page_digest(max_chars=max_chars, max_links=max_links,
+                                 content_only=content_only) if digest else None
+        landed = str((page or {}).get("url") or self._try_url() or url)
         if landed.startswith("chrome-error://"):
             raise NavigationFailed("landed on an error page", requested=url, landed=landed)
-        return {"requested": url, "landed": landed, "lifecycle": lifecycle}
+        result = {"requested": url, "landed": landed, "lifecycle": lifecycle}
+        if digest:
+            result["page"] = page or {}
+        return result
+
+    def open_page(self, url: str, *, timeout: float = 20.0,
+                  wait_until: str = "load", usable_after: float | None = 3.0,
+                  max_chars: int = 6_000, max_links: int = 20,
+                  content_only: bool = True) -> dict[str, Any]:
+        """Navigate and return a bounded research-ready page digest in one helper call."""
+        return self.goto(url, timeout=timeout, wait_until=wait_until,
+                         usable_after=usable_after, digest=True,
+                         max_chars=max_chars, max_links=max_links,
+                         content_only=content_only)
 
     def _usable_document(self, timeout: float) -> bool:
         """Is there a real page here, whatever the lifecycle events say?
@@ -1355,7 +1388,7 @@ class Tab:
         or controls is enough to be worth returning.
         """
         try:
-            state, controls, text = self.js(
+            state, controls, text = self._main_js(
                 "[document.readyState,"
                 " document.querySelectorAll('input,textarea,select,button').length,"
                 " ((document.body && document.body.innerText) || '').trim().length]",
@@ -1372,7 +1405,7 @@ class Tab:
 
     def _try_url(self) -> str | None:
         try:
-            return self.js("location.href", timeout=5.0)
+            return self._main_js("location.href", timeout=5.0)
         except HarnessError:
             return None
 
@@ -2023,14 +2056,116 @@ class Tab:
 
     # -- the rest of the promised surface ----------------------------------
 
-    def page_text(self, max_chars: int = 40_000) -> str:
-        """Rendered text, truncated. `innerText` not `textContent`: the latter includes
-        script bodies and hidden nodes, which is how a "page text" read becomes 200 KB of
-        minified JS."""
-        with self._j.call("page_text"):
-            return self._world_js(
-                f"(document.body ? document.body.innerText : '').slice(0, {max_chars})",
-                timeout=15.0) or ""
+    def _page_digest(self, *, max_chars: int, max_links: int,
+                     content_only: bool, start: int = 0) -> dict[str, Any]:
+        """One main-world evaluation for the bounded page-reading surface."""
+        max_chars = max(0, min(int(max_chars), 100_000))
+        max_links = max(0, min(int(max_links), 500))
+        start = max(0, int(start))
+        source = f"""(() => {{
+          const maxChars = {max_chars}, maxLinks = {max_links}, start = {start};
+          const contentOnly = {"true" if content_only else "false"};
+          const root = {"document.querySelector('main,[role=main],article') || document.body"
+                        if content_only else "document.body"};
+          let raw = String((root && root.innerText) || '');
+          if (contentOnly && root) {{
+            // A native <select> contributes every option to ancestor.innerText. One locale
+            // picker can therefore spend the entire model window on 100 languages before
+            // the actual article or search results begin. Preserve current state, not the
+            // hidden menu: this is the textual digest; snapshot/form_schema expose options.
+            for (const select of root.querySelectorAll('select')) {{
+              const verbose = String(select.innerText || select.textContent || '').trim();
+              const chosen = [...select.selectedOptions]
+                .map(option => String(option.textContent || '').trim()).filter(Boolean);
+              if (!verbose || !chosen.length) continue;
+              raw = raw.replace(verbose, `[selected: ${{chosen.join(', ')}}]`);
+            }}
+          }}
+          raw = raw.replace(/\\r/g, '')
+            .replace(/[ \\t]+\\n/g, '\\n').replace(/\\n{{3,}}/g, '\\n\\n').trim();
+          const visible = el => {{
+            const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+            return !!(r.width && r.height) && s.visibility !== 'hidden' && s.display !== 'none';
+          }};
+          const links = [], seen = new Set();
+          // Main-content links carry far more research value than logo, locale, legal, and
+          // account chrome. Search the selected content root first, then fill any remaining
+          // capacity from the document. This is semantic prioritisation, not site logic.
+          const scopes = root && root !== document.body ? [root, document] : [document];
+          for (const scope of scopes) {{
+            for (const a of scope.querySelectorAll('a[href]')) {{
+              if (links.length >= maxLinks) break;
+              if (scope === document && root && root.contains(a)) continue;
+              if (contentOnly && a.closest('nav,header,footer,aside')) continue;
+              if (!visible(a)) continue;
+              let href;
+              try {{ href = new URL(a.href, location.href).href; }} catch {{ continue; }}
+              if (!/^https?:/i.test(href) || seen.has(href)) continue;
+              seen.add(href);
+              const text = String(a.innerText || a.getAttribute('aria-label') || '')
+                .replace(/\\s+/g, ' ').trim().slice(0, 160);
+              links.push({{text, href}});
+            }}
+            if (links.length >= maxLinks) break;
+          }}
+          const signals = [];
+          const challengeSelector = [
+            'iframe[src*="captcha" i]', 'iframe[src*="challenge" i]',
+            '[id*="captcha" i]', '[class*="captcha" i]', '[data-sitekey]'
+          ].join(',');
+          if (document.querySelector(challengeSelector)) signals.push('challenge_dom');
+          const assets = [...document.querySelectorAll('iframe[src],script[src]')]
+            .map(el => String(el.getAttribute('src') || '')).join(' ').toLowerCase();
+          if (/(?:recaptcha|hcaptcha|captcha-delivery|challenge-platform|turnstile)/.test(assets))
+            signals.push('challenge_asset');
+          const lead = (String(document.title || '') + '\\n' +
+            String((document.body && document.body.innerText) || '').slice(0, 6000))
+            .toLowerCase();
+          const humanPattern = /verify (?:that )?you are human|complete (?:the )?security check|are you (?:a )?robot|unusual traffic|press and hold|human verification/;
+          if (humanPattern.test(lead)) signals.push('human_verification_text');
+          const uniqueSignals = [...new Set(signals)];
+          return {{
+            url: location.href, title: document.title, ready_state: document.readyState,
+            language: document.documentElement.lang || navigator.language || '',
+            text: raw.slice(start, start + maxChars), text_chars: raw.length,
+            text_start: start, text_remaining: Math.max(0, raw.length - start - maxChars),
+            text_truncated: raw.length > start + maxChars, links,
+            challenge: {{detected: uniqueSignals.length > 0,
+              confidence: uniqueSignals.includes('challenge_asset') ||
+                          uniqueSignals.includes('challenge_dom') ? 'high' :
+                          uniqueSignals.length ? 'medium' : 'none',
+              signals: uniqueSignals}}
+          }};
+        }})()"""
+        value = self._main_js(source, timeout=15.0)
+        return value if isinstance(value, dict) else {}
+
+    def read_page(self, max_chars: int = 6_000, max_links: int = 20, *,
+                  content_only: bool = True, start: int = 0) -> dict[str, Any]:
+        """Bounded text, links, metadata, and challenge signals in one CDP call.
+
+        ``start`` pages through long rendered text without falling back to a separate
+        helper or requesting the entire document. Links and challenge signals still cover
+        the current document so every page remains independently useful.
+        """
+        with self._j.call("read_page", max_chars=max_chars, max_links=max_links,
+                          content_only=content_only, start=start):
+            return self._page_digest(max_chars=max_chars, max_links=max_links,
+                                     content_only=content_only, start=start)
+
+    def page_text(self, max_chars: int = 12_000, *, start: int = 0) -> str:
+        """Rendered text, bounded and optionally paged with ``start``.
+
+        `innerText` excludes script bodies and hidden nodes. The 12k default covers the
+        large majority of reads while preventing one accidental full-page dump from
+        dominating model context; callers can request a larger window explicitly.
+        """
+        max_chars = max(0, min(int(max_chars), 100_000))
+        start = max(0, int(start))
+        with self._j.call("page_text", max_chars=max_chars, start=start):
+            return self._main_js(
+                "(document.body ? document.body.innerText : '').slice("
+                f"{start}, {start + max_chars})", timeout=15.0) or ""
 
     def press_key(self, key: str, *, modifiers: int = 0,
                   timeout: float = 10.0) -> dict[str, Any]:
@@ -2256,21 +2391,55 @@ class Tab:
     # -- item 21: screenshots ----------------------------------------------
 
     def capture_screenshot(self, path: str | Path | None = None, *, quality: int = 70,
-                           max_dim: int | None = None, timeout: float = 20.0) -> dict[str, Any]:
+                           max_dim: int | None = None, timeout: float = 20.0,
+                           include_context: bool = False) -> dict[str, Any]:
         """JPEG by default (PNG when the path says so); output pixels == CSS viewport
         pixels on any display: `clip.scale = 1/devicePixelRatio` (item 21). `max_dim`
-        lowers the scale further instead of resizing afterwards."""
+        lowers the scale further instead of resizing afterwards.
+
+        `include_context` piggybacks the recording metadata (URL, title, focus box) on the
+        viewport evaluation. A recorded frame therefore needs two CDP calls total instead
+        of layout metrics + DPR + capture + a second context evaluation.
+        """
         fmt = "png" if str(path or "").endswith(".png") else "jpeg"
         with self._j.call("screenshot", format=fmt):
-            m = self.cdp("Page.getLayoutMetrics", timeout=timeout)
-            css = m.get("cssLayoutViewport") or m["layoutViewport"]
-            cw, ch = css["clientWidth"], css["clientHeight"]
-            dpr = float(self.js("devicePixelRatio", timeout=5.0) or 1)
+            viewport: dict[str, Any] = {}
+            try:
+                viewport = self._main_js("""(() => {
+                  const e = document.activeElement;
+                  const o = {x: window.scrollX || 0, y: window.scrollY || 0,
+                    width: window.innerWidth || document.documentElement.clientWidth,
+                    height: window.innerHeight || document.documentElement.clientHeight,
+                    dpr: window.devicePixelRatio || 1,
+                    u: location.href, t: document.title};
+                  if (e && e !== document.body && e !== document.documentElement) {
+                    const r = e.getBoundingClientRect();
+                    if (r.width || r.height) o.box = [r.x, r.y, r.width, r.height];
+                  }
+                  return o;
+                })()""", timeout=min(timeout, 5.0)) or {}
+                if not isinstance(viewport, dict) or not viewport.get("width") \
+                        or not viewport.get("height"):
+                    viewport = {}
+            except HarnessError:
+                viewport = {}
+            if viewport:
+                x, y = float(viewport.get("x") or 0), float(viewport.get("y") or 0)
+                cw, ch = int(viewport["width"]), int(viewport["height"])
+                dpr = float(viewport.get("dpr") or 1)
+            else:
+                # Runtime can be unavailable while Page still answers. Preserve the old
+                # screenshot path as a recovery fallback; DPR=1 is conservative and only
+                # affects output density, never what region is captured.
+                m = self.cdp("Page.getLayoutMetrics", timeout=timeout)
+                css = m.get("cssLayoutViewport") or m["layoutViewport"]
+                x, y = float(css.get("pageX", 0)), float(css.get("pageY", 0))
+                cw, ch, dpr = int(css["clientWidth"]), int(css["clientHeight"]), 1.0
             scale = 1.0 / dpr
             if max_dim:
                 scale = min(scale, max_dim / (max(cw, ch) * dpr))
             params: dict[str, Any] = {"format": fmt, "clip": {
-                "x": css.get("pageX", 0), "y": css.get("pageY", 0),
+                "x": x, "y": y,
                 "width": cw, "height": ch, "scale": scale}}
             if fmt == "jpeg":
                 params["quality"] = quality
@@ -2278,5 +2447,9 @@ class Tab:
                                              timeout=timeout)["data"])
         if path:
             Path(path).write_bytes(data)
-        return {"path": str(path) if path else None, "bytes": len(data), "format": fmt,
-                "css_viewport": [cw, ch], "scale": scale}
+        out = {"path": str(path) if path else None, "bytes": len(data), "format": fmt,
+               "css_viewport": [cw, ch], "scale": scale}
+        if include_context and viewport:
+            out["context"] = {key: viewport[key] for key in ("u", "t", "box")
+                              if viewport.get(key) is not None}
+        return out

@@ -718,6 +718,47 @@ class Session:
             call.__name__ = fn.__name__
             return call
 
+        def open_pages(urls, *, workers: int = 5, total_chars: int = 12_000,
+                       max_links: int = 12, page_timeout: float = 20.0,
+                       timeout: float | None = 120.0):
+            """Read independent public pages concurrently under one total text budget.
+
+            ``open_page``'s character limit is per page, an easy way for a five-URL loop to
+            print five model windows. This convenience makes the intended fast path both
+            shorter to write and bounded across the whole batch.
+            """
+            items = [str(url) for url in urls]
+            if not items:
+                return []
+            per_page = max(0, min(100_000, int(total_chars) // len(items)))
+
+            def inspect(url: str) -> dict[str, Any]:
+                result = self.tab().open_page(
+                    url,
+                    timeout=page_timeout,
+                    max_chars=per_page,
+                    max_links=max_links,
+                )
+                page = result["page"]
+                return {
+                    "url": result["landed"],
+                    "lifecycle": result["lifecycle"],
+                    "title": page["title"],
+                    "text": page["text"],
+                    "links": page["links"],
+                    "truncated": page["text_truncated"],
+                    "challenge": page["challenge"],
+                }
+
+            return parallel_ops.parallel(
+                self,
+                items,
+                inspect,
+                workers=workers,
+                isolated=False,
+                timeout=timeout,
+            )
+
         ns: dict[str, Any] = {
             "session": self, "tab": self.tab, "new_tab": self.new_tab,
             "use_tab": self.use_tab, "close_tab": self.close_tab,
@@ -733,6 +774,7 @@ class Session:
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
+            "open_pages": open_pages,
             "application_route_candidates": forms.application_route_candidates,
             "account_credential_status": account_credential_status,
             "ensure_account_credential": ensure_account_credential,
@@ -747,7 +789,8 @@ class Session:
             "summarise": parallel_ops.summarise,
             "CancelToken": parallel_ops.CancelToken,
         }
-        for name in ("goto", "js", "cdp", "snapshot", "see", "click_ref", "click_at",
+        for name in ("goto", "open_page", "read_page", "js", "cdp", "snapshot", "see",
+                     "click_ref", "click_at",
                      "click_auth_ref",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "wait_for_form",
                      "wait_for_application_state",

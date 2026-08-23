@@ -38,6 +38,11 @@ ACTIONS = frozenset({
     "wait_lifecycle", "wait_for",
 })
 
+# These helpers return only after the state they were waiting for is observable. Sleeping a
+# further fixed 150 ms before every navigation frame cost 25.7 seconds in one 171-page
+# research task without making the already-loaded pages more valid.
+ALREADY_SETTLED = frozenset({"goto", "wait_lifecycle", "wait_for"})
+
 #: Credential-bearing query/fragment params. Auth redirects otherwise land real secrets in
 #: a folder people share — carried over from v1 verbatim, because it was earned there.
 _URL_SECRETS = re.compile(
@@ -117,13 +122,13 @@ class Recorder:
                 return None
             # Bind the tab before waiting: Session's current-tab cursor is thread-local,
             # and looking it up from a different thread later would capture the wrong page.
-            return self._capture(tab)
+            return self._capture(tab, settle=span.fn not in ALREADY_SETTLED)
         except Exception:      # noqa: BLE001 — a recording must never break the run
             return None
         finally:
             self._local.busy = False
 
-    def _capture(self, tab: Any) -> dict[str, Any] | None:
+    def _capture(self, tab: Any, *, settle: bool = True) -> dict[str, Any] | None:
         # The lock covers frame numbering and NOTHING else. It used to wrap this whole
         # method, which made one global recorder serialise every worker: with BH_RECORD=1
         # and parallel() running 10 tabs, each capture held the lock across SETTLE plus a
@@ -131,22 +136,21 @@ class Recorder:
         # of pure lock-held sleep, on ten threads that had nothing to contend over. The
         # sleep is per-tab paint time and the screenshot is per-target; only the counter is
         # shared.
-        time.sleep(SETTLE)
+        if settle:
+            time.sleep(SETTLE)
         with self._capture_lock:
             self.frames += 1
             name = f"{self.frames:04d}.jpg"
-        tab.capture_screenshot(self.dir / name, max_dim=self.max_dim, quality=self.quality)
+        shot = tab.capture_screenshot(
+            self.dir / name, max_dim=self.max_dim, quality=self.quality,
+            include_context=True)
         extra: dict[str, Any] = {"frame": name}
         try:
-            # The focused-element box is what lets a later cut zoom to the field being
-            # typed into; url is scrubbed because recordings get shared.
-            ctx = tab.js(
-                "(() => {const o = {u: location.href, t: document.title};"
-                " const e = document.activeElement;"
-                " if (e && e !== document.body && e !== document.documentElement) {"
-                "  const r = e.getBoundingClientRect();"
-                "  if (r.width || r.height) o.box = [r.x, r.y, r.width, r.height];}"
-                " return o;})()", timeout=5.0) or {}
+            # Screenshot capture already needs viewport/DPR from the page. Its same
+            # evaluation carries the focused-element box, URL, and title, avoiding a
+            # second Runtime.evaluate for every recorded action.
+            ctx = shot.get("context") if isinstance(shot, dict) else {}
+            ctx = ctx or {}
             if ctx.get("u"):
                 extra["url"] = scrub(ctx["u"])
             if ctx.get("t"):

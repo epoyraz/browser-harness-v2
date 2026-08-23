@@ -89,6 +89,11 @@ class SessionRegistry:
         self._j = journal or Journal(None)
         self._domains = domains
         self._sessions: dict[str, Session] = {}
+        # The injected scripts and binding are properties of a CDP *session*, not of the
+        # short-lived ``bh`` process that happens to use it. Keying the prepared generation
+        # by target lets the persistent daemon pay this setup once while still reinstalling
+        # it after a stale session is replaced.
+        self._runtime_sessions: dict[str, str] = {}
         #: targetId -> sessionId for children the BROWSER attached (OOPIFs, under
         #: Target.setAutoAttach). Out-of-process iframes are never listed by
         #: `Target.getTargets` and `attachToTarget` rejects their id, so auto-attach is
@@ -235,6 +240,84 @@ class SessionRegistry:
                           "state": session.state.value},
             ))
 
+    def prepare_runtime(self, target_id: str) -> Session:
+        """Install the safety/runtime scripts once for the live session generation.
+
+        A benchmark command is a fresh Python process, but the daemon and its registered
+        CDP session persist. Installing two document-start scripts and one binding in every
+        process was therefore pure duplicate work. The target lock makes concurrent first
+        users share one installation; the cached session id makes stale-session recovery
+        re-arm the replacement generation automatically.
+        """
+        lock = self._lock_for(target_id)
+        with lock:
+            session = self._ready_session_locked(target_id)
+            with self._guard:
+                if self._runtime_sessions.get(target_id) == session.session_id:
+                    return session
+
+            # Local import avoids making the connection layer import page operations while
+            # modules are initialising. At call time page.py is fully loaded in clients; in
+            # the daemon this is the first operation that needs the script assets.
+            from harness.ops.page import BINDING, RUNTIME_JS, SAFETY_JS, WORLD
+
+            self._conn.request(
+                "Page.addScriptToEvaluateOnNewDocument",
+                {"source": SAFETY_JS, "runImmediately": True},
+                session_id=session.session_id,
+                timeout=10.0,
+            )
+            self._conn.request(
+                "Page.addScriptToEvaluateOnNewDocument",
+                {
+                    "source": RUNTIME_JS,
+                    "worldName": WORLD,
+                    "runImmediately": True,
+                },
+                session_id=session.session_id,
+                timeout=10.0,
+            )
+            binding = True
+            try:
+                self._conn.request(
+                    "Runtime.addBinding",
+                    {"name": BINDING, "executionContextName": WORLD},
+                    session_id=session.session_id,
+                    timeout=10.0,
+                )
+            except HarnessError:
+                # This binding only wakes event-driven waits early. The waits retain their
+                # bounded timeout fallback, matching the previous best-effort behavior.
+                binding = False
+            with self._guard:
+                self._runtime_sessions[target_id] = session.session_id
+            self._j.write(
+                "daemon",
+                event="runtime_prepared",
+                target_id=target_id,
+                session_id=session.session_id,
+                binding=binding,
+            )
+            return session
+
+    def ensure_domains(self, target_id: str, domains: tuple[str, ...]) -> Session:
+        """Enable additional idempotent domains once on the live session."""
+        lock = self._lock_for(target_id)
+        with lock:
+            session = self._ready_session_locked(target_id)
+            missing = tuple(domain for domain in domains if domain not in session.domains)
+            if not missing:
+                return session
+            enabled = self._enable_domains(session.session_id, missing)
+            session.domains = tuple(dict.fromkeys((*session.domains, *enabled)))
+            self._j.write(
+                "daemon",
+                event="domains_enabled",
+                target_id=target_id,
+                domains=list(enabled),
+            )
+            return session
+
     def mark(self, target_id: str, state: State, reason: str = "") -> None:
         """Record that a session died, and why. Idempotent."""
         with self._guard:
@@ -248,6 +331,7 @@ class SessionRegistry:
     def forget(self, target_id: str) -> None:
         with self._guard:
             session = self._sessions.pop(target_id, None)
+            self._runtime_sessions.pop(target_id, None)
             if session is not None:
                 self._by_session.pop(session.session_id, None)
 

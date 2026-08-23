@@ -93,7 +93,7 @@ def test_nested_context_restores_the_outer_values(j):
 def test_opt_in_cdp_trace_records_shape_timing_and_no_values(tmp_path, monkeypatch):
     monkeypatch.setenv("BH_CDP_TRACE", "1")
     path = tmp_path / "protocol.jsonl"
-    traced = Journal(path, session="trace")
+    traced = Journal(path, session="trace", cdp_origin="daemon_internal")
     with traced.call("js") as span:
         marker = traced.cdp_start("Runtime.evaluate", {
             "expression": "SECRET_FORM_VALUE", "returnByValue": True})
@@ -102,6 +102,7 @@ def test_opt_in_cdp_trace_records_shape_timing_and_no_values(tmp_path, monkeypat
     entries = list(traced.entries())
     event = next(entry for entry in entries if entry["kind"] == "cdp")
     assert event["method"] == "Runtime.evaluate" and event["parent"] == span.id
+    assert event["origin"] == "daemon_internal"
     assert event["param_keys"] == ["expression", "returnByValue"]
     assert event["result_keys"] == ["result"] and event["ok"] is True
     assert next(entry for entry in entries if entry["kind"] == "call")["cdp"] == 1

@@ -8,6 +8,7 @@ import time
 import pytest
 
 from harness.connect.cdp import Connection, WebSocketTransport, classify
+from harness.core.journal import Journal
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError, Timeout
 from tests.fake_browser import FakeBrowser
 
@@ -36,6 +37,18 @@ def test_replies_route_to_the_thread_that_asked(conn):
     for t in threads:
         t.join(5)
     assert len(results) == 16
+
+
+def test_forwarded_request_can_skip_a_duplicate_protocol_entry(tmp_path, monkeypatch):
+    monkeypatch.setenv("BH_CDP_TRACE", "1")
+    journal = Journal(tmp_path / "protocol.jsonl")
+    connection = Connection(FakeBrowser("a"), journal=journal).start()
+    try:
+        connection.request("Runtime.evaluate", trace=False)
+    finally:
+        connection.close()
+
+    assert not [entry for entry in journal.entries() if entry.get("kind") == "cdp"]
 
 
 def test_requests_overlap_rather_than_queueing():

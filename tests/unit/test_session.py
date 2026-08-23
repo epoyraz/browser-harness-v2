@@ -405,18 +405,54 @@ def test_new_tab_rolls_back_target_when_navigation_fails(session, served):
 
 def test_the_namespace_covers_the_documented_surface(session):
     ns = session.namespace()
-    for name in ("goto", "js", "cdp", "snapshot", "click_ref", "click_at", "page_text",
+    for name in ("goto", "open_page", "read_page", "js", "cdp", "snapshot",
+                 "click_ref", "click_at", "page_text",
                  "press_key", "scroll", "upload_file", "capture_screenshot",
                  "wait_lifecycle", "wait_for_application_state", "form_schema", "fill_form",
                  "start_diagnostics", "diagnostics",
                  "set_value", "require_form", "prepare_application", "follow_application",
                  "locate_application", "application_skills",
                  "run_application",
-                 "application_route_candidates", "fetch_all", "new_tab", "use_tab", "close_tab",
+                 "application_route_candidates", "fetch_all", "open_pages", "new_tab",
+                 "use_tab", "close_tab",
                  "lease_tab", "resume_lease", "release_lease",
                  "new_context", "close_context", "parallel", "summarise", "targets",
                  "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"
+
+
+def test_open_pages_divides_one_text_budget_across_the_batch(session, monkeypatch):
+    calls = []
+
+    class Page:
+        def open_page(self, url, **kwargs):
+            calls.append((url, kwargs))
+            return {
+                "landed": url,
+                "lifecycle": "load",
+                "page": {
+                    "title": url,
+                    "text": "body",
+                    "links": [],
+                    "text_truncated": False,
+                    "challenge": {"detected": False},
+                },
+            }
+
+    monkeypatch.setattr(session, "tab", lambda *args, **kwargs: Page())
+    monkeypatch.setattr(
+        "harness.session.parallel_ops.parallel",
+        lambda _session, items, fn, **kwargs: [
+            {"item": item, "ok": True, "value": fn(item)} for item in items
+        ],
+    )
+
+    rows = session.namespace()["open_pages"](
+        ["https://a.test", "https://b.test", "https://c.test"], total_chars=12_000
+    )
+
+    assert len(rows) == 3
+    assert {kwargs["max_chars"] for _, kwargs in calls} == {4_000}
 
 
 def test_prepare_application_stops_before_frame_discovery_when_main_is_a_form(session, served):
