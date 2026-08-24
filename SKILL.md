@@ -197,6 +197,10 @@ private content-addressed cache and is available with `fetch_content(marker["_sh
 slice or summarize it before printing, because stdout remains capped. Journals record only
 mechanical counts, truncation, and digests—not page text, headers, or form values.
 
+`parallel()` is the compositional exception: it returns its full in-process record list so
+`summarise(records)` and artifact writers can consume it. Printing that list is still
+protected by the invocation-wide stdout ceiling.
+
 ## Tabs, recordings, and diagnostics
 
 ```python

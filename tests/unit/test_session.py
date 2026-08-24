@@ -487,6 +487,24 @@ def test_open_pages_divides_one_text_budget_across_the_batch(session, monkeypatc
     assert {kwargs["max_chars"] for _, kwargs in calls} == {4_000}
 
 
+def test_parallel_records_remain_composable_until_the_stdout_boundary(session, monkeypatch):
+    records = [
+        {"item": index, "ok": True, "value": {"payload": "x" * 1_000}}
+        for index in range(200)
+    ]
+    monkeypatch.setattr(
+        "harness.session.parallel_ops.parallel",
+        lambda _session, items, fn, **kwargs: records,
+    )
+    namespace = session.namespace()
+
+    returned = namespace["parallel"]([], lambda item: item)
+    summary = namespace["summarise"](returned)
+
+    assert returned is records
+    assert summary["total"] == 200 and summary["ok"] == 200
+
+
 def test_prepare_application_stops_before_frame_discovery_when_main_is_a_form(session, served):
     browser, _ = served
     payload = {"schema": {"verdict": {"is_form": True}, "fields": [{"ref": "e1"}]},

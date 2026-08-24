@@ -38,3 +38,5 @@ overflow is stored losslessly by SHA-256 and retrieved with `fetch_content(diges
 Action helpers carry bounded consequence/validation evidence, navigation grace adapts from
 session-local timings while strict mode stays exact, and `fetch_observed_json` can replay
 only fully observed anonymous same-origin GET/HEAD JSON endpoints under five explicit caps.
+The compositional `parallel()` aggregate remains available in-process for `summarise()` and
+artifact writers; its emitted stdout is still subject to the same invocation ceiling.

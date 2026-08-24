@@ -759,6 +759,17 @@ class Session:
             call.__name__ = fn_name
             return call
 
+        def parallel(items, fn, **kw):
+            """Keep aggregate records composable until the stdout boundary.
+
+            ``parallel()`` is intentionally paired with ``summarise(records)`` and with
+            artifact writers. Replacing a large record list by an output marker here
+            destroys that contract before the script emits anything. Individual helper
+            results remain bounded, and the invocation-wide stdout capture still prevents
+            the aggregate from flooding the agent transcript if it is printed.
+            """
+            return parallel_ops.parallel(self, items, fn, **kw)
+
         def open_pages(urls, *, workers: int = 5, total_chars: int = 12_000,
                        max_links: int = 12, page_timeout: float = 20.0,
                        timeout: float | None = 120.0):
@@ -829,8 +840,7 @@ class Session:
                 "run_application", self.run_application(*a, **kw)),
             # Bound to this session, so a script writes parallel(urls, fn) and the bare
             # helpers inside fn address that worker's own tab.
-            "parallel": lambda items, fn, **kw: self._bound_agent_value(
-                "parallel", parallel_ops.parallel(self, items, fn, **kw)),
+            "parallel": parallel,
             "summarise": parallel_ops.summarise,
             "CancelToken": parallel_ops.CancelToken,
         }
