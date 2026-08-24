@@ -3,6 +3,7 @@ import json
 
 import pytest
 
+from harness.core.content import ContentStore
 from harness.core.journal import ELIDE_OVER, Journal, _elide
 from harness.core.outcome import Class, NavigationFailed
 
@@ -146,6 +147,39 @@ def test_identical_payloads_elide_identically():
 def test_elision_reaches_into_nested_structures():
     out = _elide({"r": [{"data": "z" * 5000}]})
     assert out["r"][0]["data"]["_elided"] == 5000
+
+
+def test_session_journal_large_leaf_is_private_and_reversible(tmp_path):
+    store = ContentStore(tmp_path / "content")
+    journal = Journal(tmp_path / "reversible.jsonl", session="s1",
+                      content_store=store)
+    secret = "page-text-" * 1_000
+
+    journal.write("note", event="large", data=secret)
+
+    entry = next(iter(journal.entries()))
+    marker = entry["data"]
+    assert marker["surface"] == "journal"
+    assert "head" not in marker and "tail" not in marker
+    assert secret not in (tmp_path / "reversible.jsonl").read_text(encoding="utf-8")
+    assert store.get(marker["_sha256"]) == secret
+
+
+def test_whole_oversized_journal_entry_keeps_telemetry_and_fetches_exactly(tmp_path):
+    store = ContentStore(tmp_path / "content")
+    journal = Journal(tmp_path / "bounded.jsonl", session="s1",
+                      content_store=store, entry_limit=1_000)
+    rows = [{"index": index, "ok": True} for index in range(2_000)]
+
+    journal.write("call", id="s1.1", fn="batch", ms=3.0, cdp=1,
+                  outcome={"ok": True}, rows=rows)
+
+    entry = next(iter(journal.entries()))
+    assert entry["fn"] == "batch" and entry["outcome"] == {"ok": True}
+    marker = entry["entry_overflow"]
+    assert "head" not in marker and "tail" not in marker
+    restored = store.get(marker["_sha256"])
+    assert restored["rows"] == rows and restored["fn"] == "batch"
 
 
 # --- observability must never break the run ---------------------------------

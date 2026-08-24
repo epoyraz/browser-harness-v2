@@ -219,7 +219,11 @@ def main() -> int:
     runtime = Path(tempfile.mkdtemp(prefix="bhb-", dir="/tmp"))
     launch_chrome(profile)
     env = {**os.environ, "PYTHONPATH": str(ROOT), "BU_NAME": "bench",
-           "BH_RECORD": "0", "BH_RUNTIME_DIR": str(runtime),
+           # Recording stays off for this speed comparison, but the benchmark pins the
+           # evidence contract explicitly so an instrumented rerun cannot inherit a
+           # developer's review/cinematic preference.
+           "BH_RECORD": "0", "BH_RECORD_PROFILE": "evidence",
+           "BH_RUNTIME_DIR": str(runtime),
            "BH_PROFILE_DIRS": str(profile), "BU_CDP_URL": "", "BU_CDP_WS": ""}
     results = []
     try:

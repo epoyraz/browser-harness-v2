@@ -29,6 +29,11 @@ import _browser
 FIXTURES = ROOT / "tests" / "fixtures"
 results: list[tuple[str, bool, str]] = []
 
+# Fixed, site-independent workflow: one navigation followed by one semantic combobox
+# selection (which uses two nested clicks). Benchmarks and live checks pin this manifest
+# instead of inheriting a developer's recording preference.
+RECORDING_PROFILE_MANIFEST = {"evidence": 2, "review": 3, "cinematic": 4}
+
 #: A page that renders late and hosts a cross-origin frame — the two conditions a fixed
 #: sleep handles badly and a DOM query cannot see into at all.
 SLOW_PAGE = """<!doctype html><meta charset=utf-8><title>Late</title><body>
@@ -269,6 +274,48 @@ print("done")
         check("recorded calls carry url + title context",
               any(e.get("url") and e.get("title") for e in framed),
               next((f"{e['fn']} -> {e['title'][:28]}" for e in framed if e.get("title")), ""))
+        measured = all(
+            entry.get("frame_span_id") == entry.get("id")
+            and entry.get("frame_target_id")
+            and entry.get("frame_screenshot_ms", -1) >= 0
+            and entry.get("frame_recording_ms", -1) >= entry.get("frame_screenshot_ms", 0)
+            and entry.get("frame_cdp", 0) >= 1
+            and entry.get("frame_bytes", 0) > 0
+            for entry in framed)
+        check("recorded frames carry target, span, and measured cost", measured,
+              f"{len(framed)} frame entries checked")
+
+        # One fixed workflow, all explicit profiles. Evidence suppresses the two nested
+        # mechanics but retains select_option's final consequence; review preserves its
+        # historical click frames; cinematic additionally retains the outer visual beat.
+        for profile, expected in RECORDING_PROFILE_MANIFEST.items():
+            profile_root = recs / f"profile-{profile}"
+            profile_root.mkdir()
+            profiled = bh(f"""
+goto("{other.rsplit('/', 1)[0]}/combobox.html")
+s = form_schema()
+c = next(f for f in s["fields"] if f["label"] == "How did you hear about us?")
+o = select_option(c["ref"], "Referral from a friend")
+assert o.ok
+""", {"BH_RECORD": profile, "BH_RECORDINGS": str(profile_root)})
+            dirs = [path for path in profile_root.iterdir() if path.is_dir()]
+            profile_rec = dirs[0] if len(dirs) == 1 else None
+            profile_entries = []
+            if profile_rec and (profile_rec / "session.jsonl").is_file():
+                profile_entries = [json.loads(line) for line in
+                                   (profile_rec / "session.jsonl").read_text().splitlines()
+                                   if line.strip()]
+            profile_frames = [entry for entry in profile_entries if entry.get("frame")]
+            consequence = next((entry for entry in profile_entries
+                                if entry.get("fn") == "select_option"), {})
+            bound = all(entry.get("frame_span_id") == entry.get("id")
+                        and entry.get("frame_target_id") for entry in profile_frames)
+            proof_kept = profile != "evidence" or bool(consequence.get("frame"))
+            check(f"{profile} recording profile matches fixed manifest",
+                  profiled.returncode == 0 and len(profile_frames) == expected
+                  and bound and proof_kept,
+                  f"{len(profile_frames)}/{expected} frames; "
+                  f"suppressed={sum(bool(e.get('frame_suppressed')) for e in profile_entries)}")
 
         # ---- 6. video --------------------------------------------------------
         out = cli("video", str(rec))
@@ -306,6 +353,15 @@ print("done")
               "http://" not in leaked and "expression" not in leaked
               and "args" not in leaked,
               f"{roll.get('calls', 0)} calls, {len(roll.get('helpers', []))} helpers")
+        observation = roll.get("observability") or {}
+        helper_names = {row.get("fn") for row in roll.get("helpers", [])}
+        check("recording overhead is separate from browser work",
+              observation.get("frames") == len(framed)
+              and observation.get("cdp", 0) >= len(framed)
+              and observation.get("bytes", 0) > 0
+              and "screenshot" not in helper_names,
+              f"{observation.get('frames', 0)} frames, "
+              f"{observation.get('cdp', 0)} CDP, {observation.get('wall_ms', 0)}ms")
 
     finally:
         _browser.kill(scratch)

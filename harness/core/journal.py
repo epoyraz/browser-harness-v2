@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 from harness.core import jsonl
+from harness.core.content import DEFAULT_OUTPUT_BYTES, ContentRef, ContentStore
 
 #: Payloads above this are replaced by {"_elided": n, "_sha256": "..."}.
 #: A single screenshot response was 51 KB of a 54 KB session.
@@ -44,6 +45,14 @@ ELIDE_OVER = 2048
 CONTEXT_KEYS = frozenset({
     "task_id", "item_id", "item_index", "worker_id", "target_id",
     "browser_context_id", "stage", "hop", "run_id",
+    # Mechanical observability attribution only.  Values are fixed by harness internals;
+    # no page data crosses this allow-list.
+    "observability", "recording_span_id",
+})
+
+_SUMMARY_KEYS = frozenset({
+    "fn", "ms", "cdp", "parent", "event", "method", "ok", "error_class",
+    "error_code", "frame", "frame_suppressed", "recording_profile",
 })
 
 
@@ -80,7 +89,8 @@ class Journal:
     """Append-only JSONL. Thread-safe; every write is one line, flushed."""
 
     def __init__(self, path: str | os.PathLike[str] | None, *, session: str = "",
-                 cdp_origin: str = ""):
+                 cdp_origin: str = "", content_store: ContentStore | None = None,
+                 entry_limit: int = DEFAULT_OUTPUT_BYTES):
         #: Called as the span closes, before its entry is written, with (span, payload).
         #: Whatever it returns is merged into the entry — which is how a recording adds
         #: `frame` to the very call it belongs to instead of writing a second file that
@@ -90,6 +100,8 @@ class Journal:
         self.path = Path(path) if path else None
         self.session = session or f"s{int(time.time())}"
         self.cdp_origin = cdp_origin
+        self.content_store = content_store
+        self.entry_limit = max(0, int(entry_limit))
         self.trace_cdp = os.environ.get("BH_CDP_TRACE", "").strip().lower() \
             not in ("", "0", "false", "no")
         self._n = 0
@@ -108,14 +120,72 @@ class Journal:
 
     # -- writing ----------------------------------------------------------
 
+    @staticmethod
+    def _journal_marker(ref: ContentRef) -> dict[str, Any]:
+        """A reversible marker with no content preview.
+
+        Journal payloads are deliberately less revealing than agent-facing output: even a
+        head/tail preview could leak page text, headers, or a form value into a long-lived
+        trace. Byte/type metadata and the private-cache digest are enough here.
+        """
+        marker = ref.marker(surface="journal")
+        marker.pop("head", None)
+        marker.pop("tail", None)
+        marker["preview"] = "omitted_for_journal_privacy"
+        return marker
+
+    def _shape(self, value: Any) -> Any:
+        """Recursively make large leaves reversible when this journal has a store."""
+        if isinstance(value, str) and len(value) > ELIDE_OVER:
+            if self.content_store is not None:
+                try:
+                    return self._journal_marker(self.content_store.put(value))
+                except Exception:  # noqa: BLE001 — observability still must not break work
+                    return _elide(value)
+            return _elide(value)
+        if isinstance(value, dict):
+            return {key: self._shape(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [self._shape(item) for item in value]
+        return value
+
+    @staticmethod
+    def _summary(entry: dict[str, Any]) -> dict[str, Any]:
+        summary = {key: entry[key] for key in _SUMMARY_KEYS if key in entry}
+        outcome = entry.get("outcome")
+        if isinstance(outcome, dict):
+            summary["outcome"] = {key: outcome[key] for key in ("ok", "class")
+                                  if key in outcome}
+        return summary
+
     def write(self, kind: str, *, id: str = "", **payload: Any) -> None:
         """Append one entry. Never raises."""
         if not self.path:
             return
-        entry = {"ts": round(time.time(), 3), "id": id or self.session, "kind": kind,
-                 **self.context, **_elide(payload)}
-        line = json.dumps(entry, default=str, ensure_ascii=False)
+        base = {"ts": round(time.time(), 3), "id": id or self.session, "kind": kind,
+                **self.context}
+        raw = {**base, **payload}
         try:
+            entry = self._shape(raw)
+            line = json.dumps(entry, default=str, ensure_ascii=False)
+            if len(line.encode("utf-8")) > self.entry_limit:
+                if self.content_store is not None:
+                    try:
+                        ref = self.content_store.put(raw)
+                        overflow = self._journal_marker(ref)
+                    except Exception:  # noqa: BLE001 — degrade without breaking the run
+                        overflow = None
+                else:
+                    overflow = None
+                if overflow is None:
+                    encoded = json.dumps(raw, default=str, ensure_ascii=False).encode("utf-8")
+                    overflow = {
+                        "_elided": len(encoded),
+                        "_sha256": sha256(encoded).hexdigest()[:16],
+                        "preview": "omitted_for_journal_privacy",
+                    }
+                entry = {**base, **self._summary(raw), "entry_overflow": overflow}
+                line = json.dumps(self._shape(entry), default=str, ensure_ascii=False)
             with self._lock, self.path.open("a", encoding="utf-8") as fh:
                 fh.write(line + "\n")
         except Exception:  # noqa: BLE001, S110 — deliberate: see the "never raise" rule above.

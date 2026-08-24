@@ -5,7 +5,7 @@ thinking and ~0.03% is harness primitives. If that is true, "make the harness fa
 mostly the wrong optimisation — the lever is **making fewer decisions**, and the unit of a
 decision is one `bh` invocation. So the headline number here is `steps`, not milliseconds.
 
-Four buckets, and the reason each is separate:
+Five buckets, and the reason each is separate:
 
   think    between invocations — the model deciding what to run next. The harness never
            sees it, so it is inferred from the gap between one invoke ending and the next
@@ -19,6 +19,8 @@ Four buckets, and the reason each is separate:
   wait     waiting for the page: `goto`, `wait_for`, `wait_lifecycle`, plus sleeps and
            network outside any span. Invisible before this module, and often larger than
            `harness`.
+  observability  recorder settling and screenshots. This is deliberately separate from
+           browser work so enabling evidence cannot make an implementation look slower.
 
 `wait` deliberately ignores whether the waiting happened inside a span. A blocking helper
 holds its span open while the page works, so billing span time to `harness` reported 20.6s
@@ -85,14 +87,44 @@ def steps(paths: Iterable[str | Path]) -> list[dict[str, Any]]:
         if kind == "call":
             pending.append(e)
         elif kind == "invoke":
-            top = [c for c in pending if not c.get("parent")]
-            harness_ms = sum(float(c.get("ms") or 0) for c in top
-                             if c.get("fn") not in BLOCKING)
+            # Recorder screenshots are real work, but not browser work performed for the
+            # caller. Their tagged spans stay in the journal for forensics while this
+            # accounting removes them from helper/call/CDP totals.
+            calls = [c for c in pending if c.get("observability") != "recording"]
+            top = [c for c in calls if not c.get("parent")]
+            by_id = {str(c.get("id")): c for c in calls if c.get("id")}
+            frame_calls = [c for c in calls if c.get("frame")]
+            observability_ms = sum(float(c.get("frame_recording_ms") or 0)
+                                   for c in frame_calls)
+
+            def top_fn(call: dict[str, Any], parents: dict[str, dict[str, Any]] = by_id) \
+                    -> str | None:
+                current = call
+                seen: set[str] = set()
+                while parent := current.get("parent"):
+                    key = str(parent)
+                    if key in seen or key not in parents:
+                        break
+                    seen.add(key)
+                    current = parents[key]
+                return current.get("fn")
+
+            # A nested action's post-frame runs while its outer helper stopwatch remains
+            # open. Remove that embedded recorder time from the outer bucket; a top-level
+            # frame runs after its helper span closes and therefore needs no such repair.
+            included_harness = sum(
+                float(c.get("frame_recording_ms") or 0) for c in frame_calls
+                if c.get("parent") and top_fn(c) not in BLOCKING)
+            included_blocked = sum(
+                float(c.get("frame_recording_ms") or 0) for c in frame_calls
+                if c.get("parent") and top_fn(c) in BLOCKING)
+            harness_ms = max(0.0, sum(float(c.get("ms") or 0) for c in top
+                                     if c.get("fn") not in BLOCKING) - included_harness)
             # Waiting is waiting whether the script spelled it `wait_for(...)` or
             # `time.sleep(...)`: the first is inside a span, the second is not, and
             # bucketing them apart made the harness look slow for being idle.
-            blocked_ms = sum(float(c.get("ms") or 0) for c in top
-                             if c.get("fn") in BLOCKING)
+            blocked_ms = max(0.0, sum(float(c.get("ms") or 0) for c in top
+                                     if c.get("fn") in BLOCKING) - included_blocked)
             total = float(e.get("ms_total") or 0)
             connect = float(e.get("ms_connect") or 0)
             out.append({
@@ -101,11 +133,22 @@ def steps(paths: Iterable[str | Path]) -> list[dict[str, Any]]:
                 "ms_harness": round(harness_ms, 1),
                 # Blocking helpers, plus everything inside the script but inside no span:
                 # page loads, network, sleeps.
-                "ms_wait": round(max(0.0, total - connect - harness_ms), 1),
+                "ms_wait": round(max(0.0, total - connect - harness_ms
+                                     - observability_ms), 1),
                 "ms_blocked": round(blocked_ms, 1),
-                "cdp": sum(int(c.get("cdp") or 0) for c in pending),
-                "calls": len(pending),
+                "ms_observability": round(observability_ms, 1),
+                "cdp": sum(int(c.get("cdp") or 0) for c in calls),
+                "calls": len(calls),
                 "fns": [c.get("fn") for c in top],
+                "observability": {
+                    "frames": len(frame_calls),
+                    "cdp": sum(int(c.get("frame_cdp") or 0) for c in frame_calls),
+                    "bytes": sum(int(c.get("frame_bytes") or 0) for c in frame_calls),
+                    "screenshot_ms": round(sum(
+                        float(c.get("frame_screenshot_ms") or 0) for c in frame_calls), 1),
+                    "wall_ms": round(observability_ms, 1),
+                    "suppressed": sum(1 for c in calls if c.get("frame_suppressed")),
+                },
                 "source_lines": e.get("source_lines"),
                 "outcome": e.get("outcome") or {"ok": True},
             })
@@ -150,10 +193,15 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None,
     """
     st = steps(paths)
     empty = {"steps": 0, "failed": 0, "cdp": 0, "calls": 0,
-             "buckets": {"think": 0.0, "connect": 0.0, "harness": 0.0, "wait": 0.0},
+             "buckets": {"think": 0.0, "connect": 0.0, "harness": 0.0,
+                         "wait": 0.0, "observability": 0.0},
              "total_ms": 0.0, "think_per_step_ms": think_ms or 0.0,
              "think_inferred": think_ms is None, "think_source": "none",
-             "think_matched": 0, "blocked_ms": 0.0, "collapsible": [], "step_list": []}
+             "think_matched": 0, "blocked_ms": 0.0,
+             "observability": {"frames": 0, "cdp": 0, "bytes": 0,
+                               "screenshot_ms": 0.0, "wall_ms": 0.0,
+                               "suppressed": 0},
+             "collapsible": [], "step_list": []}
     if not st:
         return empty          # full shape even when nothing ran, so callers cannot KeyError
     gaps: list[float] = []
@@ -179,6 +227,13 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None,
         "connect": round(sum(s["ms_connect"] for s in st), 1),
         "harness": round(sum(s["ms_harness"] for s in st), 1),
         "wait": round(sum(s["ms_wait"] for s in st), 1),
+        "observability": round(sum(s["ms_observability"] for s in st), 1),
+    }
+    observability = {
+        key: round(sum(float(s["observability"][key]) for s in st), 1)
+        if key in {"screenshot_ms", "wall_ms"}
+        else sum(int(s["observability"][key]) for s in st)
+        for key in ("frames", "cdp", "bytes", "screenshot_ms", "wall_ms", "suppressed")
     }
     return {
         "steps": len(st), "failed": sum(1 for s in st if not s["ok"]),
@@ -187,6 +242,7 @@ def rollup(paths: Iterable[str | Path], *, think_ms: float | None = None,
         "think_per_step_ms": per_think, "think_inferred": source == "inferred",
         "think_source": source, "think_matched": len(matched),
         "blocked_ms": round(sum(s.get("ms_blocked", 0.0) for s in st), 1),
+        "observability": observability,
         "collapsible": collapsible(st), "step_list": st,
     }
 
@@ -196,10 +252,14 @@ def render(r: dict[str, Any], *, verbose: bool = False) -> list[str]:
         return ["no invocations recorded",
                 "run with BH_JOURNAL=<file> so each `bh` run records a step"]
     b, total = r["buckets"], r["total_ms"] or 1.0
+    observation = r.get("observability") or {}
     out = [f"{r['steps']} steps · {r['calls']} helper calls · {r['cdp']} CDP round trips"
            + (f" · {r['failed']} step(s) failed" if r["failed"] else ""), ""]
+    if observation.get("frames") or observation.get("suppressed"):
+        out[0] += (f" · recording {observation.get('frames', 0)} frame(s), "
+                   f"{observation.get('cdp', 0)} CDP")
     out.append(f"{'where the wall clock went':<26}{'ms':>10}{'share':>8}")
-    for name in ("think", "connect", "harness", "wait"):
+    for name in ("think", "connect", "harness", "wait", "observability"):
         bar = "#" * round(28 * b[name] / total)
         label = name
         if name == "wait" and (blocked := r.get("blocked_ms", 0.0)):

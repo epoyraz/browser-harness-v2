@@ -27,7 +27,12 @@ from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
 from harness.core.cassette import Recorder
-from harness.core.outcome import HarnessError, NavigationFailed, NotSerializable
+from harness.core.outcome import (
+    DocumentVersionStale,
+    HarnessError,
+    NavigationFailed,
+    NotSerializable,
+)
 from harness.ops.page import Tab
 
 #: Override with BH_CHROME to run these checks off macOS.
@@ -58,6 +63,7 @@ FORM_PAGE = ("<!doctype html><title>bh live</title><body>"
              + "".join(f'<input id=i{i} placeholder="Field {i}">' for i in range(220))
              + "<select id=s1><option>one<option>two</select>"
              + "<a id=lnk href='/form' target=_blank>open new tab</a>"
+             + "<a id=nav href='/form?next=1'>same tab</a>"
              + "<button id=mut onclick=\"for(let i=0;i<7;i++)document.body.append("
                "document.createElement('p'))\">mutate</button>"
              + "<button id=dlg onclick=\"confirm('really?')\">dialog</button>"
@@ -168,12 +174,20 @@ def main() -> int:
         delta = tab.click_ref(mut["ref"])
         check("click delta reports DOM mutations", (delta["dom_mutations"] or 0) >= 7,
               f"dom_mutations={delta['dom_mutations']}")
+        check("click classifies bare DOM mutation as unverified",
+              delta["consequence"]["effect"] == "unverified_mutation"
+              and delta["consequence"]["verified"] is False,
+              str(delta["consequence"]))
 
         dlg = next(e for e in els if e["name"] == "dialog")
         delta = tab.click_ref(dlg["ref"])
         check("dialog dance vs real blocking confirm()",
               delta["dialog"] == {"type": "confirm", "message": "really?"},
               str(delta["dialog"]))
+        check("click fuses dialog evidence into its consequence",
+              delta["consequence"]["effect"] == "javascript_dialog"
+              and delta["consequence"]["verified"] is True,
+              str(delta["consequence"]))
         alive = tab.js("1+1")
         check("page responsive after dialog", alive == 2, "")
 
@@ -181,6 +195,18 @@ def main() -> int:
         delta = tab.click_ref(lnk["ref"], settle=1.0)
         check("click delta reports new tab", len(delta["new_targets"]) == 1,
               f"new_targets={delta['new_targets']}")
+        check("click fuses new-target evidence into its consequence",
+              delta["consequence"]["effect"] == "new_target"
+              and delta["consequence"]["verified"] is True,
+              str(delta["consequence"]))
+
+        nav_link = next(e for e in els if e.get("name") == "same tab")
+        delta = tab.click_ref(nav_link["ref"], settle=1.0)
+        check("click exposes same-tab navigation in one consequence",
+              delta["navigated"] is True
+              and delta["consequence"]["effect"] == "navigation"
+              and delta["consequence"]["verified"] is True,
+              str(delta["consequence"]))
 
         # --- item 18: refs survive navigation --------------------------------
         tab.goto(f"{base}/form")
@@ -199,6 +225,34 @@ def main() -> int:
         px_w = jpeg_width(scratch / "shot.jpeg")
         check("screenshot px == CSS px (any display)", px_w == css_w,
               f"dpr={dpr} css={css_w} out={px_w} {shot['bytes']}B {shot_ms:.0f}ms")
+
+        # Keep this correctness check after the latency-sensitive measurements above.
+        # Semantic reads emit a bounded, versioned block stream. Re-reading an unchanged
+        # document returns references only; a real DOM mutation emits only its changed
+        # block and invalidates continuation cursors from the older generation.
+        tab.goto(f"{base}/form")
+        first_page = tab.read_page(max_chars=80, content_only=False)
+        semantic_cursor = first_page.get("cursor")
+        check("semantic read returns a bounded block cursor",
+              bool(first_page.get("blocks")) and bool(semantic_cursor),
+              f"blocks={len(first_page.get('blocks') or [])}")
+        unchanged_page = tab.read_page(max_chars=80, content_only=False)
+        check("unchanged semantic read returns stable refs only",
+              unchanged_page.get("blocks") == []
+              and bool(unchanged_page.get("unchanged_refs")),
+              f"refs={len(unchanged_page.get('unchanged_refs') or [])}")
+        tab.js("document.getElementById('b0').textContent='Button changed'")
+        changed_page = tab.read_page(max_chars=2_000, content_only=False)
+        check("semantic read emits only changed real-DOM blocks",
+              changed_page.get("changed_count") == 1
+              and any("Button changed" in str(block.get("text"))
+                      for block in changed_page.get("blocks") or []),
+              f"changed={changed_page.get('changed_count')}")
+        try:
+            tab.read_page(max_chars=80, content_only=False, cursor=semantic_cursor)
+            check("old semantic cursor fails closed after mutation", False, "no exception")
+        except DocumentVersionStale:
+            check("old semantic cursor fails closed after mutation", True)
 
         # --- informational: DOM node via returnByValue -----------------------
         try:

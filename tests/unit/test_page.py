@@ -8,6 +8,7 @@ import pytest
 
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry, State
+from harness.core.journal import Journal
 from harness.core.outcome import (
     CdpError,
     Class,
@@ -177,7 +178,9 @@ def test_goto_settles_when_one_stalled_subresource_holds_load_forever(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     browser.lifecycle_names = ["DOMContentLoaded", "networkAlmostIdle"]   # no `load`
-    browser.eval_hook = lambda e: "https://a.test/" if "location" in e else None
+    browser.eval_hook = lambda e: (["interactive", 5, 900, 123, 20]
+                                   if "hash >>> 0" in e else
+                                   "https://a.test/" if "location" in e else None)
     started = time.monotonic()
     r = tab.goto("https://a.test/", timeout=5.0)
     assert r["lifecycle"] == "settled"
@@ -242,6 +245,126 @@ def test_goto_can_require_the_exact_lifecycle_until_deadline(wired):
     assert time.monotonic() - started >= 0.1
 
 
+def test_goto_strict_mode_does_not_accept_the_settled_pair(wired):
+    """`None` disables both early exits, not only the usable-document timer."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = ["DOMContentLoaded", "networkAlmostIdle"]
+    browser.eval_hook = lambda e: (["interactive", 2, 900, 123, 20]
+                                   if "hash >>> 0" in e else
+                                   "https://a.test/" if "location" in e else None)
+    started = time.monotonic()
+
+    r = tab.goto("https://a.test/", timeout=0.15, usable_after=None)
+
+    assert r == {"requested": "https://a.test/", "landed": "https://a.test/",
+                 "lifecycle": "timeout"}
+    assert time.monotonic() - started >= 0.1
+
+
+def test_navigation_journals_bounded_timing_evidence(wired, tmp_path):
+    browser, conn, registry = wired
+    path = tmp_path / "navigation.jsonl"
+    tab = Tab(conn, registry, "a", journal=Journal(path, session="nav"))
+    browser.lifecycle_names = ["DOMContentLoaded", "networkAlmostIdle"]
+    browser.eval_hook = lambda e: (["interactive", 2, 900, 123, 20]
+                                   if "hash >>> 0" in e else
+                                   "https://a.test/" if "location" in e else None)
+
+    tab.goto("https://a.test/", timeout=1.0, usable_after=0.05)
+
+    entries = [json.loads(line) for line in path.read_text().splitlines()]
+    note = next(row for row in entries if row.get("event") == "navigation_wait")
+    assert note["lifecycle"] == "settled"
+    assert note["effective_usable_after"] == 0.05
+    assert note["readiness_probes"] == 2
+    assert note["parsed_ready_ms"] is not None
+    assert note["critical_requests_peak"] == 0
+
+
+def test_navigation_grace_adapts_within_documented_session_bounds(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = ["DOMContentLoaded", "load"]
+    browser.eval_hook = lambda e: (["interactive", 2, 900, 123, 20]
+                                   if "hash >>> 0" in e else
+                                   "https://a.test/" if "location" in e else None)
+
+    # Two exact, fast documents train this Tab only; no URL/origin is retained.
+    tab.goto("https://a.test/one")
+    tab.goto("https://a.test/two")
+    assert tab._adaptive_navigation_grace(10.0) == (0.5, 2)
+    assert tab._adaptive_navigation_grace(0.05) == (0.05, 2)
+    other = _tab(wired)
+    try:
+        assert other._adaptive_navigation_grace(3.0) == (3.0, 0)
+    finally:
+        other.close()
+
+    browser.lifecycle_names = ["DOMContentLoaded"]
+    started = time.monotonic()
+    r = tab.goto("https://a.test/stalled", timeout=2.0)
+
+    assert r["lifecycle"] == "usable"
+    assert 0.45 <= time.monotonic() - started < 1.2
+
+
+def test_navigation_waits_for_observed_delayed_spa_data(wired):
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = ["DOMContentLoaded", "load"]
+    state = {"complete": False}
+
+    def evaluate(expression):
+        if "maxChars" in expression:
+            text = "complete application data" if state["complete"] else "loading"
+            return {"url": "https://a.test/spa", "title": "SPA", "text": text,
+                    "links": [], "challenge": {"detected": False}}
+        if "hash >>> 0" in expression:
+            return (["interactive", 2, 900, 222, 30] if state["complete"]
+                    else ["interactive", 0, 7, 111, 8])
+        return "https://a.test/spa" if "location" in expression else None
+
+    browser.eval_hook = evaluate
+    tab.goto("https://a.test/train-one")
+    tab.goto("https://a.test/train-two")
+    browser.lifecycle_names = []
+    real_send = browser.send
+
+    def send_with_delayed_data(message):
+        real_send(message)
+        if message.get("method") != "Page.navigate":
+            return
+        sid = message.get("sessionId")
+        browser.emit("Page.lifecycleEvent",
+                     {"name": "DOMContentLoaded", "loaderId": "L1", "frameId": "F1"},
+                     session_id=sid)
+        browser.emit("Network.requestWillBeSent",
+                     {"requestId": "data-1", "loaderId": "", "frameId": "F1",
+                      "type": "Fetch"}, session_id=sid)
+        browser.emit("Page.lifecycleEvent",
+                     {"name": "networkAlmostIdle", "loaderId": "L1", "frameId": "F1"},
+                     session_id=sid)
+
+        def finish():
+            time.sleep(0.7)
+            state["complete"] = True
+            browser.emit("Network.loadingFinished", {"requestId": "data-1"},
+                         session_id=sid)
+
+        threading.Thread(target=finish, daemon=True).start()
+
+    browser.send = send_with_delayed_data
+    started = time.monotonic()
+
+    out = tab.open_page("https://a.test/spa", timeout=2.0)
+
+    elapsed = time.monotonic() - started
+    assert out["lifecycle"] == "settled"
+    assert out["page"]["text"] == "complete application data"
+    assert 0.7 <= elapsed < 1.5
+
+
 def test_open_page_folds_digest_into_the_landing_check(wired):
     browser, _, _ = wired
     tab = _tab(wired)
@@ -259,9 +382,30 @@ def test_page_text_is_bounded_by_default_and_supports_paging(wired):
     browser, _, _ = wired
     tab = _tab(wired)
     expressions = []
-    browser.eval_hook = lambda e: expressions.append(e) or "window"
+    browser.eval_hook = lambda e: expressions.append(e) or {
+        "url": "https://a.test/", "title": "A", "document_id": 1,
+        "text": "window", "text_start": 12_000,
+        "blocks": [{"kind": "paragraph", "key": "body>p:1",
+                    "text": "x" * 12_000 + "window"}],
+    }
     assert tab.page_text(start=12_000) == "window"
-    assert ".slice(12000, 24000)" in expressions[-1]
+    assert "start = 12000" in expressions[-1]
+
+
+def test_page_text_remains_repeatable_while_structured_reads_dedupe(wired):
+    """The legacy string helper cannot return block refs, so semantic dedupe must not
+    turn a second call into a silent empty-page result."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.eval_hook = lambda e: {
+        "url": "https://a.test/", "title": "A", "document_id": 1,
+        "text": "same text", "blocks": [
+            {"kind": "paragraph", "key": "body>p:1", "text": "same text"},
+        ],
+    }
+
+    assert tab.page_text() == "same text"
+    assert tab.page_text() == "same text"
 
 
 def test_read_page_supports_paging_without_a_second_helper(wired):
@@ -305,6 +449,61 @@ def test_wait_lifecycle_times_out_typed(wired):
     tab = _tab(wired)
     with pytest.raises(Timeout):
         tab.wait_lifecycle("networkIdle", timeout=0.1)
+
+
+def test_action_consequence_never_calls_an_unrelated_mutation_success(wired):
+    tab = _tab(wired)
+    consequence = tab._shape_action_consequence({
+        "mutation_count": 1,
+        "changed_regions": [{"kind": "paragraph", "text": "clock tick",
+                             "related": False}],
+        "related_regions": 0,
+    })
+
+    assert consequence["effect"] == "unverified_mutation"
+    assert consequence["verified"] is False
+
+
+def test_action_consequence_never_calls_a_no_op_success(wired):
+    tab = _tab(wired)
+
+    consequence = tab._shape_action_consequence({})
+
+    assert consequence["effect"] == "none"
+    assert consequence["verified"] is False
+
+
+def test_action_consequence_types_modal_and_validation_evidence(wired):
+    tab = _tab(wired)
+    modal = tab._shape_action_consequence({
+        "mutation_count": 1, "modal": True,
+        "changed_regions": [{"kind": "modal", "text": "Choose one",
+                             "related": True}],
+        "related_regions": 1,
+    })
+    validation = tab._shape_action_consequence(
+        {"states": {"e1": {"value": "new", "valid": False,
+                             "validationMessage": "Required"}}},
+        before_states={"e1": {"value": "", "valid": True,
+                              "validationMessage": ""}},
+    )
+
+    assert modal["effect"] == "modal" and modal["verified"] is True
+    assert validation["effect"] == "validation" and validation["verified"] is True
+    assert validation["validation_changed"] == ["e1"]
+
+
+def test_an_unrelated_modal_is_exposed_but_never_called_success(wired):
+    tab = _tab(wired)
+    modal = tab._shape_action_consequence({
+        "mutation_count": 1, "modal": True,
+        "changed_regions": [{"kind": "modal", "text": "Unrelated",
+                             "related": False}],
+        "related_regions": 0,
+    })
+
+    assert modal["effect"] == "modal"
+    assert modal["verified"] is False
 
 
 def test_frames_does_not_sleep_out_a_fixed_budget_on_a_frameless_page(wired):
@@ -653,7 +852,11 @@ def test_type_chars_synthesizes_when_the_renderer_dropped_every_key(wired):
     out = tab.type_chars("zur", ref="e1")
     keys = [c for c in browser.calls if c.get("method") == "Input.dispatchKeyEvent"]
     assert [k["params"]["type"] for k in keys] == ["keyDown", "keyUp"] * 3
-    assert out == {"chars": 3, "modality": "dom", "delivered": 0}
+    assert {key: out[key] for key in ("chars", "modality", "delivered")} == {
+        "chars": 3, "modality": "dom", "delivered": 0,
+    }
+    assert out["consequence"]["effect"] == "input_delivery"
+    assert out["consequence"]["verified"] is True
 
 
 def test_type_chars_never_synthesizes_when_the_keys_arrived(wired):
@@ -1196,6 +1399,7 @@ def test_screenshot_scale_is_the_inverse_of_dpr(wired, tmp_path):
     assert call["params"]["format"] == "jpeg" and call["params"]["quality"] == 70
     assert (tmp_path / "shot.jpeg").read_bytes() == b"fake-image-bytes"
     assert out["css_viewport"] == [1200, 800]
+    assert out["cdp_calls"] == 2
 
 
 def test_max_dim_lowers_the_scale_instead_of_resizing_after(wired):

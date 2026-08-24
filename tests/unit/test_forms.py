@@ -173,7 +173,9 @@ def test_a_short_report_is_counted_not_trusted(tab):
     browser, t = tab
     browser.eval_hook = lambda e: [{"ref": "e1", "ok": True}]
     out = fill_form(t, [{"ref": "e1", "value": "x"}, {"ref": "e2", "value": "y"}])
-    assert out.observed == {"attempted": 2, "succeeded": 1, "failed": 1, "fields": 2}
+    assert {key: out.observed[key] for key in ("attempted", "succeeded", "failed", "fields")} \
+        == {"attempted": 2, "succeeded": 1, "failed": 1, "fields": 2}
+    assert out.observed["consequence"]["effect"] == "partial_validation"
 
 
 def test_plan_values_are_json_injected_quotes_survive(tab):
@@ -234,8 +236,10 @@ def test_a_step_may_carry_its_own_write_mode(tab):
         {"ref": "e1", "value": "Test"},
         {"ref": "e2", "value": "+41 79 000 00 00", "mode": "insert"},
     ], recheck=0)
-    assert out.ok is True and out.observed == {"attempted": 2, "succeeded": 2,
-                                               "failed": 0, "fields": 2}
+    assert out.ok is True
+    assert {key: out.observed[key] for key in ("attempted", "succeeded", "failed", "fields")} \
+        == {"attempted": 2, "succeeded": 2, "failed": 0, "fields": 2}
+    assert out.observed["consequence"]["verified"] is True
     assert [r["ref"] for r in out.value] == ["e1", "e2"]      # report keeps plan order
     assert out.value[1]["mode"] == "insert"
     assert any(c.get("method") == "Input.insertText" for c in browser.calls)

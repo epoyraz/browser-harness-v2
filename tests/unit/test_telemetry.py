@@ -74,3 +74,31 @@ def test_render_leads_with_failures(tmp_path):
 
 def test_an_empty_corpus_says_how_to_start_one(tmp_path):
     assert any("BH_JOURNAL" in line for line in render(rollup([tmp_path])))
+
+
+def test_recording_cost_is_reported_separately_from_browser_work(tmp_path):
+    j = _journal(tmp_path, [
+        {"kind": "call", "id": "s.2", "fn": "screenshot", "ms": 18, "cdp": 2,
+         "observability": "recording", "recording_span_id": "s.1",
+         "outcome": {"ok": True}},
+        {"kind": "call", "id": "s.1", "fn": "click", "ms": 5, "cdp": 4,
+         "frame": "0001.jpg", "recording_profile": "evidence",
+         "frame_screenshot_ms": 18, "frame_recording_ms": 168,
+         "frame_cdp": 2, "frame_bytes": 4096, "outcome": {"ok": True}},
+        {"kind": "call", "id": "s.3", "fn": "click", "ms": 2, "cdp": 0,
+         "recording_profile": "evidence", "frame_suppressed": "nested_consequence",
+         "outcome": {"ok": True}},
+        {"kind": "cdp", "method": "Page.captureScreenshot", "ok": True,
+         "observability": "recording", "recording_span_id": "s.1"},
+        {"kind": "cdp", "method": "Input.dispatchMouseEvent", "ok": True},
+    ])
+    result = rollup([j])
+    assert result["calls"] == 2
+    assert result["protocol"]["calls"] == 1
+    assert result["observability"] == {
+        "frames": 1, "screenshot_ms": 18.0, "wall_ms": 168.0,
+        "cdp": 2, "bytes": 4096, "profiles": [("evidence", 2)],
+        "suppressed": 1, "suppressed_by_reason": [("nested_consequence", 1)],
+    }
+    text = "\n".join(render(result))
+    assert "recording observability" in text and "4,096 bytes" in text

@@ -5,6 +5,7 @@ import json
 import os
 import threading
 import time
+from pathlib import Path
 
 import pytest
 
@@ -348,6 +349,36 @@ def test_continuous_screencast_is_exposed_and_stopped_with_the_session(
     assert recorder.stops == 1
 
 
+def test_recording_profile_is_public_persisted_and_cannot_change_midstream(
+        session, monkeypatch, tmp_path):
+    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
+    directory = session.start_recording(name="proof", profile="evidence")
+    meta = json.loads((Path(directory) / "meta.json").read_text())
+    assert meta["recording_profile"] == "evidence"
+    assert session._recorder.profile.value == "evidence"
+    with pytest.raises(ValueError, match="already uses profile"):
+        session.start_recording(profile="cinematic")
+    assert session.stop_recording() == directory
+
+
+def test_recording_profile_environment_applies_to_manual_start(session, monkeypatch, tmp_path):
+    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
+    monkeypatch.setenv("BH_RECORD_PROFILE", "cinematic")
+    session.start_recording(name="film")
+    assert session._recorder.profile.value == "cinematic"
+
+
+def test_bh_record_may_name_the_profile_directly(served, monkeypatch, tmp_path):
+    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
+    monkeypatch.setenv("BH_RECORD", "evidence")
+    automatic = Session("sesstest")
+    try:
+        assert automatic._recorder is not None
+        assert automatic._recorder.profile.value == "evidence"
+    finally:
+        automatic.close()
+
+
 def test_only_drivable_targets_are_auto_selected(served):
     """A chrome:// internal is never what a caller meant, so it is not seized as 'the tab'."""
     browser, _ = served
@@ -413,11 +444,12 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "set_value", "require_form", "prepare_application", "follow_application",
                  "locate_application", "application_skills",
                  "run_application",
-                 "application_route_candidates", "fetch_all", "open_pages", "new_tab",
+                 "application_route_candidates", "fetch_all", "fetch_observed_json",
+                 "open_pages", "new_tab",
                  "use_tab", "close_tab",
                  "lease_tab", "resume_lease", "release_lease",
                  "new_context", "close_context", "parallel", "summarise", "targets",
-                 "tab", "session", "journal"):
+                 "fetch_content", "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"
 
 
@@ -722,6 +754,38 @@ def test_helpers_keep_their_names_so_a_traceback_is_readable(session):
 def test_a_script_runs_against_the_session(served, capsys):
     assert run_script('print(js("hi"))', name="sesstest") == 0
     assert capsys.readouterr().out.strip() == "a"
+
+
+def test_a_multi_megabyte_stdout_value_is_spilled_and_fetchable(
+        served, capsys, monkeypatch, tmp_path):
+    import json
+
+    from harness.core.content import ContentStore
+
+    monkeypatch.setenv("BH_OUTPUT_BYTES", "100")
+    monkeypatch.setenv("BH_CONTENT_STORE", str(tmp_path / "content"))
+    assert run_script('print("x" * 1_000_000)', name="sesstest") == 0
+    marker = json.loads(capsys.readouterr().out)
+
+    assert marker["surface"] == "stdout" and marker["_elided"] == 1_000_001
+    assert ContentStore(tmp_path / "content").get(marker["_sha256"]) == "x" * 1_000_000 + "\n"
+
+
+def test_a_large_raw_helper_result_is_reversibly_elided_before_the_agent_sees_it(
+        served, monkeypatch, tmp_path):
+    from harness.core.content import ContentStore
+
+    browser, _ = served
+    browser.eval_hook = lambda expression: "a" * 1_000
+    monkeypatch.setenv("BH_OUTPUT_BYTES", "100")
+    store = ContentStore(tmp_path / "content")
+    session = Session("sesstest", content_store=store)
+    try:
+        marker = session.namespace()["js"]("x")
+        assert marker["surface"] == "js"
+        assert store.get(marker["_sha256"]) == "a" * 1_000
+    finally:
+        session.close()
 
 
 def test_bh_argv_does_not_leak_into_the_script(served, capsys):

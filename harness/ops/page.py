@@ -22,6 +22,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import math
 import os
 import threading
 import time
@@ -33,6 +34,7 @@ from typing import Any
 
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
+from harness.core.content import ContentStore
 from harness.core.journal import Journal
 from harness.core.outcome import (
     Class,
@@ -47,6 +49,7 @@ from harness.core.outcome import (
     Timeout,
     ok,
 )
+from harness.ops.semantic import SemanticPageCache
 
 #: The harness's machinery runs in a CDP **isolated world**, not on `window`.
 #:
@@ -72,6 +75,39 @@ FRAMES_ZERO_OBSERVE = 0.2
 #: Ceiling for the settle loop, so a page that keeps spawning iframes still terminates.
 FRAMES_MAX_WAIT = 0.8
 
+#: The automatic usable-document grace is deliberately session-local and bounded.  Two
+#: exact navigations are enough to shorten the cold 3 s ceiling, but one unusually fast
+#: page is not.  The rolling maximum is conservative across a mixed session; the margin
+#: absorbs event/evaluation scheduling noise.  An explicit smaller ``usable_after`` remains
+#: a smaller caller-owned ceiling, while ``None`` disables every early fallback.
+NAVIGATION_GRACE_MIN = 0.5
+NAVIGATION_GRACE_MAX = 3.0
+NAVIGATION_GRACE_MARGIN = 0.25
+NAVIGATION_HISTORY_MIN = 2
+NAVIGATION_HISTORY_MAX = 8
+
+#: A fallback is useful only when the observed document and content-producing network are
+#: both quiet.  Two equal bounded probes across this interval are the strict mechanical
+#: invariant that prevents an early SPA shell from being promoted merely because it has a
+#: heading.  XHR/fetch/event-stream requests additionally block while they are in flight.
+NAVIGATION_QUIET = 0.15
+NAVIGATION_STABLE = 0.15
+NAVIGATION_DATA_TYPES = frozenset({"XHR", "Fetch", "EventSource"})
+NAVIGATION_EVENTS = frozenset({
+    "Page.lifecycleEvent",
+    "Network.requestWillBeSent",
+    "Network.loadingFinished",
+    "Network.loadingFailed",
+})
+
+#: Network observations retained for automatic public JSON batching. Both stores are
+#: bounded independently: a page can leave requests hanging forever, so bounding only the
+#: completed deque would still let the pending table grow without limit. Values retain
+#: URLs and boolean credential evidence, never headers or response bodies.
+ENDPOINT_OBSERVATION_LIMIT = 256
+ENDPOINT_PENDING_LIMIT = 512
+ENDPOINT_URL_LIMIT = 4096
+
 #: Installed on every new document (item 18). Idempotent; `__bh.mutations` is the DOM
 #: delta counter, `__bh.refs` the snapshot ref registry. Lives in the isolated world, so
 #: `__bh` is reachable from harness JS and invisible to the page.
@@ -79,6 +115,15 @@ RUNTIME_JS = """(() => {
   const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
   if (bh.runtime) return;
   bh.runtime = true;
+  bh.changes = bh.changes || [];
+  bh.changeFloor = bh.changeFloor || 0;
+  bh.actionStarts = bh.actionStarts || {};
+  bh.beginAction = token => {
+    const keys = Object.keys(bh.actionStarts);
+    if (keys.length >= 128) delete bh.actionStarts[keys[0]];
+    bh.actionStarts[token] = bh.mutations || 0;
+    return bh.actionStarts[token];
+  };
   bh.visible = el => {
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
@@ -115,7 +160,34 @@ RUNTIME_JS = """(() => {
     }
     return ref;
   };
-  const obs = new MutationObserver(list => { bh.mutations += list.length; });
+  const obs = new MutationObserver(list => {
+    bh.mutations += list.length;
+    const remember = (node, removed = false) => {
+      if (!node) return;
+      const element = node.nodeType === 1 ? node : node.parentElement;
+      if (!element) return;
+      bh.changes.push({n: bh.mutations, node: element, removed});
+      if (bh.changes.length > 128) {
+        const dropped = bh.changes.splice(0, bh.changes.length - 128);
+        for (const change of dropped)
+          bh.changeFloor = Math.max(bh.changeFloor, Number(change.n || 0));
+      }
+    };
+    for (const mutation of list) {
+      // The harness's own dry-run marker is safety bookkeeping, not a page result.
+      if (mutation.type === 'attributes'
+          && mutation.attributeName === 'data-bh-entered') continue;
+      const added = [...(mutation.addedNodes || [])];
+      const removed = [...(mutation.removedNodes || [])];
+      // For child-list changes, the changed children are the bounded semantic evidence.
+      // Recording their large parent as well turns a one-line insertion into a 4 KiB
+      // body dump and obscures which region actually changed.
+      if (mutation.type !== 'childList' || (!added.length && !removed.length))
+        remember(mutation.target);
+      for (const node of added) remember(node);
+      for (const node of removed) remember(node, true);
+    }
+  });
   const arm = () => obs.observe(document.documentElement || document,
     {subtree: true, childList: true, attributes: true, characterData: true});
   document.documentElement ? arm() : document.addEventListener('DOMContentLoaded', arm);
@@ -300,11 +372,73 @@ _CONTROL_STATE_JS = """(el => {
   if (tag === 'option') state.selected = !!control.selected;
   if (tag === 'select') state.selectedIndex = control.selectedIndex;
   if (tag === 'details') state.open = !!control.open;
-  for (const name of ['aria-checked', 'aria-expanded', 'aria-pressed', 'aria-selected']) {
+  if ('value' in control) state.value = type === 'password'
+    ? (control.value ? '[set]' : '') : String(control.value || '').slice(0, 1000);
+  if (control.validity) {
+    state.valid = !!control.validity.valid;
+    state.valueMissing = !!control.validity.valueMissing;
+    state.typeMismatch = !!control.validity.typeMismatch;
+    state.patternMismatch = !!control.validity.patternMismatch;
+    state.validationMessage = String(control.validationMessage || '').slice(0, 500);
+  }
+  for (const name of [
+    'aria-checked', 'aria-expanded', 'aria-pressed', 'aria-selected', 'aria-invalid'
+  ]) {
     if (control.hasAttribute && control.hasAttribute(name)) state[name] = control.getAttribute(name);
   }
   return state;
 })"""
+
+_ACTION_CONSEQUENCE_JS = r"""((marker, refs) => {
+  const bh = window.__bh || {mutations: 0, changes: [], actionStarts: {}, refs: {}};
+  let before = marker;
+  if (typeof marker === 'string') {
+    before = bh.actionStarts[marker];
+    try { delete bh.actionStarts[marker]; } catch (e) {}
+  }
+  before = Number(before || 0);
+  const targets = refs.map(ref => bh.refs[ref]).filter(Boolean);
+  const semantic = node => {
+    if (!node || !node.closest) return null;
+    return node.closest('[role=dialog],[role=alert],[aria-live],dialog,'
+      + 'p,li,table,fieldset,section,article,form') || node;
+  };
+  const seen = new Set(), regions = [];
+  let chars = 0, truncated = before < Number(bh.changeFloor || 0);
+  let modal = false, related = 0;
+  for (const change of bh.changes || []) {
+    if (Number(change.n || 0) <= before) continue;
+    const region = semantic(change.node);
+    if (!region || seen.has(region)) continue;
+    seen.add(region);
+    const role = String(region.getAttribute && region.getAttribute('role') || '').toLowerCase();
+    const tag = String(region.tagName || '').toLowerCase();
+    const isModal = role === 'dialog' || role === 'alert' || tag === 'dialog';
+    const isRelated = targets.some(target => region === target || region.contains(target)
+      || target.contains(region) || (target.form && region === target.form)
+      || (region.id && String(target.getAttribute && target.getAttribute('aria-controls') || '')
+        .split(/\s+/).includes(region.id)));
+    let text = String(region.innerText || region.textContent || '')
+      .replace(/\s+/g, ' ').trim();
+    const room = Math.max(0, 4000 - chars);
+    if (text.length > room) { text = text.slice(0, room); truncated = true; }
+    const row = {kind: isModal ? 'modal' : role || tag || 'region', text,
+      related: isRelated, removed: !!change.removed};
+    if (region.id) row.ref = `#${String(region.id).slice(0, 120)}`;
+    regions.push(row); chars += text.length;
+    modal = modal || isModal; related += isRelated ? 1 : 0;
+    if (regions.length >= 12 || chars >= 4000) { truncated = true; break; }
+  }
+  const states = {};
+  for (const ref of refs) {
+    const el = bh.refs[ref];
+    states[ref] = el ? (__CONTROL_STATE__)(el) : null;
+  }
+  return {mutation_count: Math.max(0, Number(bh.mutations || 0) - before),
+    changed_regions: regions, regions_truncated: truncated, modal,
+    history_truncated: before < Number(bh.changeFloor || 0),
+    related_regions: related, states};
+})(__MARKER__, __REFS__)""".replace("__CONTROL_STATE__", _CONTROL_STATE_JS)
 
 #: Native/property-only changes are direct evidence that a compositor click landed even
 #: when MutationObserver saw nothing. Focus is deliberately absent: a press can focus a
@@ -315,6 +449,210 @@ _CONTROL_DELTA_KEYS = frozenset({
     "aria-checked", "aria-expanded", "aria-pressed", "aria-selected",
 })
 
+_VALIDATION_DELTA_KEYS = frozenset({
+    "value", "checked", "selected", "selectedIndex", "valid", "valueMissing",
+    "typeMismatch", "patternMismatch", "validationMessage", "aria-invalid",
+})
+
+
+_SEMANTIC_DIGEST_JS = r"""(() => {
+  const maxChars = __MAX_CHARS__, maxLinks = __MAX_LINKS__, start = __START__;
+  const maxBlocks = 500, maxSemanticChars = 400000, maxBlockChars = 100000;
+  const contentOnly = __CONTENT_ONLY__;
+  const root = contentOnly
+    ? (document.querySelector('main,[role=main],article') || document.body)
+    : document.body;
+  const clean = value => String(value || '').replace(/\r/g, '')
+    .replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  const visible = el => {
+    if (!el || !el.getBoundingClientRect) return false;
+    const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+    return !!(r.width && r.height) && s.visibility !== 'hidden' && s.display !== 'none';
+  };
+  const path = el => {
+    if (el.id) return `${el.tagName.toLowerCase()}#${String(el.id).slice(0, 160)}`;
+    const parts = [];
+    for (let node = el; node && node.nodeType === 1 && node !== root; node = node.parentElement) {
+      const tag = node.tagName.toLowerCase();
+      let index = 1;
+      for (let sibling = node.previousElementSibling; sibling; sibling = sibling.previousElementSibling)
+        if (sibling.tagName === node.tagName) index++;
+      parts.push(`${tag}:nth-of-type(${index})`);
+      if (parts.length >= 8) break;
+    }
+    return parts.reverse().join('>') || (el.tagName || 'region').toLowerCase();
+  };
+  const rows = [];
+  let semanticChars = 0, blockCandidates = 0, blocksTruncated = false;
+  const add = (el, kind, text, extra = {}) => {
+    const normalized = clean(text);
+    if (!normalized && !extra.state && !extra.links) return;
+    blockCandidates++;
+    if (rows.length >= maxBlocks || semanticChars >= maxSemanticChars) {
+      blocksTruncated = true; return;
+    }
+    const room = Math.min(maxBlockChars, maxSemanticChars - semanticChars);
+    const bounded = normalized.slice(0, room);
+    semanticChars += bounded.length;
+    const value = {kind, key: `${kind}:${path(el)}`, text: bounded, ...extra};
+    if (bounded.length < normalized.length) {
+      value.text_chars = normalized.length; value.text_truncated = true;
+      blocksTruncated = true;
+    }
+    rows.push({node: el, value});
+  };
+  if (root) {
+    const semantic = root.querySelectorAll(
+      'h1,h2,h3,h4,h5,h6,p,pre,blockquote,ul,ol,dl,table');
+    for (const el of semantic) {
+      if (!visible(el)) continue;
+      if (el.matches('p,pre,blockquote') && el.closest('li,table')) continue;
+      let kind = 'paragraph', extra = {};
+      if (/^H[1-6]$/.test(el.tagName)) {
+        kind = 'heading'; extra = {level: Number(el.tagName.slice(1))};
+      } else if (el.matches('ul,ol,dl')) kind = 'list';
+      else if (el.matches('table')) kind = 'table';
+      else if (el.matches('pre')) kind = 'preformatted';
+      else if (el.matches('blockquote')) kind = 'quote';
+      add(el, kind, el.innerText || el.textContent, extra);
+    }
+
+    const controls = root.querySelectorAll(
+      'input:not([type=hidden]),textarea,select,button,[role=button],'
+      + '[role=checkbox],[role=radio],[role=combobox]');
+    for (const el of controls) {
+      if (!visible(el)) continue;
+      const tag = el.tagName.toLowerCase(), type = String(el.type || '').toLowerCase();
+      const labelled = el.labels && el.labels.length ? [...el.labels]
+        .map(label => label.innerText || label.textContent).join(' ') :
+        (el.getAttribute('aria-label') || el.getAttribute('placeholder')
+          || (tag === 'button' || el.getAttribute('role') === 'button'
+            ? (el.innerText || el.textContent) : '') || el.name || el.id);
+      const state = {tag, type: type || null, required: !!el.required,
+        disabled: !!el.disabled, aria_invalid: el.getAttribute('aria-invalid')};
+      if ('checked' in el) state.checked = !!el.checked;
+      if (tag === 'select') state.selected = [...el.selectedOptions]
+        .map(option => clean(option.textContent)).filter(Boolean).slice(0, 20);
+      else if (type === 'file') state.files = el.files ? el.files.length : 0;
+      else if ('value' in el) state.value = type === 'password'
+        ? (el.value ? '[set]' : '') : String(el.value || '').slice(0, 1000);
+      if (el.validity) {
+        state.valid = !!el.validity.valid;
+        state.value_missing = !!el.validity.valueMissing;
+        state.type_mismatch = !!el.validity.typeMismatch;
+        state.pattern_mismatch = !!el.validity.patternMismatch;
+        state.validation_message = String(el.validationMessage || '').slice(0, 500);
+      }
+      add(el, 'control', labelled || el.innerText || el.value, {control: {tag, type}, state});
+    }
+
+    // Modern SPAs commonly render prose in generic div/section containers. Preserve
+    // their direct text without duplicating nested headings, paragraphs, lists, controls,
+    // links, or child regions, so one changed leaf still maps to one stable block.
+    const genericSelector =
+      'main,section,article,div,form,fieldset,[role=main],[role=region],[role=article]';
+    const ownedSelector = 'h1,h2,h3,h4,h5,h6,p,pre,blockquote,ul,ol,dl,table,'
+      + genericSelector + ',input,textarea,select,button,[role=button],'
+      + '[role=checkbox],[role=radio],[role=combobox],a,label';
+    const generic = [root, ...root.querySelectorAll(genericSelector)];
+    for (const el of generic) {
+      if (!visible(el)) continue;
+      const direct = [];
+      for (const node of el.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) direct.push(node.textContent || '');
+        else if (node.nodeType === Node.ELEMENT_NODE
+                 && !node.matches(ownedSelector) && !node.querySelector(ownedSelector))
+          direct.push(node.innerText || node.textContent || '');
+      }
+      add(el, 'region', direct.join(' '));
+    }
+  }
+
+  const links = [], seen = new Set(), linkNodes = [];
+  let linkCandidates = 0, linksTruncated = false;
+  const scopes = root && root !== document.body ? [root, document] : [document];
+  for (const scope of scopes) {
+    for (const a of scope.querySelectorAll('a[href]')) {
+      if (links.length >= maxLinks) { linksTruncated = true; break; }
+      if (scope === document && root && root.contains(a)) continue;
+      if (contentOnly && a.closest('nav,header,footer,aside')) continue;
+      if (!visible(a)) continue;
+      let href;
+      try { href = new URL(a.href, location.href).href; } catch { continue; }
+      linkCandidates++;
+      if (href.length > 4096) { linksTruncated = true; continue; }
+      if (!/^https?:/i.test(href) || seen.has(href)) continue;
+      seen.add(href);
+      const text = clean(a.innerText || a.getAttribute('aria-label')).slice(0, 160);
+      links.push({text, href}); linkNodes.push([a, {text, href}]);
+    }
+    if (links.length >= maxLinks) break;
+  }
+  const groups = new Map();
+  for (const [anchor, link] of linkNodes) {
+    const owner = anchor.closest('nav,[role=navigation]') || anchor.parentElement;
+    if (!owner || (root && !root.contains(owner))) continue;
+    if (!groups.has(owner)) groups.set(owner, []);
+    groups.get(owner).push(link);
+  }
+  for (const [owner, grouped] of groups)
+    if (grouped.length >= 2) add(owner, 'link_group',
+      grouped.map(link => link.text).filter(Boolean).join('\n'), {links: grouped});
+
+  rows.sort((a, b) => {
+    if (a.node === b.node) return a.value.kind.localeCompare(b.value.kind);
+    const relation = a.node.compareDocumentPosition(b.node);
+    return relation & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+  });
+
+  let raw = clean((root && root.innerText) || '');
+  if (contentOnly && root) {
+    for (const select of root.querySelectorAll('select')) {
+      const verbose = clean(select.innerText || select.textContent);
+      const chosen = [...select.selectedOptions].map(option => clean(option.textContent))
+        .filter(Boolean);
+      if (verbose && chosen.length) raw = raw.replace(verbose, `[selected: ${chosen.join(', ')}]`);
+    }
+  }
+  // SPAs often render a useful result as direct text inside <main> rather than a <p>.
+  // Do not drop that document merely because it has no more specific semantic element.
+  if (!rows.length && root && raw)
+    rows.push({node: root, value: {kind: 'region', key: `region:${path(root)}`, text: raw}});
+  const signals = [];
+  const challengeSelector = [
+    'iframe[src*="captcha" i]', 'iframe[src*="challenge" i]',
+    '[id*="captcha" i]', '[class*="captcha" i]', '[data-sitekey]'
+  ].join(',');
+  if (document.querySelector(challengeSelector)) signals.push('challenge_dom');
+  const assets = [...document.querySelectorAll('iframe[src],script[src]')]
+    .map(el => String(el.getAttribute('src') || '')).join(' ').toLowerCase();
+  if (/(?:recaptcha|hcaptcha|captcha-delivery|challenge-platform|turnstile)/.test(assets))
+    signals.push('challenge_asset');
+  const lead = (String(document.title || '') + '\n' +
+    String((document.body && document.body.innerText) || '').slice(0, 6000)).toLowerCase();
+  const humanPattern = /verify (?:that )?you are human|complete (?:the )?security check|are you (?:a )?robot|unusual traffic|press and hold|human verification/;
+  if (humanPattern.test(lead)) signals.push('human_verification_text');
+  const uniqueSignals = [...new Set(signals)];
+  return {
+    document_id: String(performance.timeOrigin || 0),
+    url: location.href, title: document.title, ready_state: document.readyState,
+    language: document.documentElement.lang || navigator.language || '',
+    // Retained for backwards-compatible raw-character paging. New continuations use
+    // the document-bound semantic cursor returned by Python.
+    text: raw.slice(start, start + maxChars), text_chars: raw.length,
+    text_start: start, text_remaining: Math.max(0, raw.length - start - maxChars),
+    text_truncated: raw.length > start + maxChars,
+    blocks: rows.map(row => row.value), block_chars: semanticChars,
+    block_candidates: blockCandidates, blocks_truncated: blocksTruncated,
+    links, link_candidates: linkCandidates, links_truncated: linksTruncated,
+    challenge: {detected: uniqueSignals.length > 0,
+      confidence: uniqueSignals.includes('challenge_asset') ||
+                  uniqueSignals.includes('challenge_dom') ? 'high' :
+                  uniqueSignals.length ? 'medium' : 'none',
+      signals: uniqueSignals}
+  };
+})()"""
+
 
 def _control_state_changed(before: Any, after: Any) -> bool:
     if not isinstance(before, dict) or not isinstance(after, dict):
@@ -323,6 +661,16 @@ def _control_state_changed(before: Any, after: Any) -> bool:
         (key in before, before.get(key)) != (key in after, after.get(key))
         for key in _CONTROL_DELTA_KEYS
     )
+
+
+def _validation_delta(before: Any, after: Any) -> dict[str, Any]:
+    prior = before if isinstance(before, dict) else {}
+    current = after if isinstance(after, dict) else {}
+    keys = [key for key in _VALIDATION_DELTA_KEYS
+            if (key in prior, prior.get(key)) != (key in current, current.get(key))]
+    return {"changed": bool(keys), "keys": sorted(keys),
+            "before": {key: prior.get(key) for key in keys},
+            "after": {key: current.get(key) for key in keys}}
 
 _AUTH_ACTION_JS = """(el => {
   if (!el) return null;
@@ -802,15 +1150,35 @@ class _Waiter:
                     return None
                 self.cond.wait(left)
 
+    def wait_next(self, cursor: int, timeout: float) -> tuple[
+            int, tuple[float, dict[str, Any]] | None]:
+        """Return one buffered event exactly once, waiting event-first up to ``timeout``.
+
+        Navigation needs to update factual in-flight request state for *non-terminal*
+        events.  ``wait_match`` deliberately hides those; a cursor keeps this path
+        event-driven without repeatedly applying state transitions to the same message.
+        """
+        deadline = time.monotonic() + max(0.0, timeout)
+        with self.cond:
+            while cursor >= len(self.hits):
+                left = deadline - time.monotonic()
+                if left <= 0:
+                    return cursor, None
+                self.cond.wait(left)
+            return cursor + 1, self.hits[cursor]
+
 
 class Tab:
     """Primitives bound to one target. All CDP goes through the target's registered
     session; all waits go through one subscriber registered at construction."""
 
     def __init__(self, conn: Connection, registry: SessionRegistry, target_id: str, *,
-                 journal: Journal | None = None, accept_dialogs: bool = False):
+                 journal: Journal | None = None, accept_dialogs: bool = False,
+                 content_store: ContentStore | None = None):
         self._conn, self._reg, self.target_id = conn, registry, target_id
         self._j = journal or conn.journal
+        self._content_store = content_store or ContentStore()
+        self._semantic = SemanticPageCache(self._content_store, self._j, target_id)
         self.accept_dialogs = accept_dialogs
         self._session_id: str | None = None
         self._wlock = threading.Lock()
@@ -840,6 +1208,25 @@ class Tab:
         #: this survives both a document replacement and a session recovery, and
         #: `Page.getFrameTree` is only ever paid before the first navigation is seen.
         self._main_frame: str | None = None
+        #: Timing-only adaptive navigation history. It is intentionally attached to this
+        #: Tab/CDP session, contains no origin or content, and is discarded on reattach.
+        self._navigation_history_lock = threading.Lock()
+        self._navigation_history: deque[
+            tuple[float | None, float | None, float | None]
+        ] = deque(maxlen=NAVIGATION_HISTORY_MAX)
+        #: Factual Network-domain evidence for the read-only endpoint planner. Selection
+        #: policy lives in ops/batch.py; the Tab only pairs request/response events and
+        #: records whether Chrome supplied complete credential evidence. This lock is
+        #: separate from waiter/dialog state so a snapshot cannot delay event delivery.
+        self._endpoint_lock = threading.Lock()
+        self._endpoint_pending: dict[str, dict[str, Any]] = {}
+        self._endpoint_pending_order: deque[str] = deque()
+        self._endpoint_observations: deque[dict[str, Any]] = deque(
+            maxlen=ENDPOINT_OBSERVATION_LIMIT)
+        self._endpoint_sequence = 0
+        self._endpoint_request_sequence = 0
+        self._endpoint_document_url = ""
+        self._endpoint_document_generation = 0
         conn.subscribe(self._on_event)
         try:
             self._install_runtime()
@@ -868,6 +1255,8 @@ class Tab:
             # here, before the call that noticed the change proceeds.
             self._session_id = sid
             self._world_ctx = None
+            with self._navigation_history_lock:
+                self._navigation_history.clear()
             self._rearm_session(sid)
         else:
             self._session_id = sid
@@ -1010,6 +1399,214 @@ class Tab:
             return info
         return None
 
+    @staticmethod
+    def _endpoint_auth_headers(headers: Any) -> bool:
+        """Whether a CDP header map explicitly carries request/response credentials.
+
+        Header *values* never cross this boundary. Network ExtraInfo events can contain
+        cookies and bearer tokens, so retaining the original mapping would turn a bounded
+        endpoint index into a secret store.
+        """
+        if not isinstance(headers, dict):
+            return False
+        names = {str(name).strip().lower() for name in headers}
+        return bool(names & {
+            "authorization", "proxy-authorization", "cookie",
+            "set-cookie", "www-authenticate", "proxy-authenticate",
+            "authentication-info", "proxy-authentication-info",
+            "x-api-key", "x-auth-token", "x-csrf-token", "x-xsrf-token",
+        })
+
+    @staticmethod
+    def _endpoint_private_response(headers: Any) -> bool:
+        if not isinstance(headers, dict):
+            return False
+        normalized = {
+            str(name).strip().lower(): str(value).strip().lower()
+            for name, value in headers.items()
+        }
+        cache_control = normalized.get("cache-control", "")
+        vary = normalized.get("vary", "")
+        return (
+            "private" in {part.strip() for part in cache_control.split(",")}
+            or "no-store" in {part.strip() for part in cache_control.split(",")}
+            or bool({part.strip() for part in vary.split(",")} & {
+                "cookie", "authorization", "x-api-key", "x-auth-token",
+            })
+        )
+
+    @staticmethod
+    def _bounded_endpoint_url(value: Any) -> tuple[str, bool]:
+        raw = str(value or "")
+        return raw[:ENDPOINT_URL_LIMIT], len(raw) > ENDPOINT_URL_LIMIT
+
+    def _endpoint_entry(self, request_id: str) -> dict[str, Any]:
+        entry = self._endpoint_pending.get(request_id)
+        if entry is not None:
+            return entry
+        entry = {
+            "request_id": request_id,
+            "request_seen": False,
+            "request_extra_seen": False,
+            "request_extra_complete": False,
+            "request_credentials": False,
+            "response_seen": False,
+            "response_extra_seen": False,
+            "response_auth": False,
+            "redirected": False,
+        }
+        self._endpoint_pending[request_id] = entry
+        self._endpoint_pending_order.append(request_id)
+        while len(self._endpoint_pending) > ENDPOINT_PENDING_LIMIT:
+            oldest = self._endpoint_pending_order.popleft()
+            self._endpoint_pending.pop(oldest, None)
+        return entry
+
+    def _observe_endpoint_event(self, method: str, params: dict[str, Any]) -> None:
+        """Pair bounded request facts on the reader thread; never make a CDP request."""
+        if method == "Page.frameNavigated":
+            frame = params.get("frame") or {}
+            if frame.get("parentId"):
+                return
+            document_url, _ = self._bounded_endpoint_url(frame.get("url"))
+            with self._endpoint_lock:
+                # A full main-frame navigation invalidates the old page's endpoint plan,
+                # including same-origin navigations. Otherwise a later helper could replay
+                # evidence from a document it never inspected.
+                self._endpoint_pending.clear()
+                self._endpoint_pending_order.clear()
+                self._endpoint_observations.clear()
+                self._endpoint_sequence = 0
+                self._endpoint_request_sequence = 0
+                self._endpoint_document_url = document_url
+                self._endpoint_document_generation += 1
+            return
+        if method == "Page.navigatedWithinDocument":
+            frame_id = str(params.get("frameId") or "")
+            if self._main_frame and frame_id and frame_id != self._main_frame:
+                return
+            document_url, _ = self._bounded_endpoint_url(params.get("url"))
+            with self._endpoint_lock:
+                # pushState/hash navigation changes the current route's evidence scope.
+                # Keeping endpoints observed on the previous route would be a semantic
+                # guess about this SPA, so require fresh Network evidence instead.
+                self._endpoint_pending.clear()
+                self._endpoint_pending_order.clear()
+                self._endpoint_observations.clear()
+                self._endpoint_sequence = 0
+                self._endpoint_request_sequence = 0
+                self._endpoint_document_url = document_url
+                self._endpoint_document_generation += 1
+            return
+
+        request_id = str(params.get("requestId") or "")
+        if not request_id or method not in {
+            "Network.requestWillBeSent",
+            "Network.requestWillBeSentExtraInfo",
+            "Network.responseReceived",
+            "Network.responseReceivedExtraInfo",
+        }:
+            return
+        with self._endpoint_lock:
+            entry = self._endpoint_entry(request_id)
+            if method == "Network.requestWillBeSent":
+                request = params.get("request") or {}
+                if entry.get("request_seen"):
+                    # CDP reuses requestId across redirects. Pairing the several ExtraInfo
+                    # events is order-sensitive, so the automatic path refuses the chain.
+                    entry["redirected"] = True
+                else:
+                    self._endpoint_request_sequence += 1
+                    entry["request_sequence"] = self._endpoint_request_sequence
+                url, truncated = self._bounded_endpoint_url(request.get("url"))
+                document_url, document_truncated = self._bounded_endpoint_url(
+                    params.get("documentURL"))
+                entry.update({
+                    "request_seen": True,
+                    "url": url,
+                    "url_truncated": truncated,
+                    "method": str(request.get("method") or "").upper(),
+                    "has_post_data": bool(request.get("hasPostData")
+                                          or request.get("postData")),
+                    "request_credentials": bool(entry.get("request_credentials"))
+                                           or self._endpoint_auth_headers(
+                                               request.get("headers")),
+                    "resource_type": str(params.get("type") or ""),
+                    "frame_id": str(params.get("frameId") or ""),
+                    "document_url": document_url,
+                    "document_url_truncated": document_truncated,
+                    "redirected": bool(entry.get("redirected")
+                                       or params.get("redirectResponse")),
+                })
+            elif method == "Network.requestWillBeSentExtraInfo":
+                headers = params.get("headers")
+                cookies = params.get("associatedCookies")
+                entry["request_extra_seen"] = True
+                entry["request_extra_complete"] = (
+                    isinstance(headers, dict) and isinstance(cookies, list))
+                # Refuse even blocked associated cookies. That is deliberately stricter
+                # than "was a Cookie header sent": the page is in credential-bearing
+                # state, and automatic replay is only for unambiguous public reads.
+                entry["request_credentials"] = bool(
+                    entry.get("request_credentials")
+                    or self._endpoint_auth_headers(headers)
+                    or (isinstance(cookies, list) and cookies)
+                )
+            elif method == "Network.responseReceivedExtraInfo":
+                entry["response_extra_seen"] = True
+                entry["response_auth"] = bool(
+                    entry.get("response_auth")
+                    or self._endpoint_auth_headers(params.get("headers")))
+                entry["response_private"] = bool(
+                    entry.get("response_private")
+                    or self._endpoint_private_response(params.get("headers")))
+            else:
+                response = params.get("response") or {}
+                response_url, response_url_truncated = self._bounded_endpoint_url(
+                    response.get("url"))
+                entry.update({
+                    "response_seen": True,
+                    "response_url": response_url,
+                    "response_url_truncated": response_url_truncated,
+                    "status": int(response.get("status") or 0),
+                    "mime_type": str(response.get("mimeType") or "").lower()[:200],
+                    "response_extra_expected": bool(params.get("hasExtraInfo")),
+                    "response_auth": bool(entry.get("response_auth"))
+                                   or self._endpoint_auth_headers(response.get("headers")),
+                    "response_private": bool(entry.get("response_private"))
+                                      or self._endpoint_private_response(
+                                          response.get("headers")),
+                    "from_service_worker": bool(response.get("fromServiceWorker")),
+                })
+                if not entry.get("observation_sequence"):
+                    self._endpoint_sequence += 1
+                    entry["observation_sequence"] = self._endpoint_sequence
+                    # Keep the same bounded dict alive in the pending table so an
+                    # ExtraInfo event that follows responseReceived can complete it.
+                    self._endpoint_observations.append(entry)
+
+    def _endpoint_snapshot(self) -> dict[str, Any]:
+        """Internal factual snapshot consumed by the bounded endpoint planner.
+
+        No header/body values are present. Returning copies prevents the reader thread's
+        later ExtraInfo event from mutating a plan while it is being selected.
+        """
+        with self._endpoint_lock:
+            rows = [dict(row) for row in self._endpoint_observations]
+            rows.sort(key=lambda row: (
+                int(row.get("request_sequence") or 2**63 - 1),
+                int(row.get("observation_sequence") or 0),
+            ))
+            return {
+                "document_url": self._endpoint_document_url,
+                "document_generation": self._endpoint_document_generation,
+                "main_frame": self._main_frame or "",
+                "observation_limit": ENDPOINT_OBSERVATION_LIMIT,
+                "observations_dropped": max(
+                    0, self._endpoint_sequence - len(self._endpoint_observations)),
+                "observations": rows,
+            }
+
     def _on_event(self, msg: dict[str, Any]) -> None:
         """Reader thread: bookkeeping and waiter wakeups only, never a request."""
         sid = msg.get("sessionId")
@@ -1017,6 +1614,7 @@ class Tab:
             return                                     # another tab's event
         method = msg.get("method", "")
         params = msg.get("params") or {}
+        self._observe_endpoint_event(method, params)
         if self._diagnostics_enabled:
             diagnostic = self._sanitize_diagnostic_event(method, params)
             if diagnostic is not None:
@@ -1261,6 +1859,39 @@ class Tab:
 
     # -- item 16 + 19: navigation and event-driven waits -------------------
 
+    def _adaptive_navigation_grace(self, configured: float) -> tuple[float, int]:
+        """Return this session's bounded usable-document grace and sample count.
+
+        Samples are timing triples only: parsed, exact lifecycle, and network-quiescence
+        offsets. They are neither keyed by nor persisted with an origin. The maximum of
+        recent completion milestones deliberately adapts upward faster than downward.
+        """
+        value = float(configured)
+        if not math.isfinite(value):
+            raise ValueError("usable_after must be a finite number or None")
+        ceiling = max(0.0, value)
+        with self._navigation_history_lock:
+            samples = list(self._navigation_history)
+        if len(samples) < NAVIGATION_HISTORY_MIN:
+            return ceiling, len(samples)
+        milestones = [max(v for v in sample if v is not None) for sample in samples
+                      if any(v is not None for v in sample)]
+        if not milestones:
+            return ceiling, len(samples)
+        learned = min(NAVIGATION_GRACE_MAX,
+                      max(NAVIGATION_GRACE_MIN,
+                          max(milestones) + NAVIGATION_GRACE_MARGIN))
+        # A caller-supplied value below the adaptive floor remains authoritative.
+        return min(ceiling, learned), len(samples)
+
+    def _remember_navigation_timing(self, parsed: float | None,
+                                    lifecycle: float | None,
+                                    network_quiet: float | None) -> None:
+        if lifecycle is None:
+            return                         # censored fallback samples never lower the grace
+        with self._navigation_history_lock:
+            self._navigation_history.append((parsed, lifecycle, network_quiet))
+
     def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load",
              usable_after: float | None = 3.0, digest: bool = False,
              max_chars: int = 6_000, max_links: int = 20,
@@ -1288,77 +1919,238 @@ class Tab:
         usable: the caller caught the `Timeout`, carried on, and filled the forms anyway.
         The harness spent 505 seconds proving the caller right.
 
-        `settled` is safe to accept early because of the *order* the events arrive in. On a
-        healthy page Chrome emits `DOMContentLoaded` → `load` → `networkAlmostIdle`, so
-        `load` wins the race and nothing changes. Only when `load` is absent does the pair
-        arrive without it, which is precisely the stalled case.
+        A numeric ``usable_after`` is an upper bound for a session-local adaptive grace.
+        After two exact navigations the timing-only history may reduce it, clamped to
+        0.5–3.0 seconds. An explicit value below 0.5 seconds remains authoritative. An
+        early ``usable`` or ``settled`` result additionally requires no observed XHR,
+        fetch, or event stream in flight, a 150 ms network-quiet window, and two identical
+        bounded document probes 150 ms apart. A parsed SPA shell is therefore evidence to
+        keep waiting, not a complete-page claim.
 
-        Set `usable_after=None` when the exact lifecycle event is a hard requirement.
+        Set `usable_after=None` when the exact lifecycle event is a hard requirement. It
+        disables both early fallbacks; the deadline retains the existing honest
+        ``lifecycle="timeout"`` usable-document outcome.
         `digest=True` folds a bounded page read into the URL check, so `open_page()` costs
         no more CDP round trips than `goto()` followed by its ordinary landing check.
         """
         seen: set[str] = set()
-
-        def satisfied(msg: dict[str, Any]) -> bool:
-            # Only ever called from `wait_match`, which runs after `loader` is assigned —
-            # so the buffered events from BEFORE this navigation are filtered here rather
-            # than being allowed to accumulate into `seen` and satisfy the pair rule with
-            # the previous document's events.
-            p = msg.get("params") or {}
-            name = p.get("name")
-            if not isinstance(name, str):
-                return False
-            if not loader:
-                return name == wait_until      # unidentifiable: exact match only
-            if p.get("loaderId") != loader:
-                return False                   # another navigation's lifecycle, not ours
-            seen.add(name)
-            if name == wait_until:
-                return True
-            return wait_until == "load" and {"DOMContentLoaded",
-                                             "networkAlmostIdle"} <= seen
-
         loader = None
         lifecycle = "timeout"
         wait_started = time.perf_counter()
-        deadline = time.monotonic() + timeout
+        deadline = wait_started + timeout
+        strict = usable_after is None
+        configured_grace = None if strict else float(usable_after)
+        if strict:
+            effective_grace = None
+            with self._navigation_history_lock:
+                history_samples = len(self._navigation_history)
+        else:
+            effective_grace, history_samples = self._adaptive_navigation_grace(
+                configured_grace)
+        exact: dict[str, Any] | None = None
+        lifecycle_times: dict[str, float] = {}
+        network_quiet_at: float | None = None
+        readiness_at: float | None = None
+        readiness_probes = 0
+        critical_peak = 0
+        blocked_by_data = False
+        fallback = False
+        fallback_kind = ""
+
         with self._j.call("goto", url=url), \
-             self._armed(lambda m: m.get("method") == "Page.lifecycleEvent") as w:
+             self._armed(lambda m: m.get("method") in NAVIGATION_EVENTS) as w:
             nav = self.cdp("Page.navigate", {"url": url}, timeout=timeout)
             if err := nav.get("errorText"):
                 raise NavigationFailed(err, requested=url, landed=self._try_url())
             loader = nav.get("loaderId")
-            remaining = max(0.0, deadline - time.monotonic())
-            hit = None
-            usable = False
-            # The protocol event remains the zero-extra-call fast path. Only a page that
-            # is still waiting after the grace window pays one tiny readiness evaluation.
-            # On the benchmark, Page.navigate itself averaged ~0.5 s while goto averaged
-            # ~2.3 s: most of the difference was waiting after useful content existed.
-            grace = None if usable_after is None else max(0.0, float(usable_after))
-            if wait_until == "load" and grace is not None and grace < remaining:
-                hit = w.wait_match(satisfied, grace)
-                if hit is None:
-                    usable = self._usable_document(min(2.0, max(
-                        0.1, deadline - time.monotonic())))
-                    # Prefer an exact/settled event that raced the readiness evaluation.
-                    raced = w.wait_match(satisfied, 0.0)
-                    if raced is not None:
-                        hit, usable = raced, False
-            if hit is None and not usable:
-                hit = w.wait_match(satisfied, max(0.0, deadline - time.monotonic()))
-            got = (hit.get("params") or {}).get("name") if hit else None
-            lifecycle = ("load" if got == wait_until
-                         else "settled" if hit is not None
-                         else "usable" if usable else "timeout")
-            if hit is None and not usable and not self._usable_document(
-                    min(timeout, 5.0)):
-                raise Timeout(f"no {wait_until!r} lifecycle event in {timeout}s",
-                              requested=url, wait_until=wait_until, lifecycle_seen=sorted(seen))
+            frame_id = nav.get("frameId")
+            fallback_enabled = bool(loader) and wait_until == "load" and not strict
+            cursor = 0
+            requests: dict[str, str] = {}
+            critical: set[str] = set()
+            last_network_activity = wait_started
+            activity_epoch = 0
+            settled_seen = False
+            first_probe: tuple[float, tuple[Any, ...], int] | None = None
+            last_probe_epoch: int | None = None
+
+            def consume(item: tuple[float, dict[str, Any]]) -> None:
+                nonlocal exact, network_quiet_at, last_network_activity
+                nonlocal activity_epoch, settled_seen, first_probe, critical_peak
+                timestamp, message = item
+                method = message.get("method")
+                params = message.get("params") or {}
+                if method == "Page.lifecycleEvent":
+                    name = params.get("name")
+                    if not isinstance(name, str):
+                        return
+                    if loader:
+                        if params.get("loaderId") != loader:
+                            return
+                    elif name != wait_until:
+                        return                  # unidentifiable: exact match only
+                    seen.add(name)
+                    lifecycle_times.setdefault(name, max(0.0, timestamp - wait_started))
+                    if name == wait_until:
+                        exact = message
+                    if name in {"networkAlmostIdle", "networkIdle"}:
+                        network_quiet_at = max(0.0, timestamp - wait_started)
+                        last_network_activity = timestamp
+                        activity_epoch += 1
+                        first_probe = None
+                    if (fallback_enabled
+                            and {"DOMContentLoaded", "networkAlmostIdle"} <= seen):
+                        settled_seen = True
+                    return
+                if not loader:
+                    return
+                request_id = str(params.get("requestId") or "")
+                if method == "Network.requestWillBeSent":
+                    event_loader = params.get("loaderId")
+                    belongs = (event_loader == loader if event_loader else
+                               bool(frame_id) and params.get("frameId") == frame_id)
+                    if not belongs or not request_id:
+                        return
+                    kind = str(params.get("type") or "Other")
+                    requests[request_id] = kind
+                    critical.discard(request_id)       # redirects reuse a request id
+                    if kind in NAVIGATION_DATA_TYPES:
+                        critical.add(request_id)
+                        critical_peak = max(critical_peak, len(critical))
+                elif method in {"Network.loadingFinished", "Network.loadingFailed"}:
+                    if request_id not in requests:
+                        return
+                    requests.pop(request_id, None)
+                    critical.discard(request_id)
+                    if not requests:
+                        network_quiet_at = max(0.0, timestamp - wait_started)
+                else:
+                    return
+                last_network_activity = timestamp
+                activity_epoch += 1
+                first_probe = None
+
+            def take_event(wait: float) -> bool:
+                nonlocal cursor
+                cursor, item = w.wait_next(cursor, wait)
+                if item is None:
+                    return False
+                consume(item)
+                while True:
+                    cursor, buffered = w.wait_next(cursor, 0.0)
+                    if buffered is None:
+                        break
+                    consume(buffered)
+                return True
+
+            grace_at = (wait_started + effective_grace
+                        if effective_grace is not None else deadline)
+            while exact is None and time.perf_counter() < deadline:
+                take_event(0.0)
+                if exact is not None:
+                    break
+                now = time.perf_counter()
+                grace_elapsed = now >= grace_at
+                may_probe = fallback_enabled and (settled_seen or grace_elapsed)
+                quiet = now - last_network_activity >= NAVIGATION_QUIET
+                if critical:
+                    blocked_by_data = blocked_by_data or may_probe
+                due_probe = may_probe and not critical and quiet and (
+                    (first_probe is not None
+                     and now - first_probe[0] >= NAVIGATION_STABLE)
+                    or (first_probe is None and last_probe_epoch != activity_epoch)
+                )
+                if due_probe:
+                    epoch_before = activity_epoch
+                    usable, signature = self._document_readiness(
+                        min(2.0, max(0.1, deadline - time.perf_counter())))
+                    readiness_probes += 1
+                    probe_time = time.perf_counter()
+                    take_event(0.0)              # exact/data events that raced the probe
+                    if exact is not None:
+                        break
+                    last_probe_epoch = activity_epoch
+                    if (critical or activity_epoch != epoch_before
+                            or probe_time - last_network_activity < NAVIGATION_QUIET):
+                        first_probe = None
+                    elif usable:
+                        if (first_probe is not None
+                                and first_probe[1] == signature
+                                and first_probe[2] == activity_epoch):
+                            fallback = True
+                            fallback_kind = "settled" if settled_seen else "usable"
+                            readiness_at = max(0.0, probe_time - wait_started)
+                            break
+                        first_probe = (probe_time, signature, activity_epoch)
+                    else:
+                        first_probe = None
+                    continue
+
+                wake_at = deadline
+                if fallback_enabled:
+                    if not (settled_seen or grace_elapsed):
+                        wake_at = min(wake_at, grace_at)
+                    elif not critical:
+                        if not quiet:
+                            wake_at = min(wake_at,
+                                          last_network_activity + NAVIGATION_QUIET)
+                        elif first_probe is not None:
+                            wake_at = min(wake_at,
+                                          first_probe[0] + NAVIGATION_STABLE)
+                        elif last_probe_epoch != activity_epoch:
+                            wake_at = now
+                take_event(max(0.0, wake_at - time.perf_counter()))
+
+            # Drain events already ordered ahead of the final readiness evaluation. Exact
+            # lifecycle always wins, including when it arrives at the deadline boundary.
+            take_event(0.0)
+            if exact is not None:
+                lifecycle = "load"
+                if wait_until == "load":
+                    self._remember_navigation_timing(
+                        lifecycle_times.get("DOMContentLoaded"),
+                        lifecycle_times.get(wait_until), network_quiet_at)
+            elif fallback:
+                lifecycle = fallback_kind
+            else:
+                usable = self._usable_document(min(timeout, 5.0))
+                take_event(0.0)
+                if exact is not None:
+                    lifecycle = "load"
+                    if wait_until == "load":
+                        self._remember_navigation_timing(
+                            lifecycle_times.get("DOMContentLoaded"),
+                            lifecycle_times.get(wait_until), network_quiet_at)
+                elif not usable:
+                    raise Timeout(f"no {wait_until!r} lifecycle event in {timeout}s",
+                                  requested=url, wait_until=wait_until,
+                                  lifecycle_seen=sorted(seen))
+
+        waited = max(0.0, time.perf_counter() - wait_started)
+        adaptive_saved_ms = (0.0 if configured_grace is None or effective_grace is None
+                             else max(0.0, configured_grace - effective_grace) * 1000)
+        fallback_saved_ms = (0.0 if not fallback or configured_grace is None
+                             else max(0.0, configured_grace - waited) * 1000)
         self._j.write("note", event="navigation_wait", target_id=self.target_id,
                       lifecycle=lifecycle, lifecycle_seen=sorted(seen),
-                      wait_ms=round((time.perf_counter() - wait_started) * 1000, 1),
-                      usable_after=usable_after)
+                      wait_ms=round(waited * 1000, 1), usable_after=usable_after,
+                      effective_usable_after=effective_grace,
+                      adaptive_samples=history_samples,
+                      adaptive_saved_ms=round(adaptive_saved_ms, 1),
+                      fallback_saved_ms=round(fallback_saved_ms, 1),
+                      parsed_ready_ms=round(
+                          lifecycle_times.get("DOMContentLoaded", 0.0) * 1000, 1)
+                          if "DOMContentLoaded" in lifecycle_times else None,
+                      exact_lifecycle_ms=round(
+                          lifecycle_times.get(wait_until, 0.0) * 1000, 1)
+                          if wait_until in lifecycle_times else None,
+                      network_quiet_ms=round(network_quiet_at * 1000, 1)
+                          if network_quiet_at is not None else None,
+                      readiness_stable_ms=round(readiness_at * 1000, 1)
+                          if readiness_at is not None else None,
+                      readiness_probes=readiness_probes,
+                      critical_requests_peak=critical_peak,
+                      blocked_by_data=blocked_by_data)
         page = self._page_digest(max_chars=max_chars, max_links=max_links,
                                  content_only=content_only) if digest else None
         landed = str((page or {}).get("url") or self._try_url() or url)
@@ -1379,23 +2171,44 @@ class Tab:
                          max_chars=max_chars, max_links=max_links,
                          content_only=content_only)
 
-    def _usable_document(self, timeout: float) -> bool:
-        """Is there a real page here, whatever the lifecycle events say?
+    def _document_readiness(self, timeout: float) -> tuple[bool, tuple[Any, ...]]:
+        """Return factual usability plus a bounded, content-free stability signature.
 
         The bar deliberately excludes `readyState === 'loading'`: a parser that has not
         finished may still be about to produce the form, and returning then would hand the
-        caller a half-built document that reads as an empty page. Past that point, content
-        or controls is enough to be worth returning.
+        caller a half-built document that reads as an empty page. The signature samples at
+        most 16 KiB of rendered text into a 32-bit hash and reports only counts/hash — never
+        page text or form values. Two equal probes are evidence of observed stability, not
+        a semantic assertion about what the page ought to contain.
         """
         try:
-            state, controls, text = self._main_js(
-                "[document.readyState,"
-                " document.querySelectorAll('input,textarea,select,button').length,"
-                " ((document.body && document.body.innerText) || '').trim().length]",
-                timeout=min(timeout, 5.0))
+            value = self._main_js("""(() => {
+              const text = ((document.body && document.body.innerText) || '').trim();
+              const sample = text.length <= 16384 ? text
+                : text.slice(0, 8192) + text.slice(-8192);
+              let hash = 2166136261;
+              for (let i = 0; i < sample.length; i++) {
+                hash ^= sample.charCodeAt(i); hash = Math.imul(hash, 16777619);
+              }
+              return [document.readyState,
+                document.querySelectorAll('input,textarea,select,button').length,
+                text.length, hash >>> 0,
+                document.getElementsByTagName('*').length];
+            })()""", timeout=min(timeout, 5.0))
         except HarnessError:
-            return False
-        return state != "loading" and (int(controls) > 0 or int(text) > 0)
+            return False, ()
+        if not isinstance(value, (list, tuple)) or len(value) < 3:
+            return False, ()
+        try:
+            state, controls, text = str(value[0]), int(value[1]), int(value[2])
+        except (TypeError, ValueError):
+            return False, ()
+        signature = (state, controls, text, *tuple(value[3:5]))
+        return state != "loading" and (controls > 0 or text > 0), signature
+
+    def _usable_document(self, timeout: float) -> bool:
+        """Compatibility wrapper for the final-deadline usable-document check."""
+        return self._document_readiness(timeout)[0]
 
     def wait_lifecycle(self, name: str = "networkIdle", *, timeout: float = 10.0) -> None:
         with self._armed(lambda m: m.get("method") == "Page.lifecycleEvent") as w:
@@ -1408,6 +2221,78 @@ class Tab:
             return self._main_js("location.href", timeout=5.0)
         except HarnessError:
             return None
+
+    def _action_consequence(self, marker: int | str, *, refs: list[str] | None = None,
+                            before_states: dict[str, Any] | None = None,
+                            after_states: dict[str, Any] | None = None,
+                            timeout: float = 10.0) -> dict[str, Any]:
+        """Bounded semantic/validation evidence since one mechanical action began."""
+        source = self._action_consequence_source(marker, refs=refs)
+        try:
+            observed = self._world_js(source, timeout=timeout)
+        except HarnessError:
+            observed = {}
+        return self._shape_action_consequence(
+            observed, before_states=before_states, after_states=after_states)
+
+    @staticmethod
+    def _action_consequence_source(marker: int | str,
+                                   *, refs: list[str] | None = None) -> str:
+        refs = [str(ref) for ref in (refs or []) if ref]
+        return (_ACTION_CONSEQUENCE_JS
+                .replace("__MARKER__", json.dumps(marker))
+                .replace("__REFS__", json.dumps(refs)))
+
+    @staticmethod
+    def _shape_action_consequence(observed: Any, *,
+                                  before_states: dict[str, Any] | None = None,
+                                  after_states: dict[str, Any] | None = None) -> dict[str, Any]:
+        if not isinstance(observed, dict):
+            observed = {}
+        current = dict(observed.get("states") or {})
+        current.update(after_states or {})
+        prior = dict(before_states or {})
+        validation = {ref: _validation_delta(prior.get(ref), current.get(ref))
+                      for ref in set(prior) | set(current)}
+        changed = sorted(ref for ref, delta in validation.items() if delta["changed"])
+        regions = list(observed.get("changed_regions") or [])[:12]
+        modal = bool(observed.get("modal"))
+        mutations = max(0, int(observed.get("mutation_count") or 0))
+        related = int(observed.get("related_regions") or 0)
+        if changed:
+            effect = "validation"
+        elif modal:
+            effect = "modal"
+        elif mutations or regions:
+            effect = "unverified_mutation"
+        else:
+            effect = "none"
+        return {
+            "effect": effect,
+            # A DOM mutation that happens during an action is temporal evidence, not
+            # causality. A modal is verified only when the target mechanically names or
+            # contains it; browser-level JS dialogs are promoted by click_ref itself.
+            "verified": effect == "validation" or (effect == "modal" and related > 0),
+            "mutation_count": mutations,
+            "changed_regions": regions,
+            "regions_truncated": bool(observed.get("regions_truncated")),
+            "history_truncated": bool(observed.get("history_truncated")),
+            "related_regions": related,
+            "validation": validation,
+            "validation_changed": changed,
+        }
+
+    def _action_token(self) -> str:
+        return f"{self.target_id}:{self._j.next_id()}"
+
+    def _start_action(self, token: str, *, timeout: float = 10.0) -> None:
+        self._world_js(
+            "(() => {const bh=window.__bh; if(!bh) return false;"
+            f" if(bh.beginAction) bh.beginAction({json.dumps(token)});"
+            f" else bh.actionStarts[{json.dumps(token)}]=bh.mutations||0;"
+            " return true;})()",
+            timeout=timeout,
+        )
 
     # -- items 17 + 20: snapshot, refs, and clicks that report a delta ------
 
@@ -1612,6 +2497,23 @@ class Tab:
                     if src is not None:
                         dialog = {"type": src.get("type"),
                                   "message": src.get("message")}
+        new_targets = self._targets_since(seq_before)
+        state_key = ref or "$target"
+        consequence = self._action_consequence(
+            mut_before,
+            refs=[ref] if ref else [],
+            before_states={state_key: control_before},
+            after_states={state_key: control_after},
+            timeout=timeout,
+        )
+        if navigated:
+            consequence.update(effect="navigation", verified=True)
+        elif dialog is not None:
+            consequence.update(effect="javascript_dialog", verified=True)
+        elif new_targets:
+            consequence.update(effect="new_target", verified=True)
+        elif control_state_changed:
+            consequence.update(effect="control_state", verified=True)
         return {
             "url_before": url_before,
             "url_after": url_after,
@@ -1620,8 +2522,9 @@ class Tab:
             "dom_mutations": mutations,
             "control_state_changed": control_state_changed,
             "modality": modality,
-            "new_targets": self._targets_since(seq_before),
+            "new_targets": new_targets,
             "dialog": dialog,
+            "consequence": consequence,
         }
 
     def _activate_click(
@@ -2057,101 +2960,38 @@ class Tab:
     # -- the rest of the promised surface ----------------------------------
 
     def _page_digest(self, *, max_chars: int, max_links: int,
-                     content_only: bool, start: int = 0) -> dict[str, Any]:
+                     content_only: bool, start: int = 0,
+                     cursor: str | None = None,
+                     semantic: bool = True) -> dict[str, Any]:
         """One main-world evaluation for the bounded page-reading surface."""
         max_chars = max(0, min(int(max_chars), 100_000))
         max_links = max(0, min(int(max_links), 500))
         start = max(0, int(start))
-        source = f"""(() => {{
-          const maxChars = {max_chars}, maxLinks = {max_links}, start = {start};
-          const contentOnly = {"true" if content_only else "false"};
-          const root = {"document.querySelector('main,[role=main],article') || document.body"
-                        if content_only else "document.body"};
-          let raw = String((root && root.innerText) || '');
-          if (contentOnly && root) {{
-            // A native <select> contributes every option to ancestor.innerText. One locale
-            // picker can therefore spend the entire model window on 100 languages before
-            // the actual article or search results begin. Preserve current state, not the
-            // hidden menu: this is the textual digest; snapshot/form_schema expose options.
-            for (const select of root.querySelectorAll('select')) {{
-              const verbose = String(select.innerText || select.textContent || '').trim();
-              const chosen = [...select.selectedOptions]
-                .map(option => String(option.textContent || '').trim()).filter(Boolean);
-              if (!verbose || !chosen.length) continue;
-              raw = raw.replace(verbose, `[selected: ${{chosen.join(', ')}}]`);
-            }}
-          }}
-          raw = raw.replace(/\\r/g, '')
-            .replace(/[ \\t]+\\n/g, '\\n').replace(/\\n{{3,}}/g, '\\n\\n').trim();
-          const visible = el => {{
-            const r = el.getBoundingClientRect(), s = getComputedStyle(el);
-            return !!(r.width && r.height) && s.visibility !== 'hidden' && s.display !== 'none';
-          }};
-          const links = [], seen = new Set();
-          // Main-content links carry far more research value than logo, locale, legal, and
-          // account chrome. Search the selected content root first, then fill any remaining
-          // capacity from the document. This is semantic prioritisation, not site logic.
-          const scopes = root && root !== document.body ? [root, document] : [document];
-          for (const scope of scopes) {{
-            for (const a of scope.querySelectorAll('a[href]')) {{
-              if (links.length >= maxLinks) break;
-              if (scope === document && root && root.contains(a)) continue;
-              if (contentOnly && a.closest('nav,header,footer,aside')) continue;
-              if (!visible(a)) continue;
-              let href;
-              try {{ href = new URL(a.href, location.href).href; }} catch {{ continue; }}
-              if (!/^https?:/i.test(href) || seen.has(href)) continue;
-              seen.add(href);
-              const text = String(a.innerText || a.getAttribute('aria-label') || '')
-                .replace(/\\s+/g, ' ').trim().slice(0, 160);
-              links.push({{text, href}});
-            }}
-            if (links.length >= maxLinks) break;
-          }}
-          const signals = [];
-          const challengeSelector = [
-            'iframe[src*="captcha" i]', 'iframe[src*="challenge" i]',
-            '[id*="captcha" i]', '[class*="captcha" i]', '[data-sitekey]'
-          ].join(',');
-          if (document.querySelector(challengeSelector)) signals.push('challenge_dom');
-          const assets = [...document.querySelectorAll('iframe[src],script[src]')]
-            .map(el => String(el.getAttribute('src') || '')).join(' ').toLowerCase();
-          if (/(?:recaptcha|hcaptcha|captcha-delivery|challenge-platform|turnstile)/.test(assets))
-            signals.push('challenge_asset');
-          const lead = (String(document.title || '') + '\\n' +
-            String((document.body && document.body.innerText) || '').slice(0, 6000))
-            .toLowerCase();
-          const humanPattern = /verify (?:that )?you are human|complete (?:the )?security check|are you (?:a )?robot|unusual traffic|press and hold|human verification/;
-          if (humanPattern.test(lead)) signals.push('human_verification_text');
-          const uniqueSignals = [...new Set(signals)];
-          return {{
-            url: location.href, title: document.title, ready_state: document.readyState,
-            language: document.documentElement.lang || navigator.language || '',
-            text: raw.slice(start, start + maxChars), text_chars: raw.length,
-            text_start: start, text_remaining: Math.max(0, raw.length - start - maxChars),
-            text_truncated: raw.length > start + maxChars, links,
-            challenge: {{detected: uniqueSignals.length > 0,
-              confidence: uniqueSignals.includes('challenge_asset') ||
-                          uniqueSignals.includes('challenge_dom') ? 'high' :
-                          uniqueSignals.length ? 'medium' : 'none',
-              signals: uniqueSignals}}
-          }};
-        }})()"""
+        source = (_SEMANTIC_DIGEST_JS
+                  .replace("__MAX_CHARS__", str(max_chars))
+                  .replace("__MAX_LINKS__", str(max_links))
+                  .replace("__START__", str(start))
+                  .replace("__CONTENT_ONLY__", "true" if content_only else "false"))
         value = self._main_js(source, timeout=15.0)
-        return value if isinstance(value, dict) else {}
+        raw = value if isinstance(value, dict) else {}
+        if not semantic:
+            return raw
+        return self._semantic.render(raw, max_chars=max_chars, max_links=max_links,
+                                     cursor=cursor, start=start)
 
     def read_page(self, max_chars: int = 6_000, max_links: int = 20, *,
-                  content_only: bool = True, start: int = 0) -> dict[str, Any]:
-        """Bounded text, links, metadata, and challenge signals in one CDP call.
+                  content_only: bool = True, start: int = 0,
+                  cursor: str | None = None) -> dict[str, Any]:
+        """Versioned semantic blocks, links, metadata, and challenge signals.
 
-        ``start`` pages through long rendered text without falling back to a separate
-        helper or requesting the entire document. Links and challenge signals still cover
-        the current document so every page remains independently useful.
+        Continue with ``cursor`` to bind pagination to this exact document generation.
+        ``start`` remains as a compatibility path for raw character offsets; unlike a block
+        cursor, it cannot prove that the document stayed unchanged between calls.
         """
         with self._j.call("read_page", max_chars=max_chars, max_links=max_links,
-                          content_only=content_only, start=start):
+                          content_only=content_only, start=start, cursor=bool(cursor)):
             return self._page_digest(max_chars=max_chars, max_links=max_links,
-                                     content_only=content_only, start=start)
+                                     content_only=content_only, start=start, cursor=cursor)
 
     def page_text(self, max_chars: int = 12_000, *, start: int = 0) -> str:
         """Rendered text, bounded and optionally paged with ``start``.
@@ -2160,12 +3000,11 @@ class Tab:
         large majority of reads while preventing one accidental full-page dump from
         dominating model context; callers can request a larger window explicitly.
         """
-        max_chars = max(0, min(int(max_chars), 100_000))
-        start = max(0, int(start))
         with self._j.call("page_text", max_chars=max_chars, start=start):
-            return self._main_js(
-                "(document.body ? document.body.innerText : '').slice("
-                f"{start}, {start + max_chars})", timeout=15.0) or ""
+            return str(self._page_digest(
+                max_chars=max_chars, max_links=0, content_only=False, start=start,
+                semantic=False,
+            ).get("text") or "")
 
     def press_key(self, key: str, *, modifiers: int = 0,
                   timeout: float = 10.0) -> dict[str, Any]:
@@ -2234,7 +3073,12 @@ class Tab:
         is where the trusted events would have gone too.
         """
         text = str(text)
-        pre = _count(self._world_js("window.__bh ? __bh.keys : 0", timeout=timeout))
+        action_token = self._action_token()
+        pre = _count(self._world_js(
+            "(() => {const bh=window.__bh; if(!bh) return 0;"
+            f" if(bh.beginAction) bh.beginAction({json.dumps(action_token)});"
+            f" else bh.actionStarts[{json.dumps(action_token)}]=bh.mutations||0;"
+            " return bh.keys||0;})()", timeout=timeout))
         for ch in text:
             # keyDown carrying `text` is what makes the page see a real character; the
             # matching keyUp is what a keystroke-driven typeahead listens for.
@@ -2245,11 +3089,18 @@ class Tab:
                      timeout=timeout)
         if settle:
             time.sleep(settle)
+        synth = (_SYNTH_KEYS_JS.replace("__PRE__", json.dumps(pre))
+                 .replace("__TEXT__", json.dumps(text))
+                 .replace("__REF__", json.dumps(ref)))
         result = self._world_js(
-            _SYNTH_KEYS_JS.replace("__PRE__", json.dumps(pre))
-                          .replace("__TEXT__", json.dumps(text))
-                          .replace("__REF__", json.dumps(ref)),
-            timeout=timeout)
+            "await (async () => {const result = " + synth
+            + "; await Promise.resolve(); return {result, consequence: "
+            + self._action_consequence_source(action_token, refs=[ref] if ref else [])
+            + "};})()", timeout=timeout)
+        consequence_raw: Any = {}
+        if isinstance(result, dict) and "result" in result:
+            consequence_raw = result.get("consequence") or {}
+            result = result.get("result")
         if not isinstance(result, dict):
             result = {}                # a non-dict answer is not evidence of a drop
         if result.get("synthesized"):
@@ -2260,8 +3111,13 @@ class Tab:
         out = {"chars": len(text),
                "modality": "dom" if result.get("synthesized") else "compositor",
                "delivered": int(result.get("delivered") or 0)}
+        consequence = self._shape_action_consequence(consequence_raw)
+        if not result.get("error") and (out["delivered"] or result.get("synthesized")):
+            consequence.update(effect="input_delivery", verified=True)
+        out["consequence"] = consequence
         if result.get("error"):
             out["error"] = result["error"]
+            consequence.update(effect="input_failed", verified=False)
         return out
 
     def scroll(self, dy: int = 600, dx: int = 0, *, x: int = 400, y: int = 300,
@@ -2402,7 +3258,7 @@ class Tab:
         of layout metrics + DPR + capture + a second context evaluation.
         """
         fmt = "png" if str(path or "").endswith(".png") else "jpeg"
-        with self._j.call("screenshot", format=fmt):
+        with self._j.call("screenshot", format=fmt) as span:
             viewport: dict[str, Any] = {}
             try:
                 viewport = self._main_js("""(() => {
@@ -2448,7 +3304,10 @@ class Tab:
         if path:
             Path(path).write_bytes(data)
         out = {"path": str(path) if path else None, "bytes": len(data), "format": fmt,
-               "css_viewport": [cw, ch], "scale": scale}
+               "css_viewport": [cw, ch], "scale": scale,
+               # Recorder accounting reads the exact span counter; exposing it here avoids
+               # another CDP query or a fragile scan back through the JSONL file.
+               "cdp_calls": span.cdp_calls}
         if include_context and viewport:
             out["context"] = {key: viewport[key] for key in ("u", "t", "box")
                               if viewport.get(key) is not None}

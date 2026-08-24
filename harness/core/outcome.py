@@ -69,6 +69,8 @@ class Class(str, Enum):
 
     # page-level (D11, D15)
     NAVIGATION_FAILED = "navigation_failed"
+    DOCUMENT_VERSION_STALE = "document_version_stale"  # a semantic block cursor names
+                                                        # an older document generation
     HTTP_ERROR = "http_error"                  # added for fetch_all (D0): a 404 inside a
                                                # batch is not a navigation and not a JS throw
     JS_EXCEPTION = "js_exception"
@@ -271,6 +273,7 @@ SessionStale = _error("SessionStale", Class.SESSION_STALE)
 RendererUnresponsive = _error("RendererUnresponsive", Class.RENDERER_UNRESPONSIVE)
 CdpError = _error("CdpError", Class.CDP_ERROR)
 NavigationFailed = _error("NavigationFailed", Class.NAVIGATION_FAILED)
+DocumentVersionStale = _error("DocumentVersionStale", Class.DOCUMENT_VERSION_STALE)
 HttpError = _error("HttpError", Class.HTTP_ERROR)
 JsException = _error("JsException", Class.JS_EXCEPTION)
 NotSerializable = _error("NotSerializable", Class.NOT_SERIALIZABLE)
@@ -289,7 +292,8 @@ _BY_CLASS: dict[Class, type[HarnessError]] = {
         ResourceLimit, ResourceCleanupFailed, Cancelled, ProtocolMismatch,
         SkillIntegrityFailed,
         TargetGone, SessionStale,
-        RendererUnresponsive, CdpError, NavigationFailed, HttpError, JsException,
+        RendererUnresponsive, CdpError, NavigationFailed, DocumentVersionStale,
+        HttpError, JsException,
         NotSerializable, NoOptionMatch, NeedsInteraction, ValueRejected, NotAForm,
         ElementGone, Partial,
         Timeout,

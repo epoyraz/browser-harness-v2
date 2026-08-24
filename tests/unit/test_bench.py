@@ -75,3 +75,33 @@ def test_a_directory_of_journals_rolls_up_together(tmp_path):
     r = rollup([tmp_path])
     assert r["steps"] == 2
     assert r["buckets"]["harness"] == 3000.0
+
+
+def test_recording_is_a_separate_bucket_not_browser_work(tmp_path):
+    rows = [
+        {"kind": "call", "ts": 1.0, "id": "s.shot", "fn": "screenshot",
+         "ms": 20.0, "cdp": 2, "parent": "s.outer",
+         "observability": "recording", "recording_span_id": "s.click"},
+        {"kind": "call", "ts": 1.0, "id": "s.click", "fn": "click",
+         "parent": "s.outer", "ms": 5.0, "cdp": 4, "frame": "0001.jpg",
+         "frame_screenshot_ms": 20.0, "frame_recording_ms": 170.0,
+         "frame_cdp": 2, "frame_bytes": 4096},
+        {"kind": "call", "ts": 1.0, "id": "s.outer", "fn": "select_option",
+         "ms": 200.0, "cdp": 1},
+        {"kind": "invoke", "ts": 1.0, "ok": True,
+         "ms_total": 400.0, "ms_connect": 100.0},
+    ]
+    path = tmp_path / "recorded.jsonl"
+    path.write_text("\n".join(json.dumps(row) for row in rows) + "\n")
+
+    result = rollup([path])
+    assert result["calls"] == 2 and result["cdp"] == 5
+    assert result["buckets"] == {
+        "think": 0.0, "connect": 100.0, "harness": 30.0,
+        "wait": 100.0, "observability": 170.0,
+    }
+    assert result["observability"] == {
+        "frames": 1, "cdp": 2, "bytes": 4096,
+        "screenshot_ms": 20.0, "wall_ms": 170.0, "suppressed": 0,
+    }
+    assert result["total_ms"] == 400.0

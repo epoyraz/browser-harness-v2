@@ -37,8 +37,10 @@ Use the highest-level bounded helper that answers the question:
 
 Print only fields needed for the answer. Do not print full snapshots, giant option arrays,
 or repeated page dumps. `page_text()` defaults to 12,000 characters and supports
-`page_text(start=12000)`. `read_page(start=6000)` pages the richer digest. Request a larger
-window explicitly only when necessary.
+`page_text(start=12000)`. `read_page()` returns semantic blocks and a document-bound
+`cursor`; continue with `read_page(cursor=page["cursor"])`. Raw `start` offsets remain only
+for compatibility and cannot detect a document mutation. Request a larger window explicitly
+only when necessary.
 
 Treat printed text as one budget across a batch: `max_chars` is **per page**. For five
 pages, do not request 10,000 characters five times. Prefer `open_pages(urls,
@@ -56,15 +58,25 @@ r = open_page(url, max_chars=6000, max_links=20)
 p = r["page"]
 print({
     "landed": r["landed"], "lifecycle": r["lifecycle"],
-    "title": p["title"], "text": p["text"], "links": p["links"],
+    "title": p["title"], "blocks": p["blocks"], "links": p["links"],
+    "version": p["document_version"], "cursor": p["cursor"],
     "truncated": p["text_truncated"], "challenge": p["challenge"],
 })
 ```
 
-`goto(url)` returns `requested`, `landed`, and `lifecycle`. By default it returns after
-three seconds if a parsed page is already demonstrably usable instead of waiting for a
-stalled image/iframe. Pass `usable_after=None` only when the exact lifecycle event is a
-hard requirement. A Chrome error page raises `NavigationFailed`.
+The first semantic read emits bounded headings, prose, lists, tables, controls, and link
+groups. An unchanged second read emits no repeated text: use its `unchanged_refs` and
+`content_digest`. After a meaningful DOM change, only changed blocks are emitted and stable
+blocks retain their refs. A continuation cursor belongs to one exact document generation;
+if the page changes, `read_page(cursor=...)` raises typed `DocumentVersionStale`. Recover
+with one cursor-free read, which still returns the unconsumed delta.
+
+`goto(url)` returns `requested`, `landed`, and `lifecycle`. A numeric `usable_after` is an
+upper bound; after two exact navigations, session-local timing can reduce it within the
+documented 0.5–3.0 second adaptive range. An early result requires no in-flight XHR/fetch/
+event stream, a quiet network window, and two equal bounded document probes. Pass
+`usable_after=None` when the exact lifecycle event is a hard requirement; it disables both
+early paths. A Chrome error page raises `NavigationFailed`.
 
 `open_page()` uses the same landing check to return a page digest, so it replaces the
 common `goto + title + page_text + links` sequence with one navigation helper. Its digest
@@ -97,6 +109,26 @@ If many same-origin JSON/API URLs are already known, `fetch_all(urls, concurrenc
 performs bounded in-page GETs with browser cookies and counted failures. Do not issue one
 `js(fetch(...))` per URL.
 
+When the page itself has already issued public same-origin JSON GET/HEAD requests,
+`fetch_observed_json(...)` can replay the exact observed URLs as one anonymous bounded
+read. State all five ceilings; the helper never guesses pagination URLs and returns a typed
+browser-interaction fallback when cookie/header/origin evidence is incomplete:
+
+```python
+out = fetch_observed_json(
+    max_urls=20, max_responses=30, max_total_bytes=500_000,
+    concurrency=5, retries=1,
+)
+if not out.ok and out.observed.get("fallback"):
+    page = read_page()  # continue through normal browser evidence
+else:
+    print(out.value)    # one input-ordered row for every planned URL
+```
+
+This automatic path uses no cookies, authorization headers, referrer, redirects, POST, or
+invented endpoint variants. Use explicit `fetch_all` only when the caller already owns and
+has independently justified a different URL/authentication contract.
+
 ## Inspect and act
 
 ```python
@@ -107,6 +139,13 @@ set_value("e4", "text")                 # one round trip
 select_option("e7", "Switzerland")      # native or ARIA combobox
 wait_for("#results", state="visible", timeout=15)
 ```
+
+`click_ref`, `type_chars`, `select_option`, `set_value`, and `fill_form` include a bounded
+`consequence`. It carries changed semantic regions and observed control validation under a
+hard cap. Navigation, JavaScript dialogs, new targets, delivered input, and verified field/
+widget state are explicit effects. A bare or unrelated DOM mutation is
+`unverified_mutation`, never success; failed writes and selections likewise remain
+unverified.
 
 Prefer refs over hand-written selectors. Use `wait_for()` or `wait_lifecycle()` instead of
 `time.sleep()`. `see(path=None, marks=True, max_dim=1400)` returns a screenshot and the
@@ -151,6 +190,13 @@ except HarnessError as e:
 Branch on `e.cls`/`Class`, never error-message wording. Do not automatically retry a
 semantic failure. A recovered transport/session failure is already retried by the harness.
 
+Every bare helper result and the complete stdout of one `bh` invocation share the
+`BH_OUTPUT_BYTES` ceiling (128 KiB by default). Overflow becomes a compact marker with
+`_sha256`, byte count, type, and head/tail previews. The exact typed value is stored in the
+private content-addressed cache and is available with `fetch_content(marker["_sha256"])`;
+slice or summarize it before printing, because stdout remains capped. Journals record only
+mechanical counts, truncation, and digests—not page text, headers, or form values.
+
 ## Tabs, recordings, and diagnostics
 
 ```python
@@ -166,11 +212,19 @@ print(diagnostics())             # bounded; no URLs, text, headers, or bodies
 `parallel()` owns and closes its worker tabs. For work split across fresh `bh` processes,
 use `lease_tab()` and resume with `BH_TARGET_LEASE`; do not guess a target from tab order.
 
-Set `BH_RECORD=1` for one post-action JPEG per state-changing helper. The recording folder
-contains `session.jsonl`; inspect it with `bh trace <path>` or summarize usage with
-`bh stats`. Set `BH_CDP_TRACE=1` for privacy-safe per-round-trip method/latency/byte counts.
-Diagnostics and tracing omit request values, page text, headers, form values, and image
-payloads.
+Set `BH_RECORD=1` for the backward-compatible `review` recording, or name a profile with
+`BH_RECORD=evidence|review|cinematic`. `evidence` keeps one final proof frame at each
+high-level action boundary, `review` keeps the established diagnostic action frames, and
+`cinematic` also retains nested visual beats. The equivalent explicit API is
+`start_recording(profile="evidence")`; `BH_RECORD_PROFILE` selects the profile when
+`BH_RECORD=1`.
+
+The recording folder contains `session.jsonl`; inspect it with `bh trace <path>` or
+summarize usage with `bh stats`. Frame entries carry their helper span, target, screenshot
+wall time, CDP count, and byte count. Suppressed frames carry a mechanical reason, and stats
+reports recording overhead separately from browser work. Set `BH_CDP_TRACE=1` for
+privacy-safe per-round-trip method/latency/byte counts. Diagnostics and tracing omit request
+values, page text, headers, form values, and image payloads.
 
 Useful escape hatches remain available:
 

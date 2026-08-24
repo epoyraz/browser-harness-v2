@@ -245,8 +245,22 @@ def main() -> int:
         check("abacus: 7 fields, all verified ok/got/want",
               out.ok and all(e["ok"] for e in out.value),
               f"{out.observed['succeeded']}/7 in {ms:.0f}ms")
+        check("fill_form fuses write verification into one consequence",
+              out.observed["consequence"]["effect"] == "validation"
+              and out.observed["consequence"]["verified"] is True
+              and out.observed["consequence"]["write_validation"]
+              == {"attempted": 7, "verified": 7, "failed": 0},
+              str(out.observed.get("consequence")))
         got = tab.js("document.querySelector('[name=customeraddressshoppervorname]').value")
         check("abacus: values actually in the DOM", got == "Enes", f"got={got!r}")
+        email = by_name["customeraddressshopperemail"]
+        invalid = set_value(tab, email["ref"], "not-an-email", recheck=0)
+        invalid_delta = invalid.observed["consequence"]["validation"][email["ref"]]
+        check("one write exposes the email validation error",
+              invalid.ok and invalid_delta["after"].get("valid") is False
+              and invalid_delta["after"].get("typeMismatch") is True,
+              str(invalid_delta.get("after")))
+        set_value(tab, email["ref"], "e@example.ch", recheck=0)
 
         # ---- Form identity: account fields do not turn an application into login ----
         tab.goto(f"{base}/umantis-account.html")
@@ -401,6 +415,10 @@ def main() -> int:
         shown = tab.js("document.getElementById('c1').textContent")
         check("portalled popup: option chosen and the widget verified",
               out.ok and shown == "Referral from a friend", shown[:40])
+        check("select_option fuses verified widget consequence",
+              out.observed["consequence"]["effect"] == "validation"
+              and out.observed["consequence"]["verified"] is True,
+              str(out.observed.get("consequence")))
 
         c2 = next(c for c in combos if "Country" in str(c["label"]))
         out = select_option(tab, c2["ref"], "Schweiz")
@@ -413,6 +431,10 @@ def main() -> int:
               (not bad.ok) and bad.cls is Class.NO_OPTION_MATCH
               and bool(bad.observed.get("candidates")),
               str(bad.observed.get("candidates", []))[:52])
+        check("failed selection consequence remains unverified",
+              bad.observed["consequence"]["effect"] == "selection_failed"
+              and bad.observed["consequence"]["verified"] is False,
+              str(bad.observed.get("consequence")))
         check("a failed select leaves the widget alone and closes the popup",
               tab.js("document.getElementById('c1').textContent")
               == "Referral from a friend"

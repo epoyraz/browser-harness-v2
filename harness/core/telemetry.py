@@ -57,7 +57,7 @@ def _calls(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
     """Every `call` entry across the journals, reduced to KEEP + its outcome class."""
     for file in files:
         for e in jsonl.read(file):
-            if e.get("kind") != "call":
+            if e.get("kind") != "call" or e.get("observability") == "recording":
                 continue
             outcome = e.get("outcome") or {}
             row = {k: e.get(k) for k in KEEP}
@@ -70,10 +70,38 @@ def _protocol(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
     """Sanitized protocol outcome only; request and response values are never selected."""
     for file in files:
         for entry in jsonl.read(file):
-            if entry.get("kind") == "cdp":
+            if (entry.get("kind") == "cdp"
+                    and entry.get("observability") != "recording"):
                 yield {"ok": bool(entry.get("ok")),
                        "class": entry.get("error_class"),
                        "code": entry.get("error_code")}
+
+
+def _recording(files: Iterable[Path]) -> Iterator[dict[str, Any]]:
+    """Privacy-safe per-action recorder cost and suppression records.
+
+    These fields are generated mechanically by the recorder.  URL, title, focused-element
+    context, helper arguments, and form values are deliberately never selected.
+    """
+    for file in files:
+        for entry in jsonl.read(file):
+            if entry.get("kind") != "call":
+                continue
+            if entry.get("frame"):
+                yield {
+                    "retained": True,
+                    "profile": str(entry.get("recording_profile") or "unknown"),
+                    "screenshot_ms": float(entry.get("frame_screenshot_ms") or 0),
+                    "recording_ms": float(entry.get("frame_recording_ms") or 0),
+                    "cdp": int(entry.get("frame_cdp") or 0),
+                    "bytes": int(entry.get("frame_bytes") or 0),
+                }
+            elif reason := entry.get("frame_suppressed"):
+                yield {
+                    "retained": False,
+                    "profile": str(entry.get("recording_profile") or "unknown"),
+                    "reason": str(reason),
+                }
 
 
 def _pct(values: list[float], q: float) -> float:
@@ -117,6 +145,9 @@ def rollup(paths: Iterable[str | Path] | None = None) -> dict[str, Any]:
     total = sum(h["calls"] for h in helpers)
     protocol_rows = list(_protocol(files))
     protocol_failed = [row for row in protocol_rows if not row["ok"]]
+    recording_rows = list(_recording(files))
+    retained = [row for row in recording_rows if row["retained"]]
+    suppressed = [row for row in recording_rows if not row["retained"]]
     return {
         "journals": len(files),
         "calls": total,
@@ -129,6 +160,17 @@ def rollup(paths: Iterable[str | Path] | None = None) -> dict[str, Any]:
                                        for row in protocol_failed).most_common(),
             "failure_codes": Counter(str(row.get("code")) for row in protocol_failed
                                      if row.get("code") is not None).most_common(),
+        },
+        "observability": {
+            "frames": len(retained),
+            "screenshot_ms": round(sum(row["screenshot_ms"] for row in retained), 1),
+            "wall_ms": round(sum(row["recording_ms"] for row in retained), 1),
+            "cdp": sum(row["cdp"] for row in retained),
+            "bytes": sum(row["bytes"] for row in retained),
+            "profiles": Counter(row["profile"] for row in recording_rows).most_common(),
+            "suppressed": len(suppressed),
+            "suppressed_by_reason": Counter(
+                row["reason"] for row in suppressed).most_common(),
         },
     }
 
@@ -145,6 +187,13 @@ def render(r: dict[str, Any], *, top: int = 12) -> list[str]:
     if protocol.get("calls"):
         out.insert(1, (f"{protocol['calls']:,} sanitized CDP round trips · "
                        f"{protocol['failed']:,} failed or recovered"))
+    recording = r.get("observability") or {}
+    if recording.get("frames") or recording.get("suppressed"):
+        out.insert(1, (
+            f"recording observability · {recording.get('frames', 0):,} frame(s) · "
+            f"{recording.get('cdp', 0):,} CDP · {recording.get('wall_ms', 0):,.1f} ms · "
+            f"{recording.get('bytes', 0):,} bytes · "
+            f"{recording.get('suppressed', 0):,} suppressed"))
     if r["failure_classes"]:
         out.append("failure classes — what to fix, in order:")
         width = max(len(c) for c, _ in r["failure_classes"])

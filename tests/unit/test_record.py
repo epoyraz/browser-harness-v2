@@ -5,17 +5,18 @@ import threading
 import pytest
 
 from harness.core.journal import Journal
-from harness.ops.record import ACTIONS, ALREADY_SETTLED, scrub, start
+from harness.ops.record import ACTIONS, ALREADY_SETTLED, Profile, parse_profile, scrub, start
 
 
 class _FakeTab:
     def __init__(self):
+        self.target_id = "target-a"
         self.shots = []
 
     def capture_screenshot(self, path, **kw):
         self.shots.append(str(path))
         __import__("pathlib").Path(path).write_bytes(b"jpeg")
-        return {"bytes": 4, "context": {
+        return {"bytes": 4, "cdp_calls": 2, "context": {
             "u": "https://x.test/cb?code=SECRET&a=1", "t": "Title",
             "box": [1.4, 2.6, 30.2, 10.0]}}
 
@@ -41,6 +42,10 @@ def test_a_frame_lands_on_the_call_entry_itself(wired):
         pass
     entry = next(e for e in j.entries() if e["kind"] == "call")
     assert entry["frame"] == "0001.jpg" and entry["fn"] == "goto"
+    assert entry["frame_span_id"] == entry["id"]
+    assert entry["frame_target_id"] == "target-a"
+    assert entry["frame_cdp"] == 2 and entry["frame_bytes"] == 4
+    assert entry["frame_screenshot_ms"] >= 0 and entry["frame_recording_ms"] >= 0
     assert not (rec.dir / "events.jsonl").exists()
     assert (rec.dir / "0001.jpg").is_file()
 
@@ -121,7 +126,10 @@ def test_a_capture_failure_never_breaks_the_run(wired):
     tab.capture_screenshot = boom
     with j.call("goto"):
         pass                            # must not raise
-    assert next(e for e in j.entries() if e["kind"] == "call").get("frame") is None
+    entry = next(e for e in j.entries() if e["kind"] == "call")
+    assert entry.get("frame") is None
+    assert entry["frame_suppressed"] == "capture_failed"
+    assert entry["error_class"] == "RuntimeError"
 
 
 def test_stopping_detaches_the_hook(wired):
@@ -135,7 +143,62 @@ def test_stopping_detaches_the_hook(wired):
 def test_the_journal_moves_into_the_recording(wired):
     j, _, rec = wired
     assert j.path == rec.dir / "session.jsonl"
-    assert json.loads((rec.dir / "meta.json").read_text())["title"] == "T"
+    meta = json.loads((rec.dir / "meta.json").read_text())
+    assert meta["title"] == "T" and meta["recording_profile"] == "review"
+
+
+@pytest.mark.parametrize(
+    ("profile", "frames", "suppressed"),
+    [
+        ("evidence", 2, {"nested_consequence": 2}),
+        ("review", 3, {"profile_policy": 1}),
+        ("cinematic", 4, {}),
+    ],
+)
+def test_fixed_workflow_has_deterministic_profile_frame_manifest(
+        tmp_path, monkeypatch, profile, frames, suppressed):
+    """One navigation plus one two-click semantic selection is the fixed manifest.
+
+    Evidence keeps the selection's final state, review retains its two diagnostic clicks,
+    and cinematic retains both visual beats plus the high-level completed selection.
+    """
+    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
+    monkeypatch.setattr("harness.ops.record.SETTLE", 0)
+    journal = Journal(tmp_path / "pre.jsonl", session="s")
+    tab = _FakeTab()
+    recorder = start(lambda: tab, journal, name=profile, profile=profile)
+
+    with journal.call("goto"):
+        pass
+    with journal.call("select_option"):
+        with journal.call("click"):
+            pass
+        with journal.call("click"):
+            pass
+    recorder.stop()
+
+    entries = [entry for entry in journal.entries() if entry.get("kind") == "call"]
+    retained = [entry for entry in entries if entry.get("frame")]
+    reasons = {}
+    for entry in entries:
+        if reason := entry.get("frame_suppressed"):
+            reasons[reason] = reasons.get(reason, 0) + 1
+    assert len(retained) == frames
+    assert reasons == suppressed
+    assert all(entry["frame_span_id"] == entry["id"] for entry in retained)
+    assert all(entry["frame_target_id"] == tab.target_id for entry in retained)
+    assert len(list(recorder.dir.glob("*.jpg"))) == frames
+    summary = next(entry for entry in journal.entries()
+                   if entry.get("event") == "recording_summary")
+    assert summary["recording_profile"] == profile
+    assert summary["frames"] == frames and summary["frame_suppressed"] == suppressed
+
+
+def test_profile_names_are_explicit_and_typos_fail_closed():
+    assert [profile.value for profile in Profile] == ["evidence", "review", "cinematic"]
+    assert parse_profile(None) is Profile.REVIEW
+    with pytest.raises(ValueError, match="recording profile"):
+        parse_profile("benchmark-special-case")
 
 
 def test_the_allowlist_is_state_changing_calls_only():

@@ -74,7 +74,7 @@ calls in the post-run live check, with four target-cache hits. The unchecked ite
 the remaining general-purpose work; none may depend on benchmark task IDs, answer strings,
 or site-specific selectors.
 
-- [ ] **P0. Versioned semantic digest and reversible output budget**
+- [x] **P0. Versioned semantic digest and reversible output budget**
       (extends canonical item 16 and phase item 25b)
 
       Cache the bounded page digest as versioned semantic blocks (headings, paragraphs,
@@ -91,7 +91,13 @@ or site-specific selectors.
       version outcome; an accidental multi-megabyte value cannot flood stdout; and the full
       value remains losslessly retrievable by digest.
 
-- [ ] **P1. Action-result fusion above the completed click delta**
+      *Met (unit + real Chrome, 2026-08-24):* semantic reads returned stable refs on an
+      unchanged 443-block document, emitted one changed block after a real DOM mutation,
+      and rejected the old cursor as `document_version_stale`. A one-million-character
+      stdout value and oversized raw helper values spill to the private typed SHA-256 store
+      and round-trip exactly through `fetch_content`.
+
+- [x] **P1. Action-result fusion above the completed click delta**
 
       Phase item 17 already makes clicks report URL, target, dialog, and DOM-mutation deltas.
       Extend the general action boundary so click, type, select, and form writes can also
@@ -104,7 +110,12 @@ or site-specific selectors.
       fixtures each need one action helper to expose the relevant consequence; the result is
       hard-capped and typed; and a no-op or unrelated mutation cannot be reported as success.
 
-- [ ] **P1. Adaptive usable-navigation grace with a strict invariant**
+      *Met (unit + real Chrome, 2026-08-24):* click/type/select/form actions return one
+      bounded consequence with semantic regions and validation evidence. Navigation,
+      JavaScript-dialog, new-target, combobox, and seven-field form fixtures expose their
+      result directly; failed writes/selections and unrelated mutations remain unverified.
+
+- [x] **P1. Adaptive usable-navigation grace with a strict invariant**
 
       Use session-local measurements of parsed-content readiness, lifecycle timing, and
       network quiescence to reduce conservative waiting without storing cross-user origin
@@ -116,7 +127,12 @@ or site-specific selectors.
       SPA fixtures remain complete, strict mode is byte-for-byte unchanged, and real-browser
       telemetry shows the saved wait without increasing navigation or content failures.
 
-- [ ] **P1. Recording profiles with measured cost**
+      *Met (real Chrome, 2026-08-24):* two exact samples learned a 500 ms grace (2.5 s below
+      the default ceiling); a 1.8 s delayed-data SPA returned complete content at 2.15 s;
+      strict mode retained the original three-field timeout result at 1.21 s. Navigation and
+      content failures were both zero.
+
+- [x] **P1. Recording profiles with measured cost**
 
       Add explicit `evidence`, `review`, and `cinematic` profiles over the concurrency-safe
       recorder. Evidence mode captures the minimum state-changing proof required by a fixed
@@ -128,7 +144,12 @@ or site-specific selectors.
       retained frame remains bound to its helper span and target, the benchmark pins its
       profile, and telemetry reports the observability overhead separately from browser work.
 
-- [ ] **P2. Automatic bounded read-only endpoint extraction**
+      *Met (real Chrome, 2026-08-24):* the fixed workflow retained 2/3/4 frames for
+      evidence/review/cinematic, every frame carried its target and triggering span, the
+      benchmark pins `evidence`, and stats separated screenshot wall time, CDP calls, bytes,
+      and suppression reasons. The recording live gate passed 23/23.
+
+- [x] **P2. Automatic bounded read-only endpoint extraction**
       (extends completed phase item 22)
 
       Promote already observed, same-origin public GET/HEAD JSON endpoints into one counted
@@ -141,6 +162,11 @@ or site-specific selectors.
       to one bounded read, returns complete ordered accounting, refuses cross-origin and
       mutating candidates, and falls back to normal browser interaction when evidence is
       ambiguous.
+
+      *Met (unit + real Chrome, 2026-08-24):* three observed GET/GET/HEAD JSON requests were
+      replayed in request order by one anonymous evaluate. URL, request, response, byte,
+      concurrency, and retry accounting stayed bounded; authenticated, mutating,
+      cross-origin, redirected, stale-route, and incomplete-evidence candidates fail closed.
 
 - [ ] **Proof gate. Semantically preflight and rerun c03 before claiming a win**
 
@@ -156,6 +182,12 @@ or site-specific selectors.
       actual CDP calls, model command count, and pass preservation; CAPTCHA/stale-source
       replacements come from a predeclared category queue; and no speed claim survives a
       material reliability regression.
+
+      *Blocked (2026-08-24):* the referenced workspace-root `tmp/` c02/c03 report, raw runs,
+      task manifest, replacement queues, saved v2 baseline, prompts/model limits, and judge
+      contract are not present in this checkout or its workspace parent. Without those
+      immutable inputs the requested paired c03 rerun cannot be audited or reproduced. Do
+      not substitute a new benchmark protocol or make a speed claim; this gate remains open.
 
 Existing canonical item 7 remains the owner of resource-aware adaptive parallelism. The
 completed phase items for action deltas, event-driven waits, and `fetch_all` are foundations
@@ -365,7 +397,7 @@ cross-referenced here rather than being a second priority list.
       *Done when:* six simultaneous state-changing actions produce six unique frames attached
       to the correct tab and journal span, with no dropped or overwritten image.
 
-- [ ] **16. Output budgets with reversible elision (existing 25b)**
+- [x] **16. Output budgets with reversible elision (existing 25b)**
 
       A single DOM, network response, screenshot payload, or console history can produce
       megabytes of output and overwhelm the agent context even when browser work succeeded.
@@ -380,6 +412,10 @@ cross-referenced here rather than being a second priority list.
       stable block cursors, unchanged-content references, and per-invocation output/truncation
       counters described in the P0 follow-up above. One cache and budget mechanism must serve
       page reads, batches, raw `js()`/`cdp()` values, diagnostics, and journals.
+
+      *Met (2026-08-24):* the P0 implementation above applies one configured ceiling to bare
+      helper/batch values and complete invocation stdout, stores exact typed overflow in one
+      private content-addressed cache, and journals only bounded counts/digests/truncation.
 
 - [ ] **17. Browser/daemon chaos suite**
 
@@ -583,7 +619,7 @@ cross-referenced here rather than being a second priority list.
       *Met (live, fixtures in real Chrome):* 2,000 chars in one evaluate; `keystrokes=True` is ONE `Input.insertText` for
       the whole string (real input events, still not per-character — v1 spent 61 round
       trips on 20 chars).
-- [ ] **25b. Output budget + reversible elision** (D0/D4; headroom-style, see
+- [x] **25b. Output budget + reversible elision** (D0/D4; headroom-style, see
       github.com/headroomlabs-ai/headroom) — every agent-facing surface (REPL stdout,
       `cdp()`/`js()` returns, console/network reads) is capped; an over-budget payload is
       spilled to a content-addressed store and replaced by digest + head/tail preview;
@@ -592,6 +628,9 @@ cross-referenced here rather than being a second priority list.
       heuristic compressor rewriting page data would reintroduce silent-wrong-value bugs.
       *Done when:* an accidental `print(getFullAXTree)` cannot flood a transcript — the
       preview + digest lands instead, and the full payload is one call away.
+      *Met (unit, 2026-08-24):* one-million-character stdout and oversized helper results
+      produce bounded preview/digest markers; `fetch_content(digest)` returns the exact
+      original typed value.
 
 ## Phase 5 — observability, replay, regression tests
 

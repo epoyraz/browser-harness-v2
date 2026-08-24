@@ -1,0 +1,16 @@
+<!doctype html>
+<!-- A deliberately incomplete SPA shell. The data request starts immediately while a
+     separate image holds `load` forever. `networkAlmostIdle` may therefore arrive with
+     the shell visible and the content-producing Fetch still in flight. -->
+<meta charset="utf-8">
+<title>Delayed data SPA</title>
+<header><h1>Application portal</h1></header>
+<main id="content" aria-busy="true">Loading application details…</main>
+<script>
+  fetch('/delayed-data').then(response => response.json()).then(data => {
+    const main = document.getElementById('content');
+    main.textContent = data.text;
+    main.setAttribute('aria-busy', 'false');
+  });
+</script>
+<img src="/hang" alt="" width="1" height="1">

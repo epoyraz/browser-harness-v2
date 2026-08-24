@@ -460,6 +460,9 @@ def prepare_document(tab: Tab, *, guard_submit: bool = True,
 
 _FILL_JS = """((plan) => {
   const bh = window.__bh || {refs: {}};
+  bh.actionStarts = bh.actionStarts || {};
+  if (bh.beginAction) bh.beginAction(__ACTION_TOKEN__);
+  else bh.actionStarts[__ACTION_TOKEN__] = bh.mutations || 0;
   const report = [];
   const nativeSet = (el, v) => {
     const proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype
@@ -716,7 +719,8 @@ def _human_reveal(tab: Tab, ref: str, *, timeout: float, pause: float) -> dict[s
     return tab._world_js(src, timeout=timeout) or {"ok": False, "error": "no_result"}
 
 
-def _fill_outcome(report: list[dict[str, Any]], fields: int) -> Outcome:
+def _fill_outcome(report: list[dict[str, Any]], fields: int,
+                  consequence: dict[str, Any] | None = None) -> Outcome:
     tally = Tally()
     for entry in report:
         if entry.get("ok"):
@@ -724,7 +728,10 @@ def _fill_outcome(report: list[dict[str, Any]], fields: int) -> Outcome:
         else:
             tally.record(fail(_step_class(entry),
                               entry.get("error") or "value did not stick", **entry))
-    return tally.outcome(value=report, fields=fields)
+    observed: dict[str, Any] = {"fields": fields}
+    if consequence is not None:
+        observed["consequence"] = consequence
+    return tally.outcome(value=report, **observed)
 
 
 def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
@@ -777,13 +784,37 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
              if s.get("mode", "value") != "value" and not s.get("interaction")]
     batch_plan = [{k: v for k, v in s.items() if k != "mode"} for _, s in batched]
 
-    src = _FILL_JS.replace("__PLAN__", json.dumps(batch_plan))
+    action_token = tab._action_token()
+    refs = [str(step.get("ref") or "") for step in plan]
+    src = (_FILL_JS.replace("__PLAN__", json.dumps(batch_plan))
+           .replace("__ACTION_TOKEN__", json.dumps(action_token)))
+    fuse_consequence = not typed and not interactive
+    consequence_source = tab._action_consequence_source(action_token, refs=refs)
+    if fuse_consequence and not (recheck > 0 and batch_plan):
+        src = ("await (async () => {const report = " + src
+               + "; await Promise.resolve(); return {report, consequence: "
+               + consequence_source + "};})()")
+    inline_consequence: Any = {} if fuse_consequence else None
     with tab.journal.call("fill_form", n=len(plan)):
-        report = tab._world_js(src, timeout=timeout) or []
+        written = tab._world_js(src, timeout=timeout) or []
+        if isinstance(written, dict) and "report" in written:
+            report = written.get("report") or []
+            inline_consequence = written.get("consequence") or {}
+        else:
+            report = written
         if recheck > 0 and batch_plan:
             time.sleep(recheck)
-            settled = tab._world_js(_RECHECK_JS.replace("__PLAN__", json.dumps(batch_plan)),
-                                    timeout=timeout) or []
+            recheck_source = _RECHECK_JS.replace("__PLAN__", json.dumps(batch_plan))
+            if fuse_consequence:
+                recheck_source = ("await (async () => {const settled = " + recheck_source
+                                  + "; await Promise.resolve(); return {settled, consequence: "
+                                  + consequence_source + "};})()")
+            rechecked = tab._world_js(recheck_source, timeout=timeout) or []
+            if isinstance(rechecked, dict) and "settled" in rechecked:
+                settled = rechecked.get("settled") or []
+                inline_consequence = rechecked.get("consequence") or {}
+            else:
+                settled = rechecked
             for i, entry in enumerate(report):
                 if i >= len(settled) or settled[i] is None or "error" in entry:
                     continue
@@ -830,7 +861,20 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         merged.append(report[slot] if 0 <= slot < len(report)
                       else {"ref": step.get("ref"), "ok": False, "error": "no report entry"})
 
-    return _fill_outcome(merged, len(plan))                  # value = the FULL report
+    consequence = (tab._shape_action_consequence(inline_consequence)
+                   if inline_consequence is not None else tab._action_consequence(
+                       action_token, refs=refs, timeout=timeout))
+    verified = sum(bool(entry.get("ok")) for entry in merged)
+    consequence["write_validation"] = {
+        "attempted": len(plan), "verified": verified, "failed": len(plan) - verified,
+    }
+    if verified == len(plan):
+        consequence.update(effect="validation", verified=True)
+    elif verified:
+        consequence.update(effect="partial_validation", verified=False)
+    else:
+        consequence.update(effect="validation_failed", verified=False)
+    return _fill_outcome(merged, len(plan), consequence)     # value = the FULL report
 
 
 def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float = 10.0,
@@ -855,17 +899,30 @@ def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float 
     # `_FILL_JS` also contains `el.tagName.toLowerCase()` in its combobox branch, so a
     # test double dispatching on the obvious token answered the batch write with a tag
     # name and `report` came back as a string.
+    action_token = tab._action_token()
     probe = tab._world_js(
-        f"/* bh-probe:kind */ (() => {{const e = window.__bh && __bh.refs[{ref!r}];"
+        f"/* bh-probe:kind */ (() => {{const bh=window.__bh;"
+        f" if(bh) {{bh.actionStarts=bh.actionStarts||{{}};"
+        f" if(bh.beginAction) bh.beginAction({json.dumps(action_token)});"
+        f" else bh.actionStarts[{json.dumps(action_token)}]=bh.mutations||0;}}"
+        f" const e = bh && bh.refs[{ref!r}];"
         " return e ? e.tagName.toLowerCase() : null;})()", timeout=timeout)
     if probe is None:
-        return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
+        consequence = tab._action_consequence(action_token, refs=[ref], timeout=timeout)
+        consequence.update(effect="selection_failed", verified=False)
+        return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref,
+                    consequence=consequence)
     requested = [str(item) for item in label] if isinstance(label, list) else [str(label)]
     if probe == "select":
+        # The native-select branch starts its own fused write marker. Consume this probe
+        # marker first so the page-side bounded map cannot accumulate abandoned actions.
+        tab._action_consequence(action_token, refs=[ref], timeout=timeout)
         key = "labels" if isinstance(label, list) else "label"
         return fill_form(tab, [{"ref": ref, key: label}], timeout=timeout)
 
-    with tab.journal.call("select_option", ref=ref, label=label):
+    # The chosen label is applicant data. Keep only mechanical cardinality in the
+    # journal; the verified outcome remains available to the caller, not the trace.
+    with tab.journal.call("select_option", ref=ref, choices=len(requested)):
         before = tab._world_js(_COMBO_STATE_JS.replace("__REF__", json.dumps(ref)),
                                timeout=timeout) or {}
         # A coordinate click, not `el.click()`: these widgets listen for pointer events and
@@ -891,10 +948,12 @@ def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float 
         options = found.get("options") or []
         if not options:
             _dismiss(tab, timeout)
+            consequence = tab._action_consequence(action_token, refs=[ref], timeout=timeout)
+            consequence.update(effect="selection_failed", verified=False)
             return fail(Class.NEEDS_INTERACTION,
                         "the popup exposed no options to choose from",
                         ref=ref, want=requested, scope=found.get("scope"),
-                        typed=bool(wants_typing))
+                        typed=bool(wants_typing), consequence=consequence)
 
         def norm(t: str) -> str:
             return " ".join(str(t).split()).lower()
@@ -907,11 +966,14 @@ def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float 
         if hit is None:
             # Same contract as a native select: never fall back to "the first one".
             _dismiss(tab, timeout)
+            consequence = tab._action_consequence(action_token, refs=[ref], timeout=timeout)
+            consequence.update(effect="selection_failed", verified=False)
             return fail(Class.NO_OPTION_MATCH,
                         f"no option matching {requested!r} among {len(options)}",
                         ref=ref, want=requested,
                         candidates=[o["text"] for o in options[:8]],
-                        options_count=len(options), scope=found.get("scope"))
+                        options_count=len(options), scope=found.get("scope"),
+                        consequence=consequence)
 
         tab.click_at(hit["x"], hit["y"], settle=settle, timeout=timeout)
         after = tab._world_js(_COMBO_STATE_JS.replace("__REF__", json.dumps(ref)),
@@ -923,11 +985,16 @@ def select_option(tab: Tab, ref: str, label: str | list[str], *, timeout: float 
     changed = shown != str(before.get("value") or before.get("text") or "")
     matched = norm(shown) == norm(hit["text"]) or norm(hit["text"]) in norm(shown)
     if changed or matched:
+        consequence = tab._action_consequence(action_token, refs=[ref], timeout=timeout)
+        consequence.update(effect="validation", verified=True)
         return ok({"ref": ref, "want": requested, "got": hit["text"], "shown": shown[:80]},
-                  options_count=len(options))
+                  options_count=len(options), consequence=consequence)
+    consequence = tab._action_consequence(action_token, refs=[ref], timeout=timeout)
+    consequence.update(effect="selection_failed", verified=False)
     return fail(Class.NEEDS_INTERACTION,
                 "the option was clicked but the widget still shows its old value",
-                ref=ref, want=requested, clicked=hit["text"], shown=shown[:80])
+                ref=ref, want=requested, clicked=hit["text"], shown=shown[:80],
+                consequence=consequence)
 
 
 def _dismiss(tab: Tab, timeout: float) -> None:
@@ -967,13 +1034,21 @@ def set_value(tab: Tab, ref: str, value: Any, *, mode: str = "value",
     if mode == "value":
         return fill_form(tab, [{"ref": ref, "value": value}], timeout=timeout,
                          recheck=recheck)
+    action_token = tab._action_token()
+    tab._start_action(action_token, timeout=timeout)
     entry = _typed_write(tab, ref, value, mode, timeout)
+    consequence = tab._action_consequence(action_token, refs=[ref], timeout=timeout)
     if entry.get("error") == "element_gone":
-        return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref)
+        consequence.update(effect="validation_failed", verified=False)
+        return fail(Class.ELEMENT_GONE, f"no element registered for ref {ref!r}", ref=ref,
+                    consequence=consequence)
     if entry["ok"]:
-        return ok({"ref": ref, "got": entry["got"]}, mode=mode)
+        consequence.update(effect="validation", verified=True)
+        return ok({"ref": ref, "got": entry["got"]}, mode=mode,
+                  consequence=consequence)
+    consequence.update(effect="validation_failed", verified=False)
     return fail(Class.VALUE_REJECTED, "value did not stick", ref=ref, mode=mode,
-                want=entry["want"], got=entry["got"])
+                want=entry["want"], got=entry["got"], consequence=consequence)
 
 
 _SECRET_FILL_JS = """((ref, secret) => {

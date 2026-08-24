@@ -427,6 +427,10 @@ def test_reader_death_sets_the_closed_flag_itself_not_just_the_liveness_fallback
 def test_a_pending_request_is_failed_with_the_readers_cause_not_a_timeout():
     """Rule 2 — never discard a cause you were handed."""
     browser = FakeBrowser("a", "b")
+    # Keep the request pending deterministically. A zero-latency fake can answer and let
+    # the reader remove the slot between this test's 10 ms probes, turning the setup into
+    # a scheduler race rather than exercising reader-death propagation.
+    browser.hang_methods.add("Target.getTargets")
     conn = Connection(browser).start()
     try:
         results: list[BaseException] = []

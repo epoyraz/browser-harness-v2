@@ -23,6 +23,12 @@ from typing import Any, Self
 from harness import extend
 from harness.auth import account_credential_status, ensure_account_credential
 from harness.connect.client import RemoteConnection, RemoteRegistry, ensure_daemon
+from harness.core.content import (
+    DEFAULT_OUTPUT_BYTES,
+    DEFAULT_VALUE_BYTES,
+    ContentStore,
+    OutputCapture,
+)
 from harness.core.journal import Journal
 from harness.core.outcome import Class, HarnessError, ScopeRefused, TargetGone
 from harness.ops import batch, forms, record, screencast
@@ -53,11 +59,24 @@ class Session:
     """One client's view of the browser: a daemon connection and a current tab."""
 
     def __init__(self, name: str = "default", *, journal_path: str | None = None,
-                 accept_dialogs: bool = False):
+                 accept_dialogs: bool = False,
+                 content_store: ContentStore | None = None):
         self.name = name
         ensure_daemon(name)
-        self.journal = Journal(journal_path or os.environ.get("BH_JOURNAL") or None,
-                               session=name)
+        self.content_store = content_store or ContentStore()
+        try:
+            self._value_limit = max(0, int(os.environ.get(
+                "BH_OUTPUT_BYTES", str(DEFAULT_VALUE_BYTES))))
+        except ValueError:
+            self._value_limit = DEFAULT_VALUE_BYTES
+        self.journal = Journal(
+            journal_path or os.environ.get("BH_JOURNAL") or None,
+            session=name, content_store=self.content_store,
+            entry_limit=self._value_limit,
+        )
+        self._output_lock = threading.Lock()
+        self._output_elisions = 0
+        self._output_spilled_bytes = 0
         self.conn = RemoteConnection(name, journal=self.journal)
         self.registry = RemoteRegistry(self.conn)
         self.accept_dialogs = accept_dialogs
@@ -82,8 +101,14 @@ class Session:
             # If it cannot be claimed, fail closed instead of driving whatever happens to
             # be first in Chrome after this fresh process connects.
             self.resume_lease(lease)
-        if os.environ.get("BH_RECORD", "").strip().lower() not in ("", "0", "false", "no"):
-            self.start_recording()
+        recording = os.environ.get("BH_RECORD", "").strip().lower()
+        if recording not in ("", "0", "false", "no", "off"):
+            # A profile name is also a convenient one-variable opt-in.  Legacy truthy
+            # values (especially BH_RECORD=1) retain the review profile unless the
+            # dedicated profile variable says otherwise.
+            selected = recording if recording in {profile.value for profile in record.Profile} \
+                else None
+            self.start_recording(profile=selected)
 
     # -- tabs --------------------------------------------------------------
 
@@ -113,7 +138,8 @@ class Session:
                 tab = self._tabs.get(tid)
             if tab is None:
                 tab = Tab(self.conn, self.registry, tid, journal=self.journal,
-                          accept_dialogs=self.accept_dialogs)
+                          accept_dialogs=self.accept_dialogs,
+                          content_store=self.content_store)
                 with self._tabs_lock:
                     self._tabs[tid] = tab
         previous, self._current = self._current, tid
@@ -634,16 +660,22 @@ class Session:
 
     # -- recording ---------------------------------------------------------
 
-    def start_recording(self, name: str | None = None, title: str | None = None) -> str:
-        """One frame per state-changing action, written beside the journal that explains it.
+    def start_recording(self, name: str | None = None, title: str | None = None, *,
+                        profile: str | record.Profile | None = None) -> str:
+        """Record action evidence under an explicit evidence/review/cinematic profile.
 
         Turning it on *moves* the journal into the recording directory: the frames and the
         calls that produced them become one artifact instead of two to correlate.
         """
         if self._recorder is not None:
+            if profile is not None and record.parse_profile(profile) is not self._recorder.profile:
+                raise ValueError(
+                    f"recording already uses profile {self._recorder.profile.value!r}")
             return str(self._recorder.dir)
+        selected = record.parse_profile(
+            profile if profile is not None else os.environ.get("BH_RECORD_PROFILE"))
         self._recorder = record.start(lambda: self._current and self._tabs.get(self._current),
-                                      self.journal, name=name, title=title)
+                                      self.journal, name=name, title=title, profile=selected)
         # Batch evidence runs may deliberately create more than the interactive default
         # of 20 recordings. Keep rollover bounded while allowing the caller to preserve
         # the whole batch explicitly.
@@ -708,14 +740,23 @@ class Session:
         `use_tab()` mid-script redirects them — a script reads top to bottom."""
         def on_tab(fn_name: str):
             def call(*a: Any, **kw: Any) -> Any:
-                return getattr(self.tab(), fn_name)(*a, **kw)
+                value = getattr(self.tab(), fn_name)(*a, **kw)
+                return self._bound_agent_value(fn_name, value)
             call.__name__ = fn_name
             return call
 
         def with_tab(fn):
             def call(*a: Any, **kw: Any) -> Any:
-                return fn(self.tab(), *a, **kw)
+                value = fn(self.tab(), *a, **kw)
+                return self._bound_agent_value(fn.__name__, value)
             call.__name__ = fn.__name__
+            return call
+
+        def on_session(fn_name: str):
+            def call(*a: Any, **kw: Any) -> Any:
+                value = getattr(self, fn_name)(*a, **kw)
+                return self._bound_agent_value(fn_name, value)
+            call.__name__ = fn_name
             return call
 
         def open_pages(urls, *, workers: int = 5, total_chars: int = 12_000,
@@ -750,7 +791,7 @@ class Session:
                     "challenge": page["challenge"],
                 }
 
-            return parallel_ops.parallel(
+            result = parallel_ops.parallel(
                 self,
                 items,
                 inspect,
@@ -758,6 +799,7 @@ class Session:
                 isolated=False,
                 timeout=timeout,
             )
+            return self._bound_agent_value("open_pages", result)
 
         ns: dict[str, Any] = {
             "session": self, "tab": self.tab, "new_tab": self.new_tab,
@@ -766,7 +808,7 @@ class Session:
             "lease_tab": self.lease_tab, "resume_lease": self.resume_lease,
             "release_lease": self.release_lease,
             "new_context": self.new_context, "close_context": self.close_context,
-            "targets": self.targets, "journal": self.journal,
+            "targets": on_session("targets"), "journal": self.journal,
             "form_schema": with_tab(forms.form_schema),
             "fill_form": with_tab(forms.fill_form),
             "set_value": with_tab(forms.set_value),
@@ -774,18 +816,21 @@ class Session:
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
+            "fetch_observed_json": with_tab(batch.fetch_observed_json),
             "open_pages": open_pages,
             "application_route_candidates": forms.application_route_candidates,
             "account_credential_status": account_credential_status,
             "ensure_account_credential": ensure_account_credential,
-            "prepare_application": self.prepare_application,
-            "follow_application": self.follow_application,
-            "locate_application": self.locate_application,
-            "application_skills": self.application_skills,
-            "run_application": self.run_application,
+            "prepare_application": on_session("prepare_application"),
+            "follow_application": on_session("follow_application"),
+            "locate_application": on_session("locate_application"),
+            "application_skills": on_session("application_skills"),
+            "run_application": lambda *a, **kw: self._bound_agent_value(
+                "run_application", self.run_application(*a, **kw)),
             # Bound to this session, so a script writes parallel(urls, fn) and the bare
             # helpers inside fn address that worker's own tab.
-            "parallel": lambda items, fn, **kw: parallel_ops.parallel(self, items, fn, **kw),
+            "parallel": lambda items, fn, **kw: self._bound_agent_value(
+                "parallel", parallel_ops.parallel(self, items, fn, **kw)),
             "summarise": parallel_ops.summarise,
             "CancelToken": parallel_ops.CancelToken,
         }
@@ -803,11 +848,43 @@ class Session:
         ns["stop_recording"] = self.stop_recording
         ns["start_screencast"] = self.start_screencast
         ns["stop_screencast"] = self.stop_screencast
+        # Retrieval deliberately returns the exact original. The invocation-wide stdout
+        # ceiling still prevents printing it wholesale; callers can inspect or slice it
+        # in Python without paying a second browser round trip.
+        ns["fetch_content"] = self.content_store.get
         # Agent-written helpers load LAST and are executed with this namespace as their
         # globals, so an extension calls goto()/snapshot()/fill_form() exactly as a script
         # does — and its own functions are in scope for every script from the next run on.
         self.extensions = extend.load_into(ns)
         return ns
+
+    def _bound_agent_value(self, surface: str, value: Any) -> Any:
+        """Reversibly elide large JSON-like public results, never internal CDP traffic."""
+        # Outcome objects carry behavior (`ok`, `unwrap`, typed failures) in addition to
+        # data. Replacing one by a dict would destroy that contract; stdout remains capped
+        # and their browser payloads are already bounded at source.
+        if hasattr(value, "to_json") and not type(value) in (dict, list, str, bytes):
+            return value
+        # A reversible marker is a promise that the exact value exists. Storage or
+        # serialization failure must surface instead of returning an unbounded value or
+        # advertising a digest that cannot be fetched.
+        shaped = self.content_store.elide(value, limit=self._value_limit,
+                                           surface=surface)
+        if shaped is value:
+            return value
+        with self._output_lock:
+            self._output_elisions += 1
+            self._output_spilled_bytes += int(shaped.get("_elided") or 0)
+        self.journal.write(
+            "note", event="output_elided", surface=surface,
+            bytes=int(shaped.get("_elided") or 0), digest=shaped.get("_sha256"),
+        )
+        return shaped
+
+    def output_stats(self) -> dict[str, int]:
+        with self._output_lock:
+            return {"helper_elisions": self._output_elisions,
+                    "helper_spilled_bytes": self._output_spilled_bytes}
 
 
 def force_utf8_streams() -> None:
@@ -852,6 +929,15 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
     import time
 
     force_utf8_streams()
+    real_stdout = sys.stdout
+    content_store = ContentStore()
+    try:
+        output_limit = max(0, int(os.environ.get(
+            "BH_OUTPUT_BYTES", str(DEFAULT_OUTPUT_BYTES))))
+    except ValueError:
+        output_limit = DEFAULT_OUTPUT_BYTES
+    captured = OutputCapture(real_stdout, content_store, limit=output_limit)
+    sys.stdout = captured
     t0 = time.perf_counter()
     connected = exec_start = None
     session = None
@@ -860,7 +946,7 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
         # Connecting is inside the try on purpose: "cannot reach the browser" is the most
         # likely failure of all, and it must reach the agent as a class with evidence, not
         # as a Python traceback from three frames deep in the client.
-        session = Session(name)
+        session = Session(name, content_store=content_store)
         connected = time.perf_counter()
         ns = session.namespace()
         ns["__name__"] = "__bh__"
@@ -882,6 +968,8 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
         outcome = {"ok": False, "class": type(e).__name__, "detail": str(e)[:200]}
         raise
     finally:
+        sys.stdout = real_stdout
+        output_stats = captured.emit()
         if session is not None:
             # ONE `bh` run == ONE model decision, and that is the number worth minimising:
             # a step costs seconds of model thinking against milliseconds of harness. The
@@ -894,7 +982,7 @@ def run_script(source: str, *, name: str = "default", filename: str = "<bh>") ->
                 ms_connect=round(((connected or t0) - t0) * 1000, 1),
                 ms_exec=round((end - (exec_start or end)) * 1000, 1),
                 source_lines=source.count("\n") + 1,
-                outcome=outcome)
+                outcome=outcome, **session.output_stats(), **output_stats)
             session.close()
     return 0
 

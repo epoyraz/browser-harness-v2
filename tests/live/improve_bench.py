@@ -64,6 +64,17 @@ class _Site(BaseHTTPRequestHandler):
     """
 
     def do_GET(self):
+        if self.path.split("?")[0] == "/delayed-data":
+            # Long enough to outlive the adaptive minimum. The SPA shell must not be
+            # returned while this content-producing Fetch is still in flight.
+            time.sleep(1.8)
+            body = json.dumps({"text": "Complete application data from the API."}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         # Exact match, not a prefix: `/hangload.html` also starts with `/hang`, so a
         # prefix test tarpitted the DOCUMENT rather than its image and the fixture
         # reproduced a page that never parsed instead of one that never fires `load`.
@@ -150,6 +161,51 @@ def main() -> int:
         frame_ms = [timed(lambda: tab.frames())[0] for _ in range(3)]
         res["frames_ms"] = frame_ms
         print(f"  3. frames() x3 on a frameless page  {frame_ms} ms")
+
+        # -- 1b. adaptive grace and the strict SPA invariant -------------------
+        tab.goto(f"{base}/noform.html", timeout=10.0)
+        grace, samples = tab._adaptive_navigation_grace(3.0)
+        res["adaptive_navigation_grace_ms"] = round(grace * 1000, 1)
+        res["adaptive_navigation_samples"] = samples
+        res["adaptive_navigation_saved_ms"] = round((3.0 - grace) * 1000, 1)
+
+        # A networkAlmostIdle signal is not sufficient when the remaining request is the
+        # SPA's data. The result must contain the delayed payload, not merely its header.
+        spa_ms, spa, spa_err = timed(lambda: tab.open_page(
+            f"{base}/delayed-data-spa.html", timeout=5.0))
+        spa_page = (spa or {}).get("page") or {}
+        spa_text = str(spa_page.get("text") or "") + "\n" + "\n".join(
+            str(block.get("text") or "") for block in spa_page.get("blocks") or []
+            if isinstance(block, dict))
+        spa_dom_complete = bool(tab.js(
+            "document.getElementById('content')?.textContent.includes('Complete application data')"))
+        res["adaptive_spa_ms"] = spa_ms
+        res["adaptive_spa_error"] = spa_err
+        res["adaptive_spa_complete"] = "Complete application data" in spa_text
+        res["adaptive_spa_dom_complete"] = spa_dom_complete
+        res["adaptive_spa_lifecycle"] = (spa or {}).get("lifecycle")
+        print(f"  1b. delayed-data SPA                 {spa_ms:>8.1f}ms "
+              f"complete={res['adaptive_spa_complete']} dom={spa_dom_complete} lifecycle="
+              f"{res['adaptive_spa_lifecycle']!r}")
+
+        # Exact mode must ignore the same settled pair and consume its whole deadline.
+        strict_ms, strict, strict_err = timed(lambda: tab.goto(
+            f"{base}/hangload.html", timeout=1.2, usable_after=None))
+        res["strict_navigation_ms"] = strict_ms
+        res["strict_navigation_error"] = strict_err
+        res["strict_navigation_result"] = strict
+        res["strict_navigation_unchanged"] = (
+            strict_err is None and (strict or {}).get("lifecycle") == "timeout"
+            and set(strict or {}) == {"requested", "landed", "lifecycle"}
+            and strict_ms >= 1100)
+        res["adaptive_navigation_pass"] = bool(
+            grace < 3.0 and res["adaptive_spa_complete"]
+            and res["strict_navigation_unchanged"])
+        res["adaptive_navigation_failures"] = sum(
+            value is not None for value in (spa_err, strict_err))
+        res["adaptive_content_failures"] = int(not res["adaptive_spa_complete"])
+        print(f"  1c. strict stalled navigation        {strict_ms:>8.1f}ms "
+              f"unchanged={res['strict_navigation_unchanged']}")
 
         # -- 4. waiting, on the two pages where the blanket selector lies ------
         # (a) nothing to match: wait_for burns the whole timeout to learn "no".
