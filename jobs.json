@@ -1,5 +1,5 @@
 {
- "generated": "2026-08-16",
+ "generated": "2026-08-24",
  "source": "joblens public MCP search_jobs + get_job_details",
  "cv": {
   "file": "Lebenslauf – Enes Poyraz.pdf",
@@ -75,21 +75,21 @@
  "search": {
   "city_filter": null,
   "sort": "matches",
-  "universe_matching_at_least_one_skill": 1164,
+  "universe_matching_at_least_one_skill": 1122,
   "returned": 100,
   "direct_urls_resolved": 100
  },
  "summary": {
-  "direct_form_no_account": 32,
-  "account_required": 19,
-  "not_reported": 49,
+  "direct_form_no_account": 31,
+  "account_required": 16,
+  "not_reported": 53,
   "top_companies": [
-   "adesso (8)",
+   "adesso (10)",
    "ti&m (7)",
    "Blockstream (5)",
    "Bundesverwaltung (5)",
    "Expleo (5)",
-   "ABB (3)"
+   "Artifact (3)"
   ]
  },
  "jobs": [
@@ -127,65 +127,6 @@
   },
   {
    "rank": 2,
-   "matched": 10,
-   "company": "Expleo",
-   "title": "Backend Developer",
-   "location": "Bern",
-   "published": "2026-04-21",
-   "apply": {
-    "mode": "account",
-    "ats": "iCIMS",
-    "direct_url": "https://expleo-jobs-ch-en.icims.com/jobs/50652/backend-developer/job?in_iframe=1",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "account required (iCIMS)",
-    "resolved": true
-   },
-   "job_id": "Expleo_50652",
-   "url": "https://expleo-jobs-ch-en.icims.com/jobs/50652/backend-developer/job?in_iframe=1",
-   "matched_skills": [
-    "Azure",
-    "Kubernetes",
-    "Docker",
-    "CI/CD",
-    "PostgreSQL",
-    "MySQL",
-    "Java",
-    "REST APIs",
-    "Microservices",
-    "Scrum"
-   ]
-  },
-  {
-   "rank": 3,
-   "matched": 9,
-   "company": "BS-Team",
-   "title": "Développeur C# Full-stack sénior – Applications métier critiques",
-   "location": "Genève",
-   "published": "2026-08-11",
-   "apply": {
-    "mode": "unknown",
-    "ats": null,
-    "direct_url": "https://www.bs-team.ch/jobs/developpeur-c-full-stack-senior-applications-metier-critiques/",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "BSTeam_37983",
-   "url": "https://www.bs-team.ch/jobs/developpeur-c-full-stack-senior-applications-metier-critiques/",
-   "matched_skills": [
-    "C#",
-    ".NET",
-    "TypeScript",
-    "Azure",
-    "CI/CD",
-    "JWT",
-    "Microservices",
-    "Scrum",
-    "Agile"
-   ]
-  },
-  {
-   "rank": 4,
    "matched": 9,
    "company": "Arqh",
    "title": "Senior Platform (Full-Stack) Engineer",
@@ -214,36 +155,7 @@
    ]
   },
   {
-   "rank": 5,
-   "matched": 9,
-   "company": "Julius Bär",
-   "title": "Senior Frontend (React) Developer – Financial Platforms 80 - 100% (f/m/d) - (Contract through our external payroll partner with immediate start for 6 months with possible extension)",
-   "location": "Zürich",
-   "published": "2026-06-26",
-   "apply": {
-    "mode": "account",
-    "ats": "Workday",
-    "direct_url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Frontend--React--Developer---Financial-Platforms-80---100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-6-months-with-possible-extension-_r-19028",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "account required (Workday)",
-    "resolved": true
-   },
-   "job_id": "JuliusBaer_r-19028",
-   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Frontend--React--Developer---Financial-Platforms-80---100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-6-months-with-possible-extension-_r-19028",
-   "matched_skills": [
-    "TypeScript",
-    "React",
-    "Node.js",
-    "Azure",
-    "Kubernetes",
-    "Docker",
-    "CI/CD",
-    "Microservices",
-    "Agile"
-   ]
-  },
-  {
-   "rank": 6,
+   "rank": 3,
    "matched": 9,
    "company": "BS-Team",
    "title": "Ingénieur DevOps",
@@ -272,7 +184,36 @@
    ]
   },
   {
-   "rank": 7,
+   "rank": 4,
+   "matched": 9,
+   "company": "BS-Team",
+   "title": "Développeur C# Full-stack sénior – Applications métier critiques",
+   "location": "Genève",
+   "published": null,
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://www.bs-team.ch/jobs/developpeur-c-full-stack-senior-applications-metier-critiques/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "BSTeam_37983",
+   "url": "https://www.bs-team.ch/jobs/developpeur-c-full-stack-senior-applications-metier-critiques/",
+   "matched_skills": [
+    "C#",
+    ".NET",
+    "TypeScript",
+    "Azure",
+    "CI/CD",
+    "JWT",
+    "Microservices",
+    "Scrum",
+    "Agile"
+   ]
+  },
+  {
+   "rank": 5,
    "matched": 9,
    "company": "ti&m",
    "title": "Test und Quality Engineer",
@@ -301,7 +242,7 @@
    ]
   },
   {
-   "rank": 8,
+   "rank": 6,
    "matched": 8,
    "company": "Crypto Finance AG",
    "title": "Senior Quality Assurance Engineer",
@@ -329,63 +270,7 @@
    ]
   },
   {
-   "rank": 9,
-   "matched": 8,
-   "company": "Finfox",
-   "title": "Technical Lead",
-   "location": "Zürich",
-   "published": "2026-07-06",
-   "apply": {
-    "mode": "form",
-    "ats": "join.com",
-    "direct_url": "https://join.com/companies/finfox/16540128-technical-lead",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "direct form, no account (join.com)",
-    "resolved": true
-   },
-   "job_id": "finfox_16408044",
-   "url": "https://join.com/companies/finfox/16540128-technical-lead",
-   "matched_skills": [
-    "TypeScript",
-    "React",
-    "Kubernetes",
-    "Docker",
-    "Terraform",
-    "CI/CD",
-    "Python",
-    "Java"
-   ]
-  },
-  {
-   "rank": 10,
-   "matched": 8,
-   "company": "ZHDK",
-   "title": "KI-Expert:in 80-100%, (w,m,d)",
-   "location": null,
-   "published": "2026-06-30",
-   "apply": {
-    "mode": "form",
-    "ats": "Refline",
-    "direct_url": "https://apply.refline.ch/788531/1229/pub/1/index.html",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "direct form, no account (Refline)",
-    "resolved": true
-   },
-   "job_id": "ZHDK_1229_1",
-   "url": "https://apply.refline.ch/788531/1229/pub/1/index.html",
-   "matched_skills": [
-    "TypeScript",
-    "Next.js",
-    "React",
-    "Azure",
-    "Kubernetes",
-    "Docker",
-    "CI/CD",
-    "Python"
-   ]
-  },
-  {
-   "rank": 11,
+   "rank": 7,
    "matched": 8,
    "company": "adesso",
    "title": "Java Spring Boot Software Engineer (all genders)",
@@ -413,7 +298,7 @@
    ]
   },
   {
-   "rank": 12,
+   "rank": 8,
    "matched": 8,
    "company": "Bundesverwaltung",
    "title": "Datenbank-Administrator/-in Senior (1025)",
@@ -441,7 +326,7 @@
    ]
   },
   {
-   "rank": 13,
+   "rank": 9,
    "matched": 8,
    "company": "ONLU AG",
    "title": "Senior/Expert Software Engineer (JavaEE) - German Speaking",
@@ -469,7 +354,7 @@
    ]
   },
   {
-   "rank": 14,
+   "rank": 10,
    "matched": 8,
    "company": "Acutronic",
    "title": "Cloud & IoT Solution Engineer 100% (w/m/d) Bubikon",
@@ -497,7 +382,88 @@
    ]
   },
   {
-   "rank": 15,
+   "rank": 11,
+   "matched": 7,
+   "company": "Coop",
+   "title": "Lead Frontend Entwickler:in 80-100%",
+   "location": "Jegenstorf",
+   "published": "2026-08-18",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://jobs.coopjobs.ch/offene-stellen/lead-frontend-entwickler-in/e768d1f5-35db-42cc-ae6d-c60b0dff6877",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "Coop_10151897",
+   "url": "https://jobs.coopjobs.ch/offene-stellen/lead-frontend-entwickler-in/e768d1f5-35db-42cc-ae6d-c60b0dff6877",
+   "matched_skills": [
+    "C#",
+    "TypeScript",
+    "Next.js",
+    "React",
+    "GitHub Actions",
+    "CI/CD",
+    "Java"
+   ]
+  },
+  {
+   "rank": 12,
+   "matched": 7,
+   "company": "fenaco",
+   "title": "Integrationsspezialist / .NET Entwickler Microsoft Azure (w/m/d)",
+   "location": "Sursee",
+   "published": "2026-08-18",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://jobs.fenaco.com/offene-stellen/integrationsspezialist-net-entwickler-microsoft-azure-w-m-d/50e7eb9c-6764-42b0-a341-8d2ee4f042c6",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "fenaco_50e7eb9c-6764-42b0-a341-8d2ee4f042c6",
+   "url": "https://jobs.fenaco.com/offene-stellen/integrationsspezialist-net-entwickler-microsoft-azure-w-m-d/50e7eb9c-6764-42b0-a341-8d2ee4f042c6",
+   "matched_skills": [
+    "C#",
+    ".NET",
+    "Azure",
+    "Kubernetes",
+    "CI/CD",
+    "OAuth",
+    "REST APIs"
+   ]
+  },
+  {
+   "rank": 13,
+   "matched": 7,
+   "company": "Bison Schweiz",
+   "title": "Integrationsspezialist / .NET Entwickler Microsoft Azure (w/m/d)",
+   "location": "Sursee",
+   "published": "2026-08-17",
+   "apply": {
+    "mode": "form",
+    "ats": "Prospective",
+    "direct_url": "https://ohws.prospective.ch/public/v1/jobs/0d5ac411-5866-4218-ab49-153cbddd9a38",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Prospective)",
+    "resolved": true
+   },
+   "job_id": "BisonSchweiz_10152422",
+   "url": "https://ohws.prospective.ch/public/v1/jobs/0d5ac411-5866-4218-ab49-153cbddd9a38",
+   "matched_skills": [
+    "C#",
+    ".NET",
+    "Azure",
+    "Kubernetes",
+    "CI/CD",
+    "OAuth",
+    "REST APIs"
+   ]
+  },
+  {
+   "rank": 14,
    "matched": 7,
    "company": "Fincons Group",
    "title": "Senior C# / .NET Engineer",
@@ -524,34 +490,7 @@
    ]
   },
   {
-   "rank": 16,
-   "matched": 7,
-   "company": "ABB",
-   "title": "Software Senior Engineer - Desktop",
-   "location": "Baden",
-   "published": "2026-08-06",
-   "apply": {
-    "mode": "account",
-    "ats": "Workday",
-    "direct_url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Desktop_JR00041646",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "account required (Workday)",
-    "resolved": true
-   },
-   "job_id": "ABB_JR00041646",
-   "url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Desktop_JR00041646",
-   "matched_skills": [
-    "C#",
-    ".NET",
-    "Azure",
-    "GitHub Actions",
-    "CI/CD",
-    "Scrum",
-    "Agile"
-   ]
-  },
-  {
-   "rank": 17,
+   "rank": 15,
    "matched": 7,
    "company": "RUAG",
    "title": "Senior Software Engineer C5I",
@@ -578,34 +517,7 @@
    ]
   },
   {
-   "rank": 18,
-   "matched": 7,
-   "company": "Coop",
-   "title": "Cloud Software Engineer (Java/GCP) 80-100%",
-   "location": "Jegenstorf",
-   "published": "2026-08-03",
-   "apply": {
-    "mode": "unknown",
-    "ats": null,
-    "direct_url": "https://jobs.coopjobs.ch/offene-stellen/cloud-software-engineer-java-gcp/7fdf6ec6-34cc-4ad6-bff0-6c26501c5b57",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "Coop_10136263",
-   "url": "https://jobs.coopjobs.ch/offene-stellen/cloud-software-engineer-java-gcp/7fdf6ec6-34cc-4ad6-bff0-6c26501c5b57",
-   "matched_skills": [
-    "Terraform",
-    "GitHub Actions",
-    "CI/CD",
-    "Java",
-    "Microservices",
-    "Scrum",
-    "Agile"
-   ]
-  },
-  {
-   "rank": 19,
+   "rank": 16,
    "matched": 7,
    "company": "Zühlke",
    "title": "Advanced Data Engineer",
@@ -632,7 +544,7 @@
    ]
   },
   {
-   "rank": 20,
+   "rank": 17,
    "matched": 7,
    "company": "ti&m",
    "title": "Software Engineer (Java/Spring Boot) auf dem Weg zum Data / AI Engineer",
@@ -659,7 +571,7 @@
    ]
   },
   {
-   "rank": 21,
+   "rank": 18,
    "matched": 7,
    "company": "Expleo",
    "title": "Fullstack Software Engineer / Architect",
@@ -686,7 +598,7 @@
    ]
   },
   {
-   "rank": 22,
+   "rank": 19,
    "matched": 7,
    "company": "Julius Bär",
    "title": "Senior Java Developer (Distributed Financial Systems) 80 - 100% (f/m/d) - (Contract through our external payroll partner with immediate start for 12 months with possible extension)",
@@ -713,22 +625,22 @@
    ]
   },
   {
-   "rank": 23,
+   "rank": 20,
    "matched": 7,
    "company": "Optiml",
-   "title": "Software Engineer - Infrastructure (GCP & Platform)",
+   "title": "Software Engineer - Infrastructure (m/f/d) (GCP & Platform)",
    "location": "Zürich",
    "published": "2026-04-20",
    "apply": {
     "mode": "form",
     "ats": "join.com",
-    "direct_url": "https://join.com/companies/optiml/16527218-software-engineer-infrastructure-gcp-and-platform",
+    "direct_url": "https://join.com/companies/optiml/16583861-software-engineer-infrastructure-m-f-d-gcp-and-platform",
     "direct_source": "joblens MCP get_job_details",
     "route_raw": "direct form, no account (join.com)",
     "resolved": true
    },
    "job_id": "Optiml_16035458",
-   "url": "https://join.com/companies/optiml/16527218-software-engineer-infrastructure-gcp-and-platform",
+   "url": "https://join.com/companies/optiml/16583861-software-engineer-infrastructure-m-f-d-gcp-and-platform",
    "matched_skills": [
     "TypeScript",
     "Kubernetes",
@@ -740,7 +652,7 @@
    ]
   },
   {
-   "rank": 24,
+   "rank": 21,
    "matched": 7,
    "company": "Blockstream",
    "title": "Junior Solutions Architect",
@@ -767,7 +679,7 @@
    ]
   },
   {
-   "rank": 25,
+   "rank": 22,
    "matched": 7,
    "company": "Blockstream",
    "title": "DevOps Engineer",
@@ -794,7 +706,7 @@
    ]
   },
   {
-   "rank": 26,
+   "rank": 23,
    "matched": 7,
    "company": "Blockstream",
    "title": "Solutions Architect",
@@ -821,7 +733,7 @@
    ]
   },
   {
-   "rank": 27,
+   "rank": 24,
    "matched": 7,
    "company": "Comparis",
    "title": "Backend Engineer, 80-100% (f/m/x)",
@@ -848,7 +760,7 @@
    ]
   },
   {
-   "rank": 28,
+   "rank": 25,
    "matched": 7,
    "company": "LumApps",
    "title": "Forward Deployed Engineer (FDE), Zurich",
@@ -875,10 +787,114 @@
    ]
   },
   {
+   "rank": 26,
+   "matched": 6,
+   "company": "Expleo",
+   "title": "Frontend Developer",
+   "location": "Bern",
+   "published": "2026-08-21",
+   "apply": {
+    "mode": "account",
+    "ats": "iCIMS",
+    "direct_url": "https://expleo-jobs-ch-en.icims.com/jobs/50651/frontend-developer/job?in_iframe=1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (iCIMS)",
+    "resolved": true
+   },
+   "job_id": "Expleo_50651",
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/50651/frontend-developer/job?in_iframe=1",
+   "matched_skills": [
+    "TypeScript",
+    "Kubernetes",
+    "Docker",
+    "CI/CD",
+    "Java",
+    "Scrum"
+   ]
+  },
+  {
+   "rank": 27,
+   "matched": 6,
+   "company": "Julius Bär",
+   "title": "Senior Data Engineer – Data Analytics Platform 80-100% (f/m/d) - (Contract through our external payroll partner with immediate start for 12 months with possible extension)",
+   "location": "Zürich",
+   "published": "2026-08-21",
+   "apply": {
+    "mode": "account",
+    "ats": "Workday",
+    "direct_url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Data-Engineer---Data-Analytics-Platform-80-100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-12-months-with-possible-extension-_r-19553-1",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "account required (Workday)",
+    "resolved": true
+   },
+   "job_id": "JuliusBaer_r-19553",
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-Data-Engineer---Data-Analytics-Platform-80-100---f-m-d-----Contract-through-our-external-payroll-partner-with-immediate-start-for-12-months-with-possible-extension-_r-19553-1",
+   "matched_skills": [
+    "Azure",
+    "Kubernetes",
+    "Docker",
+    "CI/CD",
+    "Python",
+    "Microservices"
+   ]
+  },
+  {
+   "rank": 28,
+   "matched": 6,
+   "company": "adesso",
+   "title": "BPM & Automation Engineer (all genders)",
+   "location": "Lausanne",
+   "published": "2026-08-21",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2962",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "adesso_2962",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2962",
+   "matched_skills": [
+    "Docker",
+    "CI/CD",
+    "Java",
+    "REST APIs",
+    "Scrum",
+    "Agile"
+   ]
+  },
+  {
    "rank": 29,
    "matched": 6,
+   "company": "Wavestone",
+   "title": "IT Business Engineer - Beratung und Umsetzung (all genders)",
+   "location": null,
+   "published": "2026-08-17",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://switzerland-career.wavestone.com/jobs/66229583/IT-Business-Engineer---Beratung-und-Umsetzung-all-genders-/",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "Wavestone_66229583",
+   "url": "https://switzerland-career.wavestone.com/jobs/66229583/IT-Business-Engineer---Beratung-und-Umsetzung-all-genders-/",
+   "matched_skills": [
+    "Kubernetes",
+    "Docker",
+    "CI/CD",
+    "REST APIs",
+    "Microservices",
+    "Scrum"
+   ]
+  },
+  {
+   "rank": 30,
+   "matched": 6,
    "company": "HSLU",
-   "title": "Full-Stack Applikationsentwickler:in 80-100%",
+   "title": "Full-Stack Applikationsentwickler:in 80 - 100%",
    "location": "Luzern",
    "published": "2026-08-15",
    "apply": {
@@ -901,7 +917,7 @@
    ]
   },
   {
-   "rank": 30,
+   "rank": 31,
    "matched": 6,
    "company": "ParetoLabs",
    "title": "AI Engineer",
@@ -927,7 +943,7 @@
    ]
   },
   {
-   "rank": 31,
+   "rank": 32,
    "matched": 6,
    "company": "Bundesverwaltung",
    "title": "Software Engineer (DevOps), Projekt Eidgenössische Wahlen",
@@ -953,7 +969,7 @@
    ]
   },
   {
-   "rank": 32,
+   "rank": 33,
    "matched": 6,
    "company": "Helsana",
    "title": "Full Stack Software Engineer C# / .NET / React (a) 80-100%",
@@ -976,32 +992,6 @@
     "React",
     "Docker",
     "PostgreSQL"
-   ]
-  },
-  {
-   "rank": 33,
-   "matched": 6,
-   "company": "ABB",
-   "title": "Software Senior Engineer - Mobile APPs",
-   "location": "Baden",
-   "published": "2026-08-06",
-   "apply": {
-    "mode": "account",
-    "ats": "Workday",
-    "direct_url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Mobile-APPs_JR00041998",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "account required (Workday)",
-    "resolved": true
-   },
-   "job_id": "ABB_JR00041998",
-   "url": "https://abb.wd3.myworkdayjobs.com/External_Career_Page/job/Bergamo-Bergamo-Italy/Software-Senior-Engineer---Mobile-APPs_JR00041998",
-   "matched_skills": [
-    "Azure",
-    "Docker",
-    "GitHub Actions",
-    "CI/CD",
-    "Scrum",
-    "Agile"
    ]
   },
   {
@@ -1137,32 +1127,6 @@
   {
    "rank": 39,
    "matched": 6,
-   "company": "Wavestone",
-   "title": "IT Business Engineer - Beratung und Umsetzung (all genders)",
-   "location": null,
-   "published": "2026-07-22",
-   "apply": {
-    "mode": "unknown",
-    "ats": null,
-    "direct_url": "https://switzerland-career.wavestone.com/jobs/66229583/IT-Business-Engineer---Beratung-und-Umsetzung-all-genders-/",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "Wavestone_66229583",
-   "url": "https://switzerland-career.wavestone.com/jobs/66229583/IT-Business-Engineer---Beratung-und-Umsetzung-all-genders-/",
-   "matched_skills": [
-    "Kubernetes",
-    "Docker",
-    "CI/CD",
-    "REST APIs",
-    "Microservices",
-    "Scrum"
-   ]
-  },
-  {
-   "rank": 40,
-   "matched": 6,
    "company": "Ansam Group",
    "title": "Senior Artificial Intelligence Engineer",
    "location": "Canton de Vaud",
@@ -1187,7 +1151,7 @@
    ]
   },
   {
-   "rank": 41,
+   "rank": 40,
    "matched": 6,
    "company": "SonarSource",
    "title": "Graduate Software Engineer",
@@ -1213,7 +1177,7 @@
    ]
   },
   {
-   "rank": 42,
+   "rank": 41,
    "matched": 6,
    "company": "EPAM",
    "title": "Senior AI Architect - Microsoft Technologies",
@@ -1239,7 +1203,7 @@
    ]
   },
   {
-   "rank": 43,
+   "rank": 42,
    "matched": 6,
    "company": "EPAM",
    "title": "Senior Big Data System Engineer (Platform Engineer)",
@@ -1265,7 +1229,7 @@
    ]
   },
   {
-   "rank": 44,
+   "rank": 43,
    "matched": 6,
    "company": "Ansam Group",
    "title": "Développeur·euse Full-Stack C#",
@@ -1291,7 +1255,7 @@
    ]
   },
   {
-   "rank": 45,
+   "rank": 44,
    "matched": 6,
    "company": "Julius Bär",
    "title": "Senior Java Engineer - Cloud-Native Backend Development 100% (f/m/d) - (Contract through our external payroll partner with immediate start for 12 months with possible extension)",
@@ -1317,7 +1281,7 @@
    ]
   },
   {
-   "rank": 46,
+   "rank": 45,
    "matched": 6,
    "company": "adesso",
    "title": "Lead Developer Digital Health (all genders)",
@@ -1343,7 +1307,7 @@
    ]
   },
   {
-   "rank": 47,
+   "rank": 46,
    "matched": 6,
    "company": "enovetic",
    "title": "Technical Lead (80-100%)",
@@ -1369,7 +1333,7 @@
    ]
   },
   {
-   "rank": 48,
+   "rank": 47,
    "matched": 6,
    "company": "Open Systems",
    "title": "(Senior) Systems Engineer – Remote Access",
@@ -1395,7 +1359,7 @@
    ]
   },
   {
-   "rank": 49,
+   "rank": 48,
    "matched": 6,
    "company": "Qim info",
    "title": "Développeur Fullstack / DevOps Senior (H/F)",
@@ -1421,7 +1385,7 @@
    ]
   },
   {
-   "rank": 50,
+   "rank": 49,
    "matched": 6,
    "company": "Snowflake",
    "title": "Senior Technical Support Engineer, Observe by Snowflake",
@@ -1447,7 +1411,7 @@
    ]
   },
   {
-   "rank": 51,
+   "rank": 50,
    "matched": 6,
    "company": "Blockstream",
    "title": "Software Engineer, Blockchain & Distributed Systems",
@@ -1473,7 +1437,7 @@
    ]
   },
   {
-   "rank": 52,
+   "rank": 51,
    "matched": 6,
    "company": "Blockstream",
    "title": "Product Owner",
@@ -1499,7 +1463,7 @@
    ]
   },
   {
-   "rank": 53,
+   "rank": 52,
    "matched": 6,
    "company": "adesso",
    "title": "Senior Software Engineer Java (all genders)",
@@ -1525,7 +1489,7 @@
    ]
   },
   {
-   "rank": 54,
+   "rank": 53,
    "matched": 6,
    "company": "Artifact",
    "title": "AI Engineer / Consultant",
@@ -1551,7 +1515,7 @@
    ]
   },
   {
-   "rank": 55,
+   "rank": 54,
    "matched": 6,
    "company": "adesso",
    "title": "Technical Architect Digital Health",
@@ -1577,7 +1541,7 @@
    ]
   },
   {
-   "rank": 56,
+   "rank": 55,
    "matched": 6,
    "company": "BS-Team",
    "title": "Développeur FullStack Java",
@@ -1603,7 +1567,7 @@
    ]
   },
   {
-   "rank": 57,
+   "rank": 56,
    "matched": 6,
    "company": "Artifact",
    "title": "AI Engineer / Consultant - Internship",
@@ -1629,7 +1593,7 @@
    ]
   },
   {
-   "rank": 58,
+   "rank": 57,
    "matched": 6,
    "company": "ONLU AG",
    "title": "Full Stack Developer: Springboot & Angular - Deutschschweiz - German Speaking= MUST",
@@ -1655,7 +1619,7 @@
    ]
   },
   {
-   "rank": 59,
+   "rank": 58,
    "matched": 6,
    "company": "Artifact",
    "title": "Senior AI Engineer / Consultant",
@@ -1681,7 +1645,7 @@
    ]
   },
   {
-   "rank": 60,
+   "rank": 59,
    "matched": 6,
    "company": "Digital Architects Zurich",
    "title": "Observability & AIOps Engineer/Consultant",
@@ -1707,6 +1671,32 @@
    ]
   },
   {
+   "rank": 60,
+   "matched": 6,
+   "company": "CSS",
+   "title": "Senior Java Software Engineer (w/m) 80-100%",
+   "location": "Luzern",
+   "published": null,
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://jobs.css.ch/offene-stellen/senior-java-software-engineer-w-m/23754e2a-4043-4ccf-8f95-cec4b622ffbe",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "CSS_23754e2a",
+   "url": "https://jobs.css.ch/offene-stellen/senior-java-software-engineer-w-m/23754e2a-4043-4ccf-8f95-cec4b622ffbe",
+   "matched_skills": [
+    "Kubernetes",
+    "Docker",
+    "CI/CD",
+    "Java",
+    "Scrum",
+    "Agile"
+   ]
+  },
+  {
    "rank": 61,
    "matched": 6,
    "company": "Sophia Genetics",
@@ -1716,13 +1706,13 @@
    "apply": {
     "mode": "unknown",
     "ats": null,
-    "direct_url": "https://careers.sophiagenetics.com/jobs/senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
+    "direct_url": "https://careers.sophiagenetics.com/jobs/senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-rolle-vaud-switzerland",
     "direct_source": "joblens MCP get_job_details",
     "route_raw": null,
     "resolved": true
    },
-   "job_id": "SophiaGenetics_senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
-   "url": "https://careers.sophiagenetics.com/jobs/senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-boston-massachusetts-united-states-rolle-vaud-switzerland",
+   "job_id": "SophiaGenetics_senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-rolle-vaud-switzerland",
+   "url": "https://careers.sophiagenetics.com/jobs/senior-ai-software-engineer-bidart-nouvelle-aquitaine-france-rolle-vaud-switzerland",
    "matched_skills": [
     "React",
     "Azure",
@@ -1813,6 +1803,106 @@
   {
    "rank": 65,
    "matched": 5,
+   "company": "adesso",
+   "title": "(Senior) Cloud Solution Architect – Microsoft Azure (all genders)",
+   "location": "Basel",
+   "published": "2026-08-21",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2961",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "adesso_2961",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2961",
+   "matched_skills": [
+    "Azure",
+    "Kubernetes",
+    "Terraform",
+    "GitHub Actions",
+    "CI/CD"
+   ]
+  },
+  {
+   "rank": 66,
+   "matched": 5,
+   "company": "adesso",
+   "title": "(Senior) Site Reliability Engineer (all genders)",
+   "location": "Basel",
+   "published": "2026-08-20",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2900",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "adesso_2900",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2900",
+   "matched_skills": [
+    "Azure",
+    "Docker",
+    "Terraform",
+    "CI/CD",
+    "Python"
+   ]
+  },
+  {
+   "rank": 67,
+   "matched": 5,
+   "company": "adesso",
+   "title": "DevOps Engineer (all genders)",
+   "location": "Bern",
+   "published": "2026-08-19",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "adesso_2906",
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
+   "matched_skills": [
+    "Azure",
+    "Kubernetes",
+    "Terraform",
+    "CI/CD",
+    "Python"
+   ]
+  },
+  {
+   "rank": 68,
+   "matched": 5,
+   "company": "Ringier",
+   "title": "Full Stack Web Developer:in (a)*",
+   "location": "Bern",
+   "published": "2026-08-18",
+   "apply": {
+    "mode": "unknown",
+    "ats": null,
+    "direct_url": "https://jobs.ringier.ch/offene-stellen/full-stack-web-developer-in-a/86b009ef-aa92-45ed-bf66-8701b408470d",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": null,
+    "resolved": true
+   },
+   "job_id": "Ringier_10153443",
+   "url": "https://jobs.ringier.ch/offene-stellen/full-stack-web-developer-in-a/86b009ef-aa92-45ed-bf66-8701b408470d",
+   "matched_skills": [
+    "C#",
+    ".NET",
+    "TypeScript",
+    "PostgreSQL",
+    "MySQL"
+   ]
+  },
+  {
+   "rank": 69,
+   "matched": 5,
    "company": "Mettler Toledo",
    "title": "Senior Software Engineer",
    "location": "Nänikon",
@@ -1836,7 +1926,7 @@
    ]
   },
   {
-   "rank": 66,
+   "rank": 70,
    "matched": 5,
    "company": "Thomson Reuters",
    "title": "Lead Research Engineer",
@@ -1861,7 +1951,7 @@
    ]
   },
   {
-   "rank": 67,
+   "rank": 71,
    "matched": 5,
    "company": "Callista",
    "title": "Senior Software Engineer Frontend",
@@ -1886,32 +1976,7 @@
    ]
   },
   {
-   "rank": 68,
-   "matched": 5,
-   "company": "Zürcher Kantonalbank",
-   "title": "DevOps Engineer Java & Angular (m/w/d)",
-   "location": "Zürich",
-   "published": "2026-08-10",
-   "apply": {
-    "mode": "form",
-    "ats": "Refline",
-    "direct_url": "https://apply.refline.ch/792841/11280/pub/2",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "direct form, no account (Refline)",
-    "resolved": true
-   },
-   "job_id": "Zürcher_Kantonalbank_gen_bce6c6703d53",
-   "url": "https://apply.refline.ch/792841/11280/pub/2",
-   "matched_skills": [
-    "TypeScript",
-    "Azure",
-    "Kubernetes",
-    "Python",
-    "Java"
-   ]
-  },
-  {
-   "rank": 69,
+   "rank": 72,
    "matched": 5,
    "company": "Coop",
    "title": "Test Engineer",
@@ -1936,7 +2001,7 @@
    ]
   },
   {
-   "rank": 70,
+   "rank": 73,
    "matched": 5,
    "company": "Helvetia",
    "title": "Senior Full-Stack Mobile Engineer (iOS - Backend) (w/m/d) Teilzeit/Vollzeit",
@@ -1961,7 +2026,7 @@
    ]
   },
   {
-   "rank": 71,
+   "rank": 74,
    "matched": 5,
    "company": "Helvetia",
    "title": "Senior Full-Stack Software Engineer Kotlin/Java (w/m/d) Vollzeit",
@@ -1986,7 +2051,7 @@
    ]
   },
   {
-   "rank": 72,
+   "rank": 75,
    "matched": 5,
    "company": "Alohi",
    "title": "Senior Backend Developer",
@@ -2011,32 +2076,7 @@
    ]
   },
   {
-   "rank": 73,
-   "matched": 5,
-   "company": "Coop",
-   "title": "Senior Cloud Engineer",
-   "location": "Zürich",
-   "published": "2026-07-30",
-   "apply": {
-    "mode": "unknown",
-    "ats": null,
-    "direct_url": "https://jobs.coopjobs.ch/offene-stellen/senior-cloud-engineer/dc8edbda-63ba-4c0d-adb0-9ad8219661e7",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "Coop_10134509",
-   "url": "https://jobs.coopjobs.ch/offene-stellen/senior-cloud-engineer/dc8edbda-63ba-4c0d-adb0-9ad8219661e7",
-   "matched_skills": [
-    "Kubernetes",
-    "Terraform",
-    "CI/CD",
-    "Java",
-    "Scrum"
-   ]
-  },
-  {
-   "rank": 74,
+   "rank": 76,
    "matched": 5,
    "company": "ti&m",
    "title": "Senior Python Software Engineer",
@@ -2061,7 +2101,7 @@
    ]
   },
   {
-   "rank": 75,
+   "rank": 77,
    "matched": 5,
    "company": "Bundesverwaltung",
    "title": "SRE-Applikations-Entwickler/-in Expert (1255, 1261, 1262)",
@@ -2086,7 +2126,7 @@
    ]
   },
   {
-   "rank": 76,
+   "rank": 78,
    "matched": 5,
    "company": "SonarSource",
    "title": "Full Stack Engineer - Remediation Agent",
@@ -2111,32 +2151,32 @@
    ]
   },
   {
-   "rank": 77,
+   "rank": 79,
    "matched": 5,
    "company": "Thomson Reuters",
-   "title": "Principal Software Engineer",
+   "title": "Senior Research Engineer",
    "location": "Zug",
    "published": "2026-07-25",
    "apply": {
     "mode": "account",
     "ats": "Workday",
-    "direct_url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland-Zug-Zug/Principal-Software-Engineer_JREQ202383-1",
+    "direct_url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Senior-Research-Engineer_JREQ198563",
     "direct_source": "joblens MCP get_job_details",
     "route_raw": "account required (Workday)",
     "resolved": true
    },
-   "job_id": "ThomsonReuters_JREQ202383",
-   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland-Zug-Zug/Principal-Software-Engineer_JREQ202383-1",
+   "job_id": "ThomsonReuters_JREQ198563",
+   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Senior-Research-Engineer_JREQ198563",
    "matched_skills": [
-    "Azure",
-    "Identity and Access Management",
-    "OAuth",
+    "TypeScript",
+    "CI/CD",
     "Python",
-    "PostgreSQL"
+    "Java",
+    "Agile"
    ]
   },
   {
-   "rank": 78,
+   "rank": 80,
    "matched": 5,
    "company": "RUAG",
    "title": "Software Engineer C5I",
@@ -2161,7 +2201,7 @@
    ]
   },
   {
-   "rank": 79,
+   "rank": 81,
    "matched": 5,
    "company": "Expleo",
    "title": "Solution Architect",
@@ -2186,7 +2226,7 @@
    ]
   },
   {
-   "rank": 80,
+   "rank": 82,
    "matched": 5,
    "company": "ti&m",
    "title": "Senior Software Engineer Java/Kotlin",
@@ -2211,32 +2251,7 @@
    ]
   },
   {
-   "rank": 81,
-   "matched": 5,
-   "company": "Thomson Reuters",
-   "title": "Senior Research Engineer",
-   "location": "Zug",
-   "published": "2026-07-18",
-   "apply": {
-    "mode": "account",
-    "ats": "Workday",
-    "direct_url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Senior-Research-Engineer_JREQ198563",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": "account required (Workday)",
-    "resolved": true
-   },
-   "job_id": "ThomsonReuters_JREQ198563",
-   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/United-States-of-America-Eagan-Minnesota/Senior-Research-Engineer_JREQ198563",
-   "matched_skills": [
-    "TypeScript",
-    "CI/CD",
-    "Python",
-    "Java",
-    "Agile"
-   ]
-  },
-  {
-   "rank": 82,
+   "rank": 83,
    "matched": 5,
    "company": "ti&m",
    "title": "Senior Frontend Engineer (TypeScript)",
@@ -2258,31 +2273,6 @@
     "React",
     "Node.js",
     "Java"
-   ]
-  },
-  {
-   "rank": 83,
-   "matched": 5,
-   "company": "adesso",
-   "title": "(Senior) Site Reliability Engineer (all genders)",
-   "location": "Basel",
-   "published": "2026-07-17",
-   "apply": {
-    "mode": "unknown",
-    "ats": null,
-    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2900",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "adesso_2900",
-   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2900",
-   "matched_skills": [
-    "Azure",
-    "Docker",
-    "Terraform",
-    "CI/CD",
-    "Python"
    ]
   },
   {
@@ -2563,31 +2553,6 @@
   {
    "rank": 95,
    "matched": 5,
-   "company": "adesso",
-   "title": "DevOps Engineer (all genders)",
-   "location": "Bern",
-   "published": "2026-05-05",
-   "apply": {
-    "mode": "unknown",
-    "ats": null,
-    "direct_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
-    "direct_source": "joblens MCP get_job_details",
-    "route_raw": null,
-    "resolved": true
-   },
-   "job_id": "adesso_2906",
-   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2906",
-   "matched_skills": [
-    "Azure",
-    "Kubernetes",
-    "Terraform",
-    "CI/CD",
-    "Python"
-   ]
-  },
-  {
-   "rank": 96,
-   "matched": 5,
    "company": "Expleo",
    "title": "Senior Software Engineer – Full Stack",
    "location": "Bern",
@@ -2611,7 +2576,7 @@
    ]
   },
   {
-   "rank": 97,
+   "rank": 96,
    "matched": 5,
    "company": "Richemont",
    "title": "Software Engineer",
@@ -2636,7 +2601,7 @@
    ]
   },
   {
-   "rank": 98,
+   "rank": 97,
    "matched": 5,
    "company": "Expleo",
    "title": "Software Engineer – Backend / Data (DevOps)",
@@ -2661,7 +2626,7 @@
    ]
   },
   {
-   "rank": 99,
+   "rank": 98,
    "matched": 5,
    "company": "Konova AG",
    "title": "Backend Software Engineer - GovTech SaaS (80-100%)",
@@ -2686,7 +2651,7 @@
    ]
   },
   {
-   "rank": 100,
+   "rank": 99,
    "matched": 5,
    "company": "Eraneos",
    "title": "(Senior) Data Platform-Consultant 60-100%",
@@ -2706,6 +2671,31 @@
     "Azure",
     "Kubernetes",
     "Docker",
+    "CI/CD",
+    "Python"
+   ]
+  },
+  {
+   "rank": 100,
+   "matched": 5,
+   "company": "Digital Wave Finance AG",
+   "title": "System Administrator",
+   "location": "Zug",
+   "published": "2026-03-06",
+   "apply": {
+    "mode": "form",
+    "ats": "Workable",
+    "direct_url": "https://apply.workable.com/dwf/j/5CBA6F4B69",
+    "direct_source": "joblens MCP get_job_details",
+    "route_raw": "direct form, no account (Workable)",
+    "resolved": true
+   },
+   "job_id": "DigitalWaveFinanceAG_5CBA6F4B69",
+   "url": "https://apply.workable.com/dwf/j/5CBA6F4B69",
+   "matched_skills": [
+    "Kubernetes",
+    "Docker",
+    "Terraform",
     "CI/CD",
     "Python"
    ]
