@@ -118,6 +118,20 @@ def field_text(field: dict[str, Any]) -> str:
     return norm(" ".join(str(field.get(k) or "") for k in ("label", "name", "kind")))
 
 
+def has_word(text: str, *words: str) -> bool:
+    """Match a token as a word, not as a fragment of one.
+
+    Plain `in` is fine for a phrase and dangerous for a short token. Measured on the
+    2026-08-25 corpus: a required French field reading "Veuillez indiquer vos prétentions
+    salariales annuelles ... (format : 75000)" was classified `city`, because `"ort" in
+    "rapportees"` — and it was not merely misread, it was *planned*, so the run wrote
+    "Neuhausen am Rheinfall" into a salary box. `land` inside "Switzerland" and `formation`
+    inside "information" are the same shape of accident waiting to happen.
+    """
+    return any(re.search(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])", text)
+               for word in words)
+
+
 def inferred_required(field: dict[str, Any]) -> bool:
     label = str(field.get("label") or "").lower()
     return bool(field.get("required") or "*" in label or "required" in label
@@ -140,10 +154,14 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "linkedin_url"
     if any(x in text for x in ("github", "gitlab")):
         return "github_url"
-    if any(x in text for x in ("salary", "gehalt", "lohn", "compensation", "per annum")):
+    if any(x in text for x in ("salary", "gehalt", "lohn", "compensation", "per annum",
+                               "desired pay", "expected pay", "lohnvorstellung",
+                               "gehaltsvorstellung", "pretentions salariales", "salaire")):
         return "salary_expectation"
     if any(x in text for x in ("notice period", "start date", "starting date", "available from",
-                               "availability", "verfugbar", "fruhest", "a partir de quand")):
+                               "availability", "verfugbar", "fruhest", "a partir de quand",
+                               "date available", "earliest start", "kundigungsfrist",
+                               "eintrittsdatum", "eintritt", "preavis", "disponibilite")):
         return "availability"
     if any(x in text for x in ("portfolio", "personal website", "website url", "homepage")):
         return "portfolio_url"
@@ -152,7 +170,10 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
                                "anything else", "type your response")):
         return "tailored_response"
     if any(x in text for x in ("how did you hear", "how did you find", "aufmerksam geworden",
-                               "contacttype", "recommendation source", "referral")):
+                               "contacttype", "recommendation source", "referral",
+                               "where did you hear", "where did you find",
+                               "ou avez-vous trouve", "ou avez-vous entendu",
+                               "wie haben sie von uns", "wo haben sie")):
         return "referral_source"
     if any(x in text for x in ("privacy", "datenschutz", "data protection", "gdpr",
                                "consent", "accepted data", "disclaimer")):
@@ -161,9 +182,17 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "gender_or_salutation"
     if any(x in text for x in ("race", "ethnicity", "veteran", "disability", "demographic")):
         return "demographic"
-    if any(x in text for x in ("email bestatigen", "verify email", "confirm email", "email2")):
+    # "erneut eingeben"/"repeat" only counts as a mail confirmation when the field is
+    # actually about mail. Alone it is how a form asks for a repeated *password*, and
+    # answering that with an address would type a credential field full of e-mail.
+    if (any(x in text for x in ("email bestatigen", "verify email", "confirm email", "email2",
+                                "e-mail bestatigen", "email confirmation",
+                                "confirmer votre e-mail"))
+            or (any(x in text for x in ("erneut eingeben", "repeat", "wiederholen"))
+                and any(x in text for x in ("mail", "courriel")))):
         return "email_confirm"
-    if kind == "email" or name in {"email", "candidate email", "awsm applicant email"}:
+    if (kind == "email" or name in {"email", "candidate email", "awsm applicant email", "mail"}
+            or any(x in text for x in ("e-mail", "email", "courriel"))):
         return "email"
     if any(x in text for x in ("first name", "firstname", "vorname", "prenom")):
         return "first_name"
@@ -173,7 +202,8 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "full_name"
     if kind == "tel" or any(x in text for x in ("phone", "telefon", "telephone", "mobilephone")):
         return "phone"
-    if any(x in text for x in ("date of birth", "birthdate", "geburtsdatum", "date de naissance")):
+    if any(x in text for x in ("date of birth", "birthdate", "birth date", "birthday",
+                               "geburtsdatum", "geburtstag", "date de naissance")):
         return "birth_date"
     if any(x in text for x in ("place of birth", "geburtsort", "lieu de naissance")):
         return "birth_place"
@@ -183,15 +213,17 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
                                "arbeitsbewilligung", "arbeitsgenehmigung", "swiss citizen",
                                "can you work in switzerland")):
         return "work_authorization"
-    if any(x in text for x in ("postal code", "postcode", "zip", "postleitzahl", " plz")):
+    if (any(x in text for x in ("postal code", "postcode", "postleitzahl"))
+            or has_word(text, "zip", "plz", "npa")):
         return "postal_code"
-    if any(x in text for x in ("house number", "hausnummer", " nr ", "cust number")):
+    if (any(x in text for x in ("house number", "hausnummer", "cust number"))
+            or has_word(text, "nr")):
         return "house_number"
-    if name == "country" or any(x in label for x in ("country", "land", "pays")):
+    if name == "country" or has_word(label, "country", "land", "pays"):
         return "country"
     if any(x in text for x in ("current location", "residence", "wohnort", "lieu de residence")):
         return "location"
-    if name == "city" or any(x in label for x in ("city", "ort", "ville")):
+    if name == "city" or has_word(label, "city", "ort", "ville", "stadt"):
         return "city"
     if any(x in text for x in ("street", "strasse", "address", "adresse postale")):
         return "street"
@@ -202,11 +234,18 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
     if any(x in text for x in ("years of experience", "jahre berufserfahrung",
                                "professional experience", "softwareentwicklung hast")):
         return "experience_years"
-    if any(x in text for x in ("english level", "english proficiency", "englischniveau")):
+    if any(x in text for x in ("english level", "english proficiency", "englischniveau",
+                               "english fluency", "level of english", "englischkenntnisse",
+                               "niveau d anglais")):
         return "english_level"
     if any(x in text for x in ("german level", "german proficiency", "deutschniveau")):
         return "german_level"
-    if any(x in text for x in ("highest education", "degree", "education")):
+    if (any(x in text for x in ("highest education", "bildungsabschluss",
+                                "hochster abschluss", "bildungsniveau",
+                                "niveau d etude", "niveau d etudes"))
+            # Short and generic, so they match as words: "formation" is a substring of
+            # "information", which every ATS asks for at least once.
+            or has_word(text, "education", "degree", "ausbildung", "diplome", "formation")):
         return "education"
     if any(x in text for x in ("profile", "professional summary", "about you", "summary")):
         return "profile_summary"
@@ -340,6 +379,17 @@ def plan_for(schema: dict[str, Any], language: str,
             "label": field.get("label"), "name": field.get("name"),
             "required": required, "semantic": sem,
         }
+        # A credential is never corpus data, whatever the label classified as. This is a
+        # floor, not a classification: on 2026-08-25 `"ort" in "passwort"` made six SBB,
+        # HSLU and fenaco password boxes look like a city field, and all six were planned
+        # and written. A guard that does not depend on the ontology being right is the only
+        # kind that would have stopped it. Real credentials go through
+        # `set_secret_from_keychain`, never through a profile value.
+        if field.get("kind") == "password" or has_word(norm(field.get("name")),
+                                                       "pwd", "password", "passwort",
+                                                       "kennwort"):
+            audit.append({**base, "status": "credential_refused"})
+            continue
         group = str(field.get("name") or field.get("label") or f"field-{index}")
         if field.get("kind") in ("radio", "checkbox") and sem == "unclassified":
             if group in seen_radio_groups:
