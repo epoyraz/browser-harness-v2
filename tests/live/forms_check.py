@@ -477,6 +477,50 @@ def main() -> int:
               all(f.cls is Class.HTTP_ERROR and f.observed["status"] == 404
                   for f in out.failures), f"{len(out.failures)} failures")
 
+        # --- naming controls nothing else names ---------------------------
+        # Both of these are geometry-and-DOM questions a fake browser cannot answer, and
+        # both produced silent wrong answers on the 2026-08-25 corpus rather than errors.
+        tab.goto(f"{base}/placeholder-label.html")
+        by_name = {f["name"]: f for f in form_schema(tab)["fields"]}
+        salutation = by_name.get("bewerbung_form[gender]", {})
+        check("label: a select's placeholder option names it",
+              salutation.get("label") == "Anrede*"
+              and salutation.get("label_source") == "placeholder_option",
+              f"{salutation.get('label')!r} via {salutation.get('label_source')!r}")
+        check("label: the asterisk in a promoted label marks it required",
+              salutation.get("required") is True, str(salutation.get("required")))
+        check("label: a contentless prompt is not promoted",
+              by_name.get("bewerbung_form[noise]", {}).get("label") is None,
+              repr(by_name.get("bewerbung_form[noise]", {}).get("label")))
+        check("label: authored markup outranks the proximity guess",
+              all(f.get("label") != "Jetzt bewerben" for f in by_name.values()),
+              "the page heading is not a label")
+
+        tab.goto(f"{base}/grouped-choices.html")
+        grouped = form_schema(tab)["fields"]
+        groups = {f["name"]: f.get("group_label") for f in grouped}
+        check("group_label: fieldset legend",
+              groups.get("skill_python") == "What is your level of Python?",
+              repr(groups.get("skill_python")))
+        check("group_label: role=radiogroup aria-label",
+              groups.get("k8s") == "How many years have you worked with Kubernetes?",
+              repr(groups.get("k8s")))
+        check("group_label: aria-labelledby",
+              groups.get("onsite") == "Are you willing to work on site in Geneva?",
+              repr(groups.get("onsite")))
+        check("group_label: an ATS card keeps the question in a sibling block",
+              groups.get("cards[3be47ae8]")
+              == "Which of these have you used in production?",
+              repr(groups.get("cards[3be47ae8]")))
+        check("group_label: a group with no question above it invents none",
+              groups.get("bare") is None, repr(groups.get("bare")))
+        card = [f["label"] for f in grouped if f["name"] == "cards[3be47ae8]"]
+        check("label: an option is named by its own box, not the row above it",
+              card == ["Kafka", "Terraform", "Kubernetes"], str(card))
+        check("label: a lone required marker never becomes a label",
+              all(f.get("label") not in ("✱", "*") for f in grouped),
+              "no marker-only labels")
+
         conn.close()
     finally:
         _browser.kill(scratch)

@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- Radio and checkbox groups, five ways. Every member of a group is its own control, so
+     the schema reports one row per option and each row's label is the option text. The
+     question those options answer belongs to no single input.
+
+     Measured on the 2026-08-25 corpus: a Lever posting produced 11 required rows whose
+     entire description was the word "Novice", and four more whose label was the required
+     marker "✱" — the nearest text to the control, found by the proximity fallback.
+
+     The last group is the control case: two checkboxes sharing a name with nothing above
+     them, where there is no question to find and inventing one would be worse. -->
+<meta charset="utf-8">
+<title>Application questions</title>
+<h1>Apply to SonarSource</h1>
+<form>
+
+  <!-- 1. fieldset + legend: the shape the HTML spec is for -->
+  <fieldset>
+    <legend>What is your level of Python?</legend>
+    <label><input type="radio" name="skill_python" value="novice"> Novice</label>
+    <label><input type="radio" name="skill_python" value="inter"> Intermediate</label>
+    <label><input type="radio" name="skill_python" value="expert"> Expert</label>
+  </fieldset>
+
+  <!-- 2. ARIA group role -->
+  <div role="radiogroup" aria-label="How many years have you worked with Kubernetes?">
+    <label><input type="radio" name="k8s" value="0"> None</label>
+    <label><input type="radio" name="k8s" value="3"> 1-3 years</label>
+    <label><input type="radio" name="k8s" value="5"> 5+ years</label>
+  </div>
+
+  <!-- 3. aria-labelledby pointing at a heading -->
+  <h3 id="q-remote">Are you willing to work on site in Geneva?</h3>
+  <div role="group" aria-labelledby="q-remote">
+    <label><input type="radio" name="onsite" value="y"> Yes</label>
+    <label><input type="radio" name="onsite" value="n"> No</label>
+  </div>
+
+  <!-- 4. the ATS card: unlabelled divs, question in a sibling block, marker in its own
+          element so the proximity fallback finds "✱" instead of the question -->
+  <div class="application-question">
+    <div class="application-label">
+      <div class="text">Which of these have you used in production?</div><span>✱</span>
+    </div>
+    <div class="application-field">
+      <div><input type="checkbox" name="cards[3be47ae8]" value="a"><span>Kafka</span></div>
+      <div><input type="checkbox" name="cards[3be47ae8]" value="b"><span>Terraform</span></div>
+      <div><input type="checkbox" name="cards[3be47ae8]" value="c"><span>Kubernetes</span></div>
+    </div>
+  </div>
+
+  <!-- 5. control: a group with no question anywhere above it -->
+  <div>
+    <label><input type="checkbox" name="bare" value="1"> Alpha</label>
+    <label><input type="checkbox" name="bare" value="2"> Beta</label>
+  </div>
+
+  <button type="submit">Submit application</button>
+</form>

@@ -115,7 +115,11 @@ def norm(value: Any) -> str:
 
 
 def field_text(field: dict[str, Any]) -> str:
-    return norm(" ".join(str(field.get(k) or "") for k in ("label", "name", "kind")))
+    # `group_label` carries the question a radio or checkbox group asks; the field's own
+    # label is only the option answering it. Without the question, "Novice" is all the
+    # ontology gets to work with.
+    return norm(" ".join(str(field.get(k) or "")
+                         for k in ("label", "group_label", "name", "kind")))
 
 
 def has_word(text: str, *words: str) -> bool:
@@ -279,7 +283,8 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
 def semantic(field: dict[str, Any]) -> str:
     """Cache structural meaning, never document-bound refs or current values."""
     global SEMANTIC_CACHE_HITS
-    key = (norm(field.get("label")), norm(field.get("name")), field.get("kind"),
+    key = (norm(field.get("label")), norm(field.get("group_label")),
+           norm(field.get("name")), field.get("kind"),
            tuple(norm(option) for option in (field.get("options_sample") or [])))
     with SEMANTIC_CACHE_LOCK:
         if key in SEMANTIC_CACHE:
@@ -373,6 +378,37 @@ def localized(semantic_name: str, language: str, field: dict[str, Any]) -> Any:
     return None
 
 
+def _matching_option(group: str, index: int, schema: dict[str, Any], semantic_name: str,
+                     value: Any, language: str, item: ProfileValue | None
+                     ) -> dict[str, Any] | None:
+    """The member of a radio/checkbox group whose own label expresses the answer.
+
+    Exact match first, then a whole-word one, so "Yes" cannot be answered by "Yes, but
+    only after my notice period" while "Herr" still matches "Herr:". A group with no
+    matching option is not answerable from the profile, and saying so is the honest
+    outcome — quietly ticking its first option is how a form gets a wrong answer that
+    looks filled.
+    """
+    if not value:
+        return None
+    wanted = [norm(candidate) for candidate
+              in option_candidates(semantic_name, value, language, item)]
+    members = [f for f in (schema.get("fields") or [])
+               if f.get("ref") and f.get("kind") in ("radio", "checkbox")
+               and str(f.get("name") or f.get("label") or "") == group]
+    for exact in (True, False):
+        for member in members:
+            label = norm(member.get("label"))
+            if not label:
+                continue
+            for candidate in wanted:
+                if not candidate:
+                    continue
+                if label == candidate if exact else has_word(label, candidate):
+                    return member
+    return None
+
+
 def plan_for(schema: dict[str, Any], language: str,
              skill_context: dict[str, Any] | None = None
              ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -403,10 +439,32 @@ def plan_for(schema: dict[str, Any], language: str,
             audit.append({**base, "status": "credential_refused"})
             continue
         group = str(field.get("name") or field.get("label") or f"field-{index}")
-        if field.get("kind") in ("radio", "checkbox") and sem == "unclassified":
+        if field.get("kind") == "radio" or (field.get("kind") == "checkbox"
+                                            and sem == "unclassified"):
+            # Radio only for the classified case. Checkboxes that share a name are
+            # independent switches — "which of these have you used" wants as many ticks as
+            # are true — so collapsing them to one answer would silently drop the rest.
+            # One answer per group, always. Every member of a radio group is its own
+            # control with its own ref, so a group whose question classifies would
+            # otherwise plan a write for each option — selecting all of them in turn and
+            # ending on whichever came last. The write has to name the member that says
+            # what we mean, so the group is planned only when one of its options matches
+            # a supported answer, and left to a human when none does.
             if group in seen_radio_groups:
                 continue
             seen_radio_groups.add(group)
+            if sem != "unclassified" and field.get("kind") == "radio":
+                item = profile_value(sem, language)
+                value = localized(sem, language, field)
+                chosen = _matching_option(group, index, schema, sem, value, language, item)
+                if chosen is not None:
+                    plan.append({"ref": chosen["ref"]})
+                    audit.append({**base, "ref": chosen["ref"], "status": "planned",
+                                  "value_source": item.source if item else str(CV),
+                                  "group_choice": chosen.get("label")})
+                    continue
+                audit.append({**base, "status": "no_option_match"})
+                continue
         item = profile_value(sem, language)
         if item is not None and item.known_absent:
             audit.append({**base, "status": "known_absent", "value_source": item.source})

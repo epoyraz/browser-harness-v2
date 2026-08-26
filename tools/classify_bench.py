@@ -169,9 +169,33 @@ def replay(rows: list[dict[str, Any]], classifier: Any) -> dict[str, Any]:
     return {"rows": resolved, "regressed": regressed, "reinterpreted": reinterpreted}
 
 
+def _decisions(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """One entry per decision, not per control.
+
+    A radio group is a single question however many options carry it, so counting its
+    members individually inflates both the requirement and the shortfall — and it moves
+    the score whenever the planner changes how many members it writes to, which is not a
+    change in how much a person has to answer.
+    """
+    seen: set[tuple[str, str]] = set()
+    out = []
+    for row in rows:
+        if row["kind"] in ("radio", "checkbox"):
+            key = (str(row["job_id"]), str(row["name"] or row["label"]))
+            if key in seen:
+                continue
+            seen.add(key)
+        out.append(row)
+    return out
+
+
 def score(resolved: list[dict[str, Any]]) -> dict[str, Any]:
-    required = [r for r in resolved if r["required"]]
-    forced = [r for r in required if not r["planned"]]
+    required = _decisions([r for r in resolved if r["required"]])
+    # A group is answered if any member is; the planner writes to one of them.
+    planned_groups = {(str(r["job_id"]), str(r["name"] or r["label"]))
+                      for r in resolved if r["planned"]}
+    forced = [r for r in required if not r["planned"]
+              and (str(r["job_id"]), str(r["name"] or r["label"])) not in planned_groups]
     per_job: dict[str, int] = defaultdict(int)
     for row in forced:
         per_job[str(row["job_id"])] += 1

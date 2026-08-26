@@ -60,6 +60,11 @@ def _digits(s: str) -> str:
 
 _SCHEMA_JS = """(() => {
   const bh = window.__bh;
+  //: Text that names something has a letter in it. Lever renders its required marker as a
+  //: lone "\\u2731" in its own element, which is the nearest text to the control it marks —
+  //: so the proximity fallback picked it as four custom questions' labels, and a caller
+  //: was told the field was called "\\u2731".
+  const LETTER = /[^\\W\\d_]/u;
   const labelFor = el => {
     if (el.id) {
       const l = document.querySelector('label[for="' + CSS.escape(el.id) + '"]');
@@ -87,7 +92,7 @@ _SCHEMA_JS = """(() => {
     const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (w.nextNode()) {
       const raw = w.currentNode.textContent.replace(/\\s+/g, ' ').trim();
-      if (!raw || raw.length > 60) continue;
+      if (!raw || raw.length > 60 || !LETTER.test(raw)) continue;
       const p = w.currentNode.parentElement;
       if (!p || p.closest('script,style,option,button,select')) continue;
       const pr = p.getBoundingClientRect();
@@ -101,6 +106,102 @@ _SCHEMA_JS = """(() => {
       if (d !== null && d < bestD) { bestD = d; best = raw; }
     }
     return best;
+  };
+  //: The text of one option, taken from the box it sits in.
+  //:
+  //: A checkbox followed by a `<span>` is the ATS spelling of a labelled option, and it is
+  //: not a `<label>`, so the markup chain misses it. Falling through to geometry then
+  //: reads the text *above* the control — which for a stacked list of options is the
+  //: previous option, so every name in the group comes back shifted by one. Measured on
+  //: the fixture: "Kafka", "Terraform", "Kubernetes" were reported as the question,
+  //: "Kafka", "Terraform".
+  const optionText = el => {
+    const parent = el.parentElement;
+    if (!parent) return null;
+    const own = (parent.innerText || '').replace(/\\s+/g, ' ').trim();
+    if (!own || own.length > 80 || !LETTER.test(own)) return null;
+    // Only when the box holds this control and its text, nothing else.
+    const controls = parent.querySelectorAll('input,select,textarea,[contenteditable=true]');
+    return controls.length === 1 && controls[0] === el ? own : null;
+  };
+  //: The question a radio or checkbox group is asking.
+  //:
+  //: Every member of a group is its own control, so the schema reports one row per option
+  //: and each row's label is the option — "Novice", "18-20", "White / Caucasian". The
+  //: question those options answer is markup that belongs to no single input, so it was
+  //: reported nowhere: on the 2026-08-25 corpus that left 11 required Lever rows whose
+  //: entire description was the word "Novice". Neither a planner nor a model can answer
+  //: that, and the fix is not a better guess about "Novice" — it is to carry the question.
+  //:
+  //: In descending order of how much the author meant it: an explicit group role, a
+  //: fieldset legend, then the text immediately above the group inside the smallest
+  //: element containing all of its members. The last one is what ATS card layouts need,
+  //: since they group with unlabelled divs.
+  const groupLabel = el => {
+    const type = (el.type || '').toLowerCase();
+    if (type !== 'radio' && type !== 'checkbox') return null;
+    const group = el.closest('[role="radiogroup"],[role="group"]');
+    if (group) {
+      const aria = group.getAttribute('aria-label');
+      if (aria && aria.trim()) return aria.trim();
+      const by = group.getAttribute('aria-labelledby');
+      if (by) {
+        const t = by.split(/\\s+/).map(i => (document.getElementById(i) || {}).innerText || '')
+          .join(' ').replace(/\\s+/g, ' ').trim();
+        if (t) return t;
+      }
+    }
+    const fieldset = el.closest('fieldset');
+    const legend = fieldset && fieldset.querySelector(':scope > legend');
+    if (legend && legend.innerText.trim()) return legend.innerText.trim().slice(0, 160);
+    if (!el.name) return null;
+    const peers = [...(el.form || document).querySelectorAll(
+      'input[type="' + type + '"][name="' + CSS.escape(el.name) + '"]')];
+    if (peers.length < 2) return null;            // not a group; its own label is the label
+    let container = el.parentElement;
+    for (let up = 0; up < 8 && container; up++) {
+      if (peers.every(p => container.contains(p))) break;
+      container = container.parentElement;
+    }
+    if (!container || !peers.every(p => container.contains(p))) return null;
+    const first = peers[0];
+    // Text before the first option, nearest to it, and not part of any option's own
+    // label — that last exclusion is what stops "Novice" from naming its own group.
+    const above = scope => {
+      const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+      let best = null;
+      while (walker.nextNode()) {
+        const node = walker.currentNode;
+        if (first.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) break;
+        const raw = node.textContent.replace(/\\s+/g, ' ').trim();
+        if (!raw || raw.length > 160 || !LETTER.test(raw)) continue;
+        const parent = node.parentElement;
+        if (!parent || parent.closest('script,style,option')) continue;
+        if (peers.some(p => {
+          const own = p.closest('label') || p.parentElement;
+          return own && own.contains(node);
+        })) continue;
+        best = raw;                               // keep the last: closest to the group
+      }
+      return best;
+    };
+    // The smallest element holding every option usually does not hold the question: an
+    // ATS card puts the options in one div and the question in its sibling. So widen —
+    // but only through elements that contain nothing except this group. That boundary is
+    // what separates "the text above these options" from "the last thing on the page
+    // before them": widen past another control and the previous question's final option
+    // becomes this group's label.
+    const foreign = scope => [...scope.querySelectorAll(
+        'input,select,textarea,[contenteditable=true]')].some(other =>
+          !peers.includes(other)
+          && !['submit', 'button', 'reset', 'image', 'hidden']
+              .includes((other.type || '').toLowerCase()));
+    for (let out = 0; out < 4 && container && !foreign(container); out++) {
+      const found = above(container);
+      if (found) return found;
+      container = container.parentElement;
+    }
+    return null;
   };
   const fields = [], files = [], fieldNodes = [], fileNodes = [];
   const seen = new Set();
@@ -140,16 +241,25 @@ _SCHEMA_JS = """(() => {
     // near it, which on a sparse form is the page heading. Ranking them lets a select's
     // own placeholder option — written by the author, about this control — outrank the
     // geometric guess while still yielding to a real label.
-    const direct = labelFor(el);
+    const marked = labelFor(el);
+    const optText = !marked && ['radio', 'checkbox'].includes(type) ? optionText(el) : null;
+    const direct = marked || optText;
     const label = direct || nearText(el);
     const kind = el.getAttribute('role') === 'combobox' && tag !== 'select' ? 'combobox'
       : el.isContentEditable && tag !== 'input' && tag !== 'textarea' ? 'richtext'
       : tag === 'select' ? 'select' : tag === 'textarea' ? 'textarea' : (type || 'text');
     const f = {ref, kind, label,
-               label_source: direct ? 'markup' : label ? 'proximity' : null,
+               label_source: marked ? 'markup' : optText ? 'option_text'
+                             : label ? 'proximity' : null,
                name: el.name || el.id || null,
                required: !!(el.required || el.getAttribute('aria-required') === 'true'
                             || (label && /\\*\\s*$/.test(label)))};
+    const asked = groupLabel(el);
+    if (asked) {
+      f.group_label = asked.slice(0, 160);
+      // A group marked required is required whichever option answers it.
+      f.required = f.required || /[*\\u2731]\\s*$/.test(f.group_label);
+    }
     const auto = el.getAttribute('autocomplete');
     if (auto && auto !== 'off') f.autocomplete = auto;
     if (tag === 'select') {
