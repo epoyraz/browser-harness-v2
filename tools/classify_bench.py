@@ -42,7 +42,9 @@ OPEN_ENDED = re.compile(
     r"tell us about|describe|what achievement|why do you|why are you|motivat|"
     r"biografie|cover letter|anschreiben|riddle|explain|your thoughts|"
     r"most proud|challenging|proudest|open question|achievements|"
-    r"links/screenshots|most relevant work|type your response|your experience with",
+    r"links/screenshots|most relevant work|type your response|your experience with|"
+    r"would you feel|looking at your|what are you|have you been in contact|"
+    r"we count on|final grades|average grade|what solutions",
     re.IGNORECASE,
 )
 
@@ -216,15 +218,29 @@ def score(resolved: list[dict[str, Any]]) -> dict[str, Any]:
     for row in forced:
         per_job[str(row["job_id"])] += 1
     jobs = {str(r["job_id"]) for r in resolved}
-    open_ended = [r for r in forced if OPEN_ENDED.search(str(r["label"] or ""))]
+    # Prefer the planner's own verdict to a regex over the label. `missing_profile` on a
+    # `tailored_response` means the question was understood and has no supported answer —
+    # which is exactly what the regex was trying to detect, only stated by the code that
+    # knows. The regex stays as a fallback for what the ontology has not learned yet.
+    open_ended = [r for r in forced
+                  if (r["status"] == "missing_profile"
+                      and r["semantic"] == "tailored_response")
+                  or OPEN_ENDED.search(str(r["label"] or ""))]
     refused = [r for r in forced if r["status"] == "credential_refused"]
-    fixable = [r for r in forced if r not in open_ended and r not in refused]
+    # A rating matrix and an essay are the same kind of residue: understood, unanswerable
+    # from a profile. Counting them as ontology gaps would make the gap look larger than it
+    # is and would never close, since no pattern can answer "Python *".
+    judged = [r for r in forced
+              if r["status"] == "needs_judgement" and r not in open_ended]
+    fixable = [r for r in forced
+               if r not in open_ended and r not in refused and r not in judged]
     return {
         "fields": len(resolved),
         "required": len(required),
         "forced_decisions": len(forced),
         "forced_open_ended": len(open_ended),
         "forced_credential": len(refused),
+        "forced_judgement": len(judged),
         "forced_fixable": len(fixable),
         "coverage": round(1 - len(forced) / len(required), 4) if required else 0.0,
         "applications": len(jobs),
@@ -252,6 +268,8 @@ def render(now: dict[str, Any], was: dict[str, Any] | None) -> list[str]:
         f"  {now['forced_fixable']:,} the ontology could answer{delta('forced_fixable')}",
         (f"  {now['forced_open_ended']:,} genuinely open-ended — a model must answer these"
          f"{delta('forced_open_ended')}"),
+        (f"  {now.get('forced_judgement', 0):,} a rating or essay — judgement, not a lookup"
+         f"{delta('forced_judgement')}"),
         (f"  {now.get('forced_credential', 0):,} credential fields, refused by design"
          f"{delta('forced_credential')}"),
         "",

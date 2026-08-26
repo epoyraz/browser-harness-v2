@@ -170,23 +170,35 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
     if any(x in text for x in ("notice period", "start date", "starting date", "available from",
                                "availability", "verfugbar", "fruhest", "a partir de quand",
                                "date available", "earliest start", "kundigungsfrist",
-                               "eintrittsdatum", "eintritt", "preavis", "disponibilite")):
+                               "eintrittsdatum", "eintritt", "preavis", "disponibilite",
+                               "antreten", "start point", "as of when", "when can you",
+                               "wann kannst du", "wann konnen sie")):
         return "availability"
     if any(x in text for x in ("portfolio", "personal website", "website url", "homepage")):
         return "portfolio_url"
     if any(x in text for x in ("motivation", "why do you", "why are you", "why join",
                                "cover letter", "covering letter", "impressive thing",
-                               "anything else", "type your response")):
+                               "anything else", "type your response",
+                               # The ontology was English-first and so was this line. Half
+                               # the essay prompts in the 2026-08-26 corpus are German.
+                               "erzahl uns", "erzahle uns", "inwiefern", "weshalb",
+                               "was ist fur dich", "wie bringst du", "wie setzt du",
+                               "would you consider", "what type of", "what should be",
+                               "link/screenshots", "links/screenshots",
+                               "parlez-nous", "pourquoi")):
         return "tailored_response"
     if any(x in text for x in ("how did you hear", "how did you find", "aufmerksam geworden",
                                "contacttype", "recommendation source", "referral",
                                "where did you hear", "where did you find",
                                "catch your attention", "auf uns gestossen",
+                               "uns gefunden", "auf uns gekommen", "durch wen",
                                "ou avez-vous trouve", "ou avez-vous entendu",
                                "wie haben sie von uns", "wo haben sie")):
         return "referral_source"
     if any(x in text for x in ("privacy", "datenschutz", "data protection", "gdpr",
-                               "consent", "accepted data", "disclaimer")):
+                               "consent", "accepted data", "disclaimer",
+                               "i agree", "ich stimme", "einverstanden",
+                               "may be stored", "daten gespeichert", "j accepte")):
         return "consent"
     if any(x in text for x in ("gender", "geschlecht", "sexe", "salutation", "anrede")):
         return "gender_or_salutation"
@@ -221,11 +233,15 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "birth_date"
     if any(x in text for x in ("place of birth", "geburtsort", "lieu de naissance")):
         return "birth_place"
-    if any(x in text for x in ("nationality", "nationalitat", "nationalities", "nationalitaten")):
+    if any(x in text for x in ("nationality", "nationalitat", "nationalities",
+                               "nationalitaten", "citizenship", "staatsangehorigkeit",
+                               "nationalite")):
         return "nationality"
-    if any(x in text for x in ("work permit", "work authorization", "work authorisation",
-                               "arbeitsbewilligung", "arbeitsgenehmigung", "swiss citizen",
-                               "can you work in switzerland")):
+    if (any(x in text for x in ("work permit", "work authorization", "work authorisation",
+                                "arbeitsbewilligung", "arbeitsgenehmigung", "swiss citizen",
+                                "can you work in switzerland", "eligible to work",
+                                "permis de travail"))
+            or has_word(text, "citizen")):
         return "work_authorization"
     if (any(x in text for x in ("postal code", "postcode", "postleitzahl"))
             or has_word(text, "zip", "plz", "npa")):
@@ -241,7 +257,10 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "city"
     if any(x in text for x in ("street", "strasse", "address", "adresse postale")):
         return "street"
-    if any(x in text for x in ("current company", "current employer")) or name == "org":
+    if (any(x in text for x in ("current company", "current employer",
+                                "most recently worked", "recent employer",
+                                "aktueller arbeitgeber"))
+            or name == "org"):
         return "current_company"
     if any(x in text for x in ("current title", "current role", "job title", "headline")):
         return "current_title"
@@ -256,6 +275,9 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "english_level"
     if any(x in text for x in ("german level", "german proficiency", "deutschniveau")):
         return "german_level"
+    if any(x in text for x in ("study major", "field of study", "studienrichtung",
+                               "major & minor", "major and minor", "fachrichtung")):
+        return "education"
     if (any(x in text for x in ("highest education", "bildungsabschluss",
                                 "hochster abschluss", "bildungsniveau",
                                 "niveau d etude", "niveau d etudes"))
@@ -323,7 +345,11 @@ def option_candidates(semantic_name: str, value: Any, language: str,
         "country": ["Schweiz", "Switzerland", "Suisse"],
         "nationality": ["Schweizer/-in", "Swiss", "Schweiz", "Suisse"],
         "timezone": ["Europe/Zurich", "UTC+1", "CET"],
-        "consent": ["Ja", "Yes", "Oui"],
+        # A consent control is often its own statement: the option reads "I agree that my
+        # data may be stored beyond the current job application", not "Yes". Matching only
+        # affirmative words left every one of those reported as `no_option_match`.
+        "consent": ["Ja", "Yes", "Oui", "I agree", "Ich stimme zu", "Einverstanden",
+                    "Ich bin damit einverstanden", "J'accepte", "Accept", "Akzeptieren"],
     }
     answer = str(value)
     out = [answer, *candidates.get(semantic_name, [])]
@@ -409,6 +435,35 @@ def _matching_option(group: str, index: int, schema: dict[str, Any], semantic_na
     return None
 
 
+#: How many unclassified short required fields it takes before a form is asking you to
+#: rate a list rather than asking N unrelated questions.
+RATING_MATRIX_MIN = 5
+
+
+def rating_matrix(schema: dict[str, Any]) -> set[str]:
+    """Refs belonging to a skill self-rating block.
+
+    One Recruitee employer asked for "Python *", "R *", "SQL *", "Machine Learning *",
+    "MLOps *", "DevOps *" and nine more, each a required text field — 45 rows across three
+    postings, and the largest single block of unplanned fields in the 2026-08-26 corpus.
+    No ontology answers these: they ask what the applicant's level is, which is a judgement
+    against the CV rather than a fact in a profile. Reporting them as "unclassified"
+    alongside a mislabelled e-mail box conflates two different problems, and only one of
+    them is fixable by naming things better.
+
+    The signal is structural, not lexical, because the labels are just nouns: a run of
+    short, required, unrecognised fields is a list being rated. Recognising it lets a
+    caller ask about all of them in one question instead of one per row.
+    """
+    candidates = [f for f in (schema.get("fields") or [])
+                  if f.get("ref") and f.get("kind") in ("text", "select", "radio",
+                                                        "combobox", "textarea")
+                  and inferred_required(f)
+                  and len(norm(f.get("label"))) <= 40
+                  and semantic(f) == "unclassified"]
+    return {f["ref"] for f in candidates} if len(candidates) >= RATING_MATRIX_MIN else set()
+
+
 def plan_for(schema: dict[str, Any], language: str,
              skill_context: dict[str, Any] | None = None
              ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -419,6 +474,7 @@ def plan_for(schema: dict[str, Any], language: str,
     plan: list[dict[str, Any]] = []
     audit: list[dict[str, Any]] = []
     seen_radio_groups: set[str] = set()
+    rated = rating_matrix(schema)
     for index, field in enumerate(schema.get("fields") or []):
         sem = semantic(field)
         required = inferred_required(field)
@@ -480,7 +536,8 @@ def plan_for(schema: dict[str, Any], language: str,
             audit.append({**base, "status": "missing_profile"})
             continue
         if value is None or not field.get("ref"):
-            audit.append({**base, "status": "unclassified"})
+            audit.append({**base, "status": "needs_judgement" if field.get("ref") in rated
+                          else "unclassified"})
             continue
         step: dict[str, Any] = {"ref": field["ref"]}
         if field.get("kind") == "select":
