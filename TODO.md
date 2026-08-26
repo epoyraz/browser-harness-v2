@@ -56,6 +56,49 @@ Measured with the same AST-based counter: 5,654 → 5,560 code lines and 8,042 �
 runtime lines. The full unit suite, 45/45 live form checks, 17/17 parallel/safety checks,
 and the late-form observer benchmark preserve behavior with zero submissions.
 
+## Navigation wait experiment — 2026-08-26
+
+Navigation is 88% of an attempt's wall clock (1549s of 1759s over 100 jobs) and `goto` is
+49% of all helper span time. 69 of 99 navigations waited for the full `load` event, while
+69 of 188 readiness checks returned in under 500ms — so in a third of attempts the page was
+already usable when `goto` handed over.
+
+`_navigation_wait()` makes the workflow's wait overridable (`BH_NAV_WAIT_UNTIL`,
+`BH_NAV_USABLE_AFTER`) so the two can be measured against one corpus rather than argued
+about. The default is unchanged.
+
+Treatment (`DOMContentLoaded`, `usable_after=0.8`) against the same 100 jobs, matched on the
+79 that completed:
+
+| | control | treatment |
+|---|---:|---:|
+| navigation time | 1310s | 825s (**-37%**) |
+| attempt wall time | 1480s | 1039s (**-30%**) |
+| fields discovered | 856 | 767 (**-10.4%**) |
+| `form_processed` | 46 | 42 |
+| `workflow_failed` | 1 | 3 |
+
+So the grace is load-bearing: a third less time for a tenth fewer fields and four fewer
+forms. Not a free win, and not obviously a bad trade — it depends on whether a missed form
+costs more than 30% of the run.
+
+Two caveats, both mine. The treatment moved *two* variables at once, so it cannot say
+whether the loss came from the earlier event or the shorter grace; the narrower variant
+(keep `load`, lower `usable_after`) is the one worth measuring next, since it keeps the
+network-quiet and double-probe safeguards. And the treatment run stalled at 79/100 with no
+CDP completion for four minutes and had to be killed. The journal only records completed
+round trips, so the silence means every worker was in flight, not idle. The cause is not
+established, it did not reproduce in the control, and n=1 — but "we interact with pages
+earlier" is a plausible mechanism and it should be understood before the default moves.
+
+Not blocking images, fonts or media, though it is the usual tactic. Three properties of
+this harness make it a bad trade here: `form_schema` decides which controls are real from
+layout (`width<=2 && height<=2`, `offsetParent === null`), `nearText` labels are geometric
+and produced 91 labels in this run, and a document fetched without its images is a known
+automation signature on exactly the bot-walled sites `frames()` exists for. The p90 tail is
+stalled XHR and beacons, not image bytes. A third-party analytics denylist via
+`Network.setBlockedURLs` carries none of those risks and remains untested.
+
 ## Harness benchmark telemetry follow-up — 2026-08-23
 
 Evidence came from the first v2-only harness benchmark: 38 attempted cells produced 25

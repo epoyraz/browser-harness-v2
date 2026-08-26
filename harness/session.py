@@ -40,6 +40,27 @@ from harness.skills import Registry as SkillRegistry
 _DRIVABLE = ("http://", "https://", "file://", "about:blank", "data:")
 
 
+def _navigation_wait() -> dict[str, Any]:
+    """How the application workflow decides a navigation is done.
+
+    `load` is the default because it is the honest answer to "has this page finished".
+    But the workflow does not need that answer: `wait_for_application_state` follows every
+    navigation, it is event-driven, and it decides the question the caller actually has —
+    whether there is a form. Measured on the 2026-08-26 corpus, 69 of 188 readiness checks
+    returned in under 500ms, meaning the page was already usable when `goto` handed over,
+    and 69 of 99 navigations had waited for `load` to get there.
+
+    Overridable rather than changed outright, so the two can be run against the same corpus
+    and compared instead of argued about.
+    """
+    until = os.environ.get("BH_NAV_WAIT_UNTIL", "").strip() or "load"
+    raw = os.environ.get("BH_NAV_USABLE_AFTER", "").strip()
+    wait: dict[str, Any] = {"wait_until": until}
+    if raw:
+        wait["usable_after"] = None if raw.lower() == "none" else float(raw)
+    return wait
+
+
 def _enabled(value: str | None, *, default: bool = True) -> bool:
     if value is None:
         return default
@@ -461,15 +482,15 @@ class Session:
                 elif (not delta.get("navigated") and not delta.get("dom_mutations")
                       and ((link and link != current_url) or candidate)):
                     destination = str(link or candidate)
-                    navigation = origin.goto(destination, timeout=timeout)
+                    navigation = origin.goto(destination, timeout=timeout, **_navigation_wait())
                     transition = {"kind": ("fallback_link" if link else "candidate_link"),
                                   "delta": delta,
                                   "navigation": navigation}
             elif link and link != current_url:
-                navigation = origin.goto(str(link), timeout=timeout)
+                navigation = origin.goto(str(link), timeout=timeout, **_navigation_wait())
                 transition = {"kind": "link", "navigation": navigation}
             elif candidate:
-                navigation = origin.goto(candidate, timeout=timeout)
+                navigation = origin.goto(candidate, timeout=timeout, **_navigation_wait())
                 transition = {"kind": "candidate_link", "navigation": navigation}
 
             state = selected.wait_for_application_state(timeout=timeout)
@@ -498,7 +519,7 @@ class Session:
         seen: set[tuple[Any, ...]] = set()
         route_candidates = list(candidates or forms.application_route_candidates(url))
         with self.journal.bind(stage="navigate"):
-            navigation = self.tab().goto(url, timeout=timeout)
+            navigation = self.tab().goto(url, timeout=timeout, **_navigation_wait())
         pending_state: dict[str, Any] | None = None
         prepared: dict[str, Any] = {}
         terminal = "budget_exhausted"
