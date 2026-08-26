@@ -1,0 +1,42 @@
+<!doctype html>
+<!-- Reconstruction of the adesso application form (live run 2026-08-25). No <label>
+     element exists anywhere on the page and the control names are opaque
+     (`vordef_bew_feld_109`); the question is carried by a disabled first option. Five of
+     these forms contributed 25 required selects reading `label: null`, which no planner
+     and no model can answer. `placeholder_first` was already detected — the text was
+     simply not kept.
+
+     The last select is the control case: "Bitte wählen" names nothing, so promoting it
+     would swap a missing label for a meaningless one. -->
+<meta charset="utf-8">
+<title>Bewerbung</title>
+<h1>Jetzt bewerben</h1>
+<form>
+  <select name="bewerbung_form[gender]">
+    <option value="" disabled selected>Anrede*</option>
+    <option>Herr</option>
+    <option>Frau</option>
+  </select>
+
+  <select name="bewerbung_form[vordef_bew_feld_109]">
+    <option value="" disabled selected>Wie sind Sie auf uns aufmerksam geworden</option>
+    <option>adesso.ch</option>
+    <option>Google</option>
+    <option>LinkedIn</option>
+  </select>
+
+  <select name="bewerbung_form[titel]">
+    <option value="" disabled selected>Anredetitel</option>
+    <option>Dr.</option>
+    <option>Prof.</option>
+  </select>
+
+  <select name="bewerbung_form[noise]">
+    <option value="" disabled selected>Bitte wählen</option>
+    <option>Ja</option>
+    <option>Nein</option>
+  </select>
+
+  <input name="first" placeholder="Vorname">
+  <button type="submit">Bewerbung senden</button>
+</form>

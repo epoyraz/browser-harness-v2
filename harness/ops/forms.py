@@ -135,11 +135,18 @@ _SCHEMA_JS = """(() => {
     if (!r.width && !r.height && !hiddenControl) continue;
     if (bh.furniture(el) || type === 'search') continue;
     const ref = bh.ref(el);
-    const label = labelFor(el) || nearText(el);
+    // Kept apart because they are not equally good evidence. `labelFor` reads markup the
+    // author wrote to name this control; `nearText` measures which text happens to sit
+    // near it, which on a sparse form is the page heading. Ranking them lets a select's
+    // own placeholder option — written by the author, about this control — outrank the
+    // geometric guess while still yielding to a real label.
+    const direct = labelFor(el);
+    const label = direct || nearText(el);
     const kind = el.getAttribute('role') === 'combobox' && tag !== 'select' ? 'combobox'
       : el.isContentEditable && tag !== 'input' && tag !== 'textarea' ? 'richtext'
       : tag === 'select' ? 'select' : tag === 'textarea' ? 'textarea' : (type || 'text');
     const f = {ref, kind, label,
+               label_source: direct ? 'markup' : label ? 'proximity' : null,
                name: el.name || el.id || null,
                required: !!(el.required || el.getAttribute('aria-required') === 'true'
                             || (label && /\\*\\s*$/.test(label)))};
@@ -150,9 +157,29 @@ _SCHEMA_JS = """(() => {
       f.options_count = opts.length;
       f.options_sample = opts.slice(0, 8).map(o => o.text.trim().slice(0, 40));
       const first = opts[0];
+      const firstText = first ? first.text.trim() : '';
+      //: Contentless prompts. "Bitte wählen" names no field, so promoting it to a label
+      //: would replace "no label" with a label that means nothing — worse, because it
+      //: looks answered.
+      const generic = /^(bitte|please|select|choose|choisir|--|\\.\\.\\.|w\\u00e4hlen|auswahl|s\\u00e9lectionner)/i;
       f.placeholder_first = !!first && (first.value === '' || first.disabled
-        || /^(bitte|please|select|choose|choisir|--|\\.\\.\\.|w\\u00e4hlen)/i
-           .test(first.text.trim()));
+        || generic.test(firstText));
+      // A select whose first option holds the question is a real pattern, not an edge
+      // case: five adesso forms in the 2026-08-25 corpus put "Anrede*", "Land*",
+      // "adesso Schweiz Wunschstandort*" and "Wie sind Sie auf uns aufmerksam geworden"
+      // there, with no `label` element anywhere and opaque names like
+      // `bewerbung_form[vordef_bew_feld_109]`. The schema already recognised the shape and
+      // reported `placeholder_first`, then dropped the only text that said what the
+      // control was for — leaving 25 required selects reading `label: null`, which is
+      // exactly as unanswerable for a model as it is for a planner.
+      if (!direct && f.placeholder_first && firstText.length >= 3
+          && !generic.test(firstText) && /[a-z\\u00c0-\\u024f]/i.test(firstText)) {
+        f.label = firstText.slice(0, 120);
+        f.label_source = 'placeholder_option';
+        // Same asterisk convention the label chain uses; adesso marks "Anrede*" this way
+        // and nothing else on the control says it is required.
+        f.required = f.required || /\\*\\s*$/.test(f.label);
+      }
     }
     if (kind === 'combobox') f.needs_interaction = true;   // invisible to v1 entirely
     if (hiddenControl) {

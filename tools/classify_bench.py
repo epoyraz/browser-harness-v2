@@ -56,22 +56,59 @@ def load_classifier() -> Any:
     return module
 
 
+GENERIC_OPTION = re.compile(
+    r"^(bitte|please|select|choose|choisir|--|\.\.\.|wählen|auswahl|sélectionner)",
+    re.IGNORECASE)
+
+
+def promoted_label(field: dict[str, Any]) -> str | None:
+    """The label `_SCHEMA_JS` now derives from a select's placeholder option.
+
+    Mirrored here so a change already verified against real Chrome can be scored against
+    the captured corpus instead of waiting for a fresh 100-job run. It is a projection,
+    not a measurement, and the run says how many rows it touched — the next live capture
+    replaces it with the real thing.
+    """
+    options = field.get("options_sample") or []
+    if not field.get("placeholder_first") or not options:
+        return None
+    first = str(options[0] or "").strip()
+    if len(first) < 3 or GENERIC_OPTION.match(first) or not re.search(r"[^\W\d_]", first):
+        return None
+    return first[:120]
+
+
 def golden_rows(paths: list[Path]) -> list[dict[str, Any]]:
-    """Every audited field from every run, tagged with the application it came from."""
+    """Every audited field from every run, tagged with the application it came from.
+
+    Audit rows carry what the planner saw; the schema alongside them carries the options,
+    which is where an unlabelled select keeps its question. Joining the two by ref is what
+    lets `promoted_label` be scored at all.
+    """
     rows: list[dict[str, Any]] = []
     for path in paths:
         document = json.loads(path.read_text(encoding="utf-8"))
         for record in document.get("records") or []:
             value = record.get("value") or {}
+            fields = {f.get("ref"): f
+                      for f in ((value.get("schema") or {}).get("fields") or [])}
             for audit in value.get("field_audit") or []:
+                label = audit.get("label")
+                projected = None
+                if not str(label or "").strip():
+                    projected = promoted_label(fields.get(audit.get("ref")) or {})
                 rows.append({
                     "job_id": value.get("job_id"),
                     "ats": value.get("ats"),
                     "language": value.get("language") or "en",
-                    "label": audit.get("label"),
+                    "label": projected or label,
+                    "label_projected": projected is not None,
                     "name": audit.get("name"),
                     "kind": audit.get("kind"),
-                    "required": bool(audit.get("required")),
+                    # A promoted "Anrede*" carries the asterisk the control never had, so
+                    # the requirement comes with the label, exactly as in the schema.
+                    "required": bool(audit.get("required")) or bool(
+                        projected and projected.rstrip().endswith("*")),
                     "recorded_semantic": audit.get("semantic"),
                     "recorded_status": audit.get("status"),
                 })
@@ -152,6 +189,7 @@ def score(resolved: list[dict[str, Any]]) -> dict[str, Any]:
         "coverage": round(1 - len(forced) / len(required), 4) if required else 0.0,
         "applications": len(jobs),
         "forced_per_application": round(len(forced) / len(jobs), 2) if jobs else 0.0,
+        "label_projected": sum(1 for r in resolved if r.get("label_projected")),
         "status_counts": Counter(r["status"] for r in resolved).most_common(),
         "forced_by_language": Counter(str(r["language"]) for r in forced).most_common(),
         "forced_by_kind": Counter(str(r["kind"]) for r in forced).most_common(),
@@ -168,6 +206,7 @@ def render(now: dict[str, Any], was: dict[str, Any] | None) -> list[str]:
 
     out = [
         f"{now['fields']:,} fields over {now['applications']} applications with a form",
+        f"{now.get('label_projected', 0):,} labels projected from a placeholder option",
         (f"{now['required']:,} required · {now['forced_decisions']:,} forced decisions"
          f"{delta('forced_decisions')}"),
         f"  {now['forced_fixable']:,} the ontology could answer{delta('forced_fixable')}",

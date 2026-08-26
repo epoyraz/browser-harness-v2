@@ -150,7 +150,12 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
     name = norm(field.get("name"))
     kind = field.get("kind") or ""
 
-    if any(x in text for x in ("linkedin", "linked in")):
+    if (has_word(text, "linkedin") or "linked in" in text) and (
+            has_word(name, "linkedin") or len(label) <= 30
+            # `has_word`, because "link" is a substring of "linkedin": testing it with
+            # `in` makes every mention of LinkedIn its own evidence that a LinkedIn URL
+            # was requested, which is the circularity this whole check exists to break.
+            or has_word(text, "url", "link", "profil", "profile")):
         return "linkedin_url"
     if any(x in text for x in ("github", "gitlab")):
         return "github_url"
@@ -172,6 +177,7 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
     if any(x in text for x in ("how did you hear", "how did you find", "aufmerksam geworden",
                                "contacttype", "recommendation source", "referral",
                                "where did you hear", "where did you find",
+                               "catch your attention", "auf uns gestossen",
                                "ou avez-vous trouve", "ou avez-vous entendu",
                                "wie haben sie von uns", "wo haben sie")):
         return "referral_source"
@@ -196,9 +202,13 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "email"
     if any(x in text for x in ("first name", "firstname", "vorname", "prenom")):
         return "first_name"
-    if any(x in text for x in ("last name", "lastname", "surname", "nachname", "nom requis")):
+    if (any(x in text for x in ("last name", "lastname", "surname", "nachname",
+                                "nom de famille", "nom requis"))
+            or has_word(label, "nom")):
         return "last_name"
-    if any(x in text for x in ("full name", "prenom et nom", "applicant name")):
+    if (any(x in text for x in ("full name", "prenom et nom", "applicant name",
+                                "vollstandiger name", "vor- und nachname"))
+            or (has_word(label, "name", "nom") and has_word(name, "name"))):
         return "full_name"
     if kind == "tel" or any(x in text for x in ("phone", "telefon", "telephone", "mobilephone")):
         return "phone"
@@ -231,8 +241,10 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "current_company"
     if any(x in text for x in ("current title", "current role", "job title", "headline")):
         return "current_title"
-    if any(x in text for x in ("years of experience", "jahre berufserfahrung",
-                               "professional experience", "softwareentwicklung hast")):
+    if (any(x in text for x in ("years of experience", "jahre berufserfahrung",
+                                "professional experience", "softwareentwicklung hast",
+                                "annees d experience"))
+            or has_word(text, "berufserfahrung")):
         return "experience_years"
     if any(x in text for x in ("english level", "english proficiency", "englischniveau",
                                "english fluency", "level of english", "englischkenntnisse",
