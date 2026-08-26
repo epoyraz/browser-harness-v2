@@ -127,6 +127,22 @@ def golden_rows(paths: list[Path]) -> list[dict[str, Any]]:
     return rows
 
 
+def as_recorded(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Score the verdicts a run actually reached, without re-deciding them.
+
+    Replaying is right for a deterministic planner and wrong for a model: the synthetic
+    schema a replay builds is not byte-identical to the live one, so every form would be a
+    fresh call — paying again to re-derive an answer the run already recorded, and possibly
+    getting a different one. What a run did is in its audit; this reads it.
+    """
+    resolved = [{**row,
+                 "semantic": row["recorded_semantic"] or "unclassified",
+                 "status": row["recorded_status"] or "deduplicated",
+                 "planned": row["recorded_status"] == "planned"}
+                for row in rows]
+    return {"rows": resolved, "regressed": [], "reinterpreted": []}
+
+
 def replay(rows: list[dict[str, Any]], classifier: Any) -> dict[str, Any]:
     """Re-plan every golden application through the real planner, not a re-implementation.
 
@@ -290,6 +306,8 @@ def main() -> int:
     ap.add_argument("--out", type=Path,
                     default=ROOT / "outputs" / "classify" / "run.json")
     ap.add_argument("--baseline", type=Path, default=None)
+    ap.add_argument("--as-recorded", action="store_true",
+                    help="score the run's own verdicts instead of re-deciding them")
     ap.add_argument("--classifier", type=Path, default=None,
                     help="score with another build of the planner (see load_classifier)")
     ap.add_argument("--show-forced", type=int, default=0,
@@ -300,7 +318,8 @@ def main() -> int:
     if not rows:
         print("no field_audit rows in the golden set", file=sys.stderr)
         return 1
-    played = replay(rows, load_classifier(args.classifier))
+    played = (as_recorded(rows) if args.as_recorded
+              else replay(rows, load_classifier(args.classifier)))
     for row in played["regressed"]:
         print(f"REGRESSION: {str(row['label'])[:50]!r} was planned as "
               f"{row['recorded_semantic']}, now {row['semantic']}/{row['status']}",

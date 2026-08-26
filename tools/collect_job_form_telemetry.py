@@ -55,6 +55,11 @@ UPLOAD_CV = os.environ.get("BH_APPLICATION_UPLOADS", "").strip().lower() in {
     "1", "true", "yes",
 }
 
+#: Which planner fills `run_application`'s callback. The rule table is the default because
+#: a benchmark wants reproducibility; `BH_PLANNER=model` swaps in the Codex-backed one so
+#: the same corpus can be run with a model actually in the loop.
+PLANNER_KIND = os.environ.get("BH_PLANNER", "rules").strip().lower()
+
 PROFILE = {
     "first_name": "Enes",
     "last_name": "Poyraz",
@@ -200,7 +205,22 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
                                "i agree", "ich stimme", "einverstanden",
                                "may be stored", "daten gespeichert", "j accepte")):
         return "consent"
-    if any(x in text for x in ("gender", "geschlecht", "sexe", "salutation", "anrede")):
+    # An academic title is not a salutation, and "anrede" is a substring of "anredetitel"
+    # — so a select offering Dr./Prof. was answered "Herr". What the control *offers*
+    # decides it, before any reading of what it is called: one field on this corpus is
+    # named `title` and offers Frau/Herr, and another is labelled "Anrede*" by the
+    # proximity fallback while its name says `titel-button`. Names and labels disagree
+    # here; options do not.
+    offered = {norm(option) for option in (field.get("options_sample") or [])}
+    if offered & {"herr", "frau", "mr", "mrs", "ms", "monsieur", "madame", "divers"}:
+        return "gender_or_salutation"
+    if (offered & {"dr.", "dr", "prof.", "prof", "dr. med.", "prof. dr."}
+            or any(x in text for x in ("anredetitel", "akademischer titel",
+                                       "academic title"))
+            or has_word(name, "titel")):
+        return "academic_title"
+    if (any(x in text for x in ("geschlecht", "salutation"))
+            or has_word(text, "gender", "sexe", "anrede")):
         return "gender_or_salutation"
     if any(x in text for x in ("race", "ethnicity", "veteran", "disability", "demographic")):
         return "demographic"
@@ -554,6 +574,42 @@ def plan_for(schema: dict[str, Any], language: str,
         source = item.source if item is not None else str(CV)
         audit.append({**base, "status": "planned", "value_source": source})
     return plan, audit
+
+
+_MODEL_PLANNER = None
+
+
+def active_planner():
+    """`plan_for`, or the model-backed planner when one is asked for.
+
+    Imported lazily and by path: the model planner imports this module in turn, and a
+    benchmark that does not use it should not pay for its import or require the CLI to
+    exist.
+    """
+    global _MODEL_PLANNER
+    if PLANNER_KIND != "model":
+        return plan_for
+    if _MODEL_PLANNER is None:
+        import importlib.util
+        # This module is read two ways: imported normally by the scorers, and `exec`d by
+        # `bh`, which supplies no `__file__`. The first run with a model planner failed
+        # 100/100 on that alone.
+        here = (Path(globals()["__file__"]).resolve().parent
+                if "__file__" in globals() else ROOT / "tools")
+        spec = importlib.util.spec_from_file_location(
+            "bh_model_planner", here / "model_planner.py")
+        _MODEL_PLANNER = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(_MODEL_PLANNER)
+    return _MODEL_PLANNER.plan_for
+
+
+def planner_stats() -> dict[str, Any]:
+    if PLANNER_KIND != "model" or _MODEL_PLANNER is None:
+        return {"scripted": True, "model_calls": 0, "input_tokens": 0, "output_tokens": 0}
+    stats = _MODEL_PLANNER.stats()
+    return {"scripted": False, "model": _MODEL_PLANNER.MODEL,
+            "reasoning_effort": _MODEL_PLANNER.EFFORT,
+            "values_sent_to_model": False, "answer_keys_sent": True, **stats}
 
 
 def cv_inputs(file_inputs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -1005,7 +1061,8 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     try:
         application = session.run_application(
             start_url, timeout=25, transition_timeout=15, hop_budget=6,
-            candidates=application_route_candidates(start_url), planner=plan_for)
+            candidates=application_route_candidates(start_url),
+            planner=active_planner())
     except Exception as error:
         error_class = getattr(getattr(error, "cls", None), "value", type(error).__name__)
         result["status"] = ("navigation_failed" if error_class == "navigation_failed"
@@ -1134,8 +1191,9 @@ def main() -> None:
             "timeout_seconds": RUN_TIMEOUT,
             "profile_sources": sorted({item.source for item in APPLICANT.values.values()}),
             "model_boundary": {
-                "scripted": True, "model_calls": 0, "input_tokens": 0,
-                "output_tokens": 0, "decision_packet_fields": sorted(APPLICANT.values),
+                **planner_stats(),
+                "planner": PLANNER_KIND,
+                "decision_packet_fields": sorted(APPLICANT.values),
                 "application_skills": os.environ.get("BH_APPLICATION_SKILLS", "1"),
                 "skill_context_delivered_to_planner": True,
                 "skill_context_interpreted": False,
