@@ -23,6 +23,8 @@ import json
 import os
 import re
 import statistics
+import subprocess
+import sys
 import threading
 import time
 import unicodedata
@@ -468,7 +470,7 @@ class ChromeMemorySampler:
 
     def _memory(self, pid: int) -> tuple[int, int] | None:
         if self.kernel32 is None or self.psapi is None:
-            return None
+            return self._posix_memory(pid)
         handle = self.kernel32.OpenProcess(0x1010, False, pid)
         if not handle:
             return None
@@ -481,6 +483,26 @@ class ChromeMemorySampler:
             return int(counters.WorkingSetSize), int(counters.PrivateUsage)
         finally:
             self.kernel32.CloseHandle(handle)
+
+    def _posix_memory(self, pid: int) -> tuple[int, int] | None:
+        """Resident and virtual size from `ps`, so the sampler reports real numbers here.
+
+        Every run on this machine measured 34 Chrome processes and exactly zero bytes,
+        because the only implementation was the Windows one — and `summary()` still called
+        that `available: true`, so the report read as "Chrome used 0 bytes" rather than
+        "not measured". `ps` has no per-process private-bytes equivalent, so RSS stands in
+        for both columns and the summary says which platform produced the numbers.
+        """
+        try:
+            out = subprocess.run(["/bin/ps", "-o", "rss=", "-p", str(pid)],
+                                 capture_output=True, text=True, timeout=5, check=False)
+        except (OSError, subprocess.SubprocessError):
+            return None
+        value = out.stdout.strip()
+        if not value.isdigit():
+            return None
+        resident = int(value) * 1024                          # ps reports kilobytes
+        return resident, resident
 
     def _capture(self) -> dict[str, Any]:
         activity = self.activity.snapshot()
@@ -579,9 +601,16 @@ class ChromeMemorySampler:
             })
 
     def summary(self, records: list[dict[str, Any]]) -> dict[str, Any]:
-        valid = [sample for sample in self.samples if "working_set_bytes" in sample]
+        # "Structurally valid" was the old test, and it passed on a run that measured
+        # nothing: every sample carried `working_set_bytes: 0` and the report announced
+        # `available: true`. A sample that measured no process is evidence of a missing
+        # implementation, not of a browser using no memory.
+        valid = [sample for sample in self.samples
+                 if sample.get("measured_processes")]
         if not valid or self.baseline is None:
-            return {"available": False, "samples": len(self.samples)}
+            return {"available": False, "samples": len(self.samples),
+                    "reason": "no Chrome process could be measured on this platform",
+                    "platform": sys.platform}
         expected_workers = min(WORKERS, WORKER_LIMIT)
         steady = [sample for sample in valid
                   if sample.get("active_attempts") == expected_workers
@@ -603,9 +632,15 @@ class ChromeMemorySampler:
                 heaps.append(float(metrics["JSHeapUsedSize"]))
         return {
             "available": True,
+            "platform": sys.platform,
             "method": (
                 "CDP SystemInfo process IDs plus Windows working set/private bytes; "
                 "per-tab OS RAM is the Chrome delta divided by new page targets."
+                if os.name == "nt" else
+                "CDP SystemInfo process IDs plus `ps` resident set size; per-tab OS RAM "
+                "is the Chrome delta divided by new page targets. RSS stands in for both "
+                "the working-set and private columns — `ps` exposes no private-bytes "
+                "equivalent, so the two are equal here by construction, not by measurement."
             ),
             "caveat": (
                 "Incremental per-tab RAM is an average, not exact attribution: Chrome can "

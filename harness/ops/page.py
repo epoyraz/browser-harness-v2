@@ -869,6 +869,12 @@ WATCH_JS = """((sel, state, token) => {
 #: is the cookie-banner false positive rebuilt one layer down.
 WATCH_FORM_JS = """((minFields, token) => {
   const bh = window.__bh;
+  // `_watch_document` re-evaluates this on every wakeup. Without this the previous
+  // iteration's observer was overwritten in the map but never disconnected, so a page
+  // that woke the wait five times was left running five MutationObservers, four of them
+  // unreachable — and a `matched` return skipped the arming code that stores the fifth.
+  bh.watch = bh.watch || {};
+  if (bh.watch[token]) { bh.watch[token].disconnect(); delete bh.watch[token]; }
   const count = () => {
     let n = 0;
     for (const el of document.querySelectorAll('input,select,textarea,[contenteditable=true]')) {
@@ -884,7 +890,6 @@ WATCH_FORM_JS = """((minFields, token) => {
   };
   const now = count();
   if (now >= minFields) return {matched: true, immediate: true, fields: now};
-  bh.watch = bh.watch || {};
   const obs = new MutationObserver(() => {
     if (count() < minFields) return;
     obs.disconnect();
@@ -1023,6 +1028,12 @@ FRAME_HOST_QUERY = "iframe,frame,object,embed"
 
 WATCH_APPLICATION_STATE_JS = """((token) => {
   const bh = window.__bh;
+  // Before the read, not after: `_watch_document` re-evaluates this on every wakeup, and
+  // a run that reports `matched` returns below without reaching the arming code. Clearing
+  // here means a match leaves nothing behind whichever branch it takes, so the caller
+  // never owes the page a teardown round trip.
+  bh.watch = bh.watch || {};
+  if (bh.watch[token]) { bh.watch[token].disconnect(); delete bh.watch[token]; }
   let fields = 0;
   for (const el of document.querySelectorAll(
        'input,select,textarea,[contenteditable=true],[role=combobox]')) {
@@ -1070,8 +1081,6 @@ WATCH_APPLICATION_STATE_JS = """((token) => {
                   matched: ['form', 'account_wall', 'bot_wall'].includes(state)};
   if (result.matched) return {...result, immediate: true};
 
-  bh.watch = bh.watch || {};
-  if (bh.watch[token]) bh.watch[token].disconnect();
   const obs = new MutationObserver(() => {
     obs.disconnect();
     delete bh.watch[token];
@@ -1208,6 +1217,9 @@ class Tab:
         #: this survives both a document replacement and a session recovery, and
         #: `Page.getFrameTree` is only ever paid before the first navigation is seen.
         self._main_frame: str | None = None
+        #: Empty `DOM.performSearch` handles awaiting a batched release — see
+        #: `_discard_search`.
+        self._pending_searches: list[str] = []
         #: Timing-only adaptive navigation history. It is intentionally attached to this
         #: Tab/CDP session, contains no origin or content, and is discarded on reattach.
         self._navigation_history_lock = threading.Lock()
@@ -2747,6 +2759,14 @@ class Tab:
             )
 
         probe: dict[str, Any] = {}
+        # Whether an observer this loop armed is still running in the page. Only that case
+        # needs `_unwatch`, and it is the minority: every watch script disconnects and
+        # forgets its own observer before it reports a match or notifies, so the teardown
+        # round trip that used to run unconditionally in `finally` was usually a
+        # `Runtime.evaluate` spent asking the page to delete something already gone.
+        # Measured on the 2026-08-25 corpus: 174 of `wait_for_application_state`'s 516
+        # evaluations were exactly this, one per call.
+        armed = False
         try:
             with self._armed(lambda message: message.get("method") == "Runtime.bindingCalled"
                              or message.get("method") in replaced) as waiter:
@@ -2755,17 +2775,24 @@ class Tab:
                         expression, timeout=min(max(left, 0.1), 5.0)) or {}
                     if probe.get("matched"):
                         return probe, "terminal"
+                    armed = True           # the probe armed an observer and left it running
                     quiet = stable_for(probe) if stable_for is not None else left
                     hit = waiter.wait_match(interesting, min(quiet, left))
                     if hit is None:
                         return probe, "stable" if stable_for is not None and quiet <= left \
                             else "timeout"
                     consumed.add(id(hit))
+                    # Both wakeups end the observer without our help: a binding means its
+                    # callback ran, which disconnects and deletes it, and a cleared context
+                    # or a navigated frame took the whole document — and with it the world
+                    # `_unwatch` would otherwise have to rebuild in order to say so.
+                    armed = False
                     if binding_finishes and hit.get("method") == "Runtime.bindingCalled":
                         return probe, "binding"
             return probe, "timeout"
         finally:
-            self._unwatch(token)
+            if armed:
+                self._unwatch(token)
 
     def _unwatch(self, token: str) -> None:
         """Drop an abandoned observer. A MutationObserver left armed on a busy page runs
@@ -2777,6 +2804,33 @@ class Tab:
                 f" delete w[{json.dumps(token)}];}} return true;}})()", timeout=5.0)
         except HarnessError:
             pass
+
+    #: How many empty search handles may go undiscarded before the tab pays one round trip
+    #: to release them. Each one is a map entry holding no nodes, so the pressure is a
+    #: bookkeeping entry rather than retained DOM; the cap keeps even a script that loops
+    #: on one long-lived tab bounded.
+    _SEARCH_FLUSH_AT = 32
+
+    def _discard_search(self, search_id: str, *, empty: bool) -> None:
+        """Release a `DOM.performSearch` handle, deferring the empty ones.
+
+        A search that matched nothing retains nothing, so discarding it immediately buys
+        no memory back — it only spends a blocking round trip, and `frames()` runs this on
+        every frameless page. Measured on the 2026-08-25 corpus: 84 of 129 searches
+        returned zero, at ~50ms each. Non-empty handles do hold node references and are
+        still released at once.
+        """
+        if empty:
+            self._pending_searches.append(search_id)
+            if len(self._pending_searches) < self._SEARCH_FLUSH_AT:
+                return
+        for pending in ([search_id] if not empty else list(self._pending_searches)):
+            try:
+                self.cdp("DOM.discardSearchResults", {"searchId": pending}, timeout=5.0)
+            except HarnessError:
+                pass                       # cleanup failure cannot suppress discovery
+        if empty:
+            self._pending_searches.clear()
 
     def frames(self) -> list[dict[str, Any]]:
         """Cross-origin iframes as attachable targets.
@@ -2812,7 +2866,8 @@ class Tab:
         # off/on re-announcement dance is skipped: one idempotent enable arms future
         # children and a short event window covers late SPA insertion. A truly frameless
         # page never pays the disable call or the longer multi-frame settle loop.
-        # The search handle is always discarded. When the probe fails or answers with
+        # A handle that matched something is discarded at once; an empty one retains
+        # nothing and is released in batches (`_discard_search`). When the probe fails or answers with
         # anything but a trustworthy non-negative integer, the dance runs anyway:
         # a frame report that says "none" must be earned, not assumed. Failing closed
         # here silently dropped OOPIFs on exactly the bot-walled pages this method
@@ -2846,11 +2901,7 @@ class Tab:
                 count = None                   # unknown → pay the dance, fail open
             finally:
                 if search_id is not None:
-                    try:
-                        self.cdp("DOM.discardSearchResults", {"searchId": search_id},
-                                 timeout=5.0)
-                    except HarnessError:
-                        pass                   # cleanup failure cannot suppress discovery
+                    self._discard_search(search_id, empty=count == 0)
 
             if count == 0:
                 # Zero is evidence that no host existed at probe time, not that an SPA
@@ -2903,8 +2954,15 @@ class Tab:
         out = got
         # Same-site iframes stay in the parent process and never become targets, so
         # getTargets alone reads as "no iframes" on a page that plainly has one.
+        #
+        # A trustworthy zero from the search above already answered this question, and it
+        # answered it with more reach: `FRAME_HOST_QUERY` includes `iframe` and the search
+        # pierces closed shadow roots, which `document.querySelectorAll` does not. So a
+        # zero cannot be followed by a same-site iframe, and evaluating this would spend a
+        # round trip to be told so. Every other case — a non-zero count, or a probe that
+        # could not be trusted — still asks the document.
         try:
-            same = self._world_js(
+            same = [] if count == 0 else self._world_js(
                 "[...document.querySelectorAll('iframe')].map(f => ({src: f.src || '',"
                 " same: (() => {try { return !!f.contentDocument; } catch (e) "
                 "{ return false; }})()}))", timeout=10.0) or []

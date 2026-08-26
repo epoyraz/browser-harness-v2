@@ -537,7 +537,36 @@ def test_frames_zero_probe_uses_one_way_observation_not_the_reannouncement_dance
     assert searches[0]["params"] == {
         "query": "iframe,frame,object,embed", "includeUserAgentShadowDOM": True,
     }
-    assert sum(c.get("method") == "DOM.discardSearchResults" for c in browser.calls) == 1
+    # A search that matched nothing retains nothing, so its handle is released in a batch
+    # rather than costing a blocking round trip on every frameless page.
+    assert sum(c.get("method") == "DOM.discardSearchResults" for c in browser.calls) == 0
+
+
+def test_a_frameless_page_does_not_ask_the_document_about_same_site_iframes(wired):
+    """`FRAME_HOST_QUERY` includes `iframe` and the search pierces closed shadow roots,
+    which `querySelectorAll` does not — so a trustworthy zero has already answered the
+    same-site question with more reach than the follow-up evaluation could."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    tab._ensure_world()
+    browser.frame_host_count = 0
+    mark = len(browser.calls)
+    assert tab.frames() == []
+    assert [c.get("method") for c in browser.calls[mark:]] == [
+        "DOM.performSearch", "Target.setAutoAttach"]
+
+
+def test_empty_search_handles_are_released_once_the_batch_fills(wired):
+    """Deferred is not leaked: the handles pile up to a cap and then cost one round trip
+    for all of them, so a script looping on one long-lived tab stays bounded."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.frame_host_count = 0
+    for _ in range(Tab._SEARCH_FLUSH_AT):
+        tab.frames()
+    discards = [c for c in browser.calls if c.get("method") == "DOM.discardSearchResults"]
+    assert len(discards) == Tab._SEARCH_FLUSH_AT      # one flush, every handle released
+    assert not tab._pending_searches
 
 
 def test_frames_catches_an_oopif_inserted_shortly_after_a_zero_probe(wired):
@@ -1040,6 +1069,46 @@ def test_application_state_does_not_treat_title_plus_empty_body_as_terminal(wire
 def test_application_state_rejects_invalid_stability_windows(wired):
     with pytest.raises(ValueError):
         _tab(wired).wait_for_application_state(empty_stable=0)
+
+
+def test_a_terminal_application_state_owes_the_page_no_teardown(wired):
+    """The watch script disconnects and forgets its observer before reporting a match, so
+    the teardown evaluation that used to run unconditionally asked the page to delete
+    something that was already gone. Measured on the 2026-08-25 corpus: one wasted
+    `Runtime.evaluate` per call, 174 of `wait_for_application_state`'s 516."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    tab._ensure_world()                        # pay the world once, outside the measurement
+    browser.eval_hook = lambda e: (
+        {"matched": True, "immediate": True, "state": "form", "fields": 8,
+         "controls": 11, "text_len": 844, "title": "Job",
+         "url": "https://jobs.test/apply", "ready_state": "complete"}
+        if "hasSubmit" in e else None)
+
+    mark = len(browser.calls)
+    assert tab.wait_for_application_state(timeout=2.0)["state"] == "form"
+    assert [c.get("method") for c in browser.calls[mark:]] == ["Runtime.evaluate"]
+
+
+def test_an_abandoned_observer_is_still_torn_down(wired):
+    """The other half: a wait that gives up left an observer running, and a MutationObserver
+    on a busy page runs its callback for the life of the document. That one must still cost
+    a round trip."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    tab._ensure_world()
+    browser.eval_hook = lambda e: (
+        {"matched": False, "immediate": False, "state": "loading", "fields": 0,
+         "controls": 0, "text_len": 0, "title": "Job", "url": "https://a.test/",
+         "ready_state": "complete"}
+        if "hasSubmit" in e else None)
+
+    mark = len(browser.calls)
+    result = tab.wait_for_application_state(
+        timeout=0.5, usable_stable=0.05, empty_stable=0.05)
+    assert result["state"] == "stable_failure"
+    evaluated = [c for c in browser.calls[mark:] if c.get("method") == "Runtime.evaluate"]
+    assert "__bh.watch" in json.dumps(evaluated[-1]["params"])
 
 
 # --- items 17 + 20: snapshot, refs, deltas ------------------------------------

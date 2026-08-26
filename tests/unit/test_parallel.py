@@ -29,6 +29,7 @@ class FakeSession:
         self.open_tabs: set[str] = set()
         self.target_infos: dict[str, dict] = {}
         self.peak_tabs = 0
+        self.target_queries = 0
 
     def new_tab(self, url="about:blank", *, context_id=None):
         with self._lock:
@@ -67,6 +68,7 @@ class FakeSession:
 
     def targets(self):
         with self._lock:
+            self.target_queries += 1
             return [dict(info) for info in self.target_infos.values()]
 
     def new_context(self):
@@ -124,6 +126,13 @@ class EventFakeSession(FakeSession):
             self.peak_tabs = max(self.peak_tabs, len(self.open_tabs))
         self.conn.emit({"method": "Target.targetCreated", "params": {"targetInfo": info}})
         return tid
+
+    def destroy_popup(self, target_id):
+        with self._lock:
+            self.open_tabs.discard(target_id)
+            self.target_infos.pop(target_id, None)
+        self.conn.emit({"method": "Target.targetDestroyed",
+                        "params": {"targetId": target_id}})
 
 
 def test_results_come_back_in_input_order_not_completion_order():
@@ -286,6 +295,45 @@ def test_foreign_target_event_neither_extends_nor_enters_popup_cleanup(monkeypat
     assert foreign[0] not in s.closed
     assert foreign[0] in s.open_tabs
     assert out[0]["telemetry"]["cleanup_descendants"] == 0
+
+
+def test_a_settled_opener_tree_is_not_re_snapshotted(monkeypatch):
+    """Ownership follows the opener chain, and both events that can change it — a target
+    joining the tree, an owned target disappearing — are watched across the whole quiet
+    window. With neither, the second `Target.getTargets` can only return what the seed
+    already holds. Measured on the 2026-08-25 corpus: 100 items announced 2 descendants
+    between them, so 98 of them paid that round trip to be told nothing had changed."""
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_QUIET", 0.02)
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_MAX_WAIT", 0.1)
+    s = EventFakeSession()
+    out = parallel(s, range(3), lambda i: i, workers=1)
+    assert all(r["telemetry"]["cleanup_descendants"] == 0 for r in out)
+    assert s.target_queries == 3                     # one per item, not two
+
+
+def test_a_popup_that_closes_itself_forces_a_fresh_snapshot(monkeypatch):
+    """The shortcut must not survive a target going away: closing a tab Chrome has already
+    destroyed is a cleanup failure, which fails the whole item."""
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_QUIET", 0.04)
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_MAX_WAIT", 0.3)
+    s = EventFakeSession()
+    timers = []
+
+    def fn(item):
+        if item == 0:
+            popup = s.open_popup_from(s.current)
+            timer = threading.Timer(0.01, lambda: s.destroy_popup(popup))
+            timers.append(timer)
+            timer.start()
+        return s.current
+
+    out = parallel(s, range(1), fn, workers=1)
+    for timer in timers:
+        timer.join(timeout=1)
+
+    assert out[0]["ok"] is True and "cleanup_failures" not in out[0]
+    assert out[0]["telemetry"]["cleanup_descendants"] == 0   # gone before cleanup ran
+    assert s.target_queries == 2                             # the seed, then the re-read
 
 
 def test_reuse_tabs_false_gives_each_item_a_clean_tab():
