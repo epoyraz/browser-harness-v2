@@ -47,10 +47,16 @@ OPEN_ENDED = re.compile(
 )
 
 
-def load_classifier() -> Any:
-    """The corpus planner, imported as a module rather than duplicated here."""
+def load_classifier(path: Path | None = None) -> Any:
+    """The corpus planner, imported as a module rather than duplicated here.
+
+    `path` points at another build of it — `git show <rev>:tools/...` — which is the only
+    way to attribute a change to the code rather than to the corpus. Two runs over
+    different job sets cannot be subtracted from each other.
+    """
     spec = importlib.util.spec_from_file_location(
-        "collect_job_form_telemetry", ROOT / "tools" / "collect_job_form_telemetry.py")
+        "collect_job_form_telemetry",
+        path or ROOT / "tools" / "collect_job_form_telemetry.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -79,35 +85,39 @@ def promoted_label(field: dict[str, Any]) -> str | None:
 
 
 def golden_rows(paths: list[Path]) -> list[dict[str, Any]]:
-    """Every audited field from every run, tagged with the application it came from.
+    """Every field the planner saw, with the verdict it reached, per application.
 
-    Audit rows carry what the planner saw; the schema alongside them carries the options,
-    which is where an unlabelled select keeps its question. Joining the two by ref is what
-    lets `promoted_label` be scored at all.
+    The rows come from the *schema*, not from `field_audit`. A planner that answers a
+    radio group once emits one audit row for the whole group, so replaying from the audit
+    hands the group back missing every option except the first — and then scores the run's
+    correct choice as a failure to find one. The audit supplies the recorded verdict,
+    joined by ref.
     """
     rows: list[dict[str, Any]] = []
     for path in paths:
         document = json.loads(path.read_text(encoding="utf-8"))
         for record in document.get("records") or []:
             value = record.get("value") or {}
-            fields = {f.get("ref"): f
-                      for f in ((value.get("schema") or {}).get("fields") or [])}
-            for audit in value.get("field_audit") or []:
-                label = audit.get("label")
-                projected = None
-                if not str(label or "").strip():
-                    projected = promoted_label(fields.get(audit.get("ref")) or {})
+            verdicts = {a.get("ref"): a for a in (value.get("field_audit") or [])}
+            if not verdicts:
+                continue
+            for field in (value.get("schema") or {}).get("fields") or []:
+                audit = verdicts.get(field.get("ref")) or {}
+                label = field.get("label")
+                projected = None if str(label or "").strip() else promoted_label(field)
                 rows.append({
                     "job_id": value.get("job_id"),
                     "ats": value.get("ats"),
                     "language": value.get("language") or "en",
                     "label": projected or label,
                     "label_projected": projected is not None,
-                    "name": audit.get("name"),
-                    "kind": audit.get("kind"),
+                    "group_label": field.get("group_label"),
+                    "name": field.get("name"),
+                    "kind": field.get("kind"),
+                    "options_sample": field.get("options_sample"),
                     # A promoted "Anrede*" carries the asterisk the control never had, so
                     # the requirement comes with the label, exactly as in the schema.
-                    "required": bool(audit.get("required")) or bool(
+                    "required": bool(field.get("required")) or bool(
                         projected and projected.rstrip().endswith("*")),
                     "recorded_semantic": audit.get("semantic"),
                     "recorded_status": audit.get("status"),
@@ -138,7 +148,8 @@ def replay(rows: list[dict[str, Any]], classifier: Any) -> dict[str, Any]:
     for job, job_rows in by_job.items():
         schema = {"fields": [
             {"ref": f"g{i}", "label": r["label"], "name": r["name"], "kind": r["kind"],
-             "required": r["required"]}
+             "group_label": r.get("group_label"),
+             "options_sample": r.get("options_sample"), "required": r["required"]}
             for i, r in enumerate(job_rows)]}
         _plan, audit = classifier.plan_for(schema, job_rows[0]["language"])
         # `plan_for` skips duplicate unclassified radio groups, so audit is indexed by ref
@@ -155,13 +166,18 @@ def replay(rows: list[dict[str, Any]], classifier: Any) -> dict[str, Any]:
                 "semantic": (entry or {}).get(
                     "semantic",
                     classifier.semantic({"label": row["label"], "name": row["name"],
-                                         "kind": row["kind"]})),
+                                         "kind": row["kind"],
+                                         "group_label": row.get("group_label")})),
                 "status": (entry or {}).get("status", "deduplicated"),
                 "planned": bool(entry and entry["status"] == "planned"),
             })
 
+    planned_groups = {(str(r["job_id"]), str(r["name"] or r["label"]))
+                      for r in resolved if r["planned"]}
     regressed = [r for r in resolved
-                 if r["recorded_status"] == "planned" and not r["planned"]]
+                 if r["recorded_status"] == "planned" and not r["planned"]
+                 and (str(r["job_id"]), str(r["name"] or r["label"]))
+                 not in planned_groups]
     reinterpreted = [
         r for r in resolved
         if r["recorded_semantic"] not in (r["semantic"], "unclassified")
@@ -256,6 +272,8 @@ def main() -> int:
     ap.add_argument("--out", type=Path,
                     default=ROOT / "outputs" / "classify" / "run.json")
     ap.add_argument("--baseline", type=Path, default=None)
+    ap.add_argument("--classifier", type=Path, default=None,
+                    help="score with another build of the planner (see load_classifier)")
     ap.add_argument("--show-forced", type=int, default=0,
                     help="print N forced-decision labels the ontology could answer")
     args = ap.parse_args()
@@ -264,7 +282,7 @@ def main() -> int:
     if not rows:
         print("no field_audit rows in the golden set", file=sys.stderr)
         return 1
-    played = replay(rows, load_classifier())
+    played = replay(rows, load_classifier(args.classifier))
     for row in played["regressed"]:
         print(f"REGRESSION: {str(row['label'])[:50]!r} was planned as "
               f"{row['recorded_semantic']}, now {row['semantic']}/{row['status']}",

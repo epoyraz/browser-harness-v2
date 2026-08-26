@@ -175,6 +175,14 @@ _SCHEMA_JS = """(() => {
         if (first.compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING) break;
         const raw = node.textContent.replace(/\\s+/g, ' ').trim();
         if (!raw || raw.length > 160 || !LETTER.test(raw)) continue;
+        // A long run of prose immediately above a group is more often the last option's
+        // explanation than the group's question. Measured on the 2026-08-26 corpus: 40
+        // EEO checkboxes were labelled "(Not Hispanic or Latino) - All persons who
+        // identify with more than one of the above five races." A short candidate needs no
+        // such evidence — "Notice Period" and "Veteran Status" are questions — but a long
+        // one has to look like one, and every correct long label in that run did:
+        // "Are you eligible to work in Switzerland? (valid work permit, EU citizen ...)".
+        if (raw.length > 80 && !/\\?/.test(raw) && !/[*\\u2731]\\s*$/.test(raw)) continue;
         const parent = node.parentElement;
         if (!parent || parent.closest('script,style,option')) continue;
         if (peers.some(p => {

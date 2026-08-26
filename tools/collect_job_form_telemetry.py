@@ -459,8 +459,14 @@ def plan_for(schema: dict[str, Any], language: str,
                 chosen = _matching_option(group, index, schema, sem, value, language, item)
                 if chosen is not None:
                     plan.append({"ref": chosen["ref"]})
-                    audit.append({**base, "ref": chosen["ref"], "status": "planned",
+                    # `base` describes the member being iterated, which is whichever
+                    # option came first; the write goes to the one that matches. Carrying
+                    # the first member's label next to the chosen member's ref produced an
+                    # audit row saying "Frau" about a write to "Herr".
+                    audit.append({**base, "ref": chosen["ref"],
+                                  "label": chosen.get("label"), "status": "planned",
                                   "value_source": item.source if item else str(CV),
+                                  "group_question": field.get("group_label"),
                                   "group_choice": chosen.get("label")})
                     continue
                 audit.append({**base, "status": "no_option_match"})
