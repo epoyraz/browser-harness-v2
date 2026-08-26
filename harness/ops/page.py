@@ -92,6 +92,15 @@ NAVIGATION_HISTORY_MAX = 8
 #: heading.  XHR/fetch/event-stream requests additionally block while they are in flight.
 NAVIGATION_QUIET = 0.15
 NAVIGATION_STABLE = 0.15
+#: How long to wait before asking a quiet, not-yet-usable document again, and the ceiling
+#: that backoff climbs to. A document that is still empty at the grace mark is not
+#: evidence that it will stay empty — but the only thing that used to trigger a second
+#: look was new network activity, so a page rendering from script it had already fetched
+#: got exactly one chance. Measured on the 2026-08-26 corpus: lowering the grace from 3.0s
+#: to 0.8s turned four such pages into `no 'load' lifecycle event` timeouts, because the
+#: single probe moved earlier rather than repeating.
+NAVIGATION_REPROBE = 0.15
+NAVIGATION_REPROBE_MAX = 2.0
 NAVIGATION_DATA_TYPES = frozenset({"XHR", "Fetch", "EventSource"})
 NAVIGATION_EVENTS = frozenset({
     "Page.lifecycleEvent",
@@ -1905,7 +1914,7 @@ class Tab:
             self._navigation_history.append((parsed, lifecycle, network_quiet))
 
     def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load",
-             usable_after: float | None = 3.0, digest: bool = False,
+             usable_after: float | None = 0.8, digest: bool = False,
              max_chars: int = 6_000, max_links: int = 20,
              content_only: bool = True) -> dict[str, Any]:
         """Returns `{requested, landed, lifecycle}` or raises `NavigationFailed`/`Timeout`.
@@ -1933,7 +1942,18 @@ class Tab:
 
         A numeric ``usable_after`` is an upper bound for a session-local adaptive grace.
         After two exact navigations the timing-only history may reduce it, clamped to
-        0.5–3.0 seconds. An explicit value below 0.5 seconds remains authoritative. An
+        0.5–3.0 seconds.
+
+        The bound was 3.0s and is 0.8s, measured over four 100-job runs of the same corpus.
+        Navigation is 88% of an attempt's wall clock, and two thirds of navigations were
+        waiting for `load` on a document that a third of readiness checks then found
+        already usable. Lowering it cut navigation time by 18% and 42% in two replicates —
+        a spread wide enough that the size of the win is not worth quoting, only its
+        direction — while both replicates discovered *more* fields and processed more
+        forms than the 3.0s control, and neither produced a workflow failure where the
+        control produced one. Lowering the bound alone is not safe: it is only sound
+        together with the repeating readiness probe below, without which four pages that
+        render from already-fetched script became `load` timeouts. An explicit value below 0.5 seconds remains authoritative. An
         early ``usable`` or ``settled`` result additionally requires no observed XHR,
         fetch, or event stream in flight, a 150 ms network-quiet window, and two identical
         bounded document probes 150 ms apart. A parsed SPA shell is therefore evidence to
@@ -1985,10 +2005,13 @@ class Tab:
             settled_seen = False
             first_probe: tuple[float, tuple[Any, ...], int] | None = None
             last_probe_epoch: int | None = None
+            reprobe_at: float | None = None
+            reprobe_wait = NAVIGATION_REPROBE
 
             def consume(item: tuple[float, dict[str, Any]]) -> None:
                 nonlocal exact, network_quiet_at, last_network_activity
                 nonlocal activity_epoch, settled_seen, first_probe, critical_peak
+                nonlocal reprobe_at, reprobe_wait
                 timestamp, message = item
                 method = message.get("method")
                 params = message.get("params") or {}
@@ -2010,6 +2033,8 @@ class Tab:
                         last_network_activity = timestamp
                         activity_epoch += 1
                         first_probe = None
+                        reprobe_at = None
+                        reprobe_wait = NAVIGATION_REPROBE
                     if (fallback_enabled
                             and {"DOMContentLoaded", "networkAlmostIdle"} <= seen):
                         settled_seen = True
@@ -2041,6 +2066,8 @@ class Tab:
                 last_network_activity = timestamp
                 activity_epoch += 1
                 first_probe = None
+                reprobe_at = None
+                reprobe_wait = NAVIGATION_REPROBE
 
             def take_event(wait: float) -> bool:
                 nonlocal cursor
@@ -2071,6 +2098,10 @@ class Tab:
                     (first_probe is not None
                      and now - first_probe[0] >= NAVIGATION_STABLE)
                     or (first_probe is None and last_probe_epoch != activity_epoch)
+                    # Ask again on a timer as well as on new traffic, so a document that
+                    # renders from script it already holds is not judged once and dropped.
+                    or (first_probe is None and reprobe_at is not None
+                        and now >= reprobe_at)
                 )
                 if due_probe:
                     epoch_before = activity_epoch
@@ -2096,6 +2127,8 @@ class Tab:
                         first_probe = (probe_time, signature, activity_epoch)
                     else:
                         first_probe = None
+                        reprobe_at = probe_time + reprobe_wait
+                        reprobe_wait = min(NAVIGATION_REPROBE_MAX, reprobe_wait * 2)
                     continue
 
                 wake_at = deadline
@@ -2111,6 +2144,8 @@ class Tab:
                                           first_probe[0] + NAVIGATION_STABLE)
                         elif last_probe_epoch != activity_epoch:
                             wake_at = now
+                        elif reprobe_at is not None:
+                            wake_at = min(wake_at, reprobe_at)
                 take_event(max(0.0, wake_at - time.perf_counter()))
 
             # Drain events already ordered ahead of the final readiness evaluation. Exact

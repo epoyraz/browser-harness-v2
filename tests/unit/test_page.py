@@ -233,6 +233,32 @@ def test_goto_returns_when_a_page_is_usable_before_its_timeout(wired):
     assert time.monotonic() - started < 0.5
 
 
+def test_a_document_empty_at_the_grace_mark_is_asked_again(wired):
+    """The readiness probe used to re-fire only when network activity changed, so a page
+    that renders from script it has already fetched got exactly one chance — at
+    `usable_after`. Measured live: lowering the grace from 3.0s to 0.8s turned four such
+    pages into `no 'load' lifecycle event` timeouts, because the single probe moved earlier
+    rather than repeating. An empty document at the grace mark is not evidence that it will
+    stay empty."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.lifecycle_names = []
+    ready_at = time.monotonic() + 0.35            # renders later, with no further requests
+
+    def hook(expression):
+        if "readyState" in expression:
+            return (["interactive", 4, 900] if time.monotonic() >= ready_at
+                    else ["loading", 0, 0])
+        return "https://a.test/" if "location" in expression else None
+
+    browser.eval_hook = hook
+    started = time.monotonic()
+    r = tab.goto("https://a.test/", timeout=3.0, usable_after=0.05)
+    waited = time.monotonic() - started
+    assert r["lifecycle"] == "usable"             # rescued, not timed out
+    assert 0.3 <= waited < 2.0, waited            # after it rendered, well before the cap
+
+
 def test_goto_can_require_the_exact_lifecycle_until_deadline(wired):
     browser, _, _ = wired
     tab = _tab(wired)

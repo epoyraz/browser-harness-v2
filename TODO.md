@@ -56,7 +56,53 @@ Measured with the same AST-based counter: 5,654 → 5,560 code lines and 8,042 �
 runtime lines. The full unit suite, 45/45 live form checks, 17/17 parallel/safety checks,
 and the late-form observer benchmark preserve behavior with zero submissions.
 
-## Navigation wait experiment — 2026-08-26
+## Navigation wait — 2026-08-26
+
+Navigation is 88% of an attempt's wall clock (1549s of 1759s over 100 jobs) and `goto` is
+49% of all helper span time. Two thirds of navigations waited for `load`, while a third of
+readiness checks then returned in under 500ms — the page had been usable when `goto` handed
+over. `_navigation_wait()` makes the workflow's wait overridable (`BH_NAV_WAIT_UNTIL`,
+`BH_NAV_USABLE_AFTER`) so variants can be measured against one corpus.
+
+Four 100-job runs of the same corpus:
+
+| | A `load`/3.0s | C 0.8s | D 0.8s + reprobe | D2 replicate |
+|---|---:|---:|---:|---:|
+| navigation | 1549s | -30.5% | -41.5% | -18.4% |
+| wall | 1759s | -21.9% | -41.8% | -17.2% |
+| fields | 1037 | 1010 | 1043 | 1068 |
+| `form_processed` | 55 | 55 | 56 | 58 |
+| `workflow_failed` | 1 | 4 | 0 | 0 |
+
+**The size of the speed win is not quotable** — two identical configurations produced -42%
+and -18%. Only its direction is. Quality is consistently equal or better: both replicates
+found more fields and processed more forms than the control, and neither produced a
+workflow failure where the control produced one. So `usable_after` now defaults to 0.8s.
+
+Lowering it alone is not safe, which C shows: four pages became `no 'load' lifecycle event`
+timeouts. The readiness probe re-fired only when network activity changed, so a document
+rendering from script it already held got exactly one look — and lowering the grace moved
+that look earlier, into the window where it was still empty. It now also retries on a timer
+(150ms doubling to a 2s cap). A document empty at the grace mark is not evidence it will
+stay empty. Pinned by a unit test that fails without the fix.
+
+Rejected: blocking images, fonts or media, though it is the usual tactic. `form_schema`
+decides which controls are real from layout (`width<=2 && height<=2`,
+`offsetParent === null`), `nearText` labels are geometric and produced 91 labels in this
+run, and a document fetched without its images is a known automation signature on exactly
+the bot-walled sites `frames()` exists for. The p90 tail is stalled XHR and beacons, not
+image bytes. A third-party analytics denylist via `Network.setBlockedURLs` carries none of
+those risks and remains untested.
+
+**Correction to the first version of this section.** It reported that a treatment run
+"stalled at 79/100" and offered "we interact with pages earlier" as a mechanism. That was
+wrong, and the error was mine: the run was a background child of a tool call that hit its
+own two-minute timeout, which killed the process group before `parallel()`'s cleanup could
+release its tabs. Both runs that appeared to stall died immediately after such a timeout
+and wrote no final output; every run monitored without one completed all 100. No navigation
+setting was shown to wedge anything.
+
+## Superseded — first draft of the above — 2026-08-26
 
 Navigation is 88% of an attempt's wall clock (1549s of 1759s over 100 jobs) and `goto` is
 49% of all helper span time. 69 of 99 navigations waited for the full `load` event, while
@@ -85,11 +131,16 @@ costs more than 30% of the run.
 Two caveats, both mine. The treatment moved *two* variables at once, so it cannot say
 whether the loss came from the earlier event or the shorter grace; the narrower variant
 (keep `load`, lower `usable_after`) is the one worth measuring next, since it keeps the
-network-quiet and double-probe safeguards. And the treatment run stalled at 79/100 with no
-CDP completion for four minutes and had to be killed. The journal only records completed
-round trips, so the silence means every worker was in flight, not idle. The cause is not
-established, it did not reproduce in the control, and n=1 — but "we interact with pages
-earlier" is a plausible mechanism and it should be understood before the default moves.
+network-quiet and double-probe safeguards.
+
+**Correction.** This section first reported that the treatment run "stalled at 79/100"
+and offered "we interact with pages earlier" as a plausible mechanism. That was wrong, and
+the error was mine rather than the harness's: the run was a background child of a tool
+call that hit its own two-minute timeout, which killed the process group. Both runs that
+appeared to stall died immediately after such a timeout and wrote no final output; the run
+whose monitoring never timed out completed all 100. Later runs are started detached. There
+is no evidence that any navigation setting wedges the browser, and the earlier caveat
+should not be used to argue against one.
 
 Not blocking images, fonts or media, though it is the usual tactic. Three properties of
 this harness make it a bad trade here: `form_schema` decides which controls are real from
