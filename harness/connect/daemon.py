@@ -27,7 +27,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Self
 
 from harness.connect.cdp import MAX_FRAME, Connection
-from harness.connect.endpoint import BrowserIdentity
+from harness.connect.endpoint import BrowserIdentity, safe_endpoint
 from harness.connect.session import SessionRegistry
 from harness.core import ipc
 from harness.core.journal import Journal
@@ -875,7 +875,12 @@ def serve(name: str = "default", *, journal_path: str | None = None) -> int:
         if journal_path
         else Journal(None)
     )
-    journal.write("daemon", event="serving", ws=resolution.ws_url,
+    # Topology, not the URL. A journal is written to be read later and shared — `bh stats`
+    # and `bh trace` exist for exactly that — and `telemetry.py` states the contract this
+    # line was breaking: URLs are never selected into it in the first place. The ws path is
+    # a capability, so "which browser did it find" has to be answered without handing over
+    # the means to drive it.
+    journal.write("daemon", event="serving", ws=safe_endpoint(resolution.ws_url),
                   strategy=resolution.strategy)
     # A factory, not a live transport: constructing WebSocketTransport performs the
     # handshake, and doing that before Daemon.start() meant the port file appeared only

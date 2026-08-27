@@ -412,3 +412,56 @@ def test_a_corrupt_binding_file_does_not_crash_loading(runtime):
     from harness.core import ipc
     (ipc.runtime_dir() / "bad.binding").write_text("{not json")
     assert Binding.load("bad") is None
+
+
+# --- what a shared journal is allowed to say about an endpoint -----------------
+
+#: Each case pairs a URL with the substrings that must not survive into a log line.
+CREDENTIALED_ENDPOINTS = [
+    ("ws://127.0.0.1:9222/devtools/browser/2f222744-30bb-4cc3-9fd4-ba264d552e73",
+     ["2f222744", "devtools"]),
+    ("wss://cloud.example.com/session/SECRET-TOKEN?key=abc123",
+     ["SECRET-TOKEN", "abc123", "session"]),
+    ("ws://[::1]:9222/devtools/browser/deadbeef", ["deadbeef", "devtools"]),
+]
+
+
+@pytest.mark.parametrize(("url", "secrets"), CREDENTIALED_ENDPOINTS)
+def test_an_endpoint_label_carries_no_means_of_reaching_it(url, secrets):
+    """A CDP websocket URL is a bearer capability, not an address: the browser GUID drives
+    the browser for anyone who can reach the port, and a remote endpoint can carry a
+    provider token in the path or query. `bh --doctor` printed one of these into a
+    transcript before this existed."""
+    label = endpoint.safe_endpoint(url)
+    for secret in secrets:
+        assert secret not in label, f"{secret!r} survived into {label!r}"
+    assert "?" not in label and label.count("/") == 2      # scheme separator only
+
+
+@pytest.mark.parametrize(("url", "expected"), [
+    ("ws://127.0.0.1:9222/devtools/browser/x", "ws://127.0.0.1:9222"),
+    ("wss://cloud.example.com/session/tok", "wss://cloud.example.com"),
+    ("ws://[::1]:9222/devtools/browser/x", "ws://[::1]:9222"),
+    ("ws://host-no-port/devtools/browser/x", "ws://host-no-port"),
+])
+def test_the_label_still_says_which_browser_was_found(url, expected):
+    """Redaction that also destroys the diagnosis is not a fix — scheme, host and port are
+    what answers "which browser did it resolve"."""
+    assert endpoint.safe_endpoint(url) == expected
+
+
+@pytest.mark.parametrize("url", ["", "not a url", "ws://h:99999999/x", "///"])
+def test_an_unparseable_endpoint_redacts_rather_than_leaks(url):
+    """Including a port that raises on access — failing open would print the raw URL."""
+    assert endpoint.safe_endpoint(url) == "<redacted-endpoint>"
+
+
+def test_the_daemon_journals_the_label_and_not_the_url():
+    """The contract `telemetry.py` states is that URLs are never selected into the journal
+    in the first place. This is the one line that was breaking it."""
+    import inspect
+
+    from harness.connect import daemon
+    source = inspect.getsource(daemon.serve)
+    assert "ws=safe_endpoint(" in source
+    assert "ws=resolution.ws_url" not in source

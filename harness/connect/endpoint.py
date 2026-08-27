@@ -63,6 +63,32 @@ class Attempt:
         return d
 
 
+def safe_endpoint(url: str) -> str:
+    """An endpoint's topology, with nothing that grants access to it.
+
+    A CDP websocket URL is a bearer capability, not an address: the browser GUID in
+    `ws://127.0.0.1:9222/devtools/browser/<guid>` drives the browser for anyone who can
+    reach the port, and a `BU_CDP_WS` pointed at a remote endpoint can carry a provider
+    token in the path or query outright. Scheme, host and port are what a reader needs to
+    diagnose "which browser did it find"; the rest is the credential.
+
+    Ported from browser-harness v1 (`_safe_connection_label`, v0.1.10), where the same URL
+    was going into a plaintext daemon log.
+    """
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return "<redacted-endpoint>"
+    if not parsed.scheme or not parsed.hostname:
+        return "<redacted-endpoint>"
+    host = f"[{parsed.hostname}]" if ":" in parsed.hostname else parsed.hostname
+    try:
+        port = f":{parsed.port}" if parsed.port else ""
+    except ValueError:
+        return "<redacted-endpoint>"          # a port that will not parse is not topology
+    return f"{parsed.scheme}://{host}{port}"
+
+
 @dataclass(slots=True)
 class Resolution:
     ws_url: str
