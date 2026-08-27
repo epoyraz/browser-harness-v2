@@ -99,6 +99,10 @@ NAVIGATION_STABLE = 0.15
 #: got exactly one chance. Measured on the 2026-08-26 corpus: lowering the grace from 3.0s
 #: to 0.8s turned four such pages into `no 'load' lifecycle event` timeouts, because the
 #: single probe moved earlier rather than repeating.
+#: The usable-document grace `goto` and every wrapper start from. One constant, because
+#: `open_page` carried its own copy and kept the old 3.0s after the default moved — so the
+#: measured improvement did not reach the helper the skill actually recommends.
+NAVIGATION_GRACE_DEFAULT = 0.8
 NAVIGATION_REPROBE = 0.15
 NAVIGATION_REPROBE_MAX = 2.0
 NAVIGATION_DATA_TYPES = frozenset({"XHR", "Fetch", "EventSource"})
@@ -444,6 +448,10 @@ _ACTION_CONSEQUENCE_JS = r"""((marker, refs) => {
     states[ref] = el ? (__CONTROL_STATE__)(el) : null;
   }
   return {mutation_count: Math.max(0, Number(bh.mutations || 0) - before),
+    // The count this action started from. Reading a token consumes it, so a caller that
+    // acts again afterwards — `fill_form` escalating a refused write — has no way to
+    // re-measure from the same origin unless it is handed back the number.
+    since: before,
     changed_regions: regions, regions_truncated: truncated, modal,
     history_truncated: before < Number(bh.changeFloor || 0),
     related_regions: related, states};
@@ -1924,7 +1932,8 @@ class Tab:
             self._navigation_history.append((parsed, lifecycle, network_quiet))
 
     def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load",
-             usable_after: float | None = 0.8, digest: bool = False,
+             usable_after: float | None = NAVIGATION_GRACE_DEFAULT,
+             digest: bool = False,
              max_chars: int = 6_000, max_links: int = 20,
              content_only: bool = True) -> dict[str, Any]:
         """Returns `{requested, landed, lifecycle}` or raises `NavigationFailed`/`Timeout`.
@@ -2219,7 +2228,8 @@ class Tab:
         return result
 
     def open_page(self, url: str, *, timeout: float = 20.0,
-                  wait_until: str = "load", usable_after: float | None = 3.0,
+                  wait_until: str = "load",
+                  usable_after: float | None = NAVIGATION_GRACE_DEFAULT,
                   max_chars: int = 6_000, max_links: int = 20,
                   content_only: bool = True) -> dict[str, Any]:
         """Navigate and return a bounded research-ready page digest in one helper call."""

@@ -120,9 +120,12 @@ RECOVERY: dict[Class, str] = {
     Class.NO_OPTION_MATCH: (
         "the control does not offer that label — read its options from form_schema() and "
         "choose one of them"),
+    # Deliberately context-neutral: `fill_form(escalate=False)` and an explicit
+    # `set_value(mode=...)` reach this class without any retry having happened, so a
+    # recovery asserting one would be false exactly where a caller most needs it true.
     Class.VALUE_REJECTED: (
-        "the control refused or rewrote the value; fill_form already retried the other "
-        "write modes, so try a different value rather than a different mode"),
+        "the control refused or rewrote the value — try another write mode "
+        "(insert, type) or a different value"),
     Class.ELEMENT_GONE: (
         "the ref no longer resolves — re-read with snapshot() or form_schema() and use "
         "the new ref"),

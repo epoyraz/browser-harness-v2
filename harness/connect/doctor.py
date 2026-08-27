@@ -13,6 +13,7 @@ only one that should ever trigger it.
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Mapping
 from typing import Any
 from urllib import request as urlrequest
@@ -63,17 +64,28 @@ def diagnose(name: str = "default", env: Mapping[str, str] | None = None) -> Out
     return ok(None, **observed)
 
 
-def _redacted(candidate: Any) -> Any:
-    """An endpoint reduced to topology; anything that is not one passes through.
+#: Any absolute ws/http URL, wherever it appears — including inside prose. `chrome://`
+#: and bare paths are deliberately not matched: they name no credential and they are the
+#: diagnosis.
+_ENDPOINT_IN_TEXT = re.compile(r"(?:wss?|https?)://[^\s\"'<>,)]+")
 
-    Declined attempts carry a variable name (`BU_CDP_WS`) or a profile path rather than a
-    URL, and those ARE the diagnosis — redacting them would leave the report saying nothing.
-    So only a parseable scheme-and-host string is reduced.
+
+def _scrub(value: Any) -> Any:
+    """Reduce every endpoint in a payload to topology, at any depth.
+
+    Redacting named fields one at a time loses this race: the pinned-endpoint failure puts
+    the URL in `detail` as prose AND in `observed.pinned`, an HTTP probe puts it somewhere
+    else again, and the next field added puts it somewhere nobody updated. What must hold
+    is a property of the whole document — it is offered as safe to attach to an issue — so
+    it is enforced over the whole document.
     """
-    if not isinstance(candidate, str):
-        return candidate
-    reduced = safe_endpoint(candidate)
-    return candidate if reduced == "<redacted-endpoint>" else reduced
+    if isinstance(value, str):
+        return _ENDPOINT_IN_TEXT.sub(lambda m: safe_endpoint(m.group(0)), value)
+    if isinstance(value, dict):
+        return {key: _scrub(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_scrub(item) for item in value]
+    return value
 
 
 def to_json(outcome: Outcome) -> dict[str, Any]:
@@ -84,21 +96,7 @@ def to_json(outcome: Outcome) -> dict[str, Any]:
     bug reports and pasted into issues, which is the same exposure the journal has — and
     the ws path is a capability, not an address.
     """
-    payload = outcome.to_json()
-    observed = payload.get("observed")
-    if isinstance(observed, dict):
-        observed = dict(observed)
-        if "ws_url" in observed:
-            observed["ws_url"] = _redacted(observed["ws_url"])
-        attempts = observed.get("attempts")
-        if isinstance(attempts, list):
-            observed["attempts"] = [
-                {**a, "candidate": _redacted(a.get("candidate"))}
-                if isinstance(a, dict) else a
-                for a in attempts
-            ]
-        payload["observed"] = observed
-    return payload
+    return _scrub(outcome.to_json())
 
 
 def render(outcome: Outcome) -> list[str]:

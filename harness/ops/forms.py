@@ -686,6 +686,13 @@ _FILL_JS = """((plan) => {
                      want: hit.text.trim(), requested: requested.map(String),
                      got: el.selectedOptions[0] ? el.selectedOptions[0].text.trim() : el.value});
       } else if (el.type === 'checkbox' || el.type === 'radio') {
+        // An ABSENT value is ambiguous; `false` is a legitimate "uncheck this". Coercing
+        // the first into the second unchecked the option a planner had just chosen and
+        // then reported success, because `el.checked === !!undefined` is true.
+        if (step.value === undefined) {
+          report.push({ref: step.ref, ok: false, error: 'no_value_for_toggle'});
+          continue;
+        }
         el.checked = !!step.value;
         fire(el, ['input', 'change', 'blur']);
         report.push({ref: step.ref, ok: el.checked === !!step.value,
@@ -760,7 +767,8 @@ _COMBO_OPTIONS_JS = """((ref) => {
 
 
 _STEP_CLASS = {"element_gone": Class.ELEMENT_GONE, "no_option_match": Class.NO_OPTION_MATCH,
-               "needs_interaction": Class.NEEDS_INTERACTION}
+               "needs_interaction": Class.NEEDS_INTERACTION,
+               "no_value_for_toggle": Class.VALUE_REJECTED}
 
 MODES = ("value", "insert", "type")
 
@@ -1074,7 +1082,20 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         # Inside a span of its own, so the extra round trips are billed to the escalation
         # rather than appearing as unattributed traffic in the trace.
         with tab.journal.call("fill_form.escalate", n=len(plan)):
-            _escalate_rejected(tab, plan, merged, timeout)
+            climbed = _escalate_rejected(tab, plan, merged, timeout)
+        if climbed:
+            # The evidence gathered before the retry describes the page the retry changed:
+            # a field the escalation filled would arrive attached to a validation snapshot
+            # showing it empty. Re-measure from the same origin — the first capture hands
+            # back the mutation count it started from, because reading the token consumed
+            # it — so the consequence still covers the whole action rather than only its
+            # last step.
+            since = (inline_consequence or {}).get("since") if isinstance(
+                inline_consequence, dict) else None
+            if since is not None:
+                inline_consequence = tab._world_js(
+                    tab._action_consequence_source(int(since), refs=refs),
+                    timeout=timeout) or {}
 
     consequence = (tab._shape_action_consequence(inline_consequence)
                    if inline_consequence is not None else tab._action_consequence(

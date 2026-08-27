@@ -4,6 +4,7 @@ import time
 
 import pytest
 
+import harness.ops.parallel as parallel_mod
 from harness.core.journal import Journal
 from harness.core.outcome import ElementGone
 from harness.ops.parallel import parallel, summarise
@@ -491,3 +492,54 @@ def test_every_item_is_accounted_for(workers):
     s = FakeSession()
     out = parallel(s, range(25), lambda i: i, workers=workers)
     assert sorted(r["item"] for r in out) == list(range(25))
+
+
+def test_a_target_destroyed_while_seeding_forces_a_fresh_snapshot(monkeypatch):
+    """Ownership is unknown until the seed lands, so an event arriving during it cannot be
+    matched against `owned` — a destroyed descendant looks irrelevant and the stale
+    snapshot is returned, which then tries to close a tab Chrome already took."""
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_QUIET", 0.02)
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_MAX_WAIT", 0.1)
+    s = EventFakeSession()
+    root = s.new_tab().target_id
+    popup = s.open_popup_from(root)
+
+    real_targets = s.targets
+    fired = []
+
+    def targets_then_destroy():
+        infos = real_targets()
+        if not fired:                      # exactly once, while the seed is in flight
+            fired.append(True)
+            s.destroy_popup(popup)
+        return infos
+
+    s.targets = targets_then_destroy
+    descendants, _ = parallel_mod._owned_tab_descendants_after_quiet(s, root)
+    assert popup not in descendants        # it is gone; cleanup must not try to close it
+    assert s.target_queries >= 2           # the seed, then the authoritative re-read
+
+
+def test_a_grandchild_announced_while_seeding_is_not_lost(monkeypatch):
+    """Its opener is a descendant still sitting in the in-flight snapshot, so the opener
+    check cannot recognise it yet. Missing it leaks the tab into the next reused worker."""
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_QUIET", 0.02)
+    monkeypatch.setattr("harness.ops.parallel.POPUP_CLEANUP_MAX_WAIT", 0.2)
+    s = EventFakeSession()
+    root = s.new_tab().target_id
+    child = s.open_popup_from(root)
+
+    real_targets = s.targets
+    fired = []
+    grandchild = []
+
+    def targets_then_grandchild():
+        infos = real_targets()
+        if not fired:
+            fired.append(True)
+            grandchild.append(s.open_popup_from(child))
+        return infos
+
+    s.targets = targets_then_grandchild
+    descendants, _ = parallel_mod._owned_tab_descendants_after_quiet(s, root)
+    assert grandchild and grandchild[0] in descendants

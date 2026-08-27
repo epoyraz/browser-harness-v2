@@ -118,14 +118,20 @@ def _owned_tab_descendants_after_quiet(
     #: Set when the browser says something happened that the seed snapshot cannot already
     #: describe: a new target joined the opener tree, or one we own went away.
     moved = False
+    #: True until the seed snapshot has been folded into `owned`.
+    seeding = True
 
     def observe(msg: dict[str, Any]) -> None:
-        nonlocal last_owned_event, moved
+        nonlocal last_owned_event, moved, seeding
         method = msg.get("method")
         params = msg.get("params") or {}
         if method == "Target.targetDestroyed":
             with cond:
-                if str(params.get("targetId") or "") in owned:
+                # While the seed snapshot is still in flight, ownership is not yet known:
+                # a destroyed descendant would not be in `owned` and a grandchild's opener
+                # would not be either, so both would be judged irrelevant and the stale
+                # snapshot returned. Anything arriving in that window forces the re-read.
+                if seeding or str(params.get("targetId") or "") in owned:
                     moved = True       # the seed lists a tab that no longer needs closing
             return
         if method != "Target.targetCreated":
@@ -137,6 +143,8 @@ def _owned_tab_descendants_after_quiet(
             return
         with cond:
             if opener_id not in owned:
+                if seeding:
+                    moved = True       # its opener may be in the snapshot still in flight
                 return
             owned.add(target_id)
             last_owned_event = time.monotonic()
@@ -151,6 +159,7 @@ def _owned_tab_descendants_after_quiet(
         descendants, root_live = _owned_tab_descendants(session, root)
         with cond:
             owned.update(descendants)
+            seeding = False
 
         deadline = started + POPUP_CLEANUP_MAX_WAIT
         while True:

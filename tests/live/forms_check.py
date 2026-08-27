@@ -563,6 +563,13 @@ def main() -> int:
               climbed.ok and climbed.value[0]["mode"] == "insert"
               and climbed.value[0]["escalated_from"] == "value",
               f"{climbed.cls.value} via {climbed.value[0].get('mode')}")
+        # The evidence must describe the page the retry produced. Captured before the
+        # retry, it showed the field empty next to a successful outcome.
+        live_value = tab.js("document.getElementById('m').value")
+        attached = (((climbed.observed.get("consequence") or {}).get("validation") or {})
+                    .get(masked["ref"], {}).get("after", {}).get("value"))
+        check("the consequence describes the page after escalation, not before",
+              attached == live_value == "12345", f"attached={attached!r} dom={live_value!r}")
 
         conn.close()
     finally:

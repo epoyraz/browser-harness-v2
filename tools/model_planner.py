@@ -5,12 +5,22 @@ filled it with a rule table and reported `model_calls: 0`. This is the same inte
 backed by the Codex CLI, which makes the comparison the harness was built for possible:
 the same forms, the same scoring, one planner that matches patterns and one that reasons.
 
-**The applicant's values never leave this machine.** The model is shown each field and the
-*names* of the answers available — `email`, `postal_code`, `salary_expectation` — and
-returns a mapping. Substitution happens here, afterwards. The model needs to know that an
-answer for "E-Mail-Adresse erneut eingeben" exists; it does not need to know what it is.
-Option labels are the exception by necessity, since choosing one requires reading them, and
-those come from the page rather than from the applicant.
+**What this sends is field descriptions and the *names* of available answers** —
+`email`, `postal_code`, `salary_expectation` — never their values. Substitution happens
+here, afterwards. The model needs to know that an answer for "E-Mail-Adresse erneut
+eingeben" exists; it does not need to know what it is.
+
+**That is a property of the payload, not a sandbox, and the difference matters.** The child
+is a coding agent with filesystem access, launched in this repository, which holds the
+applicant profile and the answer file. `--sandbox read-only` governs the shell commands the
+model may run, not what it may read. Employer-controlled labels and options go into its
+prompt, so an injected instruction — or ordinary exploration — could read those files into
+its context, and no flag here prevents it. `--ignore-user-config` and a working directory
+holding nothing but the packet close most of that; a tool-free structured-output call
+against the API would close it properly, and is the right shape for this to take.
+
+Until then, treat the guarantee as "no values are *sent*", which is what the telemetry
+field `values_sent_to_model` claims and all it should be read to claim.
 
 One call per form, not per field: a form is one question about fifteen fields, and asking
 it fifteen times is how a decision loop gets expensive.
@@ -26,6 +36,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import threading
 from pathlib import Path
 from typing import Any
@@ -37,6 +48,9 @@ MODEL = os.environ.get("BH_PLANNER_MODEL", "gpt-5.6-luna")
 EFFORT = os.environ.get("BH_PLANNER_EFFORT", "max")
 CACHE = Path(os.environ.get("BH_PLANNER_CACHE", ROOT / "outputs" / "planner-cache"))
 TIMEOUT = float(os.environ.get("BH_PLANNER_TIMEOUT", "600"))
+#: Bumped when the planner's own interpretation of an answer changes in a way the
+#: instructions and schema do not capture.
+CACHE_VERSION = 2
 
 _spec = importlib.util.spec_from_file_location(
     "collect_job_form_telemetry", ROOT / "tools" / "collect_job_form_telemetry.py")
@@ -141,26 +155,48 @@ def _ask(payload: dict[str, Any]) -> dict[str, Any]:
     """One Codex call. Cached by the digest of exactly what was sent."""
     global _calls, _cache_hits
     blob = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-    digest = hashlib.sha256(f"{MODEL}|{EFFORT}|{blob}".encode()).hexdigest()[:32]
+    # The whole semantic contract, not just the payload: a fix to the instructions or the
+    # output schema changes what the answer means, and a digest blind to them silently
+    # serves the answer to the old question.
+    contract = hashlib.sha256(
+        (INSTRUCTIONS + json.dumps(OUTPUT_SCHEMA, sort_keys=True)).encode()
+    ).hexdigest()[:12]
+    digest = hashlib.sha256(
+        f"{CACHE_VERSION}|{MODEL}|{EFFORT}|{contract}|{blob}".encode()).hexdigest()[:32]
     CACHE.mkdir(parents=True, exist_ok=True)
     cached = CACHE / f"{digest}.json"
     if cached.is_file():
-        with _lock:
-            _cache_hits += 1
-        return json.loads(cached.read_text(encoding="utf-8"))
+        try:
+            answer = json.loads(cached.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            answer = None            # a half-written entry is a miss, not a crash
+        if isinstance(answer, dict) and "fields" in answer:
+            with _lock:
+                _cache_hits += 1
+            return answer
 
     schema_file = CACHE / f"{digest}.schema.json"
     schema_file.write_text(json.dumps(OUTPUT_SCHEMA), encoding="utf-8")
     prompt = f"{INSTRUCTIONS}\n\nINPUT:\n{blob}\n"
-    command = [
-        "codex", "exec", "--model", MODEL,
-        "-c", f"model_reasoning_effort={EFFORT}",
-        "--output-schema", str(schema_file),
-        "--sandbox", "read-only", "--skip-git-repo-check", "--ephemeral",
-        "-",
-    ]
-    result = subprocess.run(command, input=prompt, text=True, encoding="utf-8",
-                            capture_output=True, timeout=TIMEOUT, check=False)
+    # An empty working directory and no user configuration: the child is a coding agent
+    # with filesystem access, and this repository holds the applicant profile, the answer
+    # file and CV-derived material. Running it here meant an employer-controlled label in
+    # its prompt could steer it into reading them. This does not make it a sandbox — see
+    # the module docstring — but it removes the applicant data from what it can reach.
+    with tempfile.TemporaryDirectory(prefix="bh-planner-") as workdir:
+        command = [
+            "codex", "exec", "--model", MODEL,
+            "-c", f"model_reasoning_effort={EFFORT}",
+            "--output-schema", str(schema_file),
+            "--sandbox", "read-only", "--skip-git-repo-check", "--ephemeral",
+            "--ignore-user-config", "--cd", workdir,
+            "-",
+        ]
+        try:
+            result = subprocess.run(command, input=prompt, text=True, encoding="utf-8",
+                                    capture_output=True, timeout=TIMEOUT, check=False)
+        finally:
+            schema_file.unlink(missing_ok=True)
     with _lock:
         _calls += 1
     if result.returncode != 0:
@@ -168,8 +204,10 @@ def _ask(payload: dict[str, Any]) -> dict[str, Any]:
     answer = _last_json_object(result.stdout)
     if answer is None:
         raise RuntimeError(f"no JSON object in codex output: {result.stdout[-400:]}")
-    cached.write_text(json.dumps(answer, ensure_ascii=False), encoding="utf-8")
-    schema_file.unlink(missing_ok=True)
+    # Atomic: a crash mid-write must not leave a file that later reads as a hit.
+    staging = cached.with_suffix(f".{os.getpid()}.tmp")
+    staging.write_text(json.dumps(answer, ensure_ascii=False), encoding="utf-8")
+    os.replace(staging, cached)
     return answer
 
 

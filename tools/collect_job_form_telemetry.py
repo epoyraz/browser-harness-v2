@@ -534,7 +534,10 @@ def plan_for(schema: dict[str, Any], language: str,
                 value = localized(sem, language, field)
                 chosen = _matching_option(group, index, schema, sem, value, language, item)
                 if chosen is not None:
-                    plan.append({"ref": chosen["ref"]})
+                    # `value` is not optional for a radio: the batch writer does
+                    # `el.checked = !!step.value`, so omitting it unchecks the option and
+                    # then reports success, because the control is indeed unchecked.
+                    plan.append({"ref": chosen["ref"], "value": True})
                     # `base` describes the member being iterated, which is whichever
                     # option came first; the write goes to the one that matches. Carrying
                     # the first member's label next to the chosen member's ref produced an
@@ -609,7 +612,11 @@ def planner_stats() -> dict[str, Any]:
     stats = _MODEL_PLANNER.stats()
     return {"scripted": False, "model": _MODEL_PLANNER.MODEL,
             "reasoning_effort": _MODEL_PLANNER.EFFORT,
-            "values_sent_to_model": False, "answer_keys_sent": True, **stats}
+            # A claim about the payload, not about what the child could reach. It is a
+            # coding agent with filesystem access; it is now launched with no user config
+            # and an empty working directory, which is mitigation, not isolation.
+            "values_sent_to_model": False, "answer_keys_sent": True,
+            "child_isolated": False, **stats}
 
 
 def cv_inputs(file_inputs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:

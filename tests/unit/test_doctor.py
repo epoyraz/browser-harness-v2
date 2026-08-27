@@ -140,6 +140,30 @@ def _resolved(ws="ws://127.0.0.1:9222/devtools/browser/2f222744-30bb-4cc3-9fd4",
     ], **extra)
 
 
+@pytest.mark.parametrize(("env", "secrets"), [
+    ({"BU_CDP_WS": "wss://cloud.example.com/session/SECRET-TOKEN?key=abc123",
+      "BH_TRUST": "pinned"}, ["SECRET-TOKEN", "abc123"]),
+    ({"BU_CDP_URL": "https://relay.example.com/t/TOKEN123/json",
+      "BH_TRUST": "pinned"}, ["TOKEN123"]),
+])
+def test_a_failed_diagnosis_leaks_nothing_either(env, secrets):
+    """The success path was redacted field by field, and the failure path put the same URL
+    in `detail` as prose and in `observed.pinned` — neither of which was a named field.
+    The guarantee is about the whole document, so it is enforced over the whole document."""
+    blob = json.dumps(to_json(diagnose("leakprobe", env)))
+    for secret in secrets:
+        assert secret not in blob, f"{secret!r} survived into the JSON"
+    assert "example.com" in blob                  # the host is still the diagnosis
+
+
+def test_scrubbing_leaves_the_things_that_are_not_endpoints():
+    """`chrome://inspect` is guidance, a profile path is evidence, and a variable name is
+    the reason discovery declined. None of them names a credential."""
+    payload = to_json(diagnose("leakprobe", {"BH_PROFILE_DIRS": "/nonexistent-profile"}))
+    blob = json.dumps(payload)
+    assert "chrome://inspect" in blob or "BU_CDP_WS" in blob
+
+
 def test_json_reduces_the_endpoint_to_topology():
     """`render()` keeps the full URL because a terminal line is ephemeral and the URL is
     the diagnosis. JSON is piped into files and pasted into issues, which is the journal's
