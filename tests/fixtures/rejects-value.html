@@ -1,0 +1,18 @@
+<!doctype html>
+<!-- A control that accepts only real input, which is what `mode: "insert"` exists for.
+     The one-shot write sets `.value` through the native setter and dispatches a synthetic
+     `input`; this field reverts anything whose event was not trusted, exactly as a
+     keystroke-driven mask or typeahead does. Before escalation, a caller had to notice the
+     refusal and choose another mode — two model round trips for a recovery the harness
+     already knew. -->
+<meta charset="utf-8"><title>Trusted-input only</title>
+<form>
+  <label for="a">Plain</label><input id="a" name="a">
+  <label for="m">Masked</label><input id="m" name="m">
+</form>
+<script>
+  const masked = document.getElementById('m');
+  masked.addEventListener('input', (event) => {
+    if (!event.isTrusted) masked.value = '';      // programmatic writes do not stick
+  });
+</script>

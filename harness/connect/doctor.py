@@ -18,23 +18,20 @@ from typing import Any
 from urllib import request as urlrequest
 
 from harness.connect.endpoint import binding_for, resolve, safe_endpoint
-from harness.core.outcome import Class, HarnessError, Outcome, fail, ok
+from harness.core.outcome import (
+    RECOVERY,
+    Class,
+    HarnessError,
+    Outcome,
+    fail,
+    ok,
+)
 
 #: What a human should do next, keyed by the class — never parsed, freely reworded.
-GUIDANCE = {
-    Class.ENDPOINT_UNREACHABLE: (
-        "No live endpoint. If Chrome is running, enable remote debugging via "
-        "chrome://inspect/#remote-debugging; otherwise start Chrome first."),
-    Class.ENDPOINT_404: (
-        "Chrome is up but M147 disables /json/* on the default profile. Use the "
-        "DevToolsActivePort profile strategy (unset BU_CDP_URL, or set BH_PROFILE_DIRS)."),
-    Class.NO_BROWSER_WINDOW: (
-        "Chrome is reachable but has no window, so no consent popup can appear and no "
-        "page exists to drive. Open a Chrome window, then retry."),
-    Class.SCOPE_REFUSED: (
-        "This daemon is pinned to a browser it can no longer name. Restore its env "
-        "(BU_CDP_URL / BU_CDP_WS), or opt out deliberately with BH_TRUST=discover."),
-}
+#: The doctor's four endpoint classes live in the shared recovery map with every other
+#: class, so a caller reading an outcome and a user reading `bh --doctor` are told the same
+#: thing. Kept as a name here because it is the doctor's vocabulary.
+GUIDANCE = RECOVERY
 
 
 def count_pages(http_url: str, timeout: float = 3.0) -> int | None:

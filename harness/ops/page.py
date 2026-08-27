@@ -781,6 +781,16 @@ SNAPSHOT_JS = """(() => {
     const it = {ref, tag: el.tagName.toLowerCase(),
       name: (el.getAttribute('aria-label') || el.innerText || el.value || el.placeholder
              || el.name || '').trim().slice(0, 80),
+      //: Which link of that chain answered. A name is not one kind of evidence: an
+      //: aria-label was written to name this control, `value` is whatever it currently
+      //: holds (often the user's own data), and a placeholder is a hint that disappears
+      //: when the field is used. A caller told which one it got can weigh it; without
+      //: this they all arrive looking equally authoritative.
+      name_source: el.getAttribute('aria-label') ? 'aria'
+        : (el.innerText || '').trim() ? 'text'
+        : (el.value || '').toString().trim() ? 'value'
+        : (el.placeholder || '').trim() ? 'placeholder'
+        : (el.name || '').trim() ? 'attr' : null,
       x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
       w: Math.round(r.width), h: Math.round(r.height)};
     if (el.disabled) it.disabled = true;

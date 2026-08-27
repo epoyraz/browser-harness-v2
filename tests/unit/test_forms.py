@@ -6,6 +6,7 @@ import pytest
 from harness.connect.cdp import Connection
 from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
+from harness.ops import forms
 from harness.ops.forms import (
     application_route_candidates,
     fill_form,
@@ -201,9 +202,21 @@ def test_a_value_the_control_refused_is_value_rejected_not_a_js_exception(tab):
     browser, t = tab
     browser.eval_hook = lambda e: [
         {"ref": "e1", "ok": False, "want": "00 000 00 00", "got": "+41"}]
-    out = fill_form(t, [{"ref": "e1", "value": "00 000 00 00"}], recheck=0)
+    # `escalate=False` because this pins the classification, not the recovery: with the
+    # ladder on, the reported `got` is the last attempt's rather than the batch's.
+    out = fill_form(t, [{"ref": "e1", "value": "00 000 00 00"}], recheck=0, escalate=False)
     assert out.failures[0].cls is Class.VALUE_REJECTED
     assert out.failures[0].observed["got"] == "+41"
+
+
+def test_a_refusal_that_survives_escalation_keeps_its_class(tab):
+    """The ladder changes what was tried, not what the failure is called."""
+    browser, t = tab
+    browser.eval_hook = lambda e: [
+        {"ref": "e1", "ok": False, "want": "00 000 00 00", "got": "+41"}]
+    out = fill_form(t, [{"ref": "e1", "value": "00 000 00 00"}], recheck=0)
+    assert out.failures[0].cls is Class.VALUE_REJECTED
+    assert out.value[0]["escalated_from"] == "value"
 
 
 def test_a_thrown_step_is_still_a_js_exception(tab):
@@ -517,3 +530,79 @@ def test_a_vanished_ref_is_element_gone(tab):
     browser.eval_hook = lambda e: None
     out = select_option(t, "e9", "x")
     assert out.ok is False and out.cls is Class.ELEMENT_GONE
+
+
+# --- the harness walks the write ladder it already knows -----------------------
+
+def _escalation_probe(monkeypatch, outcomes):
+    """Record which (ref, mode) pairs are retried; answer each from `outcomes`."""
+    seen = []
+
+    def fake(tab, ref, value, mode, timeout):
+        seen.append((ref, mode))
+        result = outcomes.get((ref, mode), {"ok": False})
+        return {"ref": ref, "mode": mode, "want": str(value), **result}
+
+    monkeypatch.setattr(forms, "_typed_write", fake)
+    return seen
+
+
+def test_a_refused_write_is_retried_before_it_is_reported(monkeypatch):
+    """`_step_class` already said it: an entry with no `error` executed cleanly and had its
+    value refused, and "the recovery is a different write mode". Leaving that to the caller
+    cost a round trip to notice and another to retry."""
+    seen = _escalation_probe(monkeypatch, {("e2", "insert"): {"ok": True, "got": "12345"}})
+    plan = [{"ref": "e1", "value": "hello"}, {"ref": "e2", "value": "12345"}]
+    merged = [{"ref": "e1", "ok": True}, {"ref": "e2", "ok": False, "want": "12345"}]
+    assert forms._escalate_rejected(object(), plan, merged, 5.0) == 1
+    assert seen == [("e2", "insert")]                 # stops as soon as one sticks
+    assert merged[1]["ok"] is True
+    assert merged[1]["mode"] == "insert"
+    assert merged[1]["escalated_from"] == "value"
+
+
+def test_escalation_climbs_to_typing_when_insert_is_refused(monkeypatch):
+    seen = _escalation_probe(monkeypatch, {("e1", "type"): {"ok": True, "got": "x"}})
+    merged = [{"ref": "e1", "ok": False}]
+    assert forms._escalate_rejected(object(), [{"ref": "e1", "value": "x"}], merged, 5.0) == 1
+    assert seen == [("e1", "insert"), ("e1", "type")]
+
+
+@pytest.mark.parametrize("entry", [
+    {"ok": False, "error": "element_gone"},
+    {"ok": False, "error": "needs_interaction"},
+    {"ok": False, "error": "no_option_match"},
+])
+def test_only_a_refused_value_escalates(monkeypatch, entry):
+    """A missing element and an ARIA widget are not write-mode problems; retrying them
+    spends round trips to fail the same way."""
+    seen = _escalation_probe(monkeypatch, {})
+    merged = [{"ref": "e1", **entry}]
+    assert forms._escalate_rejected(object(), [{"ref": "e1", "value": "x"}], merged, 5.0) == 0
+    assert seen == []
+
+
+def test_an_explicit_mode_is_the_callers_decision(monkeypatch):
+    """Overriding a deliberately chosen tier would make an explicit mode mean less than a
+    default."""
+    seen = _escalation_probe(monkeypatch, {})
+    merged = [{"ref": "e1", "ok": False}]
+    forms._escalate_rejected(object(), [{"ref": "e1", "value": "x", "mode": "type"}],
+                             merged, 5.0)
+    assert seen == []
+
+
+def test_escalation_stops_when_the_control_leaves(monkeypatch):
+    seen = _escalation_probe(monkeypatch,
+                             {("e1", "insert"): {"ok": False, "error": "element_gone"}})
+    merged = [{"ref": "e1", "ok": False}]
+    forms._escalate_rejected(object(), [{"ref": "e1", "value": "x"}], merged, 5.0)
+    assert seen == [("e1", "insert")]        # another mode cannot bring it back
+
+
+def test_a_still_failing_entry_keeps_the_newest_evidence(monkeypatch):
+    """A caller reading a failed entry should see what the last attempt observed."""
+    _escalation_probe(monkeypatch, {("e1", "type"): {"ok": False, "got": "partial"}})
+    merged = [{"ref": "e1", "ok": False, "got": ""}]
+    forms._escalate_rejected(object(), [{"ref": "e1", "value": "xyz"}], merged, 5.0)
+    assert merged[0]["got"] == "partial" and merged[0]["mode"] == "type"

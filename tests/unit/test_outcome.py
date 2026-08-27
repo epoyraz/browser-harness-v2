@@ -6,6 +6,7 @@ import pickle
 import pytest
 
 from harness.core.outcome import (
+    RECOVERY,
     Class,
     HarnessError,
     MappingOutcome,
@@ -151,3 +152,40 @@ def test_json_shape_is_machine_readable():
     assert d["ok"] is False and d["class"] == "endpoint_404"
     assert d["observed"]["port"] == 9222 and d["retryable"] is False
     assert ok(1).to_json().get("retryable") is None   # only failures carry it
+
+
+# --- the class says what went wrong; the recovery says what to do about it -------
+
+def test_a_failure_carries_the_action_that_resolves_it():
+    """A typed class replaced v1's prose a caller had to string-match. Without a recovery
+    beside it, a fix the harness already knows costs a round trip to rediscover —
+    `_step_class` in ops/forms.py had "the recovery is a different write mode" in a
+    comment, where nothing could read it."""
+    payload = fail(Class.NEEDS_INTERACTION, "a combobox has no value to set").to_json()
+    assert "select_option" in payload["recovery"]
+
+
+def test_success_carries_no_recovery():
+    assert "recovery" not in ok(None).to_json()
+
+
+def test_a_class_without_one_concrete_next_step_offers_none():
+    """A recovery that depends on context is better served by `detail` than by a guess
+    stated in the imperative."""
+    assert "recovery" not in fail(Class.TIMEOUT, "took too long").to_json()
+    assert "recovery" not in fail(Class.JS_EXCEPTION, "boom").to_json()
+
+
+def test_every_recovery_is_addressed_to_the_caller():
+    """Each entry names something the reader can do, not a description of the state."""
+    assert RECOVERY, "the map must not be empty"
+    for cls, text in RECOVERY.items():
+        assert text and text[0].islower() or text[0].isupper(), cls
+        assert len(text) < 240, f"{cls} reads as prose, not an instruction"
+
+
+def test_the_doctor_and_the_outcome_tell_the_same_story():
+    """Two maps keyed by the same enum drift. `bh --doctor`'s guidance is the shared one."""
+    from harness.connect import doctor
+    assert doctor.GUIDANCE is RECOVERY
+    assert Class.ENDPOINT_UNREACHABLE in RECOVERY

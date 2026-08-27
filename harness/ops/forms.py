@@ -261,12 +261,24 @@ _SCHEMA_JS = """(() => {
                              : label ? 'proximity' : null,
                name: el.name || el.id || null,
                required: !!(el.required || el.getAttribute('aria-required') === 'true'
-                            || (label && /\\*\\s*$/.test(label)))};
+                            || (label && /\\*\\s*$/.test(label))),
+               //: Authored, or read off a typographic convention. `required` from the
+               //: `required` attribute is what the form itself enforces; `required` from a
+               //: trailing asterisk is a house style this harness happens to recognise,
+               //: and a label that came from proximity could have borrowed the asterisk
+               //: from a neighbour. Same reasoning as `label_source`: a caller deciding
+               //: what it must fill should know which of those it is looking at.
+               required_source: (el.required
+                                 || el.getAttribute('aria-required') === 'true') ? 'attribute'
+                 : (label && /\\*\\s*$/.test(label)) ? 'marker' : null};
     const asked = groupLabel(el);
     if (asked) {
       f.group_label = asked.slice(0, 160);
       // A group marked required is required whichever option answers it.
-      f.required = f.required || /[*\\u2731]\\s*$/.test(f.group_label);
+      if (!f.required && /[*\\u2731]\\s*$/.test(f.group_label)) {
+        f.required = true;
+        f.required_source = 'group_marker';
+      }
     }
     const auto = el.getAttribute('autocomplete');
     if (auto && auto !== 'off') f.autocomplete = auto;
@@ -296,7 +308,10 @@ _SCHEMA_JS = """(() => {
         f.label_source = 'placeholder_option';
         // Same asterisk convention the label chain uses; adesso marks "Anrede*" this way
         // and nothing else on the control says it is required.
-        f.required = f.required || /\\*\\s*$/.test(f.label);
+        if (!f.required && /\\*\\s*$/.test(f.label)) {
+          f.required = true;
+          f.required_source = 'marker';
+        }
       }
     }
     if (kind === 'combobox') f.needs_interaction = true;   // invisible to v1 entirely
@@ -864,6 +879,48 @@ def _human_reveal(tab: Tab, ref: str, *, timeout: float, pause: float) -> dict[s
     return tab._world_js(src, timeout=timeout) or {"ok": False, "error": "no_result"}
 
 
+def _escalate_rejected(tab: Tab, plan: list[dict[str, Any]], merged: list[dict[str, Any]],
+                       timeout: float) -> int:
+    """Retry a cleanly-refused write in the next mode up, because we know the ladder.
+
+    `_step_class` already says it: an entry with no `error` executed fine and had its value
+    refused or rewritten, and "the recovery is a different write mode". That knowledge sat
+    in a comment, so the recovery was the caller's to perform — a round trip to notice the
+    failure and another to retry something the harness could have tried itself.
+
+    Only `VALUE_REJECTED` escalates. `element_gone`, `needs_interaction` and
+    `no_option_match` are not write-mode problems and retrying them just costs time. A step
+    whose caller already chose `insert` or `type` is left alone: they picked a tier
+    deliberately, and overriding that would make an explicit mode mean less than a default.
+
+    Nothing is paid on the success path — this runs only over entries that failed.
+    """
+    escalated = 0
+    for index, step in enumerate(plan):
+        if index >= len(merged):
+            break
+        entry = merged[index]
+        if (entry.get("ok") or entry.get("error") or step.get("interaction")
+                or step.get("mode", "value") != "value"):
+            continue
+        ref = str(step.get("ref") or "")
+        value = step.get("value", step.get("label"))
+        if not ref or value is None:
+            continue
+        for mode in ("insert", "type"):
+            retry = _typed_write(tab, ref, value, mode, timeout)
+            retry["escalated_from"] = "value"
+            # Keep the newest evidence either way: a caller reading a still-failed entry
+            # should see what the last attempt observed, not what the first one did.
+            merged[index] = {**entry, **retry}
+            if retry.get("ok"):
+                escalated += 1
+                break
+            if retry.get("error") == "element_gone":
+                break                      # the control left; another mode cannot help
+    return escalated
+
+
 def _fill_outcome(report: list[dict[str, Any]], fields: int,
                   consequence: dict[str, Any] | None = None) -> Outcome:
     tally = Tally()
@@ -881,7 +938,7 @@ def _fill_outcome(report: list[dict[str, Any]], fields: int,
 
 def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
               recheck: float = 0.15, human_readable: bool = False,
-              human_pause: float = 0.18) -> Outcome:
+              human_pause: float = 0.18, escalate: bool = True) -> Outcome:
     """One write for the whole plan. Rule 4: OK only when every field verified; PARTIAL
     carries the full per-field report either way (`outcome.value`).
 
@@ -891,6 +948,13 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
     rewrites `+41791234567` to `+41 79 123 45 67` — so the write succeeded while the
     immediate check said it failed, and a normalising field would otherwise be reported as
     a failure forever. Set `recheck=0` to skip the settle when speed matters more.
+
+    A cleanly-refused write is retried in the next mode up before it is reported as a
+    failure. The harness knows the ladder — `value`, then `insert`, then `type` — so making
+    the caller walk it cost a round trip to notice the refusal and another to retry. Only
+    `VALUE_REJECTED` escalates; a missing element or an ARIA widget is not a write-mode
+    problem. Nothing is spent on the success path. Pass ``escalate=False`` for the old
+    behaviour, where a refusal comes straight back.
 
     A step may carry `"mode": "insert" | "type"` for a control the one-shot write cannot
     drive — a mask that reformats as you type, a keystroke typeahead. Those cost a round
@@ -1005,6 +1069,12 @@ def fill_form(tab: Tab, plan: list[dict[str, Any]], *, timeout: float = 30.0,
         slot = slot_of.get(i, -1)
         merged.append(report[slot] if 0 <= slot < len(report)
                       else {"ref": step.get("ref"), "ok": False, "error": "no report entry"})
+
+    if escalate:
+        # Inside a span of its own, so the extra round trips are billed to the escalation
+        # rather than appearing as unattributed traffic in the trace.
+        with tab.journal.call("fill_form.escalate", n=len(plan)):
+            _escalate_rejected(tab, plan, merged, timeout)
 
     consequence = (tab._shape_action_consequence(inline_consequence)
                    if inline_consequence is not None else tab._action_consequence(

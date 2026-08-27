@@ -104,6 +104,69 @@ RETRYABLE = frozenset({
 })
 
 
+#: What to do about each failure, keyed by the class that names it.
+#:
+#: A typed class was v2's answer to v1 returning prose a caller had to string-match. It
+#: says what went wrong; this says what to do next, which is the half the caller actually
+#: needs. Without it a recovery the harness already knows costs a round trip to rediscover
+#: — `_step_class` in ops/forms.py had "the recovery is a different write mode" written in
+#: a comment, where nothing could read it.
+#:
+#: Only classes with ONE concrete next action appear. A class whose recovery depends on
+#: context is better served by its `detail` than by a guess stated in the imperative.
+RECOVERY: dict[Class, str] = {
+    Class.NEEDS_INTERACTION: (
+        "an ARIA widget has no value to set — drive it with select_option(ref, label)"),
+    Class.NO_OPTION_MATCH: (
+        "the control does not offer that label — read its options from form_schema() and "
+        "choose one of them"),
+    Class.VALUE_REJECTED: (
+        "the control refused or rewrote the value; fill_form already retried the other "
+        "write modes, so try a different value rather than a different mode"),
+    Class.ELEMENT_GONE: (
+        "the ref no longer resolves — re-read with snapshot() or form_schema() and use "
+        "the new ref"),
+    Class.DOCUMENT_VERSION_STALE: (
+        "the document changed under this cursor — re-read the page and continue from the "
+        "blocks it returns"),
+    Class.TARGET_GONE: (
+        "that tab is gone — open one with new_tab(), or pick another from targets()"),
+    Class.SESSION_STALE: (
+        "the browser dropped the session; the next call re-attaches on its own"),
+    Class.RENDERER_UNRESPONSIVE: (
+        "the renderer crashed — reload the tab, or drive a new one"),
+    Class.BROWSER_DISCONNECTED: (
+        "the browser connection is gone — run `bh --doctor` to see whether it is still up"),
+    Class.NOT_A_FORM: (
+        "no fillable form here — look for an apply control, or follow the route that "
+        "leads to one"),
+    Class.NOT_SERIALIZABLE: (
+        "return a JSON value from js(); a DOM node or function cannot cross the boundary"),
+    Class.SIDE_EFFECT_REFUSED: (
+        "the harness declined an irreversible action and has no override for it"),
+    Class.RESOURCE_LIMIT: (
+        "a declared budget is exhausted — release tabs or contexts before asking for more"),
+    Class.PROTOCOL_MISMATCH: (
+        "client and daemon disagree on the protocol — restart the daemon"),
+    Class.PARTIAL: (
+        "some items failed — `failures` carries the typed reason for each one"),
+    Class.SKILL_INTEGRITY_FAILED: (
+        "the skill body no longer matches its indexed digest — re-sync the source"),
+    Class.ENDPOINT_UNREACHABLE: (
+        "No live endpoint. If Chrome is running, enable remote debugging via "
+        "chrome://inspect/#remote-debugging; otherwise start Chrome first."),
+    Class.ENDPOINT_404: (
+        "Chrome is up but M147 disables /json/* on the default profile. Use the "
+        "DevToolsActivePort profile strategy (unset BU_CDP_URL, or set BH_PROFILE_DIRS)."),
+    Class.NO_BROWSER_WINDOW: (
+        "Chrome is reachable but has no window, so no consent popup can appear and no "
+        "page exists to drive. Open a Chrome window, then retry."),
+    Class.SCOPE_REFUSED: (
+        "This daemon is pinned to a browser it can no longer name. Restore its env "
+        "(BU_CDP_URL / BU_CDP_WS), or opt out deliberately with BH_TRUST=discover."),
+}
+
+
 @dataclass(slots=True)
 class Outcome:
     """What an operation returns. `detail` is for humans and is never parsed."""
@@ -139,6 +202,10 @@ class Outcome:
             d["id"] = self.id
         if not self.ok:
             d["retryable"] = self.retryable
+            # The class says what went wrong; this says what to do about it. Carried on
+            # the outcome so a caller reading JSON gets it without a second lookup.
+            if recovery := RECOVERY.get(self.cls):
+                d["recovery"] = recovery
         if self.failures:
             d["failures"] = [f.to_json() for f in self.failures]
         return d

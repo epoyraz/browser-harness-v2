@@ -521,6 +521,49 @@ def main() -> int:
               all(f.get("label") not in ("✱", "*") for f in grouped),
               "no marker-only labels")
 
+        # --- provenance: which evidence produced this, not just its value -------
+        tab.goto(f"{base}/personio.html")
+        fields = {f["label"]: f for f in form_schema(tab)["fields"]}
+        check("required_source: an authored attribute says so",
+              fields["First name"].get("required_source") == "attribute",
+              repr(fields["First name"].get("required_source")))
+        check("required_source: absent when the control is not required",
+              fields["Phone"].get("required_source") is None
+              and fields["Phone"]["required"] is False, "Phone")
+
+        tab.goto(f"{base}/placeholder-label.html")
+        promoted = {f["name"]: f for f in form_schema(tab)["fields"]}
+        salutation = promoted.get("bewerbung_form[gender]", {})
+        check("required_source: a typographic marker is not an authored attribute",
+              salutation.get("required") is True
+              and salutation.get("required_source") == "marker",
+              repr(salutation.get("required_source")))
+
+        tab.goto(f"{base}/widgets.html")
+        by_name = {}
+        for element in tab.snapshot():
+            by_name.setdefault(element.get("name_source"), 0)
+            by_name[element["name_source"]] = by_name.get(element["name_source"], 0) + 1
+        check("name_source: snapshot says which link of the chain named each element",
+              any(k in by_name for k in ("aria", "text", "value", "placeholder", "attr")),
+              str(by_name))
+
+        # --- the harness walks the write ladder it already knows -----------------
+        tab.goto(f"{base}/rejects-value.html")
+        masked = {f["label"]: f for f in form_schema(tab)["fields"]}["Masked"]
+        refused = fill_form(tab, [{"ref": masked["ref"], "value": "12345"}], escalate=False)
+        check("a trusted-input-only control refuses the one-shot write",
+              not refused.ok and refused.failures[0].cls is Class.VALUE_REJECTED,
+              refused.cls.value)
+
+        tab.goto(f"{base}/rejects-value.html")
+        masked = {f["label"]: f for f in form_schema(tab)["fields"]}["Masked"]
+        climbed = fill_form(tab, [{"ref": masked["ref"], "value": "12345"}])
+        check("escalation resolves it without handing the failure back",
+              climbed.ok and climbed.value[0]["mode"] == "insert"
+              and climbed.value[0]["escalated_from"] == "value",
+              f"{climbed.cls.value} via {climbed.value[0].get('mode')}")
+
         conn.close()
     finally:
         _browser.kill(scratch)
