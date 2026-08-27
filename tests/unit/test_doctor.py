@@ -5,8 +5,14 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
-from harness.connect.doctor import GUIDANCE, count_pages, diagnose, render
-from harness.core.outcome import Class
+from harness.connect.doctor import (
+    GUIDANCE,
+    count_pages,
+    diagnose,
+    render,
+    to_json,
+)
+from harness.core.outcome import Class, ok
 
 
 class _DevTools(BaseHTTPRequestHandler):
@@ -122,3 +128,51 @@ def test_doctor_cli_exits_nonzero_and_prints_attempts_when_unreachable(tmp_path)
     )
     assert r.returncode == 1
     assert "declined" in r.stdout
+
+
+# --- machine-readable verdict ---------------------------------------------------
+
+def _resolved(ws="ws://127.0.0.1:9222/devtools/browser/2f222744-30bb-4cc3-9fd4", **extra):
+    return ok(None, ws_url=ws, strategy="profile", attempts=[
+        {"strategy": "explicit-ws", "candidate": "BU_CDP_WS",
+         "won": False, "reason": "not set"},
+        {"strategy": "profile", "candidate": ws, "won": True},
+    ], **extra)
+
+
+def test_json_reduces_the_endpoint_to_topology():
+    """`render()` keeps the full URL because a terminal line is ephemeral and the URL is
+    the diagnosis. JSON is piped into files and pasted into issues, which is the journal's
+    exposure — and the ws path drives the browser for anyone who can reach the port."""
+    payload = to_json(_resolved())
+    assert payload["observed"]["ws_url"] == "ws://127.0.0.1:9222"
+    assert "2f222744" not in json.dumps(payload)
+
+
+def test_json_keeps_the_verdicts_that_are_the_diagnosis():
+    """A declined attempt's candidate is a variable name or a profile path, not a URL.
+    Redacting those would leave the report saying nothing about why discovery failed."""
+    payload = to_json(_resolved())
+    attempts = payload["observed"]["attempts"]
+    assert attempts[0]["candidate"] == "BU_CDP_WS"
+    assert attempts[0]["reason"] == "not set"
+    assert attempts[1]["candidate"] == "ws://127.0.0.1:9222"
+
+
+def test_json_carries_the_typed_class_and_ok_flag():
+    payload = to_json(_resolved(pages=3))
+    assert payload["ok"] is True and payload["class"] == "ok"
+    assert payload["observed"]["pages"] == 3
+
+
+def test_the_human_renderer_is_unchanged_and_still_shows_the_url():
+    """The two modes differ on purpose; a test that only pinned the JSON would let the
+    terminal output drift into redacting the thing it exists to show."""
+    lines = "\n".join(render(_resolved()))
+    assert "2f222744" in lines
+
+
+def test_json_does_not_mutate_the_outcome_it_was_given():
+    outcome = _resolved()
+    to_json(outcome)
+    assert outcome.observed["ws_url"].endswith("/devtools/browser/2f222744-30bb-4cc3-9fd4")

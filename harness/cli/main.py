@@ -21,7 +21,7 @@ USAGE = """bh — browser-harness v2
 
   bh <<'PY' ... PY      run a script against the browser (stdin)
   bh -                  same, explicit
-  bh --doctor           classify why the browser can or cannot be reached
+  bh --doctor [--json]  classify why the browser can or cannot be reached
   bh mac-approve        answer Chrome's macOS "Allow remote debugging?" sheet
   bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
   bh stats [path…]      what you actually use, and what actually fails
@@ -58,10 +58,20 @@ def main() -> int:
         return 0
 
     if args and args[0] == "--doctor":
-        from harness.connect.doctor import diagnose, render
-        outcome = diagnose(args[1] if len(args) > 1 else "default")
-        for line in render(outcome):
-            print(line)
+        import json as _json
+
+        from harness.connect.doctor import diagnose, render, to_json
+        rest = [a for a in args[1:] if not a.startswith("--")]
+        outcome = diagnose(rest[0] if rest else "default")
+        if "--json" in args:
+            # `to_json`, not `outcome.to_json`: JSON output is piped, saved and pasted
+            # into issues, so it reduces the endpoint to topology the way the journal
+            # does. The human lines below keep the full URL — that terminal output is
+            # ephemeral and the URL is the diagnosis.
+            print(_json.dumps(to_json(outcome), indent=2))
+        else:
+            for line in render(outcome):
+                print(line)
         return 0 if outcome.ok else 1
 
     if args and args[0] == "mac-approve":

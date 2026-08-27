@@ -17,7 +17,7 @@ from collections.abc import Mapping
 from typing import Any
 from urllib import request as urlrequest
 
-from harness.connect.endpoint import binding_for, resolve
+from harness.connect.endpoint import binding_for, resolve, safe_endpoint
 from harness.core.outcome import Class, HarnessError, Outcome, fail, ok
 
 #: What a human should do next, keyed by the class — never parsed, freely reworded.
@@ -64,6 +64,44 @@ def diagnose(name: str = "default", env: Mapping[str, str] | None = None) -> Out
             return fail(Class.NO_BROWSER_WINDOW,
                         f"{r.http_url} is live but reports zero page targets", **observed)
     return ok(None, **observed)
+
+
+def _redacted(candidate: Any) -> Any:
+    """An endpoint reduced to topology; anything that is not one passes through.
+
+    Declined attempts carry a variable name (`BU_CDP_WS`) or a profile path rather than a
+    URL, and those ARE the diagnosis — redacting them would leave the report saying nothing.
+    So only a parseable scheme-and-host string is reduced.
+    """
+    if not isinstance(candidate, str):
+        return candidate
+    reduced = safe_endpoint(candidate)
+    return candidate if reduced == "<redacted-endpoint>" else reduced
+
+
+def to_json(outcome: Outcome) -> dict[str, Any]:
+    """The doctor's verdict for a machine, with no way in.
+
+    `render()` keeps the full websocket URL because a terminal line is ephemeral and the
+    URL is the diagnosis. This is the other case: JSON gets piped into files, attached to
+    bug reports and pasted into issues, which is the same exposure the journal has — and
+    the ws path is a capability, not an address.
+    """
+    payload = outcome.to_json()
+    observed = payload.get("observed")
+    if isinstance(observed, dict):
+        observed = dict(observed)
+        if "ws_url" in observed:
+            observed["ws_url"] = _redacted(observed["ws_url"])
+        attempts = observed.get("attempts")
+        if isinstance(attempts, list):
+            observed["attempts"] = [
+                {**a, "candidate": _redacted(a.get("candidate"))}
+                if isinstance(a, dict) else a
+                for a in attempts
+            ]
+        payload["observed"] = observed
+    return payload
 
 
 def render(outcome: Outcome) -> list[str]:
