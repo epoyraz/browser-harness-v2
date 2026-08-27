@@ -37,3 +37,16 @@ def _reader_caught_up(tab):
     """
     tab.cdp("Page.getLayoutMetrics")
 
+
+
+@pytest.fixture
+def tab():
+    browser = FakeBrowser("a")
+    conn = Connection(browser).start()
+    t = Tab(conn, SessionRegistry(conn), "a")
+    yield browser, t
+    conn.close()
+
+
+def _evaluates(browser):
+    return [c for c in browser.calls if c.get("method") == "Runtime.evaluate"]

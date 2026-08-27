@@ -32,11 +32,11 @@ from pathlib import Path
 from typing import Any
 
 from applications import ontology, run_application
+from applications.document import application_route_candidates
 from applications.ontology import (
     norm,
     plan_for,
 )
-from harness.ops.forms import application_route_candidates
 from harness.ops.profile import ApplicantProfile, load_answer_file
 
 ROOT = Path.cwd()

@@ -21,7 +21,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from harness.ops.forms import application_route_candidates
+from applications.document import application_route_candidates
 from tools.collect_job_form_telemetry import MAX_HOPS, plan_for
 
 ROOT = Path.cwd()

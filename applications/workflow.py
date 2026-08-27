@@ -26,6 +26,7 @@ from typing import Any
 # `applications.state.wait_for_application_state`, and a direct import would
 # bind the original here before that ever happens. Aliased because the local
 # variable holding the verdict is also called `state`.
+from applications import document
 from applications import state as application_state
 from harness.core.outcome import HarnessError
 from harness.ops import forms
@@ -82,7 +83,7 @@ def prepare_application(session: Any, *, timeout: float = 20.0) -> dict[str, Any
 
     main = session.tab()
     with session.journal.call("prepare_application"):
-        prepared = forms.prepare_document(main, timeout=timeout)
+        prepared = document.prepare_document(main, timeout=timeout)
         if is_application(prepared):
             return {**prepared, "target_id": main.target_id, "context": "main",
                     "contexts_checked": 1, "is_application": True}
@@ -94,7 +95,7 @@ def prepare_application(session: Any, *, timeout: float = 20.0) -> dict[str, Any
                 continue
             try:
                 frame_tab = session.tab(target_id)
-                frame_data = forms.prepare_document(frame_tab, timeout=timeout)
+                frame_data = document.prepare_document(frame_tab, timeout=timeout)
                 candidates.append((frame_tab, frame_data, str(frame.get("kind") or "frame")))
             except HarnessError:
                 continue
@@ -180,7 +181,7 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     started = time.perf_counter()
     hops: list[dict[str, Any]] = []
     seen: set[tuple[Any, ...]] = set()
-    route_candidates = list(candidates or forms.application_route_candidates(url))
+    route_candidates = list(candidates or document.application_route_candidates(url))
     with session.journal.bind(stage="navigate"):
         navigation = session.tab().goto(url, timeout=timeout, **_navigation_wait())
     pending_state: dict[str, Any] | None = None

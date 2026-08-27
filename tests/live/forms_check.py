@@ -22,6 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _browser
 
+from applications.document import application_schema, prepare_document
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
@@ -30,7 +31,6 @@ from harness.ops.batch import fetch_all
 from harness.ops.forms import (
     fill_form,
     form_schema,
-    prepare_document,
     require_form,
     select_option,
     set_value,
@@ -264,7 +264,7 @@ def main() -> int:
 
         # ---- Form identity: account fields do not turn an application into login ----
         tab.goto(f"{base}/umantis-account.html")
-        schema = form_schema(tab)
+        schema = application_schema(tab)
         verdict = schema["verdict"]
         check("umantis: root `cookies` feature token does not hide the form",
               verdict["fields"] == 4 and verdict["files"] == 1,
@@ -280,7 +280,7 @@ def main() -> int:
               str(group))
 
         tab.goto(f"{base}/login.html")
-        verdict = form_schema(tab)["verdict"]
+        verdict = application_schema(tab)["verdict"]
         check("login: two credential fields are authentication, not application",
               verdict["classification"] == "login_email_password"
               and verdict["is_authentication"] is True
@@ -289,14 +289,14 @@ def main() -> int:
               str(verdict["classification"]))
 
         tab.goto(f"{base}/email-login.html")
-        verdict = form_schema(tab)["verdict"]
+        verdict = application_schema(tab)["verdict"]
         check("login: explicit single-email flow has its own category",
               verdict["classification"] == "login_email_first"
               and verdict["is_authentication"] is True,
               str(verdict["classification"]))
 
         tab.goto(f"{base}/generic-contact.html")
-        verdict = form_schema(tab)["verdict"]
+        verdict = application_schema(tab)["verdict"]
         check("generic contact form is not promoted to an application",
               verdict["classification"] == "generic_form"
               and verdict["is_generic_form"] is True

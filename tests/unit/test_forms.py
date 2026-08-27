@@ -3,38 +3,16 @@ options, furniture) runs in tests/live/forms_check.py against real Chrome — ge
 exactly what a fake cannot testify to."""
 import pytest
 
-from harness.connect.cdp import Connection
-from harness.connect.session import SessionRegistry
 from harness.core.outcome import Class, NotAForm
 from harness.ops import forms
 from harness.ops.forms import (
-    application_route_candidates,
     fill_form,
     form_schema,
-    prepare_document,
     require_form,
     select_option,
     set_value,
 )
-from harness.ops.page import Tab
-from tests.fake_browser import FakeBrowser
-
-
-@pytest.fixture
-def tab():
-    browser = FakeBrowser("a")
-    conn = Connection(browser).start()
-    t = Tab(conn, SessionRegistry(conn), "a")
-    yield browser, t
-    conn.close()
-
-
-def test_application_route_candidates_encodes_ashby_capability():
-    posting = "https://jobs.ashbyhq.com/acme/ebd97901-59be-4655-ad13-fcfa8ca17987"
-    assert application_route_candidates(posting) == [posting + "/application"]
-    assert application_route_candidates(posting + "/application") == []
-    assert application_route_candidates("https://example.com/acme/123") == []
-
+from tests.unit.conftest import _evaluates
 
 
 def combo_hook(*, tag="div", options=None, has_input=False, state=None,
@@ -71,8 +49,6 @@ def combo_hook(*, tag="div", options=None, has_input=False, state=None,
     return hook
 
 
-def _evaluates(browser):
-    return [c for c in browser.calls if c.get("method") == "Runtime.evaluate"]
 
 
 # --- fill_form aggregation (rule 4) ------------------------------------------
@@ -403,25 +379,8 @@ def test_form_schema_returns_the_page_report(tab):
     assert form_schema(t) == payload
 
 
-def test_prepare_document_batches_metadata_schema_and_file_refs(tab):
-    browser, t = tab
-    payload = {"schema": {"verdict": {"is_form": True}, "fields": [], "files": ["cv"]},
-               "url": "https://a.test/apply", "title": "Apply", "language": "en",
-               "file_inputs": [{"ref": "e1", "name": "cv", "accept": ".pdf"}],
-               "apply_link": None}
-    browser.eval_hook = lambda expression: payload
-    before = len(_evaluates(browser))
-    assert prepare_document(t) == payload
-    assert len(_evaluates(browser)) - before == 1
 
 
-def test_prepare_source_has_a_bounded_structured_application_route_tier():
-    from harness.ops.forms import _PREPARE_JS
-
-    assert "applicationUrls.slice(0, 12)" in _PREPARE_JS
-    assert "visited++ > 5000" in _PREPARE_JS
-    assert "const urlShaped" in _PREPARE_JS
-    assert "if (!raw || /[<>\"'\\s]/.test(raw)) return" in _PREPARE_JS
 
 
 def test_require_form_raises_not_a_form_with_the_verdict(tab):
