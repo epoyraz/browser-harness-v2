@@ -154,8 +154,7 @@ elements indexed on it; escalate to it when structure and observed behavior disa
 Batch forms into one decision and one write:
 
 ```python
-prepared = prepare_application()
-schema = prepared["schema"]
+schema = form_schema()
 by_label = {f["label"]: f for f in schema["fields"]}
 out = fill_form([
     {"ref": by_label["First name"]["ref"], "value": "Enes"},

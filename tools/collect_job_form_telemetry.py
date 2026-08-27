@@ -33,6 +33,8 @@ from ctypes import wintypes
 from pathlib import Path
 from typing import Any
 
+from applications import run_application
+from harness.ops.forms import application_route_candidates
 from harness.ops.profile import ApplicantProfile, ProfileValue, load_answer_file
 
 ROOT = Path.cwd()
@@ -1066,7 +1068,8 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     with session.journal.bind(stage="diagnostics"):
         result["diagnostics_started"] = session.tab().start_diagnostics()
     try:
-        application = session.run_application(
+        application = run_application(
+            session,
             start_url, timeout=25, transition_timeout=15, hop_budget=6,
             candidates=application_route_candidates(start_url),
             planner=active_planner())
