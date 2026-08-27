@@ -31,7 +31,6 @@ run can resume.
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import json
 import os
 import subprocess
@@ -52,10 +51,9 @@ TIMEOUT = float(os.environ.get("BH_PLANNER_TIMEOUT", "600"))
 #: instructions and schema do not capture.
 CACHE_VERSION = 2
 
-_spec = importlib.util.spec_from_file_location(
-    "collect_job_form_telemetry", ROOT / "tools" / "collect_job_form_telemetry.py")
-_rules = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_rules)
+# The ontology is a package now, so the model planner imports it rather than loading a
+# benchmark script to reach the project's application knowledge.
+from applications import ontology as _rules
 
 #: Re-exported so a scorer can load this module in place of the rule table.
 semantic = _rules.semantic

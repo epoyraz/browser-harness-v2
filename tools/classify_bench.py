@@ -50,18 +50,31 @@ OPEN_ENDED = re.compile(
 
 
 def load_classifier(path: Path | None = None) -> Any:
-    """The corpus planner, imported as a module rather than duplicated here.
+    """The application ontology, imported rather than duplicated here.
 
-    `path` points at another build of it — `git show <rev>:tools/...` — which is the only
-    way to attribute a change to the code rather than to the corpus. Two runs over
-    different job sets cannot be subtracted from each other.
+    `path` points at another build of it — `git show <rev>:applications/ontology.py` —
+    which is the only way to attribute a change to the code rather than to the corpus. Two
+    runs over different job sets cannot be subtracted from each other.
+
+    A build loaded from a path needs the answers configured the way the package does; the
+    corpus script is what holds this run's profile, so it is executed first for its side
+    effect and then stands aside.
     """
+    import applications.ontology as current
+
     spec = importlib.util.spec_from_file_location(
-        "collect_job_form_telemetry",
-        path or ROOT / "tools" / "collect_job_form_telemetry.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+        "collect_job_form_telemetry", ROOT / "tools" / "collect_job_form_telemetry.py")
+    corpus = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(corpus)          # configures the ontology with the profile
+    if path is None:
+        return current
+
+    other_spec = importlib.util.spec_from_file_location("ontology_build", path)
+    other = importlib.util.module_from_spec(other_spec)
+    other_spec.loader.exec_module(other)
+    if hasattr(other, "configure"):
+        other.configure(current.APPLICANT, current.PROFILE, current.CV)
+    return other
 
 
 GENERIC_OPTION = re.compile(

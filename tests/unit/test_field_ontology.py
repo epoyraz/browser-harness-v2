@@ -14,11 +14,18 @@ from pathlib import Path
 
 import pytest
 
-MODULE = Path(__file__).parents[2] / "tools" / "collect_job_form_telemetry.py"
-SPEC = importlib.util.spec_from_file_location("collect_job_form_telemetry", MODULE)
-rules = importlib.util.module_from_spec(SPEC)
-assert SPEC.loader is not None
-SPEC.loader.exec_module(rules)
+from applications import ontology
+
+# The ontology is a package beside the harness now, so this imports it instead of loading
+# a benchmark script. It needs answers to map fields onto, and the corpus profile is the
+# set these cases were captured against.
+_TOOL = Path(__file__).parents[2] / "tools" / "collect_job_form_telemetry.py"
+_SPEC = importlib.util.spec_from_file_location("collect_job_form_telemetry", _TOOL)
+_corpus = importlib.util.module_from_spec(_SPEC)
+assert _SPEC.loader is not None
+_SPEC.loader.exec_module(_corpus)
+
+rules = ontology
 
 
 def classify(label, name=None, kind="text", options=None, group_label=None):
