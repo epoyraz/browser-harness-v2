@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import os
 import sys
-from pathlib import Path
 
 __all__ = ["main"]
 
@@ -24,19 +23,15 @@ USAGE = """bh — browser-harness v2
   bh --doctor [--json]  classify why the browser can or cannot be reached
   bh mac-approve        answer Chrome's macOS "Allow remote debugging?" sheet
   bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
-  bh stats [path…]      what you actually use, and what actually fails
-  bh bench <journal…>   steps taken and where the wall clock went (-v per step)
-                        --from-transcript [FILE] price think from the real agent session
-  bh recordings         list recordings (newest first)
-  bh video [<rec>]      render a recording to mp4 (default: the newest)
-  bh recording-extension  print the unpacked tabCapture extension path
   bh helpers --init     create a file for your own helpers
   bh skills which URL  explain offline skill resolution and trust
   bh skills search Q   search configured skill indexes
   bh skills show ID    verify and print a skill body
   bh skills sync       refresh configured Git sources
-  bh trace <file>       render a session journal as a span tree
   bh --version
+
+Evidence commands (bh stats / bench / trace / recordings / video) come from the optional
+evidence layer; run `bh stats --help` for its usage.
 """
 
 
@@ -55,6 +50,18 @@ def main() -> int:
     if args and args[0] in ("-h", "--help"):
         print(USAGE)
         return 0
+
+    # Commands belonging to the optional evidence layer. Core dispatches to it if it is
+    # installed and never imports it by name otherwise: the direction of dependency is
+    # what makes "core" measurable, and `bh stats` is not a browser primitive.
+    try:
+        from evidence.cli import handle as evidence_cli
+    except ImportError:
+        evidence_cli = None
+    if evidence_cli is not None:
+        handled = evidence_cli(args)
+        if handled is not None:
+            return handled
 
     if args and args[0] == "--doctor":
         import json as _json
@@ -87,74 +94,6 @@ def main() -> int:
             args[1] if len(args) > 1 else "default",
             journal_path=os.environ.get("BH_JOURNAL") or None,
         )
-
-    if args and args[0] == "stats":
-        import json as _json
-
-        from harness.core.telemetry import render as render_stats
-        from harness.core.telemetry import rollup
-        rest = [a for a in args[1:] if not a.startswith("--")]
-        r = rollup(rest or None)
-        if "--json" in args:
-            print(_json.dumps(r, indent=2))
-        else:
-            for line in render_stats(r):
-                print(line)
-        return 0
-
-    if args and args[0] == "bench":
-        import json as _json
-
-        from harness.core.bench import render as render_bench
-        from harness.core.bench import rollup
-        rest = [a for a in args[1:] if not a.startswith("--")]
-        think = None
-        if "--think" in args:
-            think = float(args[args.index("--think") + 1])
-            rest = [a for a in rest if a != args[args.index("--think") + 1]]
-        by_step = None
-        if "--from-transcript" in args:
-            # The one bucket the harness cannot see: `bh` is a subprocess the model
-            # spawns, so the gap between runs happens entirely outside this process.
-            # Claude Code's session transcript timestamps every tool_use and
-            # tool_result, which is exactly that gap.
-            from harness.core import transcript as tx
-            i = args.index("--from-transcript") + 1
-            given = args[i] if i < len(args) and not args[i].startswith("--") else None
-            if given:
-                rest = [a for a in rest if a != given]
-            found = [Path(given)] if given else tx.find()
-            if not found:
-                print("no transcript found for this project", file=sys.stderr)
-                return 1
-            by_step = tx.attach(rollup(rest or ["."])["step_list"], tx.gaps(found[0]))
-        r = rollup(rest or ["."], think_ms=think, think_by_step=by_step)
-        if "--json" in args:
-            print(_json.dumps({k: v for k, v in r.items() if k != "step_list"}, indent=2))
-        else:
-            for line in render_bench(r, verbose=("-v" in args or "--verbose" in args)):
-                print(line)
-        return 0
-
-    if args and args[0] == "recordings":
-        from harness.ops.record import recordings
-        found = recordings()
-        if not found:
-            print("no recordings — use BH_RECORD=1, start_recording(), or start_screencast()",
-                  file=sys.stderr)
-            return 1
-        for d in found:
-            screencast = (d / "frames.jsonl").is_file()
-            frames = len(list((d / "frames").glob("*.jpg"))) if screencast \
-                else len(list(d.glob("*.jpg")))
-            mode = "CDP screencast" if screencast else "action recording"
-            print(f"{d}  ({frames} frame{'s' if frames != 1 else ''}, {mode})")
-        return 0
-
-    if args and args[0] == "recording-extension":
-        path = Path(__file__).resolve().parents[1] / "assets" / "tab_recorder"
-        print(path)
-        return 0
 
     if args and args[0] == "helpers":
         from harness.extend import candidates, scaffold
@@ -197,35 +136,6 @@ def main() -> int:
         print("usage: bh skills which URL | search Q | show ID | sync [SOURCE]",
               file=sys.stderr)
         return 2
-
-    if args and args[0] == "video":
-        from harness.ops.record import latest
-        from harness.ops.video import export
-        rest = [a for a in args[1:] if not a.startswith("--")]
-        rec = rest[0] if rest else latest()
-        if rec is None:
-            print("no recording to export — `bh recordings` lists them", file=sys.stderr)
-            return 1
-        out = None
-        if "--output" in args:
-            out = args[args.index("--output") + 1]
-        try:
-            got = export(rec, out, overwrite="--overwrite" in args)
-        except (RuntimeError, ValueError, FileExistsError, FileNotFoundError) as e:
-            print(f"bh video: {e}", file=sys.stderr)
-            return 1
-        print(f"{got['path']}  {got['shots']} shots  {got['duration']:.1f}s "
-              f"(real {got['real_duration']:.1f}s, {got['clamped']} clamped)  "
-              f"{got['bytes'] // 1024} KB")
-        return 0
-
-    if len(args) >= 2 and args[0] == "trace":
-        from harness.core.journal import Journal
-        from harness.core.trace import render as render_trace
-        tail = int(args[args.index("--tail") + 1]) if "--tail" in args else None
-        for line in render_trace(Journal(args[1]).entries(), tail=tail):
-            print(line)
-        return 0
 
     if not args or args[0] == "-":
         if sys.stdin.isatty():

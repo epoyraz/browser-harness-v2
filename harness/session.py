@@ -15,6 +15,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+from collections.abc import Callable
 from typing import Any, Self
 
 from harness import extend
@@ -28,7 +29,7 @@ from harness.core.content import (
 )
 from harness.core.journal import Journal
 from harness.core.outcome import Class, HarnessError, ScopeRefused, TargetGone
-from harness.ops import batch, forms, record, screencast
+from harness.ops import batch, forms
 from harness.ops import parallel as parallel_ops
 from harness.ops.page import Tab
 from harness.skills import Registry as SkillRegistry
@@ -84,23 +85,15 @@ class Session:
         # redirecting worker B's next js() — the exact bug D1 exists to prevent, moved
         # one level in.
         self._local = threading.local()
-        self._recorder: record.Recorder | None = None
-        self._screencast: screencast.ScreencastRecorder | None = None
         self._skill_registry: SkillRegistry | None = None
+        #: Teardown owned by layers above the harness — see `at_close`.
+        self._at_close: list[Callable[[], None]] = []
         self.extensions: list[dict[str, Any]] = []
         if lease := os.environ.get("BH_TARGET_LEASE"):
             # An explicit lease takes precedence over the ergonomic first-tab fallback.
             # If it cannot be claimed, fail closed instead of driving whatever happens to
             # be first in Chrome after this fresh process connects.
             self.resume_lease(lease)
-        recording = os.environ.get("BH_RECORD", "").strip().lower()
-        if recording not in ("", "0", "false", "no", "off"):
-            # A profile name is also a convenient one-variable opt-in.  Legacy truthy
-            # values (especially BH_RECORD=1) retain the review profile unless the
-            # dedicated profile variable says otherwise.
-            selected = recording if recording in {profile.value for profile in record.Profile} \
-                else None
-            self.start_recording(profile=selected)
 
     # -- tabs --------------------------------------------------------------
 
@@ -384,59 +377,25 @@ class Session:
 
 
 
-    # -- recording ---------------------------------------------------------
+    def at_close(self, callback: Callable[[], None]) -> None:
+        """Run `callback` when this session closes.
 
-    def start_recording(self, name: str | None = None, title: str | None = None, *,
-                        profile: str | record.Profile | None = None) -> str:
-        """Record action evidence under an explicit evidence/review/cinematic profile.
-
-        Turning it on *moves* the journal into the recording directory: the frames and the
-        calls that produced them become one artifact instead of two to correlate.
+        A layer above the harness can own a resource whose lifetime is the session's
+        without the harness knowing what it is — recording, for one, which used to be
+        stopped by name in `close()`. Failures are journalled and never prevent the rest
+        of teardown, because a cleanup that can abort cleanup is worse than none.
         """
-        if self._recorder is not None:
-            if profile is not None and record.parse_profile(profile) is not self._recorder.profile:
-                raise ValueError(
-                    f"recording already uses profile {self._recorder.profile.value!r}")
-            return str(self._recorder.dir)
-        selected = record.parse_profile(
-            profile if profile is not None else os.environ.get("BH_RECORD_PROFILE"))
-        self._recorder = record.start(lambda: self._current and self._tabs.get(self._current),
-                                      self.journal, name=name, title=title, profile=selected)
-        # Batch evidence runs may deliberately create more than the interactive default
-        # of 20 recordings. Keep rollover bounded while allowing the caller to preserve
-        # the whole batch explicitly.
-        keep = max(1, int(os.environ.get("BH_RECORDING_KEEP", "20")))
-        record.prune(keep=keep)
-        return str(self._recorder.dir)
+        self._at_close.append(callback)
 
-    def stop_recording(self) -> str | None:
-        if self._recorder is None:
-            return None
-        directory = self._recorder.stop()
-        self._recorder = None
-        return str(directory)
-
-    def start_screencast(self, name: str | None = None, *, quality: int = 88,
-                         max_width: int = 1440, max_height: int = 1000,
-                         every_nth_frame: int = 1) -> str:
-        """Continuously capture compositor updates for the current tab through CDP."""
-        if self._screencast is not None:
-            return str(self._screencast.dir)
-        self._screencast = screencast.start(
-            self.tab(), name=name, quality=quality, max_width=max_width,
-            max_height=max_height, every_nth_frame=every_nth_frame)
-        return str(self._screencast.dir)
-
-    def stop_screencast(self) -> str | None:
-        if self._screencast is None:
-            return None
-        directory = self._screencast.stop()
-        self._screencast = None
-        return str(directory)
 
     def close(self) -> None:
-        self.stop_screencast()
-        self.stop_recording()
+        for callback in reversed(self._at_close):
+            try:
+                callback()
+            except Exception as error:                          # noqa: BLE001
+                self.journal.write("note", event="at_close_failed",
+                                   error=f"{type(error).__name__}: {str(error)[:120]}")
+        self._at_close.clear()
         with self._tabs_lock:
             contexts = list(self._contexts)
         for context_id in contexts:
@@ -573,10 +532,6 @@ class Session:
                      "page_text", "press_key", "type_chars", "scroll", "upload_file",
                      "arm_dry_run"):
             ns[name] = on_tab(name)
-        ns["start_recording"] = self.start_recording
-        ns["stop_recording"] = self.stop_recording
-        ns["start_screencast"] = self.start_screencast
-        ns["stop_screencast"] = self.stop_screencast
         # Retrieval deliberately returns the exact original. The invocation-wide stdout
         # ceiling still prevents printing it wholesale; callers can inspect or slice it
         # in Python without paying a second browser round trip.

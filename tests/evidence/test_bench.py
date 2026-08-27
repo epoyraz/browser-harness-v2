@@ -1,7 +1,7 @@
 """Bucket attribution: `harness` must mean cost we could optimise away."""
 import json
 
-from harness.core.bench import collapsible, rollup, steps
+from evidence.bench import collapsible, rollup, steps
 
 
 def _journal(tmp_path, calls, *, ms_total, ms_connect=100.0, ts=1_786_000_000.0):

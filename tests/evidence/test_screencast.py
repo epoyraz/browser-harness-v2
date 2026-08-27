@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from harness.ops.screencast import ScreencastRecorder
+from evidence.screencast import ScreencastRecorder
 
 JPEG = base64.b64encode(b"jpeg-frame").decode()
 

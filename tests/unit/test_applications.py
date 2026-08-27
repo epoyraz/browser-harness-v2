@@ -7,10 +7,6 @@ digest verification, the planner signatures, and that no path can submit — is 
 """
 import hashlib
 import json
-import os
-import threading
-
-import pytest
 
 from applications import (
     application_skills,
@@ -21,28 +17,6 @@ from applications import (
     state,
     workflow,
 )
-from harness.connect.daemon import Daemon
-from harness.session import Session
-from tests.fake_browser import FakeBrowser
-
-
-@pytest.fixture
-def served(monkeypatch):
-    d = f"/tmp/bhs{os.getpid()}"
-    os.makedirs(d, exist_ok=True)
-    monkeypatch.setenv("BH_RUNTIME_DIR", d)
-    browser = FakeBrowser("a", "b")
-    daemon = Daemon("sesstest", browser).start()
-    threading.Thread(target=daemon.serve_forever, daemon=True).start()
-    yield browser, daemon
-    daemon.stop()
-
-
-@pytest.fixture
-def session(served):
-    s = Session("sesstest")
-    yield s
-    s.close()
 
 
 def _application_skill_source(tmp_path, monkeypatch):

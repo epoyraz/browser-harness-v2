@@ -90,6 +90,7 @@ def scenario(session: Any, base: str, home: str, steps: Counter) -> None:
     whichever context won — on the iframed posting that is the child target, which the next
     navigation destroys. Rounds must not inherit a dead cursor from their predecessor.
     """
+    from applications import prepare_application, wait_for_application_state
     from harness.ops import forms
     from harness.ops import parallel as parallel_ops
 
@@ -98,9 +99,9 @@ def scenario(session: Any, base: str, home: str, steps: Counter) -> None:
 
     # 1. an application form: prepare_application returns without ever calling frames()
     tab.goto(f"{base}/personio")
-    prepared = session.prepare_application()
+    prepared = prepare_application(session)
     steps["form.prepare"] += 1
-    tab.wait_for_application_state()
+    wait_for_application_state(tab)
     steps["form.state"] += 1
     if values := _text_fields(prepared):
         forms.fill_form(tab, values)
@@ -108,14 +109,14 @@ def scenario(session: Any, base: str, home: str, steps: Counter) -> None:
 
     # 2. no form at all: this is the round trip budget frames() spends on a zero
     tab.goto(f"{base}/noform")
-    session.prepare_application()
+    prepare_application(session)
     steps["noform.prepare"] += 1
-    tab.wait_for_application_state()
+    wait_for_application_state(tab)
     steps["noform.state"] += 1
 
     # 3. a posting whose application is inside a cross-origin frame: the other branch
     tab.goto(f"{base}/iframed")
-    session.prepare_application()
+    prepare_application(session)
     steps["iframed.prepare"] += 1
 
     # 4. an ARIA combobox

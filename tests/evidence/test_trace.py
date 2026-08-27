@@ -1,9 +1,9 @@
 """Trace renderer tests. The one that earns its keep: cdp=61 on the line, no benchmark."""
 import pytest
 
+from evidence.trace import render
 from harness.core.journal import Journal
 from harness.core.outcome import NavigationFailed
-from harness.core.trace import render
 
 
 @pytest.fixture

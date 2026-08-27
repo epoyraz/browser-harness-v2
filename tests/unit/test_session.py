@@ -1,37 +1,13 @@
 """The agent-facing surface. Runs against a real daemon on a real socket, fake browser
 behind it — the point is the wiring, and a mocked session would prove none of it."""
 import json
-import os
 import threading
 import time
-from pathlib import Path
 
 import pytest
 
-from harness.connect.daemon import Daemon
 from harness.core.outcome import ScopeRefused
 from harness.session import Session, run_script
-from tests.fake_browser import FakeBrowser
-
-
-@pytest.fixture
-def served(monkeypatch):
-    d = f"/tmp/bhs{os.getpid()}"
-    os.makedirs(d, exist_ok=True)
-    monkeypatch.setenv("BH_RUNTIME_DIR", d)
-    browser = FakeBrowser("a", "b")
-    daemon = Daemon("sesstest", browser).start()
-    threading.Thread(target=daemon.serve_forever, daemon=True).start()
-    yield browser, daemon
-    daemon.stop()
-
-
-@pytest.fixture
-def session(served):
-    s = Session("sesstest")
-    yield s
-    s.close()
-
 
 # --- tabs ---------------------------------------------------------------------
 
@@ -328,54 +304,12 @@ def test_switching_tabs_redirects_the_bare_helpers(session):
     assert ns["js"]("x") == "b"
 
 
-def test_continuous_screencast_is_exposed_and_stopped_with_the_session(
-        session, monkeypatch, tmp_path):
-    class Recorder:
-        dir = tmp_path
-
-        def __init__(self):
-            self.stops = 0
-
-        def stop(self):
-            self.stops += 1
-            return self.dir
-
-    recorder = Recorder()
-    monkeypatch.setattr("harness.session.screencast.start", lambda *_a, **_kw: recorder)
-    ns = session.namespace()
-    assert ns["start_screencast"]() == str(tmp_path)
-    assert ns["stop_screencast"]() == str(tmp_path)
-    assert recorder.stops == 1
 
 
-def test_recording_profile_is_public_persisted_and_cannot_change_midstream(
-        session, monkeypatch, tmp_path):
-    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
-    directory = session.start_recording(name="proof", profile="evidence")
-    meta = json.loads((Path(directory) / "meta.json").read_text())
-    assert meta["recording_profile"] == "evidence"
-    assert session._recorder.profile.value == "evidence"
-    with pytest.raises(ValueError, match="already uses profile"):
-        session.start_recording(profile="cinematic")
-    assert session.stop_recording() == directory
 
 
-def test_recording_profile_environment_applies_to_manual_start(session, monkeypatch, tmp_path):
-    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
-    monkeypatch.setenv("BH_RECORD_PROFILE", "cinematic")
-    session.start_recording(name="film")
-    assert session._recorder.profile.value == "cinematic"
 
 
-def test_bh_record_may_name_the_profile_directly(served, monkeypatch, tmp_path):
-    monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
-    monkeypatch.setenv("BH_RECORD", "evidence")
-    automatic = Session("sesstest")
-    try:
-        assert automatic._recorder is not None
-        assert automatic._recorder.profile.value == "evidence"
-    finally:
-        automatic.close()
 
 
 def test_only_drivable_targets_are_auto_selected(served):
@@ -551,7 +485,6 @@ def test_a_script_runs_against_the_session(served, capsys):
 
 def test_a_multi_megabyte_stdout_value_is_spilled_and_fetchable(
         served, capsys, monkeypatch, tmp_path):
-    import json
 
     from harness.core.content import ContentStore
 

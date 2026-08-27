@@ -1,7 +1,7 @@
 """Telemetry aggregates journals; it never opens a second capture path."""
 import json
 
-from harness.core.telemetry import KEEP, render, rollup
+from evidence.telemetry import KEEP, render, rollup
 
 
 def _journal(tmp_path, rows):

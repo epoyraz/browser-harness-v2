@@ -4,8 +4,8 @@ import threading
 
 import pytest
 
+from evidence.record import ACTIONS, ALREADY_SETTLED, Profile, parse_profile, scrub, start
 from harness.core.journal import Journal
-from harness.ops.record import ACTIONS, ALREADY_SETTLED, Profile, parse_profile, scrub, start
 
 
 class _FakeTab:
@@ -79,7 +79,7 @@ def test_the_capture_cannot_recurse_into_itself(wired):
 
 def test_parallel_actions_capture_each_worker_tab_once(tmp_path, monkeypatch):
     monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
-    monkeypatch.setattr("harness.ops.record.SETTLE", 0)
+    monkeypatch.setattr("evidence.record.SETTLE", 0)
     journal = Journal(tmp_path / "pre.jsonl", session="s")
     local = threading.local()
     tabs = [_FakeTab() for _ in range(6)]
@@ -163,7 +163,7 @@ def test_fixed_workflow_has_deterministic_profile_frame_manifest(
     and cinematic retains both visual beats plus the high-level completed selection.
     """
     monkeypatch.setenv("BH_RECORDINGS", str(tmp_path))
-    monkeypatch.setattr("harness.ops.record.SETTLE", 0)
+    monkeypatch.setattr("evidence.record.SETTLE", 0)
     journal = Journal(tmp_path / "pre.jsonl", session="s")
     tab = _FakeTab()
     recorder = start(lambda: tab, journal, name=profile, profile=profile)
@@ -209,7 +209,7 @@ def test_the_allowlist_is_state_changing_calls_only():
 
 def test_loaded_navigation_frame_does_not_pay_an_extra_fixed_sleep(wired, monkeypatch):
     slept = []
-    monkeypatch.setattr("harness.ops.record.time.sleep", slept.append)
+    monkeypatch.setattr("evidence.record.time.sleep", slept.append)
     journal, _, _ = wired
 
     with journal.call("goto"):
@@ -233,8 +233,8 @@ def test_the_capture_hook_does_not_serialise_parallel_workers(tmp_path):
     import threading
     import time as _time
 
+    from evidence import record as rec_mod
     from harness.core.journal import Journal, Span
-    from harness.ops import record as rec_mod
 
     workers = 10
 
@@ -282,8 +282,8 @@ def test_frame_numbers_stay_unique_and_contiguous_under_concurrency(tmp_path):
     import threading
     import time as _time
 
+    from evidence import record as rec_mod
     from harness.core.journal import Journal, Span
-    from harness.ops import record as rec_mod
 
     names: list[str] = []
     lock = threading.Lock()

@@ -14,8 +14,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from evidence.record import recordings_root
 from harness.core.outcome import HarnessError
-from harness.ops.record import recordings_root
 
 
 class ScreencastRecorder:

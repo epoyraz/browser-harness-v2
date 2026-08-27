@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from harness.ops import video
-from harness.ops.video import MAX_HOLD, MIN_HOLD, export, have_ffmpeg, plan
+from evidence import video
+from evidence.video import MAX_HOLD, MIN_HOLD, export, have_ffmpeg, plan
 
 
 def _rec(tmp_path, entries, frames=3):

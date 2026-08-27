@@ -1,8 +1,8 @@
 """Think time read from the agent's own transcript — the one bucket the harness cannot see."""
 import json
 
-from harness.core.bench import rollup
-from harness.core.transcript import attach, gaps, summarise
+from evidence.bench import rollup
+from evidence.transcript import attach, gaps, summarise
 
 
 def _line(kind: str, ts: str, **kw) -> str:
