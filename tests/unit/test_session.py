@@ -442,7 +442,7 @@ def test_the_namespace_covers_the_documented_surface(session):
     for name in ("goto", "open_page", "read_page", "js", "cdp", "snapshot",
                  "click_ref", "click_at", "page_text",
                  "press_key", "scroll", "upload_file", "capture_screenshot",
-                 "wait_lifecycle", "wait_for_application_state", "form_schema", "fill_form",
+                 "wait_lifecycle", "form_schema", "fill_form",
                  "start_diagnostics", "diagnostics",
                  "set_value", "require_form",
                  "fetch_all", "fetch_observed_json",
@@ -453,7 +453,7 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "fetch_content", "tab", "session", "journal"):
         assert name in ns, f"SKILL.md documents {name}() but the namespace lacks it"
     for name in ("prepare_application", "follow_application", "locate_application",
-                 "run_application", "application_skills"):
+                 "run_application", "application_skills", "wait_for_application_state"):
         assert name not in ns, f"{name}() is application judgment; core must not carry it"
 
 

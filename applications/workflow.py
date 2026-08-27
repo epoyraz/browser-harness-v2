@@ -22,6 +22,11 @@ import time
 from collections.abc import Callable
 from typing import Any
 
+# Imported as a module, not a name: a test double patches
+# `applications.state.wait_for_application_state`, and a direct import would
+# bind the original here before that ever happens. Aliased because the local
+# variable holding the verdict is also called `state`.
+from applications import state as application_state
 from harness.core.outcome import HarnessError
 from harness.ops import forms
 from harness.skills import Registry as SkillRegistry
@@ -150,7 +155,7 @@ def follow_application(session: Any, prepared: dict[str, Any], *, timeout: float
             navigation = origin.goto(candidate, timeout=timeout, **_navigation_wait())
             transition = {"kind": "candidate_link", "navigation": navigation}
 
-        state = selected.wait_for_application_state(timeout=timeout)
+        state = application_state.wait_for_application_state(selected, timeout=timeout)
         session.use_tab(selected.target_id)
     return {"transition": transition, "state": state,
             "target_id": selected.target_id,
@@ -184,7 +189,7 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
 
     for hop in range(hop_budget):
         with session.journal.bind(stage="inspect", hop=hop):
-            state = pending_state or session.tab().wait_for_application_state(
+            state = pending_state or application_state.wait_for_application_state(session.tab(), 
                 timeout=min(timeout, 12.0))
             pending_state = None
             prepared = prepare_application(session, timeout=timeout)

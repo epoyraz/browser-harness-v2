@@ -18,6 +18,7 @@ from applications import (
     locate_application,
     prepare_application,
     run_application,
+    state,
     workflow,
 )
 from harness.connect.daemon import Daemon
@@ -125,13 +126,13 @@ def test_follow_application_switches_to_a_new_target(session, served, monkeypatc
     origin = session.use_tab("a")
     browser.targets["popup"] = {
         "targetId": "popup", "type": "page", "url": "https://a.test/application"}
-    popup = session.tab("popup")
+    _popup = session.tab("popup")
     session.use_tab("a")
     monkeypatch.setattr(origin, "click_ref", lambda *a, **kw: {
         "url_before": "https://a.test/job", "url_after": "https://a.test/job",
         "navigated": False, "dom_mutations": 0, "new_targets": ["popup"],
         "dialog": None})
-    monkeypatch.setattr(popup, "wait_for_application_state", lambda **kw: {
+    monkeypatch.setattr(state, "wait_for_application_state", lambda *a, **kw: {
         "state": "form", "fields": 8})
 
     result = follow_application(session, {
@@ -149,7 +150,7 @@ def test_follow_application_uses_discovered_link_after_an_inert_click(
         "navigated": False, "dom_mutations": 0, "new_targets": [], "dialog": None})
     monkeypatch.setattr(origin, "goto", lambda url, **kw: {
         "requested": url, "landed": url, "lifecycle": "load"})
-    monkeypatch.setattr(origin, "wait_for_application_state", lambda **kw: {
+    monkeypatch.setattr(state, "wait_for_application_state", lambda *a, **kw: {
         "state": "form", "fields": 8})
 
     result = follow_application(session, {
@@ -164,7 +165,7 @@ def test_follow_application_uses_an_ats_route_candidate(session, monkeypatch):
     visited = []
     monkeypatch.setattr(origin, "goto", lambda url, **kw: (
         visited.append(url) or {"requested": url, "landed": url, "lifecycle": "load"}))
-    monkeypatch.setattr(origin, "wait_for_application_state", lambda **kw: {
+    monkeypatch.setattr(state, "wait_for_application_state", lambda *a, **kw: {
         "state": "form", "fields": 8})
     candidate = "https://jobs.test/acme/id/application"
     result = follow_application(session, 
@@ -180,7 +181,7 @@ def test_locate_application_reuses_transition_state_and_reconciles_form(
     waits = []
     monkeypatch.setattr(tab, "goto", lambda url, **kw: {
         "requested": url, "landed": url, "lifecycle": "load"})
-    monkeypatch.setattr(tab, "wait_for_application_state", lambda **kw: (
+    monkeypatch.setattr(state, "wait_for_application_state", lambda *a, **kw: (
         waits.append("wait") or {"state": "usable_ui"}))
     prepared = iter([
         {"url": "https://a.test/job", "target_id": "a", "is_application": False,

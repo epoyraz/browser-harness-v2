@@ -6,8 +6,7 @@ import time
 
 import pytest
 
-from harness.connect.cdp import Connection
-from harness.connect.session import SessionRegistry, State
+from harness.connect.session import State
 from harness.core.journal import Journal
 from harness.core.outcome import (
     CdpError,
@@ -22,21 +21,7 @@ from harness.core.outcome import (
     ValueRejected,
 )
 from harness.ops.page import ANNOTATE_JS, RUNTIME_JS, SNAPSHOT_JS, WORLD, Tab
-from tests.fake_browser import FakeBrowser
-
-
-@pytest.fixture
-def wired():
-    browser = FakeBrowser("a", "b")
-    conn = Connection(browser).start()
-    registry = SessionRegistry(conn)
-    yield browser, conn, registry
-    conn.close()
-
-
-def _tab(wired, **kw):
-    _browser, conn, registry = wired
-    return Tab(conn, registry, "a", **kw)
+from tests.unit.conftest import _reader_caught_up, _tab
 
 
 def _click_hook(*, activates: bool = False):
@@ -53,15 +38,6 @@ def _click_hook(*, activates: bool = False):
     return hook
 
 
-def _reader_caught_up(tab):
-    """Barrier for events emitted from the test thread.
-
-    They are already sitting in the fake's queue and a reply can only be pushed behind
-    them, so one completed round trip proves the single reader thread has dispatched every
-    one of them. That is how a test asserts an event did NOT have an effect without
-    sleeping on a thread that has no other way to say it is done.
-    """
-    tab.cdp("Page.getLayoutMetrics")
 
 
 def _open_on_release(browser, info):
@@ -1049,92 +1025,16 @@ def test_wait_for_form_rejects_a_nonsense_threshold(wired):
         _tab(wired).wait_for_form(min_fields=0)
 
 
-def test_application_state_returns_a_real_form_immediately(wired):
-    browser, _, _ = wired
-    tab = _tab(wired)
-    browser.eval_hook = lambda e: (
-        {"matched": True, "immediate": True, "state": "form", "fields": 8,
-         "controls": 11, "text_len": 844, "title": "Software Architect",
-         "url": "https://jobs.test/application", "ready_state": "complete"}
-        if "hasSubmit" in e else None)
-    result = tab.wait_for_application_state(timeout=2.0)
-    assert result["state"] == "form" and result["immediate"] is True
-    assert result["waited_ms"] < 500
 
 
-def test_application_state_requires_a_quiet_usable_ui(wired):
-    browser, _, _ = wired
-    tab = _tab(wired)
-    browser.eval_hook = lambda e: (
-        {"matched": False, "immediate": False, "state": "usable_ui", "fields": 0,
-         "controls": 1, "text_len": 900, "title": "Job", "url": "https://a.test/",
-         "ready_state": "complete"}
-        if "hasSubmit" in e else None)
-    started = time.monotonic()
-    result = tab.wait_for_application_state(
-        timeout=1.0, usable_stable=0.08, empty_stable=0.2)
-    assert result["state"] == "usable_ui" and result["reason"] == "stable"
-    assert time.monotonic() - started >= 0.06
 
 
-def test_application_state_does_not_treat_title_plus_empty_body_as_terminal(wired):
-    browser, _, _ = wired
-    tab = _tab(wired)
-    browser.eval_hook = lambda e: (
-        {"matched": False, "immediate": False, "state": "loading", "fields": 0,
-         "controls": 0, "text_len": 0, "title": "Backend Engineer @ Air Apps",
-         "url": "https://jobs.test/posting", "ready_state": "complete"}
-        if "hasSubmit" in e else None)
-    started = time.monotonic()
-    result = tab.wait_for_application_state(
-        timeout=1.0, usable_stable=0.05, empty_stable=0.12)
-    assert result["state"] == "stable_failure" and result["immediate"] is False
-    assert time.monotonic() - started >= 0.10
 
 
-def test_application_state_rejects_invalid_stability_windows(wired):
-    with pytest.raises(ValueError):
-        _tab(wired).wait_for_application_state(empty_stable=0)
 
 
-def test_a_terminal_application_state_owes_the_page_no_teardown(wired):
-    """The watch script disconnects and forgets its observer before reporting a match, so
-    the teardown evaluation that used to run unconditionally asked the page to delete
-    something that was already gone. Measured on the 2026-08-25 corpus: one wasted
-    `Runtime.evaluate` per call, 174 of `wait_for_application_state`'s 516."""
-    browser, _, _ = wired
-    tab = _tab(wired)
-    tab._ensure_world()                        # pay the world once, outside the measurement
-    browser.eval_hook = lambda e: (
-        {"matched": True, "immediate": True, "state": "form", "fields": 8,
-         "controls": 11, "text_len": 844, "title": "Job",
-         "url": "https://jobs.test/apply", "ready_state": "complete"}
-        if "hasSubmit" in e else None)
-
-    mark = len(browser.calls)
-    assert tab.wait_for_application_state(timeout=2.0)["state"] == "form"
-    assert [c.get("method") for c in browser.calls[mark:]] == ["Runtime.evaluate"]
 
 
-def test_an_abandoned_observer_is_still_torn_down(wired):
-    """The other half: a wait that gives up left an observer running, and a MutationObserver
-    on a busy page runs its callback for the life of the document. That one must still cost
-    a round trip."""
-    browser, _, _ = wired
-    tab = _tab(wired)
-    tab._ensure_world()
-    browser.eval_hook = lambda e: (
-        {"matched": False, "immediate": False, "state": "loading", "fields": 0,
-         "controls": 0, "text_len": 0, "title": "Job", "url": "https://a.test/",
-         "ready_state": "complete"}
-        if "hasSubmit" in e else None)
-
-    mark = len(browser.calls)
-    result = tab.wait_for_application_state(
-        timeout=0.5, usable_stable=0.05, empty_stable=0.05)
-    assert result["state"] == "stable_failure"
-    evaluated = [c for c in browser.calls[mark:] if c.get("method") == "Runtime.evaluate"]
-    assert "__bh.watch" in json.dumps(evaluated[-1]["params"])
 
 
 # --- items 17 + 20: snapshot, refs, deltas ------------------------------------

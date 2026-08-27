@@ -568,7 +568,6 @@ class Session:
                      "click_ref", "click_at",
                      "click_auth_ref",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "wait_for_form",
-                     "wait_for_application_state",
                      "start_diagnostics", "diagnostics",
                      "frames",
                      "page_text", "press_key", "type_chars", "scroll", "upload_file",

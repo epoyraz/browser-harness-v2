@@ -9,6 +9,7 @@ from __future__ import annotations
 from functools import partial
 from typing import Any
 
+from applications.state import wait_for_application_state
 from applications.workflow import (
     application_skills,
     follow_application,
@@ -18,7 +19,7 @@ from applications.workflow import (
 )
 
 __all__ = ["application_skills", "follow_application", "install", "locate_application",
-           "prepare_application", "run_application"]
+           "prepare_application", "run_application", "wait_for_application_state"]
 
 
 def install(namespace: dict[str, Any]) -> list[str]:
