@@ -308,7 +308,7 @@ class RemoteConnection:
         dead socket and wait out the full timeout, then report `Timeout` for a connection
         we had already diagnosed — the wrong class, and the real cause discarded. Only
         claim it if `close()` has not already done so, so a deliberate close keeps its own
-        account of itself. Mirrors AsyncConnection._pump in harness/aio.py.
+        account of itself.
         """
         claimed = False
         with self._lock:

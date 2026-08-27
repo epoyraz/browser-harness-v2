@@ -65,7 +65,7 @@ def classify(error: dict[str, Any]) -> Class:
 class WebSocketTransport:
     """The live wire. Translates the websocket library's exceptions into two the rest of
     the tree understands — `TimeoutError` and `EOFError` — so `Connection` never imports
-    `websockets` and a cassette can stand in for it unchanged.
+    `websockets` and a test double can stand in for it unchanged.
 
     Keepalive pings are **off** (`ping_interval=None`). Measured (repro vs a server that
     never pongs): with the library defaults the connection is force-closed with

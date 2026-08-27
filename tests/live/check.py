@@ -4,7 +4,6 @@ Launches a scratch-profile Chrome — own --user-data-dir, so no M144 consent pr
 user's daily browser is untouched — and validates every measured done-when that a fake
 cannot: lifecycle-wait overshoot (<10 ms), snapshot latency on ~450 elements, screenshot
 CSS-pixel invariant on a real display, the dialog dance against a real blocking confirm(),
-and the cassette bytes/call figure on real traffic. Not collected by pytest.
 """
 from __future__ import annotations
 
@@ -26,7 +25,6 @@ import _browser
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
-from harness.core.cassette import Recorder
 from harness.core.outcome import (
     DocumentVersionStale,
     HarnessError,
@@ -108,8 +106,7 @@ def main() -> int:
         r = discover({"BH_PROFILE_DIRS": str(scratch)})
         check("discovery via DevToolsActivePort", r.strategy == "profile", r.ws_url)
 
-        tape = scratch / "cassette.jsonl"
-        conn = Connection(Recorder(WebSocketTransport(r.ws_url), tape)).start()
+        conn = Connection(WebSocketTransport(r.ws_url)).start()
         registry = SessionRegistry(conn)
         registry.discover()
 
@@ -263,13 +260,7 @@ def main() -> int:
             check("js(document.body) does not silently None", True,
                   f"typed: {type(e).__name__}")
 
-        # --- item 27 caveat: real bytes/call ---------------------------------
         conn.close()
-        frames = tape.read_text().splitlines()
-        sends = sum(1 for line in frames if '"t": "send"' in line)
-        size = tape.stat().st_size
-        check("cassette on real traffic", sends > 40,
-              f"{size}B / {sends} calls = {size // max(sends, 1)}B/call")
 
     finally:
         _browser.kill(scratch)

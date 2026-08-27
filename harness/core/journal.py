@@ -17,7 +17,7 @@ Four fields make one file serve all three purposes:
 Design constraints, each earned:
   - Writes never raise. Observability that can break the run is worse than none.
   - Success is silent; the journal is written regardless, but nothing prints unless asked.
-  - Screenshot payloads are elided by digest — 92% of a cassette's bytes were one image.
+  - Screenshot payloads are elided by digest — 92% of a trace's bytes were one image.
 """
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ _SUMMARY_KEYS = frozenset({
 def _elide(value: Any) -> Any:
     """Replace bulky leaf strings with a digest so the journal stays diffable.
 
-    A digest is enough for replay: a cassette compares *what was requested*, and an
+    A digest is enough to compare runs: what matters is *what was requested*, and an
     identical image hashes identically.
     """
     if isinstance(value, str) and len(value) > ELIDE_OVER:

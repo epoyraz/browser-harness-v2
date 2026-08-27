@@ -36,7 +36,6 @@ USAGE = """bh — browser-harness v2
   bh skills show ID    verify and print a skill body
   bh skills sync       refresh configured Git sources
   bh trace <file>       render a session journal as a span tree
-  bh replay --diff A B  golden-file diff over two cassettes' request streams
   bh --version
 """
 
@@ -227,14 +226,6 @@ def main() -> int:
         for line in render_trace(Journal(args[1]).entries(), tail=tail):
             print(line)
         return 0
-
-    if len(args) >= 4 and args[0] == "replay" and args[1] == "--diff":
-        import json
-
-        from harness.core.cassette import diff
-        report = diff(args[2], args[3])
-        print(json.dumps(report, indent=2))
-        return 0 if report["equal"] else 1
 
     if not args or args[0] == "-":
         if sys.stdin.isatty():
