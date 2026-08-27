@@ -113,14 +113,6 @@ NAVIGATION_EVENTS = frozenset({
     "Network.loadingFailed",
 })
 
-#: Network observations retained for automatic public JSON batching. Both stores are
-#: bounded independently: a page can leave requests hanging forever, so bounding only the
-#: completed deque would still let the pending table grow without limit. Values retain
-#: URLs and boolean credential evidence, never headers or response bodies.
-ENDPOINT_OBSERVATION_LIMIT = 256
-ENDPOINT_PENDING_LIMIT = 512
-ENDPOINT_URL_LIMIT = 4096
-
 #: Installed on every new document (item 18). Idempotent; `__bh.mutations` is the DOM
 #: delta counter, `__bh.refs` the snapshot ref registry. Lives in the isolated world, so
 #: `__bh` is reachable from harness JS and invisible to the page.
@@ -1186,19 +1178,6 @@ class Tab:
         self._navigation_history: deque[
             tuple[float | None, float | None, float | None]
         ] = deque(maxlen=NAVIGATION_HISTORY_MAX)
-        #: Factual Network-domain evidence for the read-only endpoint planner. Selection
-        #: policy lives in ops/batch.py; the Tab only pairs request/response events and
-        #: records whether Chrome supplied complete credential evidence. This lock is
-        #: separate from waiter/dialog state so a snapshot cannot delay event delivery.
-        self._endpoint_lock = threading.Lock()
-        self._endpoint_pending: dict[str, dict[str, Any]] = {}
-        self._endpoint_pending_order: deque[str] = deque()
-        self._endpoint_observations: deque[dict[str, Any]] = deque(
-            maxlen=ENDPOINT_OBSERVATION_LIMIT)
-        self._endpoint_sequence = 0
-        self._endpoint_request_sequence = 0
-        self._endpoint_document_url = ""
-        self._endpoint_document_generation = 0
         conn.subscribe(self._on_event)
         try:
             self._install_runtime()
@@ -1371,214 +1350,6 @@ class Tab:
             return info
         return None
 
-    @staticmethod
-    def _endpoint_auth_headers(headers: Any) -> bool:
-        """Whether a CDP header map explicitly carries request/response credentials.
-
-        Header *values* never cross this boundary. Network ExtraInfo events can contain
-        cookies and bearer tokens, so retaining the original mapping would turn a bounded
-        endpoint index into a secret store.
-        """
-        if not isinstance(headers, dict):
-            return False
-        names = {str(name).strip().lower() for name in headers}
-        return bool(names & {
-            "authorization", "proxy-authorization", "cookie",
-            "set-cookie", "www-authenticate", "proxy-authenticate",
-            "authentication-info", "proxy-authentication-info",
-            "x-api-key", "x-auth-token", "x-csrf-token", "x-xsrf-token",
-        })
-
-    @staticmethod
-    def _endpoint_private_response(headers: Any) -> bool:
-        if not isinstance(headers, dict):
-            return False
-        normalized = {
-            str(name).strip().lower(): str(value).strip().lower()
-            for name, value in headers.items()
-        }
-        cache_control = normalized.get("cache-control", "")
-        vary = normalized.get("vary", "")
-        return (
-            "private" in {part.strip() for part in cache_control.split(",")}
-            or "no-store" in {part.strip() for part in cache_control.split(",")}
-            or bool({part.strip() for part in vary.split(",")} & {
-                "cookie", "authorization", "x-api-key", "x-auth-token",
-            })
-        )
-
-    @staticmethod
-    def _bounded_endpoint_url(value: Any) -> tuple[str, bool]:
-        raw = str(value or "")
-        return raw[:ENDPOINT_URL_LIMIT], len(raw) > ENDPOINT_URL_LIMIT
-
-    def _endpoint_entry(self, request_id: str) -> dict[str, Any]:
-        entry = self._endpoint_pending.get(request_id)
-        if entry is not None:
-            return entry
-        entry = {
-            "request_id": request_id,
-            "request_seen": False,
-            "request_extra_seen": False,
-            "request_extra_complete": False,
-            "request_credentials": False,
-            "response_seen": False,
-            "response_extra_seen": False,
-            "response_auth": False,
-            "redirected": False,
-        }
-        self._endpoint_pending[request_id] = entry
-        self._endpoint_pending_order.append(request_id)
-        while len(self._endpoint_pending) > ENDPOINT_PENDING_LIMIT:
-            oldest = self._endpoint_pending_order.popleft()
-            self._endpoint_pending.pop(oldest, None)
-        return entry
-
-    def _observe_endpoint_event(self, method: str, params: dict[str, Any]) -> None:
-        """Pair bounded request facts on the reader thread; never make a CDP request."""
-        if method == "Page.frameNavigated":
-            frame = params.get("frame") or {}
-            if frame.get("parentId"):
-                return
-            document_url, _ = self._bounded_endpoint_url(frame.get("url"))
-            with self._endpoint_lock:
-                # A full main-frame navigation invalidates the old page's endpoint plan,
-                # including same-origin navigations. Otherwise a later helper could replay
-                # evidence from a document it never inspected.
-                self._endpoint_pending.clear()
-                self._endpoint_pending_order.clear()
-                self._endpoint_observations.clear()
-                self._endpoint_sequence = 0
-                self._endpoint_request_sequence = 0
-                self._endpoint_document_url = document_url
-                self._endpoint_document_generation += 1
-            return
-        if method == "Page.navigatedWithinDocument":
-            frame_id = str(params.get("frameId") or "")
-            if self._main_frame and frame_id and frame_id != self._main_frame:
-                return
-            document_url, _ = self._bounded_endpoint_url(params.get("url"))
-            with self._endpoint_lock:
-                # pushState/hash navigation changes the current route's evidence scope.
-                # Keeping endpoints observed on the previous route would be a semantic
-                # guess about this SPA, so require fresh Network evidence instead.
-                self._endpoint_pending.clear()
-                self._endpoint_pending_order.clear()
-                self._endpoint_observations.clear()
-                self._endpoint_sequence = 0
-                self._endpoint_request_sequence = 0
-                self._endpoint_document_url = document_url
-                self._endpoint_document_generation += 1
-            return
-
-        request_id = str(params.get("requestId") or "")
-        if not request_id or method not in {
-            "Network.requestWillBeSent",
-            "Network.requestWillBeSentExtraInfo",
-            "Network.responseReceived",
-            "Network.responseReceivedExtraInfo",
-        }:
-            return
-        with self._endpoint_lock:
-            entry = self._endpoint_entry(request_id)
-            if method == "Network.requestWillBeSent":
-                request = params.get("request") or {}
-                if entry.get("request_seen"):
-                    # CDP reuses requestId across redirects. Pairing the several ExtraInfo
-                    # events is order-sensitive, so the automatic path refuses the chain.
-                    entry["redirected"] = True
-                else:
-                    self._endpoint_request_sequence += 1
-                    entry["request_sequence"] = self._endpoint_request_sequence
-                url, truncated = self._bounded_endpoint_url(request.get("url"))
-                document_url, document_truncated = self._bounded_endpoint_url(
-                    params.get("documentURL"))
-                entry.update({
-                    "request_seen": True,
-                    "url": url,
-                    "url_truncated": truncated,
-                    "method": str(request.get("method") or "").upper(),
-                    "has_post_data": bool(request.get("hasPostData")
-                                          or request.get("postData")),
-                    "request_credentials": bool(entry.get("request_credentials"))
-                                           or self._endpoint_auth_headers(
-                                               request.get("headers")),
-                    "resource_type": str(params.get("type") or ""),
-                    "frame_id": str(params.get("frameId") or ""),
-                    "document_url": document_url,
-                    "document_url_truncated": document_truncated,
-                    "redirected": bool(entry.get("redirected")
-                                       or params.get("redirectResponse")),
-                })
-            elif method == "Network.requestWillBeSentExtraInfo":
-                headers = params.get("headers")
-                cookies = params.get("associatedCookies")
-                entry["request_extra_seen"] = True
-                entry["request_extra_complete"] = (
-                    isinstance(headers, dict) and isinstance(cookies, list))
-                # Refuse even blocked associated cookies. That is deliberately stricter
-                # than "was a Cookie header sent": the page is in credential-bearing
-                # state, and automatic replay is only for unambiguous public reads.
-                entry["request_credentials"] = bool(
-                    entry.get("request_credentials")
-                    or self._endpoint_auth_headers(headers)
-                    or (isinstance(cookies, list) and cookies)
-                )
-            elif method == "Network.responseReceivedExtraInfo":
-                entry["response_extra_seen"] = True
-                entry["response_auth"] = bool(
-                    entry.get("response_auth")
-                    or self._endpoint_auth_headers(params.get("headers")))
-                entry["response_private"] = bool(
-                    entry.get("response_private")
-                    or self._endpoint_private_response(params.get("headers")))
-            else:
-                response = params.get("response") or {}
-                response_url, response_url_truncated = self._bounded_endpoint_url(
-                    response.get("url"))
-                entry.update({
-                    "response_seen": True,
-                    "response_url": response_url,
-                    "response_url_truncated": response_url_truncated,
-                    "status": int(response.get("status") or 0),
-                    "mime_type": str(response.get("mimeType") or "").lower()[:200],
-                    "response_extra_expected": bool(params.get("hasExtraInfo")),
-                    "response_auth": bool(entry.get("response_auth"))
-                                   or self._endpoint_auth_headers(response.get("headers")),
-                    "response_private": bool(entry.get("response_private"))
-                                      or self._endpoint_private_response(
-                                          response.get("headers")),
-                    "from_service_worker": bool(response.get("fromServiceWorker")),
-                })
-                if not entry.get("observation_sequence"):
-                    self._endpoint_sequence += 1
-                    entry["observation_sequence"] = self._endpoint_sequence
-                    # Keep the same bounded dict alive in the pending table so an
-                    # ExtraInfo event that follows responseReceived can complete it.
-                    self._endpoint_observations.append(entry)
-
-    def _endpoint_snapshot(self) -> dict[str, Any]:
-        """Internal factual snapshot consumed by the bounded endpoint planner.
-
-        No header/body values are present. Returning copies prevents the reader thread's
-        later ExtraInfo event from mutating a plan while it is being selected.
-        """
-        with self._endpoint_lock:
-            rows = [dict(row) for row in self._endpoint_observations]
-            rows.sort(key=lambda row: (
-                int(row.get("request_sequence") or 2**63 - 1),
-                int(row.get("observation_sequence") or 0),
-            ))
-            return {
-                "document_url": self._endpoint_document_url,
-                "document_generation": self._endpoint_document_generation,
-                "main_frame": self._main_frame or "",
-                "observation_limit": ENDPOINT_OBSERVATION_LIMIT,
-                "observations_dropped": max(
-                    0, self._endpoint_sequence - len(self._endpoint_observations)),
-                "observations": rows,
-            }
-
     def _on_event(self, msg: dict[str, Any]) -> None:
         """Reader thread: bookkeeping and waiter wakeups only, never a request."""
         sid = msg.get("sessionId")
@@ -1586,7 +1357,6 @@ class Tab:
             return                                     # another tab's event
         method = msg.get("method", "")
         params = msg.get("params") or {}
-        self._observe_endpoint_event(method, params)
         if self._diagnostics_enabled:
             diagnostic = self._sanitize_diagnostic_event(method, params)
             if diagnostic is not None:

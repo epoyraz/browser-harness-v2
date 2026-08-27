@@ -35,8 +35,7 @@ Page reads are versioned semantic blocks: unchanged reads return stable referenc
 mutations emit only changed blocks, and document-bound cursors fail closed when stale.
 All helper results and each invocation's stdout share the `BH_OUTPUT_BYTES` ceiling;
 overflow is stored losslessly by SHA-256 and retrieved with `fetch_content(digest)`.
-Action helpers carry bounded consequence/validation evidence, navigation grace adapts from
-session-local timings while strict mode stays exact, and `fetch_observed_json` can replay
-only fully observed anonymous same-origin GET/HEAD JSON endpoints under five explicit caps.
+Action helpers carry bounded consequence/validation evidence, and navigation grace adapts
+from session-local timings while strict mode stays exact.
 The compositional `parallel()` aggregate remains available in-process for `summarise()` and
 artifact writers; its emitted stdout is still subject to the same invocation ceiling.

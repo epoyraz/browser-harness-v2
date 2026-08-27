@@ -109,26 +109,6 @@ If many same-origin JSON/API URLs are already known, `fetch_all(urls, concurrenc
 performs bounded in-page GETs with browser cookies and counted failures. Do not issue one
 `js(fetch(...))` per URL.
 
-When the page itself has already issued public same-origin JSON GET/HEAD requests,
-`fetch_observed_json(...)` can replay the exact observed URLs as one anonymous bounded
-read. State all five ceilings; the helper never guesses pagination URLs and returns a typed
-browser-interaction fallback when cookie/header/origin evidence is incomplete:
-
-```python
-out = fetch_observed_json(
-    max_urls=20, max_responses=30, max_total_bytes=500_000,
-    concurrency=5, retries=1,
-)
-if not out.ok and out.observed.get("fallback"):
-    page = read_page()  # continue through normal browser evidence
-else:
-    print(out.value)    # one input-ordered row for every planned URL
-```
-
-This automatic path uses no cookies, authorization headers, referrer, redirects, POST, or
-invented endpoint variants. Use explicit `fetch_all` only when the caller already owns and
-has independently justified a different URL/authentication contract.
-
 ## Inspect and act
 
 ```python

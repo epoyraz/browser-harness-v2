@@ -512,7 +512,6 @@ class Session:
             "select_option": with_tab(forms.select_option),
             "require_form": forms.require_form,
             "fetch_all": with_tab(batch.fetch_all),
-            "fetch_observed_json": with_tab(batch.fetch_observed_json),
             "open_pages": open_pages,
 
             "account_credential_status": account_credential_status,

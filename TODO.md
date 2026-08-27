@@ -150,6 +150,46 @@ automation signature on exactly the bot-walled sites `frames()` exists for. The 
 stalled XHR and beacons, not image bytes. A third-party analytics denylist via
 `Network.setBlockedURLs` carries none of those risks and remains untested.
 
+## Automatic endpoint extraction, removed — 2026-08-27
+
+`fetch_observed_json` and the Network-event observation that fed it are deleted. The P2
+item below is left checked because it was built and it did work; this section records that
+it was removed anyway, and why, so the entry is not read as still-shipping.
+
+It had no caller. Not "few callers" — none: nothing in `applications/`, `evidence/` or
+`tools/` ever planned a replay, and the only exercise it ever got was the unit fixtures and
+one live check written for it. It was speculative capability, and the case that motivated
+it (turn N navigations into one bounded read) is one no corpus run has produced.
+
+The cost was not only lines. `_observe_endpoint_event` ran on the **reader thread for every
+CDP event**, pairing requests and responses into two bounded tables, so a feature nobody
+called was doing per-event work on the hot path of every session. Deleting it removes that
+unconditionally.
+
+| | before | after |
+|---|---:|---:|
+| `harness/ops/batch.py` | 544 | 85 |
+| `harness/ops/page.py` | 3,328 | 3,098 |
+| core `harness/` | 11,722 | **11,032** |
+
+627 unit tests, 83/83 live form checks, 24/24 parallel/safety checks. The CDP rig is
+unchanged at 306 round trips over 3 rounds — `Network.enable` stays, because navigation
+readiness has always needed it, so this is a deletion of work per event rather than of
+round trips.
+
+**Two things this pass deliberately did not delete**, both named in the same bundle:
+
+- *The content store.* It is load-bearing. `ops/semantic.py` is built on it, and that cache
+  was measured at −61% emitted bytes over four reads, so it is kept; the store also backs
+  the journal's spill and the stdout ceiling that stops a multi-megabyte value from
+  flooding an invocation. Removing it would mean removing a safety property, not fat.
+- *Changed-region action consequences.* This is the one part of the bundle that serves the
+  stated goal directly: an action returns the changed region so the agent does not need an
+  `act → read_page() → decide` round trip. Deleting it would cut lines and add model calls.
+
+So the honest revision: stage 4 was estimated at ~2,000 lines and delivered 690. The
+remainder of the estimate was two features that turned out to be worth their size.
+
 ## Harness benchmark telemetry follow-up — 2026-08-23
 
 Evidence came from the first v2-only harness benchmark: 38 attempted cells produced 25

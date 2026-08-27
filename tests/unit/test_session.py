@@ -379,7 +379,7 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "wait_lifecycle", "form_schema", "fill_form",
                  "start_diagnostics", "diagnostics",
                  "set_value", "require_form",
-                 "fetch_all", "fetch_observed_json",
+                 "fetch_all",
                  "open_pages", "new_tab",
                  "use_tab", "close_tab",
                  "lease_tab", "resume_lease", "release_lease",
