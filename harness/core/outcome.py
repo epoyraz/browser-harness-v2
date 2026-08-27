@@ -355,19 +355,15 @@ ElementGone = _error("ElementGone", Class.ELEMENT_GONE)
 Partial = _error("Partial", Class.PARTIAL)
 Timeout = _error("Timeout", Class.TIMEOUT)
 
+#: Derived, not restated. This used to list all twenty-nine names a second time, so adding
+#: an error and forgetting the second list left `HarnessError.of` silently handing back the
+#: base class — a caller's `except Timeout` would simply stop matching, with nothing to see
+#: at the definition site. The classes above are the only source; registration cannot now
+#: be forgotten. Names stay written out one per line so both stay greppable.
 _BY_CLASS: dict[Class, type[HarnessError]] = {
-    e.cls: e for e in (
-        EndpointUnreachable, Endpoint404, NoBrowserWindow, PermissionPending,
-        WsRejectedUpstream, BrowserDisconnected, ScopeRefused, SideEffectRefused,
-        ResourceLimit, ResourceCleanupFailed, Cancelled, ProtocolMismatch,
-        SkillIntegrityFailed,
-        TargetGone, SessionStale,
-        RendererUnresponsive, CdpError, NavigationFailed, DocumentVersionStale,
-        HttpError, JsException,
-        NotSerializable, NoOptionMatch, NeedsInteraction, ValueRejected, NotAForm,
-        ElementGone, Partial,
-        Timeout,
-    )
+    value.cls: value for value in list(globals().values())
+    if isinstance(value, type) and issubclass(value, HarnessError)
+    and value is not HarnessError
 }
 
 

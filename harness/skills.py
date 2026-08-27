@@ -11,7 +11,7 @@ import time
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path, PurePath
-from typing import Any, Self
+from typing import Any
 from urllib.parse import urlsplit
 
 from harness.core.outcome import Class, Outcome, SkillIntegrityFailed, fail
@@ -332,7 +332,3 @@ class Registry:
         self.refs = self._index()
         return path
 
-    def refresh(self) -> Self:
-        self.sources = self._sources()
-        self.refs = self._index()
-        return self

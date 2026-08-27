@@ -150,6 +150,83 @@ automation signature on exactly the bot-walled sites `frames()` exists for. The 
 stalled XHR and beacons, not image bytes. A third-party analytics denylist via
 `Network.setBlockedURLs` carries none of those risks and remains untested.
 
+## Stage 5: the compatibility paths — 2026-08-27
+
+Estimated at ~1,000 lines. **It is 25.** Recording the miss because the estimate was the
+part that was wrong, not the work: an AST pass over `harness/` found exactly three
+unreferenced functions totalling eight lines, and two of those turned out to be load-bearing
+on inspection. Core has no meaningful dead code left. Any further shrinking is now removing
+capability, and should be argued as that rather than filed as cleanup.
+
+What the estimate contained and what it actually was:
+
+- **Implicit tab adoption.** Not deletable, and not compatibility: it *is* the fix for the
+  two-clients-one-tab collision (browser-use PR 618, one layer down). What was deletable is
+  its fallback — see below.
+- **Stale-daemon compatibility.** Real, and worse than the failure it avoided. Done.
+- **Outcome representation.** `MappingOutcome` is 40 lines and one caller (`upload_file`),
+  but scripts do `json.dumps(upload_file(...))`, so it is dict-ness that callers depend on;
+  removing it is a breaking change for 40 lines. `Tally` is used throughout. The 29 typed
+  exception classes are the vocabulary of the outcome contract — 11 have no current
+  `raise`/`except` site, and deleting those names would silently downgrade
+  `HarnessError.of` to the base class for those cases. All kept.
+- **Raw-character paging** in the page digest was commented as a compatibility path. It is
+  not: it is the mechanism `page_text(start=)` returns text through. Comment corrected.
+
+### The one real deletion: the adopt fallback
+
+`tab()` caught the string `unknown meta` from a daemon too old to know `adopt` and reverted
+to `_legacy_default_tab()` — the client-side scan (list drivable pages, take the first) that
+`adopt` exists to replace. So the fallback for a stale daemon was *the collision itself*,
+entered silently.
+
+It was reachable because `adopt` shipped in `7b70edb` (2026-08-16) without a protocol bump;
+`PROTOCOL_VERSION` had been 1 since `ec97798` and never moved. The bump is the fix.
+Protocol is now **2**, so such a daemon fails the handshake with a typed `ProtocolMismatch`
+carrying "restart the daemon", and the fallback is gone.
+
+Verified live against a protocol-1 daemon that was still running on this machine:
+
+    ProtocolMismatch: client protocol 2 cannot use daemon protocol 1
+    recovery: client and daemon disagree on the protocol — restart the daemon
+
+`Session.drivable()` and `harness.session._DRIVABLE` went with it. `_DRIVABLE` was
+maintained by hand in two files with a comment saying to keep them in lockstep; the daemon
+is now the only definition of which pages may be driven.
+
+`_BY_CLASS` no longer restates all twenty-nine exception names — it is derived from the
+classes themselves. That is not a line count change worth reporting; it removes a failure
+mode. Adding an error and forgetting the second list left `HarnessError.of` handing back
+the base class, so a caller's `except Timeout` would quietly stop matching with nothing
+wrong at the definition site. Deriving it also surfaced that `platform_unsupported`,
+`host_permission_required` and `approval_not_pending` have no typed class — correct, as it
+happens: all three are only ever returned by `fail()`, never raised.
+
+`OutputCapture.encoding` and `.writable()` read as unreferenced and are not: they are the
+`TextIO` duck type that `logging.StreamHandler` and `traceback` ask for when this object
+replaces `sys.stdout`. Static analysis cannot see those callers, so they now carry a note
+saying so — the next dead-code pass should not have to rediscover it.
+
+627 unit tests, 83/83 live form checks, 24/24 parallel/safety, 9/9 daemon checks. CDP rig
+unchanged at 306. Core 11,032 → **11,007**.
+
+## Open: the daemon never idles out — 2026-08-27
+
+Found while checking that the protocol bump would be noticed: **38 orphaned daemon
+processes**, the oldest three hours old, all from `test_ensure_daemon_reports_a_typed_
+failure_rather_than_hanging`. The test asserts the client gives up in a second, which it
+does — but the client spawns a real detached daemon (twice, by design, on the
+disappeared-daemon path), and nothing ever stops it.
+
+`Daemon` exits when its browser dies or on `KeyboardInterrupt`. There is no idle path: a
+daemon with zero connected clients serves forever. Outliving short-lived clients is the
+whole point of the design, so the fix is a deadline rather than exiting at zero clients —
+something like "no client has connected for N minutes, and none ever did" — which is why
+this is filed rather than folded into a deletion pass.
+
+Killed the 38. This is not only a test artifact: any `bh` run against a machine where
+discovery succeeds but the caller then walks away leaves one behind.
+
 ## Automatic endpoint extraction, removed — 2026-08-27
 
 `fetch_observed_json` and the Network-event observation that fed it are deleted. The P2

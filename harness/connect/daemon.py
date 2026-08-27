@@ -35,8 +35,9 @@ from harness.core.outcome import BrowserDisconnected, Class, HarnessError, fail,
 from harness.version import PROTOCOL_VERSION, VERSION
 
 #: A tab the adopt fallback may hand out. `about:blank` counts; chrome:// internals and
-#: devtools do not. Kept in lockstep with harness.session._DRIVABLE — connect cannot
-#: import from session without inverting the layering.
+#: devtools do not. The single definition: `Session` used to carry a second copy for its
+#: own client-side scan, and two hand-synchronised answers to "may I drive this?" is how
+#: the two sides come to disagree.
 _DRIVABLE = ("http://", "https://", "file://", "about:blank", "data:")
 
 #: In-flight requests one client may have. Past this they queue — the same backpressure

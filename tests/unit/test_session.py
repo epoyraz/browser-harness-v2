@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from harness.core.outcome import ScopeRefused
+from harness.core.outcome import HarnessError, ScopeRefused
 from harness.session import Session, run_script
 
 # --- tabs ---------------------------------------------------------------------
@@ -310,6 +310,24 @@ def test_switching_tabs_redirects_the_bare_helpers(session):
 
 
 
+
+
+def test_a_daemon_that_refuses_adopt_fails_instead_of_scanning_client_side(session,
+                                                                             monkeypatch):
+    """The fallback this replaces was worse than the failure it avoided.
+
+    `adopt` shipped under protocol 1, so a daemon predating it answered the handshake and
+    then refused the meta — and `tab()` quietly reverted to the client-side scan that
+    `adopt` exists to prevent, which is the two-clients-one-tab collision. The protocol is
+    now 2, so such a daemon cannot connect at all; if a refusal reaches here anyway it must
+    surface, not degrade.
+    """
+    monkeypatch.setattr(type(session.conn), "adopt_default_target",
+                        lambda *_a, **_kw: (_ for _ in ()).throw(
+                            HarnessError("unknown meta 'adopt'")))
+    session._local.current = None
+    with pytest.raises(HarnessError, match="unknown meta"):
+        session.tab()
 
 
 def test_only_drivable_targets_are_auto_selected(served):

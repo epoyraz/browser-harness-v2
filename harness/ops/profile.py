@@ -37,9 +37,6 @@ class ApplicantProfile:
         item = self.get(key)
         return default if item is None or item.known_absent else item.value
 
-    def has_answer(self, key: str) -> bool:
-        return key in self.values
-
 
 def load_answer_file(path: str | Path) -> ApplicantProfile:
     """Read the deliberately tiny ``key=value`` questionnaire format.

@@ -646,8 +646,9 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
     document_id: String(performance.timeOrigin || 0),
     url: location.href, title: document.title, ready_state: document.readyState,
     language: document.documentElement.lang || navigator.language || '',
-    // Retained for backwards-compatible raw-character paging. New continuations use
-    // the document-bound semantic cursor returned by Python.
+    // Raw character paging, which is what `page_text(start=)` returns text through.
+    // `read_page` continuations should use the document-bound semantic cursor instead:
+    // an offset cannot prove the document did not change between two calls.
     text: raw.slice(start, start + maxChars), text_chars: raw.length,
     text_start: start, text_remaining: Math.max(0, raw.length - start - maxChars),
     text_truncated: raw.length > start + maxChars,
@@ -1882,7 +1883,7 @@ class Tab:
             elif fallback:
                 lifecycle = fallback_kind
             else:
-                usable = self._usable_document(min(timeout, 5.0))
+                usable = self._document_readiness(min(timeout, 5.0))[0]
                 take_event(0.0)
                 if exact is not None:
                     lifecycle = "load"
@@ -1975,10 +1976,6 @@ class Tab:
             return False, ()
         signature = (state, controls, text, *tuple(value[3:5]))
         return state != "loading" and (controls > 0 or text > 0), signature
-
-    def _usable_document(self, timeout: float) -> bool:
-        """Compatibility wrapper for the final-deadline usable-document check."""
-        return self._document_readiness(timeout)[0]
 
     def wait_lifecycle(self, name: str = "networkIdle", *, timeout: float = 10.0) -> None:
         with self._armed(lambda m: m.get("method") == "Page.lifecycleEvent") as w:

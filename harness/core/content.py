@@ -161,11 +161,15 @@ class OutputCapture(io.TextIOBase):
             "output_bytes": 0, "output_emitted_bytes": 0, "output_truncated": False,
         }
 
+    # Nothing in this repository calls `encoding` or `writable`, and a dead-code scan will
+    # say so. They are the TextIO duck type: this object replaces `sys.stdout`, and
+    # `logging.StreamHandler`, `traceback`, and any dependency writing to stdout ask for
+    # them. Static analysis cannot see those callers, so the note is the guard.
     @property
-    def encoding(self) -> str:  # pragma: no cover - trivial compatibility surface
+    def encoding(self) -> str:  # pragma: no cover - part of the TextIO contract
         return getattr(self.target, "encoding", None) or "utf-8"
 
-    def writable(self) -> bool:
+    def writable(self) -> bool:  # pragma: no cover - part of the TextIO contract
         return True
 
     def write(self, text: str) -> int:
