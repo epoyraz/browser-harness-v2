@@ -24,6 +24,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import threading
 import time
 from collections import deque
@@ -1286,6 +1287,7 @@ class Tab:
         self._diagnostics_enabled = False
         self._diagnostics_started = 0.0
         self._world_ctx: int | None = None
+        self._ax_enabled = False
         #: Worlds we have already tried to repopulate. One heal per world: enough to fix a
         #: world the document-start registration missed, bounded so a genuine bug in this
         #: module's JS cannot re-run on every call.
@@ -2231,6 +2233,132 @@ class Tab:
                                pattern=pattern or exclude,
                                browser_error=got.get("detail", ""))
         return got or []
+
+    #: Structural AX roles carry no name a caller would search for, and returning one
+    #: element as several rows is worse than returning it once.
+    _AX_STRUCTURAL = frozenset({
+        "RootWebArea", "generic", "none", "StaticText", "LineBreak", "InlineTextBox",
+        "LabelText", "MenuListPopup", "paragraph", "Section",
+    })
+
+    def ax(self, name: str | None = None, *, role: str | None = None,
+           pattern: str | None = None, exclude: str | None = None,
+           limit: int = 20, refs: bool = True,
+           timeout: float = 10.0) -> list[dict[str, Any]]:
+        """Elements as Chrome computes them, not as `SNAPSHOT_JS` guesses them.
+
+        `snapshot()` and `find()` name an element by a chain —
+        ``aria-label || innerText || value || placeholder || name`` — which is an
+        approximation of the accessible-name computation, and measured against Chrome on a
+        fixture of nine controls it named **three**. It returned nothing for
+        `aria-labelledby`, `<label for>`, a wrapping `<label>`, `title`, and an image's
+        `alt`; for a radio it returned ``"yes"``, the form value, which is worse than
+        nothing because it reads like an answer.
+
+        This asks the browser instead. Chrome implements the accname spec, so a control
+        labelled by any of those mechanisms arrives correctly named, with its computed
+        role and the state the platform exposes — checked, expanded, disabled, selected.
+
+        Rows carry ordinary snapshot refs, so `click_ref`, `set_value` and
+        `select_option` take them unchanged. That costs two round trips per returned row
+        to bind the node into the ref registry, which is why `limit` is small and why
+        `refs=False` exists for a read that only wants to see. The tree itself is one
+        call whatever the page size.
+
+        Nodes are kept when they are not ignored and carry either a name or focus — a
+        principle rather than a denylist, so a widget with a role we have never seen still
+        arrives.
+        """
+        matcher = re.compile(pattern, re.IGNORECASE) if pattern else None
+        rejector = re.compile(exclude, re.IGNORECASE) if exclude else None
+        wanted = name.lower() if name else None
+        with self._j.call("ax", name=bool(name), role=role, limit=limit, refs=refs):
+            if not self._ax_enabled:
+                self.cdp("Accessibility.enable", timeout=timeout)
+                self._ax_enabled = True
+            nodes = self.cdp("Accessibility.getFullAXTree",
+                             timeout=timeout).get("nodes") or []
+            rows: list[dict[str, Any]] = []
+            for node in nodes:
+                backend = node.get("backendDOMNodeId")
+                if node.get("ignored") or not backend:
+                    continue
+                node_role = str((node.get("role") or {}).get("value") or "")
+                if node_role in self._AX_STRUCTURAL:
+                    continue
+                node_name = str((node.get("name") or {}).get("value") or "").strip()
+                properties = {p["name"]: (p.get("value") or {}).get("value")
+                              for p in (node.get("properties") or []) if p.get("name")}
+                if not node_name and not properties.get("focusable"):
+                    continue
+                if wanted and wanted not in node_name.lower():
+                    continue
+                if matcher and not matcher.search(node_name):
+                    continue
+                if rejector and rejector.search(node_name):
+                    continue
+                if role and node_role.lower() != role.lower():
+                    continue
+                row: dict[str, Any] = {"ref": None, "role": node_role, "name": node_name,
+                                       "ax": backend}
+                if (value := (node.get("value") or {}).get("value")) not in (None, ""):
+                    row["value"] = value
+                if (described := (node.get("description") or {}).get("value")):
+                    row["description"] = str(described)[:200]
+                for key in ("checked", "disabled", "expanded", "selected", "required",
+                            "invalid", "level", "url"):
+                    if (found := properties.get(key)) not in (None, "", "false", False):
+                        row[key] = found
+                rows.append(row)
+                if len(rows) >= max(1, int(limit)):
+                    break
+            if refs:
+                self._bind_ax_refs(rows, timeout=timeout)
+        return rows
+
+    def _bind_ax_refs(self, rows: list[dict[str, Any]], *, timeout: float) -> None:
+        """Give each AX row an ordinary ref by registering its node in the isolated world.
+
+        `DOM.resolveNode` hands back a handle *in that world*, so calling `__bh.ref` on it
+        registers the element exactly as `SNAPSHOT_JS` would have. Nothing downstream then
+        needs to know a ref came from the accessibility tree — which is the whole point,
+        since a ref is looked up in about twenty places.
+
+        A node that will not resolve keeps `ref: None` rather than raising: it has usually
+        gone since the tree was read, and one detached node must not lose the caller the
+        other nineteen rows.
+        """
+        world = self._ensure_world()
+        if world is None:
+            return
+        group = f"bh-ax-{self._j.next_id()}"
+        try:
+            for row in rows:
+                try:
+                    resolved = self.cdp("DOM.resolveNode",
+                                        {"backendNodeId": row["ax"],
+                                         "executionContextId": world,
+                                         "objectGroup": group}, timeout=timeout)
+                    object_id = (resolved.get("object") or {}).get("objectId")
+                    if not object_id:
+                        continue
+                    got = self.cdp("Runtime.callFunctionOn", {
+                        "objectId": object_id,
+                        "functionDeclaration":
+                            "function(){return window.__bh && window.__bh.ref(this)}",
+                        "returnByValue": True}, timeout=timeout)
+                    row["ref"] = (got.get("result") or {}).get("value")
+                except HarnessError:
+                    continue
+        finally:
+            # The handles are only needed to reach `__bh.ref`; the registry keeps its own
+            # reference to the element, so releasing the group frees the remote handles
+            # without invalidating a single ref this call just issued.
+            try:
+                self.cdp("Runtime.releaseObjectGroup", {"objectGroup": group},
+                         timeout=timeout)
+            except HarnessError:
+                pass
 
     def extract(self, selector: str, fields: dict[str, str] | None = None, *,
                 limit: int = 200, max_chars: int = 20_000) -> dict[str, Any]:

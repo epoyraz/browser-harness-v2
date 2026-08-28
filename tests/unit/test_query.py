@@ -89,3 +89,83 @@ def test_a_stale_ref_says_to_take_a_fresh_snapshot(tab):
     browser.eval_hook = lambda e: {"error": "unknown_ref"}
     with pytest.raises(ElementGone, match="fresh snapshot"):
         t.form_values("e9")
+
+
+def _ax_node(backend, role, name, ignored=False, **props):
+    return {"backendDOMNodeId": backend, "ignored": ignored,
+            "role": {"value": role}, "name": {"value": name},
+            "properties": [{"name": k, "value": {"value": v}} for k, v in props.items()]}
+
+
+def _ax_browser(tab, nodes):
+    """Answer the AX tree, and bind every ref request to a predictable name."""
+    browser, t = tab
+    browser.eval_hook = lambda e: 1  # any world context id
+    original = t.cdp
+
+    def fake(method, params=None, **kw):
+        if method == "Accessibility.getFullAXTree":
+            return {"nodes": nodes}
+        if method == "Accessibility.enable":
+            return {}
+        if method == "DOM.resolveNode":
+            return {"object": {"objectId": f"obj-{params['backendNodeId']}"}}
+        if method == "Runtime.callFunctionOn":
+            return {"result": {"value": "e" + params["objectId"].split("-")[1]}}
+        if method == "Runtime.releaseObjectGroup":
+            return {}
+        return original(method, params, **kw)
+
+    t.cdp = fake
+    return t
+
+
+def test_ax_keeps_a_node_that_is_named_or_focusable_and_drops_the_rest(tab):
+    """A denylist of roles would drop a widget whose role we have never seen. Keeping
+    what is named or focusable is a property of the node, not a list we maintain."""
+    t = _ax_browser(tab, [
+        _ax_node(1, "textbox", "Date of birth", focusable=True),
+        _ax_node(2, "generic", ""),                      # structural
+        _ax_node(3, "StaticText", "Date of birth"),      # the label's own text node
+        _ax_node(4, "some-future-widget", "", focusable=True),
+        _ax_node(5, "button", "Hidden", ignored=True),
+        _ax_node(6, "img", ""),                          # neither named nor focusable
+    ])
+    names = [(r["role"], r["name"]) for r in t.ax(refs=False)]
+    assert names == [("textbox", "Date of birth"), ("some-future-widget", "")]
+
+
+def test_ax_binds_each_row_into_the_ordinary_ref_registry(tab):
+    """The point of binding: `click_ref` and `set_value` must not learn where a ref came
+    from — a ref is looked up in about twenty places."""
+    t = _ax_browser(tab, [_ax_node(7, "button", "Send", focusable=True)])
+    row = t.ax()[0]
+    assert row["ref"] == "e7" and row["ax"] == 7
+
+
+def test_a_node_that_will_not_resolve_costs_its_own_row_and_no_other(tab):
+    """It has usually gone since the tree was read. One detached node must not lose the
+    caller the rows that are still good."""
+    t = _ax_browser(tab, [_ax_node(1, "button", "Fine", focusable=True),
+                          _ax_node(2, "button", "Gone", focusable=True)])
+    inner = t.cdp
+
+    def flaky(method, params=None, **kw):
+        if method == "DOM.resolveNode" and params["backendNodeId"] == 2:
+            raise ElementGone("detached")
+        return inner(method, params, **kw)
+
+    t.cdp = flaky
+    rows = {r["name"]: r["ref"] for r in t.ax()}
+    assert rows == {"Fine": "e1", "Gone": None}
+
+
+def test_ax_reports_only_the_states_the_platform_actually_set(tab):
+    """`checked: "false"` on every unchecked box is noise the caller has to filter."""
+    t = _ax_browser(tab, [
+        _ax_node(1, "checkbox", "Terms", checked="true", invalid="false", focusable=True),
+        _ax_node(2, "checkbox", "Ads", checked="false", invalid="false", focusable=True),
+    ])
+    rows = {r["name"]: r for r in t.ax(refs=False)}
+    assert rows["Terms"]["checked"] == "true"
+    assert "checked" not in rows["Ads"] and "invalid" not in rows["Terms"]

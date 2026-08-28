@@ -397,7 +397,7 @@ def test_the_namespace_covers_the_documented_surface(session):
                  "wait_lifecycle", "form_schema", "fill_form",
                  "start_diagnostics", "diagnostics",
                  "set_value", "require_form",
-                 "find", "extract", "form_values",
+                 "find", "extract", "form_values", "ax",
                  "fetch_all",
                  "open_pages", "new_tab",
                  "use_tab", "close_tab",

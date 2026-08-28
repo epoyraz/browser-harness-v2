@@ -50,10 +50,17 @@ Use the highest-level bounded helper that answers the question:
    When a substring is not enough, `find(pattern=r"(apply|bewerb|postul)", exclude=
    r"(newsletter|privacy)", max_len=60)` takes regular expressions and a length cap —
    a sentence containing the word is rarely the control carrying it.
-4. `snapshot()` or `form_schema()` when you need every control rather than one;
+4. `ax(name=..., role=...)` when the name matters. `snapshot()` and `find()` name an
+   element from its own markup, which misses `aria-labelledby`, `<label for>`, a wrapping
+   `<label>`, `title` and an image's `alt` — measured at three of nine controls named on a
+   fixture built from those. `ax()` asks Chrome for the computed accessible name and role,
+   and its rows carry ordinary refs, so `click_ref` and `set_value` take them unchanged.
+   It costs one round trip for the tree plus two per row it binds, so keep `limit` small
+   or pass `refs=False` to read without acting.
+5. `snapshot()` or `form_schema()` when you need every control rather than one;
    `form_values()` to read a form back after writing it.
-5. `see()` only when layout, imagery, overlap, or a visually empty page matters.
-6. Raw `js()` / `cdp()` only when no helper exposes the required information.
+6. `see()` only when layout, imagery, overlap, or a visually empty page matters.
+7. Raw `js()` / `cdp()` only when no helper exposes the required information.
 
 **After an action, read its `consequence` instead of re-reading the page.** `click_ref`,
 `type_chars`, `set_value`, `select_option` and `fill_form` already return the changed
@@ -145,6 +152,7 @@ hits = extract("li.card",                # repeated records, each with a ref to 
 elements = snapshot()                    # every control: ref, role/tag/name, viewport box
 schema = form_schema()                   # labels, required, options, file refs
 values = form_values()                   # what the form holds now; passwords read `[set]`
+labelled = ax("Date of birth")           # the name Chrome computes, not the one we guess
 click_ref("e12")                         # verified delta, not silent success
 set_value("e4", "text")                 # one round trip
 select_option("e7", "Switzerland")      # native or ARIA combobox

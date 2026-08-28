@@ -503,7 +503,7 @@ class Session:
             "CancelToken": parallel_ops.CancelToken,
         }
         for name in ("goto", "open_page", "read_page", "js", "cdp", "snapshot", "see",
-                     "find", "extract", "form_values",
+                     "find", "extract", "form_values", "ax",
                      "click_ref", "click_at",
                      "click_auth_ref",
                      "capture_screenshot", "wait_lifecycle", "wait_for", "wait_for_form",
