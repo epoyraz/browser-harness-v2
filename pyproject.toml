@@ -9,6 +9,9 @@ requires-python = ">=3.11"
 # the only websockets touchpoint), so minors can float; capped below 18 until tested.
 dependencies = ["websockets>=15,<18"]
 
+[project.optional-dependencies]
+mcp = ["mcp>=2.0.0,<3"]
+
 [project.scripts]
 bh = "harness.cli.main:main"
 

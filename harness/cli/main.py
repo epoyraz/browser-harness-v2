@@ -21,6 +21,7 @@ USAGE = """bh — browser-harness v2
   bh <<'PY' ... PY      run a script against the browser (stdin)
   bh -                  same, explicit
   bh --doctor [--json]  classify why the browser can or cannot be reached
+  bh mcp                serve the helper surface to MCP clients over stdio
   bh mac-approve        answer Chrome's macOS "Allow remote debugging?" sheet
   bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
   bh helpers --init     create a file for your own helpers
@@ -84,6 +85,18 @@ def main() -> int:
             for line in render(outcome):
                 print(line)
         return 0 if outcome.ok else 1
+
+    if args and args[0] == "mcp":
+        # The MCP surface needs the optional `mcp` package and lives outside `harness/`,
+        # so core names it and never imports it eagerly — the same shape as the evidence
+        # verbs above. `bh` keeps working when the dependency is not installed.
+        try:
+            from mcp_server import main as mcp_main
+        except ImportError as error:
+            print(f"bh mcp needs the optional dependency: uv pip install 'mcp>=2.0.0,<3'"
+                  f"\n  ({error})", file=sys.stderr)
+            return 2
+        return mcp_main()
 
     if args and args[0] == "mac-approve":
         from harness.connect.macos import run_cli
