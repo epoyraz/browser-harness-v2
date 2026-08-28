@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Any
 
 from applications import ontology, run_application
+from applications.dispatch import dispatch_filter_enabled, should_attempt
 from applications.document import application_route_candidates
 from applications.ontology import (
     norm,
@@ -515,6 +516,7 @@ def write_timing_reports(records: list[dict[str, Any]], whole_wall_ms: float) ->
             "title": item.get("title"),
             "ok": bool(record.get("ok")),
             "status": value.get("status") or record.get("class"),
+            "skip_reason": value.get("skip_reason"),
             "duration_ms": telemetry.get("duration_ms"),
             "work_wall_ms": value.get("wall_ms"),
             "queued_ms": telemetry.get("queued_ms"),
@@ -607,6 +609,22 @@ def write_timing_reports(records: list[dict[str, Any]], whole_wall_ms: float) ->
     return report
 
 
+def dispatch_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """How many postings the metadata filter refused a tab, and on which rule.
+
+    Reported even when the filter is off (`BH_APPLICATION_DISPATCH_FILTER=0`, everything
+    attempted, `skipped: 0`) so the A/B run has the same shape of summary to compare.
+    """
+    by_reason: dict[str, int] = defaultdict(int)
+    for record in records:
+        value = record.get("value") or {}
+        if value.get("status") == "skipped_by_metadata":
+            by_reason[str(value.get("skip_reason") or "unknown")] += 1
+    return {"enabled": dispatch_filter_enabled(),
+            "skipped": sum(by_reason.values()),
+            "by_reason": dict(sorted(by_reason.items()))}
+
+
 def add_diagnostics(result: dict[str, Any]) -> None:
     try:
         with session.journal.bind(stage="diagnostics"):
@@ -625,6 +643,19 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
         "ats": apply.get("ats"), "declared_mode": apply.get("mode"),
         "start_url": start_url, "hops": [], "errors": [],
     }
+    # Before the first CDP call, not after: on the 2026-08-21 100-run the postings this
+    # rejects (23 `account`, 17 Workday, 4 iCIMS) burned 228 of 1,026 attempt-seconds and
+    # filled nothing, and the record below is what keeps a filtered run comparable with an
+    # unfiltered one — it lands in results.json and attempt-timing.csv like any other.
+    attempt, skip_reason = should_attempt(job)
+    result["dispatch_reason"] = skip_reason
+    if not attempt:
+        result["status"] = "skipped_by_metadata"
+        result["skip_reason"] = skip_reason
+        result["navigate_ms"] = 0.0
+        result["navigated"] = False
+        result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
+        return result
     with session.journal.bind(stage="diagnostics"):
         result["diagnostics_started"] = session.tab().start_diagnostics()
     try:
@@ -746,6 +777,7 @@ def main() -> None:
     whole_wall_ms = round((time.time() - run_started) * 1000, 1)
     summary = summarise(records)
     summary.pop("values", None)  # records below are authoritative; do not duplicate them.
+    dispatch = dispatch_summary(records)
     memory_summary = memory.summary(records)
     timing_report = write_timing_reports(records, whole_wall_ms)
     (OUT / "chrome-memory-summary.json").write_bytes(
@@ -759,6 +791,7 @@ def main() -> None:
             "submissions": 0, "cv_uploads_enabled": UPLOAD_CV,
             "wall_ms": whole_wall_ms,
             "timeout_seconds": RUN_TIMEOUT,
+            "dispatch_filter": dispatch,
             "profile_sources": sorted({item.source for item in APPLICANT.values.values()}),
             "model_boundary": {
                 **planner_stats(),
@@ -790,6 +823,7 @@ def main() -> None:
         (json.dumps(payload, indent=2, ensure_ascii=False, default=str) + "\n").encode("utf-8"))
     print(json.dumps({"output": str(OUT / "results.json"),
                       "summary": payload["parallel_summary"],
+                      "dispatch_filter": dispatch,
                       "wall_ms": payload["meta"]["wall_ms"]}, default=str))
 
 
