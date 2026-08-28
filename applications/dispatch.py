@@ -18,6 +18,15 @@ three cross-tabs above; a rule without a measured row does not belong in it.
 
 `BH_APPLICATION_DISPATCH_FILTER=0` turns the whole table off and restores the old
 navigate-everything behaviour, so the next telemetry run can A/B forms filled.
+
+That A/B has now been run (2026-08-29, 100 fresh postings, `docs/benchmarks/
+corpus-noise-2026-08-29.md`). Of the 20 postings this table skipped as
+`declared_mode_account`, **none filled a form** when the filter was off: 19
+`no_application_form`, 1 `workflow_failed`, at a cost of 321 attempt-seconds. The skip
+loses nothing measurable and the rule table stands. Note what makes that trustworthy — it
+is a paired per-posting comparison with a unanimous answer. The two runs' *totals*
+disagreed in the opposite direction, because this corpus flips 14 of 80 postings between
+identical configurations.
 """
 from __future__ import annotations
 
