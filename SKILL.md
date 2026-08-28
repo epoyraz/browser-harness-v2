@@ -27,6 +27,16 @@ One `bh` program can navigate, inspect several pages, wait, validate, and print 
 answer. Prefer that over one shell/model round trip per step. The daemon persists, but each
 new script still pays setup and repeats output in model context.
 
+**Long runs are one decision.** A batch that takes minutes still belongs in one `bh`
+program: start it, block on it, read its one summary. Never poll a running command.
+Measured on 2026-08-07 (`docs/benchmarks/application-decisions-2026-08-07.md`): 37 of 46
+model invocations in a real run — 6.9 M input tokens, 80% of the total — only checked
+whether `bh` had finished; the same work inside one blocking tool call took 1 invocation
+and 0 intermediate calls. If the tool that runs `bh` cannot wait that long, use its
+background mode and act on the completion notification, not on elapsed time.
+`parallel(progress=...)` prints per-item lines for a human watching stderr; the model
+needs only the final summary.
+
 Use the highest-level bounded helper that answers the question:
 
 1. `open_page(url)` for navigation plus text, links, metadata, and challenge detection.
