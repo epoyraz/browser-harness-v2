@@ -45,6 +45,7 @@ from harness.core.outcome import (
     NavigationFailed,
     NotSerializable,
     Outcome,
+    ScopeRefused,
     SideEffectRefused,
     Timeout,
     ok,
@@ -761,7 +762,12 @@ def _accepts(accept: str, path: str) -> bool:
 
 #: One in-page pass over the interactive elements (item 20). Coordinates are viewport CSS
 #: pixels from getBoundingClientRect — exactly what Input.dispatchMouseEvent takes.
-SNAPSHOT_JS = """(() => {
+#:
+#: Parameterised by a query so `find()` filters *in the page* instead of returning every
+#: element for the caller to sift. Benchmark traces show the agent writing
+#: `next(e for e in snapshot() if ... in e['name'])` in Python, or the same filter as raw
+#: `querySelectorAll(...).filter(...)` JS — both are this function with an argument.
+_SNAPSHOT_FN_JS = """((query) => {
   const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
   const sel = 'a[href],button,input,select,textarea,[role=button],[role=link],' +
     '[role=checkbox],[role=radio],[role=combobox],[role=menuitem],[role=tab],' +
@@ -798,10 +804,112 @@ SNAPSHOT_JS = """(() => {
     if (el.type && el.type !== el.tagName.toLowerCase()) it.type = el.type;
     if (invisible) it.hidden_control = true;
     if (el.tagName === 'SELECT') it.options = el.options.length;
+    if (query) {
+      // Matching is against the same `name` the caller receives, not some richer hidden
+      // string: an element that matched on evidence the caller cannot see reads as a
+      // wrong answer. `role` accepts the explicit attribute only — an implicit role is a
+      // computation, and guessing one here would be a different helper.
+      const name = it.name.toLowerCase();
+      if (query.text && !name.includes(String(query.text).toLowerCase())) continue;
+      if (query.tag && it.tag !== String(query.tag).toLowerCase()) continue;
+      if (query.role && String(el.getAttribute('role') || '').toLowerCase()
+          !== String(query.role).toLowerCase()) continue;
+      if (query.type && String(it.type || '').toLowerCase()
+          !== String(query.type).toLowerCase()) continue;
+    }
     out.push(it);
+    if (query && query.limit && out.length >= query.limit) break;
   }
   return out;
-})()"""
+})"""
+
+SNAPSHOT_JS = _SNAPSHOT_FN_JS + "(null)"
+
+
+#: Repeated records as rows, in one pass. Benchmark traces show 47 hand-written
+#: `Array.from(document.querySelectorAll(...)).map(el => ({...})).filter(...)` lines across
+#: three tasks — the single most-written JS an agent produces, and the shape of the founding
+#: 1385-result measurement. Writing it by hand is fine until the page is large: the agent
+#: then has to guess a cap, and the version it guesses has no ref to act on afterwards.
+#:
+#: Each row carries a `ref`, so "find the row, then click it" needs no second query.
+#: Fields are relative selectors: `"h3"` takes that descendant's text, `"a@href"` its
+#: attribute, `"."` the matched element itself. Absent fields are null rather than missing,
+#: so every row has the same keys and a caller can index them positionally.
+_EXTRACT_JS = r"""((selector, fields, limit, maxChars) => {
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  let nodes;
+  try { nodes = document.querySelectorAll(selector); }
+  catch (e) { return {error: 'bad_selector', detail: String(e).slice(0, 200)}; }
+  const names = Object.keys(fields || {});
+  const rows = [];
+  let chars = 0, truncated = false;
+  const read = (root, spec) => {
+    const at = String(spec).lastIndexOf('@');
+    const path = at > 0 ? spec.slice(0, at) : spec;
+    const attr = at > 0 ? spec.slice(at + 1) : null;
+    let el = root;
+    if (path && path !== '.') { try { el = root.querySelector(path); } catch (e) { return null; } }
+    if (!el) return null;
+    const raw = attr
+      ? el.getAttribute(attr)
+      : (el.innerText || el.textContent || el.value || '');
+    if (raw == null) return null;
+    return String(raw).replace(/\s+/g, ' ').trim();
+  };
+  for (const el of nodes) {
+    if (rows.length >= limit) { truncated = true; break; }
+    const row = {ref: bh.ref(el)};
+    if (names.length) {
+      for (const name of names) row[name] = read(el, fields[name]);
+    } else {
+      // No fields asked for: the default is what the observed hand-written extractions
+      // collected anyway — the visible text, and the href or value if the element has one.
+      row.text = read(el, '.');
+      const href = el.getAttribute && el.getAttribute('href');
+      if (href != null) row.href = el.href || href;
+      if ('value' in el && el.value != null && el.tagName !== 'A')
+        row.value = String(el.value).slice(0, 500);
+    }
+    for (const key of Object.keys(row)) {
+      if (key === 'ref' || row[key] == null) continue;
+      if (row[key].length > 500) { row[key] = row[key].slice(0, 500); truncated = true; }
+      chars += row[key].length;
+    }
+    rows.push(row);
+    if (chars >= maxChars) { truncated = true; break; }
+  }
+  return {rows, matched: nodes.length, returned: rows.length, truncated, chars};
+})"""
+
+
+#: The read half of `fill_form`. A whole form is written in one call and, until this
+#: existed, read back one `js("document.querySelector('select')?.value")` at a time — an
+#: asymmetry the traces show being paid on every verification step. The per-control shape
+#: is `_CONTROL_STATE_JS` itself, so a value read here and a value reported inside an
+#: action's consequence cannot disagree, and a password field redacts identically.
+_FORM_VALUES_JS = """((ref) => {
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  const state = (__CONTROL_STATE__);
+  if (ref) {
+    const el = bh.refs[ref];
+    if (!el) return {error: 'unknown_ref'};
+    return {values: [Object.assign({ref}, state(el) || {})]};
+  }
+  const out = [];
+  for (const el of document.querySelectorAll('input,select,textarea')) {
+    if (el.type === 'hidden') continue;
+    const value = state(el);
+    if (!value) continue;
+    out.push(Object.assign(
+      {ref: bh.ref(el),
+       name: (el.getAttribute('aria-label') || el.name || el.id || el.placeholder || '')
+         .trim().slice(0, 80)},
+      value));
+    if (out.length >= 200) break;
+  }
+  return {values: out, returned: out.length};
+})""".replace("__CONTROL_STATE__", _CONTROL_STATE_JS)
 
 
 #: Draw a labelled box over every snapshot ref, so a screenshot and the structured
@@ -2067,6 +2175,63 @@ class Tab:
         """Interactive elements with viewport-CSS coordinates, one round trip (item 20)."""
         with self._j.call("snapshot"):
             return self._world_js(SNAPSHOT_JS) or []
+
+    def find(self, text: str | None = None, *, role: str | None = None,
+             tag: str | None = None, type: str | None = None,
+             limit: int = 20) -> list[dict[str, Any]]:
+        """The elements whose name contains ``text``, filtered in the page.
+
+        `snapshot()` answers "what is here"; this answers "where is the thing I mean",
+        which is what a caller actually has. Rows are snapshot rows, so `click_ref`,
+        `set_value` and `select_option` take them unchanged.
+
+        Matching is case-insensitive substring against the same `name` the caller gets
+        back, and `name_source` still says which link of the chain produced it — a match
+        on a placeholder is weaker evidence than a match on an aria-label, and the caller
+        can see which it got.
+        """
+        query = {"text": text, "role": role, "tag": tag, "type": type,
+                 "limit": max(1, int(limit))}
+        with self._j.call("find", text=bool(text), role=role, tag=tag, limit=limit):
+            source = _SNAPSHOT_FN_JS + f"({json.dumps(query)})"
+            return self._world_js(source) or []
+
+    def extract(self, selector: str, fields: dict[str, str] | None = None, *,
+                limit: int = 200, max_chars: int = 20_000) -> dict[str, Any]:
+        """Repeated records as rows, one round trip.
+
+        ``fields`` maps a name to a relative selector: ``"h3"`` takes that descendant's
+        text, ``"a@href"`` its attribute, ``"."`` the matched element itself. Omit it and
+        each row carries `text`, plus `href` or `value` where the element has one.
+
+        Every row carries a `ref`, so acting on a row needs no second query. `matched`
+        against `returned` says whether the ceiling bit — a bounded read that cannot tell
+        you it was bounded is how a partial scrape reads as a complete one.
+        """
+        source = (_EXTRACT_JS
+                  + f"({json.dumps(selector)}, {json.dumps(fields or {})}, "
+                    f"{max(1, int(limit))}, {max(1, int(max_chars))})")
+        with self._j.call("extract", selector=selector,
+                          fields=sorted(fields or ()), limit=limit):
+            got = self._world_js(source) or {}
+        if got.get("error") == "bad_selector":
+            raise ScopeRefused(f"extract() selector is not valid CSS: {selector!r}",
+                               selector=selector, browser_error=got.get("detail", ""))
+        return got
+
+    def form_values(self, ref: str | None = None) -> dict[str, Any]:
+        """What the form currently holds — the read half of `fill_form`.
+
+        A whole form is written in one call; reading it back used to be one
+        `js("...?.value")` per control. Shares `_CONTROL_STATE_JS` with the consequence an
+        action already returns, so a value read here cannot disagree with one reported
+        there, and a password reads `[set]` in both.
+        """
+        with self._j.call("form_values", ref=ref):
+            got = self._world_js(_FORM_VALUES_JS + f"({json.dumps(ref)})") or {}
+        if got.get("error") == "unknown_ref":
+            raise ElementGone(f"no element for ref {ref!r}; take a fresh snapshot", ref=ref)
+        return got
 
     def click_ref(self, ref: str, *, settle: float = 0.15, timeout: float = 10.0) -> dict[str, Any]:
         pre = self._world_js(

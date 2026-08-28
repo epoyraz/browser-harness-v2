@@ -40,10 +40,22 @@ needs only the final summary.
 Use the highest-level bounded helper that answers the question:
 
 1. `open_page(url)` for navigation plus text, links, metadata, and challenge detection.
-2. `read_page()` to reread the current page without navigating.
-3. `snapshot()` or `form_schema()` only when interaction is needed.
-4. `see()` only when layout, imagery, overlap, or a visually empty page matters.
-5. Raw `js()` / `cdp()` only when no helper exposes the required information.
+2. `read_page()` to reread the current page without navigating. **Prefer it to
+   `page_text()`**: it returns the url, title, links and semantic blocks together, so
+   `read_page()` replaces `js('location.href') + js('document.title') + page_text()`, and
+   a second read of an unchanged document returns references instead of the same text
+   again — `page_text()` re-sends all of it every time.
+3. `find(text=...)` to locate the element you mean; `extract(selector, fields)` for
+   repeated records. Reach for these **before** writing `querySelectorAll(...).map(...)`.
+4. `snapshot()` or `form_schema()` when you need every control rather than one;
+   `form_values()` to read a form back after writing it.
+5. `see()` only when layout, imagery, overlap, or a visually empty page matters.
+6. Raw `js()` / `cdp()` only when no helper exposes the required information.
+
+**After an action, read its `consequence` instead of re-reading the page.** `click_ref`,
+`type_chars`, `set_value`, `select_option` and `fill_form` already return the changed
+regions and the control's observed state. A `read_page()` that follows one of these is
+usually a decision spent re-learning what the action just told you.
 
 Print only fields needed for the answer. Do not print full snapshots, giant option arrays,
 or repeated page dumps. `page_text()` defaults to 12,000 characters and supports
@@ -122,8 +134,12 @@ performs bounded in-page GETs with browser cookies and counted failures. Do not 
 ## Inspect and act
 
 ```python
-elements = snapshot()                    # ref, role/tag/name, viewport box
+rows = find("Add to basket")             # the elements whose name says this
+hits = extract("li.card",                # repeated records, each with a ref to act on
+               {"title": "h3", "price": ".price", "url": "a@href"})
+elements = snapshot()                    # every control: ref, role/tag/name, viewport box
 schema = form_schema()                   # labels, required, options, file refs
+values = form_values()                   # what the form holds now; passwords read `[set]`
 click_ref("e12")                         # verified delta, not silent success
 set_value("e4", "text")                 # one round trip
 select_option("e7", "Switzerland")      # native or ARIA combobox
