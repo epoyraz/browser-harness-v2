@@ -9,7 +9,13 @@ import pytest
 
 from harness.connect.cdp import Connection, WebSocketTransport, classify
 from harness.core.journal import Journal
-from harness.core.outcome import BrowserDisconnected, Class, HarnessError, Timeout
+from harness.core.outcome import (
+    BrowserDisconnected,
+    Class,
+    HarnessError,
+    RendererUnresponsive,
+    Timeout,
+)
 from tests.fake_browser import FakeBrowser
 
 
@@ -486,5 +492,29 @@ def test_a_dispatch_failure_claims_the_connection_instead_of_killing_the_reader_
 
         assert boom, "the dispatch was never reached"
         assert conn._closed is True, "a dispatch failure must claim the connection"
+    finally:
+        conn.close()
+
+
+def test_a_page_session_that_stops_answering_is_not_a_bare_timeout(monkeypatch):
+    """T1, from the 100-posting run: 9 of 15 failures were `Page.navigate did not answer
+    in 25.0s` — the command never returned — against 4 where it returned and `load` never
+    fired. Both arrived as `timeout`, so a caller could not tell a wedged renderer from a
+    slow page, and only one of those is worth retrying on a fresh tab.
+    """
+    browser = FakeBrowser("a")
+    conn = Connection(browser).start()
+    try:
+        # Swallow the frame so nothing ever replies — a wedged renderer, exactly.
+        monkeypatch.setattr(conn._t, "send", lambda *a, **kw: None)
+        with pytest.raises(RendererUnresponsive) as page_level:
+            conn.request("Page.navigate", {"url": "x"}, session_id="s1", timeout=0.05)
+        assert page_level.value.retryable
+        assert "fresh tab" in page_level.value.outcome.to_json()["recovery"]
+
+        # Browser-level commands have no renderer to blame, so they stay a plain timeout.
+        with pytest.raises(Timeout) as browser_level:
+            conn.request("Target.getTargets", timeout=0.05)
+        assert not isinstance(browser_level.value, RendererUnresponsive)
     finally:
         conn.close()

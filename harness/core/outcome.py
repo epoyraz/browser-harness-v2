@@ -137,7 +137,7 @@ RECOVERY: dict[Class, str] = {
     Class.SESSION_STALE: (
         "the browser dropped the session; the next call re-attaches on its own"),
     Class.RENDERER_UNRESPONSIVE: (
-        "the renderer crashed — reload the tab, or drive a new one"),
+        "the page stopped answering the protocol — retry on a fresh tab, not the same one"),
     Class.BROWSER_DISCONNECTED: (
         "the browser connection is gone — run `bh --doctor` to see whether it is still up"),
     Class.NOT_A_FORM: (
@@ -321,8 +321,9 @@ class HarnessError(Exception):
         return exc
 
 
-def _error(name: str, cls: Class) -> type[HarnessError]:
-    return type(name, (HarnessError,), {"cls": cls, "__doc__": f"Typed error for {cls.value}."})
+def _error(name: str, cls: Class,
+           base: type[HarnessError] = HarnessError) -> type[HarnessError]:
+    return type(name, (base,), {"cls": cls, "__doc__": f"Typed error for {cls.value}."})
 
 
 EndpointUnreachable = _error("EndpointUnreachable", Class.ENDPOINT_UNREACHABLE)
@@ -340,7 +341,7 @@ ProtocolMismatch = _error("ProtocolMismatch", Class.PROTOCOL_MISMATCH)
 SkillIntegrityFailed = _error("SkillIntegrityFailed", Class.SKILL_INTEGRITY_FAILED)
 TargetGone = _error("TargetGone", Class.TARGET_GONE)
 SessionStale = _error("SessionStale", Class.SESSION_STALE)
-RendererUnresponsive = _error("RendererUnresponsive", Class.RENDERER_UNRESPONSIVE)
+
 CdpError = _error("CdpError", Class.CDP_ERROR)
 NavigationFailed = _error("NavigationFailed", Class.NAVIGATION_FAILED)
 DocumentVersionStale = _error("DocumentVersionStale", Class.DOCUMENT_VERSION_STALE)
@@ -354,6 +355,15 @@ NotAForm = _error("NotAForm", Class.NOT_A_FORM)
 ElementGone = _error("ElementGone", Class.ELEMENT_GONE)
 Partial = _error("Partial", Class.PARTIAL)
 Timeout = _error("Timeout", Class.TIMEOUT)
+
+#: A refinement of `Timeout`, not a sibling. A page session that stops answering the
+#: protocol *is* a timeout — it just says which side stopped, and that retrying the same
+#: tab will not help. Subclassing keeps every existing `except Timeout` correct: two of
+#: them in `ops/page.py` are local fallbacks for a hung `Input.dispatchMouseEvent`, and a
+#: flat class silently stopped catching them. Callers wanting the distinction catch this
+#: first, or read `outcome.cls`.
+RendererUnresponsive = _error("RendererUnresponsive", Class.RENDERER_UNRESPONSIVE,
+                              base=Timeout)
 
 #: Derived, not restated. This used to list all twenty-nine names a second time, so adding
 #: an error and forgetting the second list left `HarnessError.of` silently handing back the

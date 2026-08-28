@@ -28,6 +28,7 @@ from harness.core.outcome import (
     Class,
     HarnessError,
     Outcome,
+    RendererUnresponsive,
     Timeout,
 )
 
@@ -270,7 +271,14 @@ class Connection:
 
         if not slot.done.wait(timeout):
             self._drop(msg_id)
-            error = Timeout(
+            # A command sent *to a page session* that never answers is not the same failure
+            # as a browser-level command timing out: the renderer stopped servicing the
+            # protocol. Measured over 100 postings, 9 of 15 workflow failures were
+            # `Page.navigate did not answer in 25.0s` — the navigate never returned at all —
+            # against 4 where it returned and `load` never fired. Both arrived as bare
+            # `timeout`, so a caller could not tell a wedged renderer from a slow page, and
+            # only one of those is worth retrying on a fresh target.
+            error = (RendererUnresponsive if session_id else Timeout)(
                 f"{method} did not answer in {timeout}s",
                 method=method, session=session_id, timeout=timeout,
             )

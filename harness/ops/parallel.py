@@ -114,7 +114,9 @@ def _owned_tab_descendants_after_quiet(
 
     cond = threading.Condition()
     owned = {root}
-    last_owned_event = time.monotonic()
+    started = time.monotonic()
+    last_owned_event = started
+    announced_after_ms: list[float] = []
     #: Set when the browser says something happened that the seed snapshot cannot already
     #: describe: a new target joined the opener tree, or one we own went away.
     moved = False
@@ -148,11 +150,16 @@ def _owned_tab_descendants_after_quiet(
                 return
             owned.add(target_id)
             last_owned_event = time.monotonic()
+            # How late a popup arrives is the only thing that can size POPUP_CLEANUP_QUIET,
+            # and it is unrecorded. Over 100 postings the window cost 20.4s of wall clock
+            # and observed *zero* descendants — which proves the price and says nothing at
+            # all about the risk. A window cannot be shortened on the evidence of an event
+            # that never fired; this is what makes the next attempt evidence-based.
+            announced_after_ms.append(round((last_owned_event - started) * 1000, 1))
             moved = True
             cond.notify_all()
 
     conn.subscribe(observe)
-    started = time.monotonic()
     try:
         # Seed ownership from targets already present when cleanup begins.  Subscribing
         # first closes the gap between this snapshot and the quiet-window wait.
@@ -183,6 +190,10 @@ def _owned_tab_descendants_after_quiet(
         # already disappeared and no longer needs cleanup.
         with cond:
             settled = not moved
+            latencies = list(announced_after_ms)
+        if latencies:
+            session.journal.write("note", event="popup_announced",
+                                  after_ms=latencies, quiet_window_ms=POPUP_CLEANUP_QUIET * 1000)
         if settled:
             return descendants, root_live
         return _owned_tab_descendants(session, root)
