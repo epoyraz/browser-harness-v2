@@ -173,7 +173,7 @@ def test_a_persisted_local_pin_recovers_its_exact_profile_on_respawn(
     listener.listen(1)
     port = listener.getsockname()[1]
     path = "/devtools/browser/persisted"
-    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)   # not $HOME: see fake_home
     profile = tmp_path / "Library/Application Support/Google/Chrome"
     profile.mkdir(parents=True)
     (profile / "DevToolsActivePort").write_text(f"{port}\n{path}", encoding="utf-8")
@@ -238,7 +238,10 @@ def test_total_failure_carries_every_verdict(tmp_path):
     assert len(attempts) == 3                       # ws, http, and the absent-dirs rollup
     assert all(not a_["won"] for a_ in attempts)
     rollup = attempts[-1]
-    assert str(a) in rollup["reason"] and str(b) in rollup["reason"]
+    # The rollup names paths in the home-relative form `_tilde` promises, so a tmp_path
+    # that happens to live under the home directory (Windows: %LOCALAPPDATA%\Temp) shows
+    # up as `~/...`. Assert the form the code documents, not the absolute string.
+    assert endpoint._tilde(a) in rollup["reason"] and endpoint._tilde(b) in rollup["reason"]
 
 
 # --- the profile table (the out-of-the-box case: find the browser v1 found) ---
@@ -284,9 +287,19 @@ WINDOWS_TABLE = [
 
 @pytest.fixture
 def fake_home(monkeypatch):
-    """Path.home() reads $HOME on posix, which is what the tests run on."""
-    monkeypatch.setenv("HOME", "/home/tester")
-    return Path("/home/tester")
+    """Pin `Path.home()` itself. Setting `$HOME` only steers it on POSIX — Windows reads
+    `%USERPROFILE%` and ignored the variable, so five tests here were red on every Windows
+    run since they were written while proving nothing about the code."""
+    # `.resolve()` makes the fake home absolute *on the host*: "/home/tester" is absolute on
+    # POSIX and drive-less on Windows, where every darwin/linux candidate built on it then
+    # failed `is_absolute()` — a claim about the test's own fixture, not about the code.
+    home = Path("/home/tester").resolve()
+    monkeypatch.setattr(Path, "home", lambda: home)
+    # `Path.expanduser()` does not go through `Path.home()`: it reads $HOME on POSIX and
+    # %USERPROFILE% on Windows. `BH_PROFILE_DIRS=~/one` needs both to land in the same place.
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.setenv("USERPROFILE", str(home))
+    return home
 
 
 def test_macos_probes_every_v1_vendor_path(monkeypatch, fake_home):
@@ -329,10 +342,12 @@ def test_mainstream_chrome_is_probed_first_on_every_platform(monkeypatch, fake_h
 
 
 @pytest.mark.parametrize("platform", ["darwin", "linux", "win32"])
-def test_every_candidate_is_absolute_and_has_no_unexpanded_tilde(monkeypatch, fake_home,
+def test_every_candidate_is_absolute_and_has_no_unexpanded_tilde(monkeypatch, fake_home, tmp_path,
                                                                  platform):
     monkeypatch.setattr(sys, "platform", platform)
-    dirs = profile_dirs({"LOCALAPPDATA": "/local"})
+    # An absolute path *for the host*: "/local" is absolute on POSIX and drive-less — so
+    # relative — on Windows, which failed the assertion below on every Windows run.
+    dirs = profile_dirs({"LOCALAPPDATA": str(tmp_path / "local")})
     assert len(dirs) >= 10
     assert all(d.is_absolute() for d in dirs)
     assert not any("~" in str(d) for d in dirs)

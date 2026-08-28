@@ -132,7 +132,11 @@ _MAC_PROFILE_APPLICATIONS = (
 def _mac_application_for_profile(profile_dir: Path | None) -> str:
     if profile_dir is None:
         return ""
-    path = str(profile_dir.expanduser())
+    # POSIX form on purpose: the table's suffixes are written with `/`, and a test that
+    # pins `sys.platform` to darwin on a Windows host hands this a WindowsPath whose `str`
+    # uses backslashes — measured 2026-08-28, that alone reported every known profile as
+    # application "". On a real Mac `as_posix()` is the identity.
+    path = profile_dir.expanduser().as_posix()
     for suffix, application in _MAC_PROFILE_APPLICATIONS:
         if path.endswith(suffix):
             return application

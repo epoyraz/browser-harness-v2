@@ -220,14 +220,18 @@ def test_a_dead_reader_marks_the_connection_closed_instead_of_looking_open(serve
     The reader is the only thing that can resolve a pending request, so once it is gone the
     connection is gone — but it went on advertising itself as usable.
     """
-    import socket
     _browser, _daemon = served
     conn = RemoteConnection("clienttest")
     conn.request("Runtime.evaluate", {"expression": "x"})   # works before we break it
 
-    # Shutting the read side makes recv() return b"" — byte for byte what the reader sees
-    # when the daemon closes the connection, without racing the daemon's teardown.
-    conn._sock.shutdown(socket.SHUT_RD)
+    # The daemon closes its side, so recv() returns b"" — byte for byte what the reader
+    # sees when the daemon goes away, on every platform. The previous version shut down the
+    # read side of our own socket instead, which yields the same b"" on POSIX and nothing
+    # at all on Windows: a blocked recv() there is only woken by the peer closing or by
+    # closesocket, never by shutdown (measured 2026-08-28), so the test sat out its 5 s
+    # deadline on every Windows run since it was written.
+    for peer in list(_daemon._peers):
+        peer.close()
     deadline = time.monotonic() + 5
     while not conn._closed and time.monotonic() < deadline:
         time.sleep(0.01)
@@ -243,12 +247,12 @@ def test_a_call_after_the_reader_dies_fails_fast_with_the_real_cause(served):
     `Timeout` for a connection whose true cause (`BrowserDisconnected`) had already been
     computed and thrown away. Wrong class, and the evidence destroyed.
     """
-    import socket
     _browser, _daemon = served
     conn = RemoteConnection("clienttest")
     conn.request("Runtime.evaluate", {"expression": "x"})
 
-    conn._sock.shutdown(socket.SHUT_RD)
+    for peer in list(_daemon._peers):          # the daemon hangs up; see the test above
+        peer.close()
     deadline = time.monotonic() + 5
     while not conn._closed and time.monotonic() < deadline:
         time.sleep(0.01)
