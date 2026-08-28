@@ -1,0 +1,43 @@
+tests/unit/test_forms.py
+  s_f70a2282cb38cf::t_f757d5d759ed5b 15
+tests/unit/conftest.py
+  s_f70a2282cb38cf::t_0c27cef03b0598 40-52
+applications/document.py
+  s_f70a2282cb38cf::t_19185e3bc5fff9 1-15,17,19-23,25-141,295-307
+  s_f70a2282cb38cf::t_d536723a52569f 18,142-263,272-294
+  s_f70a2282cb38cf::t_22b3755da61c3f 264-271
+  s_f70a2282cb38cf::t_e0593597e7c5b5 16
+  s_f70a2282cb38cf::t_0eb5c4bba39d34 24
+tools/capture_top_applications.py
+  s_f70a2282cb38cf::t_76c9b56e8685a2 24
+tools/collect_job_form_telemetry.py
+  s_f70a2282cb38cf::t_76c9b56e8685a2 35
+tests/unit/test_application_document.py
+  s_f70a2282cb38cf::t_f757d5d759ed5b 12
+  s_f70a2282cb38cf::t_dadd5e7aa58a86 36
+  s_f70a2282cb38cf::t_0c27cef03b0598 33-35,37-41
+  s_f70a2282cb38cf::t_76c9b56e8685a2 1-11,13-32
+harness/ops/forms.py
+  s_f70a2282cb38cf::t_540dff12c62065 37-44,361-363,365-368,370,393,397
+  s_f70a2282cb38cf::t_0eb5c4bba39d34 45,364
+tests/live/forms_check.py
+  s_f70a2282cb38cf::t_47fd916b98f069 25,267,283,292,299
+applications/workflow.py
+  s_f70a2282cb38cf::t_76c9b56e8685a2 29,86,98,184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f3bcc1ed707940e83234802dff74fb59a9281d54",
+  "prompts": {},
+  "sessions": {
+    "s_f70a2282cb38cf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6246e4e6-aad4-4417-bc0f-7582673813a7",
+        "model": "claude-opus-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
