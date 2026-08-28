@@ -121,6 +121,14 @@ ontology.configure(APPLICANT, PROFILE, str(CV))
 
 SEMANTIC_CACHE: dict[tuple[Any, ...], str] = {}
 
+#: Both halves of the `semantic_cache` block `main()` reports. The counter was missing:
+#: the control run of 2026-08-28 completed all 100 attempts and then died with
+#: `NameError: name 'SEMANTIC_CACHE_HITS' is not defined` on the last statement before
+#: `results.json` was written, losing the run summary (the per-attempt artifacts had
+#: already been written, so nothing else was lost). Latent since 2a6ede5 — the lookup that
+#: filled the cache went, its reporting stayed. Zero until something stores a strategy.
+SEMANTIC_CACHE_HITS = 0
+
 
 
 
