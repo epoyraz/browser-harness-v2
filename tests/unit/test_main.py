@@ -8,7 +8,9 @@ def _bh(*args, stdin="", env=None):
         [sys.executable, "-c",
          (f"import sys; sys.argv=['bh', *{list(args)!r}]; "
           "from harness.cli.main import main; raise SystemExit(main())")],
-        input=stdin, capture_output=True, text=True, check=False, env=env)
+        # `bh` pins every stream to UTF-8 on every subcommand; read it as such rather than
+        # in the console's code page, which turns the em dash in the usage line into "�".
+        input=stdin, capture_output=True, text=True, encoding="utf-8", check=False, env=env)
 
 
 def test_version_flag_prints_something():

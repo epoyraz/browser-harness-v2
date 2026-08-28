@@ -37,6 +37,11 @@ evidence layer; run `bh stats --help` for its usage.
 
 def main() -> int:
     args = sys.argv[1:]
+    # Every subcommand, not only the script runner: `bh bench` prints "→" and died under
+    # cp1252 on Windows (2026-08-28) because the streams were only pinned to UTF-8 on the
+    # way into `run_script`.
+    from harness.session import force_utf8_streams
+    force_utf8_streams()
 
     if args and args[0] == "--version":
         from importlib.metadata import PackageNotFoundError, version
@@ -141,7 +146,7 @@ def main() -> int:
         if sys.stdin.isatty():
             print(USAGE, file=sys.stderr)
             return 2
-        from harness.session import force_utf8_streams, run_script
+        from harness.session import run_script
         # Before the read, not after: the script itself arrives on stdin, so a non-ASCII
         # literal in it would fail to decode under Windows' ANSI default (upstream #359).
         force_utf8_streams()
