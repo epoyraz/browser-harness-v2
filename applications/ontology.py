@@ -30,6 +30,14 @@ ANSWER_KEYS = {
     "portfolio_url": "portfolio_url",
     "consent": "required_privacy_consent",
     "referral_source": "referral_source_priority",
+    # Facts only the applicant can supply; a missing key leaves the field for review.
+    "criminal_record": "criminal_or_debt_record",
+    "workload_percent": "workload_percent_priority",
+    "side_job": "side_job",
+    "onsite_ok": "onsite_ok",
+    "correspondence_language": "correspondence_language",
+    "preferred_location": "preferred_location",
+    "former_employee": "former_employee",
 }
 
 
@@ -135,13 +143,42 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
                                "link/screenshots", "links/screenshots",
                                "parlez-nous", "pourquoi")):
         return "tailored_response"
+    # Yes/no facts about the applicant that Swiss forms ask as a select. Measured
+    # 2026-08-28 on the 77-company corpus: each of these was a required control the
+    # ontology could not name, so the form stayed partial. Choice controls only — the CSS
+    # text box "Hat ein/e Mitarbeiter/in der CSS dir die Stelle empfohlen?" asks for a
+    # colleague's *name*, and a yes/no answer written there is a wrong answer.
+    choice = kind in ("select", "combobox", "radio", "checkbox")
+    if (choice and "empfohlen" not in text and "referr" not in text
+            and any(x in text for x in ("mitarbeiter", "employee", "collaborateur", "angestellt"))
+            and any(x in text for x in ("bereits", "former", "current", "ehemalig", "already",
+                                        "schon", "bin ich", "bist du", "are you"))):
+        return "former_employee"
+    if any(x in text for x in ("strafregister", "betreibungsregister", "criminal record",
+                               "casier judiciaire", "vorstrafen")):
+        return "criminal_record"
+    if choice and any(x in text for x in ("beschaftigungsgrad", "arbeitspensum", "pensum",
+                                          "stellenprozent", "taux d occupation",
+                                          "employment level", "workload")):
+        return "workload_percent"
+    if any(x in text for x in ("nebenbeschaftigung", "nebenerwerb", "side job",
+                               "secondary employment", "activite accessoire")):
+        return "side_job"
+    if choice and any(x in text for x in ("fully on-site", "fully onsite", "work on-site",
+                                          "on-site work", "working on-site",
+                                          "vor ort arbeiten")):
+        return "onsite_ok"
     if any(x in text for x in ("how did you hear", "how did you find", "aufmerksam geworden",
                                "contacttype", "recommendation source", "referral",
                                "where did you hear", "where did you find",
                                "catch your attention", "auf uns gestossen",
                                "uns gefunden", "auf uns gekommen", "durch wen",
                                "ou avez-vous trouve", "ou avez-vous entendu",
-                               "wie haben sie von uns", "wo haben sie")):
+                               "wie haben sie von uns", "wo haben sie",
+                               # "Job gefunden auf *" (Pro Informatik) and "Auf diesem
+                               # Kanal bin ich ... aufmerksam" (Kanton Bern), 2026-08-28.
+                               "gefunden auf", "job gefunden", "stelle gefunden",
+                               "auf diesem kanal")):
         return "referral_source"
     if any(x in text for x in ("privacy", "datenschutz", "data protection", "gdpr",
                                "consent", "accepted data", "disclaimer",
@@ -189,6 +226,18 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
                                 "vollstandiger name", "vor- und nachname"))
             or (has_word(label, "name", "nom") and has_word(name, "name"))):
         return "full_name"
+    # A country-code select beside the number: "Country Phone Code*" (Givaudan),
+    # "Vorwahl" (Stadler), both measured 2026-08-27 as `phone` writes into a select of
+    # "Afghanistan (+93)" and rejected. Before `phone`, which the same labels contain.
+    if kind in ("select", "combobox") and any(
+            x in text for x in ("country phone code", "phone code", "country code", "vorwahl",
+                                "landesvorwahl", "indicatif", "dial code", "dialing code")):
+        return "phone_country_code"
+    if kind in ("select", "combobox") and any(
+            x in text for x in ("phone", "telefon", "telephone", "mobilephone")):
+        # A select cannot take a number. Unit8's `role=combobox` labelled "Phone (Optional)
+        # +41" offered "United States +1 | Germany +49" (2026-08-28): it is the code picker.
+        return "phone_country_code"
     if kind == "tel" or any(x in text for x in ("phone", "telefon", "telephone", "mobilephone")):
         return "phone"
     if any(x in text for x in ("date of birth", "birthdate", "birth date", "birthday",
@@ -220,6 +269,12 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "house_number"
     if name == "country" or has_word(label, "country", "land", "pays"):
         return "country"
+    # "adesso Schweiz Wunschstandort*" — a choice of office, not where the applicant lives.
+    if kind in ("select", "combobox", "radio") and any(
+            x in text for x in ("wunschstandort", "standortwunsch", "preferred location",
+                                "preferred office", "bevorzugter standort",
+                                "gewunschter standort", "which office", "welcher standort")):
+        return "preferred_location"
     if any(x in text for x in ("current location", "residence", "wohnort", "lieu de residence")):
         return "location"
     if name == "city" or has_word(label, "city", "ort", "ville", "stadt"):
@@ -244,10 +299,20 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "english_level"
     if any(x in text for x in ("german level", "german proficiency", "deutschniveau")):
         return "german_level"
+    # "Sprache" alone on a select (Kanton Bern: Deutsch | Französisch) asks which language
+    # to correspond in, not how well one is spoken — those carry level/niveau/kenntnisse.
+    if kind in ("select", "combobox", "radio") and (
+            any(x in text for x in ("korrespondenzsprache", "langue de correspondance",
+                                    "preferred language", "bevorzugte sprache"))
+            or (label in ("sprache", "langue", "language")
+                and not any(x in text for x in ("kenntnis", "level", "niveau", "skill",
+                                                "proficien", "fluen")))):
+        return "correspondence_language"
     if any(x in text for x in ("study major", "field of study", "studienrichtung",
                                "major & minor", "major and minor", "fachrichtung")):
         return "education"
-    if (any(x in text for x in ("highest education", "bildungsabschluss",
+    if (any(x in text for x in ("highest education", "highest level of education",
+                                "schulabschluss", "bildungsabschluss",
                                 "hochster abschluss", "bildungsniveau",
                                 "niveau d etude", "niveau d etudes"))
             # Short and generic, so they match as words: "formation" is a substring of
@@ -290,6 +355,7 @@ def semantic(field: dict[str, Any]) -> str:
 EXTRA_PROFILE = {
     "salary_expectation", "availability", "linkedin_url", "github_url", "portfolio_url",
     "tailored_response", "referral_source", "gender_or_salutation", "demographic", "consent",
+    "criminal_record", "workload_percent", "side_job", "onsite_ok",
 }
 
 
@@ -305,7 +371,6 @@ def option_candidates(semantic_name: str, value: Any, language: str,
     """Ordered exact labels expressing the same supported fact."""
     if item and item.candidates:
         return list(item.candidates)
-    lang = norm(language)
     candidates: dict[str, list[str]] = {
         # Swiss forms offer banded ranges far more often than an open "8+": measured
         # 2026-08-27, "Berufserfahrung" offered Keine / 1-2 Jahre / 3-5 Jahre / 6-10 Jahre
@@ -322,6 +387,19 @@ def option_candidates(semantic_name: str, value: Any, language: str,
         "country": ["Schweiz", "Switzerland", "Suisse"],
         "nationality": ["Schweizer/-in", "Swiss", "Schweiz", "Suisse"],
         "timezone": ["Europe/Zurich", "UTC+1", "CET"],
+        "phone_country_code": ["Switzerland (+41)", "Schweiz (+41)", "Suisse (+41)", "+41",
+                               "Switzerland +41", "CH (+41)", "CH +41", "Switzerland",
+                               "Schweiz", "Suisse"],
+        # A degree ladder rather than the CV's exact title: "M.Sc. Informatik" matches no
+        # option on a select that offers "1. Master Université" or "Hochschulabschluss".
+        "education": ["Master", "Master Université", "Master (Universität)",
+                      "Universität (Master)", "Master's degree", "Master of Science",
+                      "Hochschulabschluss", "Universitätsabschluss", "Universität/ETH",
+                      "Universität", "Hochschule", "Fachhochschule", "Studium",
+                      "University degree", "Master's", "Masters"],
+        "former_employee": ["Nein", "No", "Non", "None", "Neither", "Weder noch",
+                            "Not applicable", "N/A"],
+        "correspondence_language": ["Deutsch", "German", "Allemand", "DE"],
         # A consent control is often its own statement: the option reads "I agree that my
         # data may be stored beyond the current job application", not "Yes". Matching only
         # affirmative words left every one of those reported as `no_option_match`.
@@ -342,8 +420,23 @@ def option_candidates(semantic_name: str, value: Any, language: str,
         # with the same semantic, and offers Male/männlich instead of a salutation.
         out.extend(["Herr", "Mr", "Monsieur", "Mr.", "M.", "Male", "männlich", "Mann",
                     "Homme", "Signore"])
-    if lang.startswith("de") and semantic_name == "referral_source":
-        out.extend(["Unternehmenswebsite", "LinkedIn"])
+    if semantic_name == "availability":
+        out.extend(["disponible de suite", "de suite", "Disponible immédiatement",
+                    "3 mois", "2 mois", "1 mois"])
+    if semantic_name == "referral_source":
+        out.extend(["Unternehmenswebsite", "Homepage", "Webseite", "Website", "Firmenwebsite",
+                    "LinkedIn", "jobs.ch", "andere", "Other", "Sonstige"])
+    if semantic_name in ("criminal_record", "side_job", "onsite_ok"):
+        # The value is the applicant's yes/no; the option list must say the *same* thing
+        # in every wording, never offer "Nein" for a "yes" answer.
+        out = (["Ja", "Yes", "Oui", "True"]
+               if norm(value) in ("yes", "ja", "oui", "true", "1")
+               else ["Nein", "No", "Non", "Kein Eintrag", "Keine", "False"])
+    if semantic_name == "workload_percent":
+        out.extend(["100%", "100 %", "Vollzeit", "Full-time", "90-100%", "80-100%"])
+    if semantic_name == "preferred_location":
+        out.extend([str(PROFILE.get("city") or ""), "Zürich", "Zurich", "Zuerich",
+                    "Egal", "Alle", "Any", "Flexible", "Keine Präferenz"])
     return list(dict.fromkeys(part for part in out if part))
 
 
@@ -383,6 +476,19 @@ def localized(semantic_name: str, language: str, field: dict[str, Any]) -> Any:
         return ("Schweizer Bürger" if lang.startswith("de") else
                 "Citoyen suisse" if lang.startswith("fr") else "Swiss citizen")
     if semantic_name == "work_authorization_option": return True
+    if semantic_name == "phone_country_code":
+        prefix = re.match(r"\+\d{1,3}", str(PROFILE.get("phone") or ""))
+        return prefix.group(0) if prefix else "+41"
+    if semantic_name == "preferred_location":
+        item = profile_value(semantic_name, language)
+        return (item.value if item is not None and not item.known_absent
+                else PROFILE.get("city"))
+    if semantic_name == "former_employee":
+        item = profile_value(semantic_name, language)
+        return item.value if item is not None and not item.known_absent else "no"
+    if semantic_name == "correspondence_language":
+        item = profile_value(semantic_name, language)
+        return item.value if item is not None and not item.known_absent else "Deutsch"
     item = profile_value(semantic_name, language)
     if item is not None and not item.known_absent:
         return item.value
@@ -449,6 +555,26 @@ def rating_matrix(schema: dict[str, Any]) -> set[str]:
     return {f["ref"] for f in candidates} if len(candidates) >= RATING_MATRIX_MIN else set()
 
 
+#: Degree rungs a Master's holder may truthfully select, best first. A select that offers
+#: only "Hauptschule … Allgemeine Hochschulreife" has no rung for a Master and gets none.
+_EDUCATION_RUNGS = (
+    ("master", "msc", "m.sc", "m sc"),
+    ("universit", "hochschulabschluss", "university degree", "eth"),
+    ("hochschule", "fachhochschule", "haute ecole", "college degree"),
+)
+
+
+def _education_rungs(offered: list[str]) -> list[str]:
+    ranked: list[str] = []
+    for rung in _EDUCATION_RUNGS:
+        for option in offered:
+            text = norm(option)
+            if any(key in text for key in rung) and "bachelor" not in text \
+                    and option not in ranked:
+                ranked.append(option)
+    return ranked
+
+
 def plan_for(schema: dict[str, Any], language: str,
              skill_context: dict[str, Any] | None = None
              ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -460,7 +586,34 @@ def plan_for(schema: dict[str, Any], language: str,
     audit: list[dict[str, Any]] = []
     seen_radio_groups: set[str] = set()
     rated = rating_matrix(schema)
-    for index, field in enumerate(schema.get("fields") or []):
+    fields = schema.get("fields") or []
+    # A select-enhancement widget (Select2, Chosen, nice-select) renders a `role=combobox`
+    # div over a native `<select>` and `form_schema` reports both, adjacent, with the same
+    # label. Planning both wrote the native one and then failed the twin with
+    # `needs_interaction` — 7 of the 12 non-option write failures on the 77-company corpus
+    # (adesso, Axon Lab, AMAG, Vaudoise; 2026-08-28). The native select is the one with
+    # options and the one a `change` event updates the widget from, so only it is planned.
+    decorators: set[str] = set()
+    native_labels = {norm(g.get("label")) for g in fields if g.get("kind") == "select"}
+    native_semantics = {semantic(g) for g in fields if g.get("kind") == "select"}
+    for f in fields:
+        if f.get("kind") != "combobox" or not f.get("needs_interaction") or not f.get("ref"):
+            continue
+        twin_label = norm(f.get("label"))
+        # Anywhere in the schema, not only adjacent: adesso's "Höchster Bildungsabschluss*"
+        # widget sits three controls after its select. And a widget with no options of its
+        # own whose *meaning* a native select already carries ("Schule, Ausbildung, Beruf",
+        # a section heading the proximity fallback attached to the same widget) is the same
+        # decorator under a different label.
+        if (twin_label and twin_label in native_labels) or (
+                not f.get("options_sample") and semantic(f) != "unclassified"
+                and semantic(f) in native_semantics):
+            decorators.add(f["ref"])
+    # "Phone number*" beside "Country Phone Code*" (Givaudan), or a tel box whose own label
+    # says "+41" (Unit8): the country code is supplied elsewhere, and writing it again was
+    # rejected on both. The number goes in without its prefix.
+    country_code_elsewhere = any(semantic(f) == "phone_country_code" for f in fields)
+    for index, field in enumerate(fields):
         sem = semantic(field)
         required = inferred_required(field)
         base = {
@@ -468,6 +621,9 @@ def plan_for(schema: dict[str, Any], language: str,
             "label": field.get("label"), "name": field.get("name"),
             "required": required, "semantic": sem,
         }
+        if field.get("ref") in decorators:
+            audit.append({**base, "status": "decorator_twin"})
+            continue
         # A credential is never corpus data, whatever the label classified as. This is a
         # floor, not a classification: on 2026-08-25 `"ort" in "passwort"` made six SBB,
         # HSLU and fenaco password boxes look like a city field, and all six were planned
@@ -530,13 +686,26 @@ def plan_for(schema: dict[str, Any], language: str,
         step: dict[str, Any] = {"ref": field["ref"]}
         if field.get("kind") == "select":
             step["labels"] = option_candidates(sem, value, language, item)
+            if sem == "education" and field.get("options_sample"):
+                # A label list matches exactly, and no candidate spells "1. Master
+                # Université" or "Allgemeine Hochschulreife" the way a given select does.
+                # Rank what the select offers by degree rung and put those first — the
+                # highest rung the CV supports, in the form's own words.
+                offered = [str(o) for o in field["options_sample"]]
+                step["labels"] = [*_education_rungs(offered), *step["labels"]]
         else:
             step["value"] = value
-        if field.get("widget") or field.get("needs_interaction"):
+        # A native <select> is always settable by label; only a widget with no value
+        # property needs the open/find/click path.
+        if field.get("kind") != "select" and (field.get("widget")
+                                              or field.get("needs_interaction")):
             step["interaction"] = "select"
             step["labels"] = option_candidates(sem, value, language, item)
             step.pop("value", None)
         if sem == "phone" and field.get("kind") != "select":
+            if (country_code_elsewhere
+                    or re.search(r"\+\d{1,3}\b", str(field.get("label") or ""))):
+                step["value"] = re.sub(r"^\s*\+\d{1,3}\s*", "", str(step.get("value") or ""))
             step["mode"] = "insert"
         plan.append(step)
         source = item.source if item is not None else str(CV)

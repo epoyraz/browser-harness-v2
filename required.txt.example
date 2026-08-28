@@ -17,5 +17,15 @@ referral_source_priority=Joblens,company website,LinkedIn
 answer_sources=CV,Arbeitszeugnisse
 unsupported_answer_policy=manual_review
 
+# Facts the ontology can name but must not guess (2026-08-28 corpus: each was a required
+# select the form stayed partial on). Leave a key out to keep that field for review.
+preferred_location=Zürich
+correspondence_language=Deutsch
+former_employee=no
+criminal_or_debt_record=no
+workload_percent_priority=100%,90%,80%
+side_job=no
+onsite_ok=yes
+
 # Safety boundary
 submit_applications=no

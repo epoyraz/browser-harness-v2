@@ -115,3 +115,163 @@ def test_a_repeat_field_is_a_mail_confirmation_only_when_it_is_about_mail():
     assert classify("E-Mail-Adresse erneut eingeben: *") == "email_confirm"
     assert classify("Kennwort erneut eingeben: *", "fbclc_pwdConf",
                     "password") != "email_confirm"
+
+
+# --- 2026-08-28: the required controls the 77-company corpus could not name ------------
+# Every label below is one a real form asked as a select, radio or combobox and the
+# ontology left `unclassified`, so the form stayed partial. Options are the ones the
+# live schema probe read that day.
+
+@pytest.mark.parametrize(("label", "kind", "expected"), [
+    ("Country Phone Code*", "select", "phone_country_code"),
+    ("Vorwahl", "select", "phone_country_code"),
+    ("adesso Schweiz Wunschstandort*", "select", "preferred_location"),
+    ("Sprache", "select", "correspondence_language"),
+    ("Job gefunden auf *", "select", "referral_source"),
+    ("Auf diesem Kanal bin ich auf den Kanton Bern aufmerksam geworden", "select",
+     "referral_source"),
+    ("Former/Current Givaudan employee*", "select", "former_employee"),
+    ("Bist du bereits Visana-Mitarbeiter*in?", "select", "former_employee"),
+    ("Eintrag im Straf- und Betreibungsregister *", "select", "criminal_record"),
+    ("Gewünschter Beschäftigungsgrad *", "select", "workload_percent"),
+    ("Gehst du einer Nebenbeschäftigung nach?", "select", "side_job"),
+    ("Are you open to working fully on-site?* (required)", "select", "onsite_ok"),
+    ("Schulabschluss *", "select", "education"),
+    ("Veuillez renseigner votre niveau d'étude le plus élevé *", "select", "education"),
+])
+def test_the_required_selects_of_the_2026_08_28_corpus_are_named(label, kind, expected):
+    assert classify(label, kind=kind) == expected
+
+
+def test_a_referral_name_box_is_not_a_former_employee_question():
+    """"Hat ein/e Mitarbeiter/in der CSS dir die Stelle empfohlen?" wants a colleague's
+    name in a text box; "Mitarbeiter/in" must not turn it into a yes/no fact."""
+    assert classify("Hat ein/e Mitarbeiter/in der CSS dir die Stelle empfohlen?") \
+        != "former_employee"
+
+
+def test_a_language_level_question_is_not_a_correspondence_language():
+    assert classify("Sprachkenntnisse Deutsch", kind="select") != "correspondence_language"
+
+
+def test_a_phone_field_still_classifies_as_phone_next_to_a_country_code_select():
+    assert classify("Phone number*", kind="text") == "phone"
+    assert classify("Phone (Optional) +41", kind="tel") == "phone"
+
+
+def _field(ref, label, kind, **extra):
+    return {"ref": ref, "label": label, "name": label.lower(), "kind": kind,
+            "required": True, **extra}
+
+
+def test_a_decorator_combobox_twin_of_a_native_select_is_not_planned():
+    """Select2-style widgets: `form_schema` reports the native `<select>` and, right
+    beside it, a `role=combobox` div with the same label and no value property. Planning
+    both wrote the select and then failed the twin with `needs_interaction` — 7 of the 12
+    non-option write failures on the 77-company corpus (adesso, Axon Lab, AMAG, Vaudoise)."""
+    schema = {"fields": [
+        _field("e1", "Anrede*", "select", options_sample=["Anrede*", "Herr", "Frau"]),
+        _field("e2", "Anrede*", "combobox", needs_interaction=True),
+        _field("e3", "Kündigungsfrist *", "select", widget=True,
+               options_sample=["---", "keine", "1 Monat", "3 Monate"]),
+        _field("e4", "Kündigungsfrist *", "combobox", needs_interaction=True),
+    ]}
+    plan, audit = rules.plan_for(schema, "de")
+    planned = {step["ref"]: step for step in plan}
+    assert "e2" not in planned and "e4" not in planned
+    assert [a["status"] for a in audit if a["ref"] in ("e2", "e4")] == ["decorator_twin"] * 2
+    # The native select is written by label, never through the widget path.
+    assert "labels" in planned["e1"] and "interaction" not in planned["e1"]
+    assert "labels" in planned["e3"] and "interaction" not in planned["e3"]
+
+
+def test_a_lone_combobox_still_gets_the_interaction_path():
+    schema = {"fields": [_field("e1", "Anrede*", "combobox", needs_interaction=True)]}
+    plan, _ = rules.plan_for(schema, "de")
+    assert plan and plan[0]["interaction"] == "select" and "labels" in plan[0]
+
+
+def test_the_number_loses_its_prefix_when_the_country_code_is_supplied_elsewhere():
+    """Givaudan: "Country Phone Code*" beside "Phone number*"; Unit8: a tel box whose own
+    label reads "Phone (Optional) +41". Both rejected the full "+41 79 ..." on 2026-08-27."""
+    with_select = {"fields": [
+        _field("e1", "Country Phone Code*", "select",
+               options_sample=["Please Select", "Afghanistan (+93)", "Switzerland (+41)"]),
+        _field("e2", "Phone number*", "text"),
+    ]}
+    plan, _ = rules.plan_for(with_select, "en")
+    by_ref = {s["ref"]: s for s in plan}
+    assert by_ref["e1"]["labels"][0] == "+41"
+    assert "Switzerland (+41)" in by_ref["e1"]["labels"]
+    assert not by_ref["e2"]["value"].startswith("+")
+    assert by_ref["e2"]["mode"] == "insert"
+
+    in_label = {"fields": [_field("e1", "Phone (Optional) +41", "tel")]}
+    plan, _ = rules.plan_for(in_label, "en")
+    assert not plan[0]["value"].startswith("+")
+
+    alone = {"fields": [_field("e1", "Telefon", "tel")]}
+    plan, _ = rules.plan_for(alone, "de")
+    assert plan[0]["value"].startswith("+")          # nothing else supplies the code
+
+
+def test_a_yes_no_fact_offers_only_options_that_say_the_same_thing():
+    assert rules.option_candidates("criminal_record", "no", "de", None)[0] == "Nein"
+    assert "Nein" not in rules.option_candidates("criminal_record", "yes", "de", None)
+
+
+def test_facts_without_an_answer_are_left_for_review_not_guessed(monkeypatch):
+    """`criminal_or_debt_record` is the applicant's to state. With no answer key the field
+    is audited `missing_profile`, never written."""
+    from harness.ops.profile import ApplicantProfile
+    monkeypatch.setattr(rules, "APPLICANT", ApplicantProfile())
+    schema = {"fields": [_field("e1", "Eintrag im Straf- und Betreibungsregister *",
+                                "select", options_sample=["---", "Ja", "Nein"])]}
+    plan, audit = rules.plan_for(schema, "de")
+    assert plan == []
+    assert audit[0]["status"] == "missing_profile"
+
+
+def test_a_choice_control_labelled_phone_is_the_country_code_picker():
+    """Unit8: a `role=combobox` labelled "Phone (Optional) +41" offered "United States +1 |
+    Germany +49 | …". A select cannot take a number; it chooses the prefix."""
+    assert classify("Phone (Optional) +41", kind="combobox") == "phone_country_code"
+    assert classify("Telefon", kind="select") == "phone_country_code"
+
+
+def test_a_twin_anywhere_in_the_schema_and_a_semantic_twin_are_both_skipped():
+    schema = {"fields": [
+        _field("e1", "Höchster Bildungsabschluss*", "select",
+               options_sample=["Hauptschule", "Allgemeine Hochschulreife", "Hochschulabschluss"]),
+        _field("e2", "Berufserfahrung*", "select", options_sample=["Keine", "6-10 Jahre"]),
+        _field("e3", "Schule, Ausbildung, Beruf", "combobox", needs_interaction=True),
+        _field("e4", "Höchster Bildungsabschluss*", "combobox", needs_interaction=True),
+    ]}
+    plan, audit = rules.plan_for(schema, "de")
+    statuses = {a["ref"]: a["status"] for a in audit}
+    assert statuses["e3"] == "decorator_twin" and statuses["e4"] == "decorator_twin"
+    assert [s["ref"] for s in plan] == ["e1", "e2"]
+
+
+def test_education_prefers_the_rung_the_select_offers():
+    """Exact-match label lists never spelled "1. Master Université" or "Hochschulabschluss"
+    the way a given select does; three forms rejected the CV's own degree title."""
+    vaudoise = _field("e1", "Veuillez renseigner votre niveau d'étude le plus élevé *",
+                      "select", options_sample=["", "1. Master Université",
+                                                "2. Bachelor Université", "3. Master Haute Ecole",
+                                                "4. Bachelor Haute Ecole"])
+    plan, _ = rules.plan_for({"fields": [vaudoise]}, "fr")
+    assert plan[0]["labels"][:2] == ["1. Master Université", "3. Master Haute Ecole"]
+
+    adesso = _field("e1", "Höchster Bildungsabschluss*", "select",
+                    options_sample=["Hauptschule", "Realschule", "Berufsausbildung",
+                                    "Fachhochschulreife", "Allgemeine Hochschulreife",
+                                    "Hochschulabschluss"])
+    plan, _ = rules.plan_for({"fields": [adesso]}, "de")
+    assert plan[0]["labels"][0] == "Hochschulabschluss"
+
+    no_rung = _field("e1", "Schulabschluss *", "select",
+                     options_sample=["Kein Abschluss", "Hauptschulabschluss", "Mittlere Reife"])
+    plan, _ = rules.plan_for({"fields": [no_rung]}, "de")
+    assert not any(label in ("Kein Abschluss", "Hauptschulabschluss", "Mittlere Reife")
+                   for label in plan[0]["labels"])          # never a rung below the truth
