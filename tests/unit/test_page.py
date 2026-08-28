@@ -20,7 +20,15 @@ from harness.core.outcome import (
     Timeout,
     ValueRejected,
 )
-from harness.ops.page import ANNOTATE_JS, RUNTIME_JS, SNAPSHOT_JS, WORLD, Tab
+from harness.ops.page import (
+    ANNOTATE_JS,
+    FRAMES_QUIET,
+    FRAMES_ZERO_OBSERVE,
+    RUNTIME_JS,
+    SNAPSHOT_JS,
+    WORLD,
+    Tab,
+)
 from tests.unit.conftest import _reader_caught_up, _tab
 
 
@@ -574,25 +582,43 @@ def test_empty_search_handles_are_released_once_the_batch_fills(wired):
 def test_frames_catches_an_oopif_inserted_shortly_after_a_zero_probe(wired):
     """The fast probe is an instant, not a stability claim. Real Chrome reproduced this
     with an SPA inserting a cross-site iframe 80ms later: the old first call returned in
-    ~5ms and only a second call could see the OOPIF."""
+    ~5ms and only a second call could see the OOPIF.
+
+    The fake announces the child the moment auto-attach is armed — the order Chrome uses
+    for a child that appeared after the probe — rather than on a wall-clock timer. The
+    timer version raced `FRAMES_ZERO_OBSERVE` against the runner: an 80 ms `Timer` that
+    fires 130 ms late on a loaded macOS runner lands outside the window and reports a
+    working feature as broken (CI run 33186884787).
+    """
     browser, _, _ = wired
     tab = _tab(wired)
     browser.frame_host_count = 0
-    timer = threading.Timer(0.08, lambda: browser.emit(
+    browser.after_reply["Target.setAutoAttach"] = lambda params: browser.emit(
         "Target.attachedToTarget",
         {"targetInfo": {"targetId": "late-frame", "type": "iframe",
                         "url": "https://late-frame.test/"}},
-        session_id=tab._session_id))
-    timer.start()
+        session_id=tab._session_id)
     started = time.monotonic()
     got = tab.frames()
     elapsed = time.monotonic() - started
-    timer.join()
 
     assert [f["target_id"] for f in got] == ["late-frame"]
     assert 0.05 < elapsed < 0.5
     calls = [c for c in browser.calls if c.get("method") == "Target.setAutoAttach"]
     assert [c["params"]["autoAttach"] for c in calls] == [True]
+
+
+def test_frames_keeps_listening_after_a_zero_probe(wired):
+    """The window the test above relies on. A zero probe with nothing announced must still
+    cost `FRAMES_ZERO_OBSERVE`: that wait is what lets a child inserted after the probe be
+    seen at all, and a lower bound on a wait is the one timing claim a slow runner cannot
+    break."""
+    browser, _, _ = wired
+    tab = _tab(wired)
+    browser.frame_host_count = 0
+    started = time.monotonic()
+    assert tab.frames() == []
+    assert time.monotonic() - started >= FRAMES_ZERO_OBSERVE - 0.02
 
 
 def test_frames_runs_the_dance_when_pierced_search_sees_a_child(wired):
@@ -643,16 +669,30 @@ def test_frames_fails_open_when_the_probe_answer_is_untrusted(wired):
 def test_frames_collects_every_announcement_not_just_the_first(wired):
     """The old wait returned on the FIRST announcement and read the buffer immediately, so
     a page with several OOPIFs reported only the ones that had arrived by then. Silent
-    under-reporting: the caller saw a short list and no indication it was short."""
+    under-reporting: the caller saw a short list and no indication it was short.
+
+    The announcements come from the fake's reply thread, starting the instant auto-attach
+    is re-enabled and spaced a quarter of `FRAMES_QUIET` apart — far enough to defeat a
+    return-on-first, close enough to stay inside one settle window. The previous version
+    scheduled three wall-clock `Timer`s from the test thread; on a loaded macOS runner
+    they fired as f0, f2, f1 (CI run 33186884787) — a fact about the runner, not the code.
+    """
     browser, _, _ = wired
     tab = _tab(wired)
     browser.frame_host_count = 3
-    for i, delay in enumerate((0.02, 0.06, 0.10)):
-        threading.Timer(delay, lambda i=i: browser.emit(
-            "Target.attachedToTarget",
-            {"targetInfo": {"targetId": f"f{i}", "type": "iframe",
-                            "url": f"https://x{i}.test/"}},
-            session_id=tab._session_id)).start()
+
+    def announce(params):
+        if not params.get("autoAttach"):
+            return                          # the off half of the toggle announces nothing
+        for i in range(3):
+            if i:
+                time.sleep(FRAMES_QUIET / 4)
+            browser.emit("Target.attachedToTarget",
+                         {"targetInfo": {"targetId": f"f{i}", "type": "iframe",
+                                         "url": f"https://x{i}.test/"}},
+                         session_id=tab._session_id)
+
+    browser.after_reply["Target.setAutoAttach"] = announce
     got = tab.frames()
     assert [f["target_id"] for f in got] == ["f0", "f1", "f2"]
 

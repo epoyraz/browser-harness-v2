@@ -47,6 +47,12 @@ class FakeBrowser:
         #: DOM.performSearch result for browsing-context hosts. Real Chrome searches open
         #: and closed shadow roots; tests set this to model the measured document shape.
         self.frame_host_count: int | None = 0
+        #: method → callback(params), run on the reply thread right after that method's
+        #: reply is queued. For an event the browser sends *because* of a command — an
+        #: OOPIF announcing itself once auto-attach is armed — this pins the event's order
+        #: to the reply instead of to a wall-clock `Timer` racing the code's own windows,
+        #: which is what made two frames() tests flake on a loaded macOS runner.
+        self.after_reply: dict[str, Any] = {}
         self.frame_host_error: str | None = None
 
         self._q: deque[dict[str, Any]] = deque()
@@ -114,6 +120,8 @@ class FakeBrowser:
             if msg.get("method") in self.hang_methods:
                 return                                   # deliberately never answered
             self._push(self._respond(msg))
+            if hook := self.after_reply.get(msg.get("method", "")):
+                hook(msg.get("params") or {})     # queued behind the reply, by construction
         finally:
             with self._lock:
                 self.in_flight -= 1
