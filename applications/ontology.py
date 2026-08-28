@@ -209,8 +209,14 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
     if (any(x in text for x in ("postal code", "postcode", "postleitzahl"))
             or has_word(text, "zip", "plz", "npa")):
         return "postal_code"
-    if (any(x in text for x in ("house number", "hausnummer", "cust number"))
-            or has_word(text, "nr")):
+    # A combined box asks for both parts and wants the whole line. "hausnummer" is a
+    # substring of "Strasse und Hausnummer", so testing the number first claimed the
+    # combined field and wrote the bare number into it: measured 2026-08-27 on the CSS
+    # posting, "Strasse und Hausnummer" received "12" where the street belonged. Only a
+    # field that mentions the number *without* the street is the number on its own.
+    if ((any(x in text for x in ("house number", "hausnummer", "cust number"))
+            or has_word(text, "nr"))
+            and not any(x in text for x in ("street", "strasse", "strase", "adresse"))):
         return "house_number"
     if name == "country" or has_word(label, "country", "land", "pays"):
         return "country"
@@ -301,10 +307,18 @@ def option_candidates(semantic_name: str, value: Any, language: str,
         return list(item.candidates)
     lang = norm(language)
     candidates: dict[str, list[str]] = {
-        "experience_years": ["8+", "8+ years", "7+ years", "7+ Jahre", "5+ Jahre"],
-        "english_level": ["C1/C2", "C2", "C1", "Fluent", "Native or bilingual"],
+        # Swiss forms offer banded ranges far more often than an open "8+": measured
+        # 2026-08-27, "Berufserfahrung" offered Keine / 1-2 Jahre / 3-5 Jahre / 6-10 Jahre
+        # and matched none of the open-ended forms.
+        "experience_years": ["8+", "8+ years", "7+ years", "7+ Jahre", "5+ Jahre",
+                             "6-10 Jahre", "6-10 years", "5-10 Jahre", "mehr als 5 Jahre",
+                             "More than 5 years", "5+ years"],
+        "english_level": ["C1/C2", "C2", "C1", "Fluent", "Native or bilingual",
+                          "Professional", "Fliessend", "Verhandlungssicher", "Advanced"],
         "german_level": ["Native", "Muttersprache", "C2", "C1/C2"],
-        "work_authorization": ["Schweizer/-in", "Swiss citizen", "Ja", "Yes"],
+        "work_authorization": ["Schweizer/-in", "Swiss citizen", "Ja", "Yes",
+                               "Yes, I have a Swiss passport.", "Schweizer Bürger/-in",
+                               "Schweizer Pass", "CH", "Schweiz"],
         "country": ["Schweiz", "Switzerland", "Suisse"],
         "nationality": ["Schweizer/-in", "Swiss", "Schweiz", "Suisse"],
         "timezone": ["Europe/Zurich", "UTC+1", "CET"],
@@ -317,9 +331,17 @@ def option_candidates(semantic_name: str, value: Any, language: str,
     answer = str(value)
     out = [answer, *candidates.get(semantic_name, [])]
     if semantic_name == "availability":
-        out.extend(["Per sofort", "Immediately", "Immédiatement"])
+        # A "Kündigungsfrist" select offers notice periods, not start dates, and three
+        # forms measured 2026-08-27 reported no_option_match against the immediate
+        # wordings alone. Immediate first, then the common Swiss notice periods.
+        out.extend(["Per sofort", "Immediately", "Immédiatement", "sofort verfügbar",
+                    "Sofort", "ab sofort", "nach Vereinbarung", "3 Monate", "2 Monate",
+                    "1 Monat", "3 months", "keine"])
     if semantic_name == "gender_or_salutation":
-        out.extend(["Herr", "Mr", "Monsieur"])
+        # "Mr" without the stop misses "Mr."; a gender select asks a different question
+        # with the same semantic, and offers Male/männlich instead of a salutation.
+        out.extend(["Herr", "Mr", "Monsieur", "Mr.", "M.", "Male", "männlich", "Mann",
+                    "Homme", "Signore"])
     if lang.startswith("de") and semantic_name == "referral_source":
         out.extend(["Unternehmenswebsite", "LinkedIn"])
     return list(dict.fromkeys(part for part in out if part))
