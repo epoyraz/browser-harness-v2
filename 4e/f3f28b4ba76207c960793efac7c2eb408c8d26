@@ -1,0 +1,29 @@
+tests/unit/test_memo.py
+  s_8e0673ead1b499::t_b1291f8cd129d6 193-198,205-236,238-248,253-254,257-270
+  s_8e0673ead1b499::t_309347dd4298ea 1-192,199-204,237,249-252,255-256
+tools/collect_job_form_telemetry.py
+  s_8e0673ead1b499::t_309347dd4298ea 13,51,80-84,685-690,693,697-699,703-706,809,824-826,832-835,839,841-844
+  s_8e0673ead1b499::t_b4afb1240b509c 651-676,888,903,936
+  s_8e0673ead1b499::t_3ff1d0a2ffcd32 14-29
+  s_8e0673ead1b499::t_fbb8487a4bc4ee 789-808,810-823,827-831,836-838,840,845
+  s_8e0673ead1b499::t_ea51192e56ecfe 701-702
+  s_8e0673ead1b499::t_ccbfefbed54c84 85,846-847
+applications/memo.py
+  s_8e0673ead1b499::t_309347dd4298ea 1-298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4ef3f28b4ba76207c960793efac7c2eb408c8d26",
+  "prompts": {},
+  "sessions": {
+    "s_8e0673ead1b499": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b7175c29-9c23-43f1-ae04-90f309b7298f",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Enes Poyraz <epoyraz.eth@googlemail.com>"
+    }
+  }
+}
