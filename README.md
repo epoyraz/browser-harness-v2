@@ -130,9 +130,12 @@ matches in its source. v2 installs a persistent runtime into every document and 
 observer running. In one paired benchmark cell, on the same task at the same moment with
 near-identical work (31 vs 32 commands, within 1.5s), v2 was stopped by a Cloudflare
 human-verification wall that v1 walked through. That is n=1 and unconfirmed — the isolated
-world is meant to be invisible to page script — but the design that makes v2 unbreakable by
-a hostile page is the prime suspect for being visible to one. `tests/live/detectability_check.py`
-is where that gets settled.
+world is meant to be invisible to page script — but it was the leading suspect.
+
+That suspicion is now dead: `vercel-labs/agent-browser` injects the same four primitives,
+so injection is what a serious harness does rather than something v2 does uniquely
+(`docs/benchmarks/agent-browser-review-2026-08-29.md`). The observation stands and its
+explanation does not. `tests/live/detectability_check.py` is where it gets settled.
 
 **v1 has a team.** It gets fixes on days nobody touches this.
 
