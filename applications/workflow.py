@@ -175,6 +175,15 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     ``hop_budget`` is only the final safety ceiling, not the workflow definition.
     The final form verdict wins over a stale ``usable_ui``/``account_wall`` probe and
     the disagreement is retained as evidence.
+
+    When ``document.application_route_candidates`` recognises the start URL, the first
+    navigation goes to the rule's application view instead of the posting (§2.3): 40 of
+    the 50 forms filled in the 2026-08-21 100-posting run took exactly two hops, posting
+    -> apply view, and for a known ATS the second URL is a function of the first, so the
+    posting's ``goto`` (3.5 s mean) plus its inspect and state wait bought nothing. A
+    candidate that does not land on a form costs one extra ``goto`` back to the posting
+    and nothing else — the workflow from there is the unchanged one.
+    ``BH_APPLICATION_ROUTE_FIRST=0`` restores landing on the posting.
     """
     if hop_budget < 1:
         raise ValueError("hop_budget must be positive")
@@ -182,13 +191,38 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     hops: list[dict[str, Any]] = []
     seen: set[tuple[Any, ...]] = set()
     route_candidates = list(candidates or document.application_route_candidates(url))
+    route_first = (document.application_route_candidates(url)
+                   if _enabled(os.environ.get("BH_APPLICATION_ROUTE_FIRST")) else [])
+    landing = route_first[0] if route_first else url
     with session.journal.bind(stage="navigate"):
-        navigation = session.tab().goto(url, timeout=timeout, **_navigation_wait())
+        navigation = session.tab().goto(landing, timeout=timeout, **_navigation_wait())
     pending_state: dict[str, Any] | None = None
     prepared: dict[str, Any] = {}
     terminal = "budget_exhausted"
 
-    for hop in range(hop_budget):
+    if route_first:
+        # The readiness check every landing already gets, asked one navigation earlier.
+        # It only decides *where* the hop below inspects: `prepare_application` is still
+        # the authority on whether that document is an application.
+        with session.journal.bind(stage="route_first"):
+            probe = application_state.wait_for_application_state(
+                session.tab(), timeout=min(timeout, 12.0))
+        accepted = str(probe.get("state") or "") == "form"
+        hops.append({"hop": 0, "via": "route_rule", "url": landing, "start_url": url,
+                     "accepted": accepted, "application_state": probe,
+                     "navigation": navigation})
+        if accepted:
+            pending_state = probe  # reused by the first hop, as a transition's state is
+        else:
+            # A real fallback: one `goto` back to the posting, then nothing else changes.
+            # `landing` stays in `route_candidates`, because the old path reaches it with
+            # the posting's cookies and losing a form is not worth saving a hop.
+            with session.journal.bind(stage="navigate", fallback="route_rule"):
+                navigation = session.tab().goto(url, timeout=timeout, **_navigation_wait())
+
+    for _hop in range(hop_budget):
+        # Position in `hops`, not the loop counter: a route-rule row may precede these.
+        hop = len(hops)
         with session.journal.bind(stage="inspect", hop=hop):
             state = pending_state or application_state.wait_for_application_state(session.tab(), 
                 timeout=min(timeout, 12.0))

@@ -180,6 +180,109 @@ def test_locate_application_reuses_transition_state_and_reconciles_form(
     assert result["hops"][-1]["state_conflict"] is True
 
 
+# §2.3: a posting whose apply view the route table can name. The rule is Ashby's
+# `/<company>/<uuid>` -> `/application`, so these two URLs are one `goto` apart.
+_ROUTED_POSTING = "https://jobs.ashbyhq.com/acme/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+_ROUTED_FORM = _ROUTED_POSTING + "/application"
+
+
+def _locate_double(session, monkeypatch, states, prepared, *, follow=None):
+    """Drive `locate_application` over a scripted browser: returns the URLs visited."""
+    tab = session.use_tab("a")
+    visited = []
+    monkeypatch.setattr(tab, "goto", lambda url, **kw: (
+        visited.append(url) or {"requested": url, "landed": url, "lifecycle": "load"}))
+    scripted = iter(states)
+    monkeypatch.setattr(state, "wait_for_application_state",
+                        lambda *a, **kw: next(scripted))
+    documents = iter(prepared)
+    monkeypatch.setattr(workflow, "prepare_application",
+                        lambda _session, **kw: next(documents))
+    monkeypatch.setattr(workflow, "follow_application", follow or (lambda *a, **kw: {
+        "transition": {"kind": "control"}, "state": {"state": "form"},
+        "target_id": "a", "target_changed": False}))
+    return visited
+
+
+def _document(url, *, is_application, control=None):
+    return {"url": url, "target_id": "a", "is_application": is_application,
+            "schema": {"verdict": {"is_form": is_application,
+                                   "fields": 8 if is_application else 0}},
+            "apply_control": control, "apply_link": None,
+            "context": "main", "contexts_checked": 1}
+
+
+def test_locate_application_starts_at_the_route_candidate_when_it_is_a_form(
+        session, monkeypatch):
+    monkeypatch.delenv("BH_APPLICATION_ROUTE_FIRST", raising=False)
+    visited = _locate_double(
+        session, monkeypatch,
+        states=[{"state": "form", "fields": 8}],
+        prepared=[_document(_ROUTED_FORM, is_application=True)])
+
+    result = locate_application(session, _ROUTED_POSTING)
+
+    assert visited == [_ROUTED_FORM]  # the posting is never navigated to
+    assert result["hops"][0]["via"] == "route_rule"
+    assert result["hops"][0]["accepted"] is True
+    assert result["hops"][0]["start_url"] == _ROUTED_POSTING
+    assert result["hops"][1]["hop"] == 1 and result["hops"][1]["url"] == _ROUTED_FORM
+    assert result["terminal_state"] == "form"
+
+
+def test_locate_application_falls_back_to_the_posting_when_the_candidate_is_not_a_form(
+        session, monkeypatch):
+    monkeypatch.delenv("BH_APPLICATION_ROUTE_FIRST", raising=False)
+    followed = []
+    visited = _locate_double(
+        session, monkeypatch,
+        states=[{"state": "stable_failure"}, {"state": "usable_ui"}],
+        prepared=[_document(_ROUTED_POSTING, is_application=False, control={"ref": "e1"}),
+                  _document(_ROUTED_FORM, is_application=True)],
+        follow=lambda *a, **kw: (followed.append(kw.get("candidates")) or {
+            "transition": {"kind": "control"}, "state": {"state": "form"},
+            "target_id": "a", "target_changed": False}))
+
+    result = locate_application(session, _ROUTED_POSTING)
+
+    # One extra `goto` and nothing else: the original path runs from the posting.
+    assert visited == [_ROUTED_FORM, _ROUTED_POSTING]
+    assert result["hops"][0]["via"] == "route_rule"
+    assert result["hops"][0]["accepted"] is False
+    assert result["hops"][1]["url"] == _ROUTED_POSTING
+    assert followed == [[_ROUTED_FORM]]  # the candidate stays available to the old path
+    assert result["terminal_state"] == "form"
+
+
+def test_locate_application_is_unchanged_when_no_route_rule_matches(session, monkeypatch):
+    monkeypatch.delenv("BH_APPLICATION_ROUTE_FIRST", raising=False)
+    visited = _locate_double(
+        session, monkeypatch,
+        states=[{"state": "form", "fields": 8}],
+        prepared=[_document("https://a.test/apply", is_application=True)])
+
+    result = locate_application(session, "https://a.test/apply")
+
+    assert visited == ["https://a.test/apply"]
+    assert [row["hop"] for row in result["hops"]] == [0]
+    assert "via" not in result["hops"][0]
+
+
+def test_locate_application_route_first_toggle_restores_landing_on_the_posting(
+        session, monkeypatch):
+    monkeypatch.setenv("BH_APPLICATION_ROUTE_FIRST", "0")
+    visited = _locate_double(
+        session, monkeypatch,
+        states=[{"state": "usable_ui"}],
+        prepared=[_document(_ROUTED_POSTING, is_application=True)])
+
+    result = locate_application(session, _ROUTED_POSTING)
+
+    assert visited == [_ROUTED_POSTING]
+    assert [row["hop"] for row in result["hops"]] == [0]
+    assert "via" not in result["hops"][0]
+
+
 def test_run_application_plans_and_fills_without_a_submit_operation(session, monkeypatch):
     monkeypatch.setattr(workflow, "locate_application", lambda *a, **kw: {
         "terminal_state": "form", "prepared": {
