@@ -46,6 +46,7 @@ from harness.core.outcome import (
     NavigationFailed,
     NotSerializable,
     Outcome,
+    RendererUnresponsive,
     ScopeRefused,
     SideEffectRefused,
     Timeout,
@@ -107,6 +108,16 @@ NAVIGATION_STABLE = 0.15
 NAVIGATION_GRACE_DEFAULT = 0.8
 NAVIGATION_REPROBE = 0.15
 NAVIGATION_REPROBE_MAX = 2.0
+#: Chrome's Memory Saver discards inactive background tabs, and every tab this harness
+#: opens is a background tab that `parallel()` then leaves idle between items. A discarded
+#: tab keeps its target and loses its renderer, so a renderer-served command never answers
+#: — and a short timeout is the only discard signal CDP exposes. A live renderer replies in
+#: milliseconds, so 3s separates the two without waiting on a real page.
+RENDERER_PROBE = 3.0
+#: What a reactivated renderer gets before the tab is called unrecoverable. Reactivation
+#: reloads a genuinely discarded tab, which is slower than answering a probe.
+RENDERER_REVIVE = 10.0
+
 NAVIGATION_DATA_TYPES = frozenset({"XHR", "Fetch", "EventSource"})
 NAVIGATION_EVENTS = frozenset({
     "Page.lifecycleEvent",
@@ -1763,6 +1774,42 @@ class Tab:
         with self._navigation_history_lock:
             self._navigation_history.append((parsed, lifecycle, network_quiet))
 
+    def ensure_renderer(self, *, probe: float = RENDERER_PROBE,
+                        revive: float = RENDERER_REVIVE) -> str:
+        """Make sure this tab still has a renderer, reactivating it if not.
+
+        Chrome's Memory Saver discards inactive background tabs. The target survives, the
+        renderer does not, and every renderer-served command then hangs for its whole
+        timeout — which is what `Page.navigate did not answer in 25.0s` was: 11 of 18
+        workflow failures over 100 postings, on a run that opens background tabs by design
+        and leaves them idle between items.
+
+        CDP exposes no `discarded` flag, so the probe *is* the signal: a live renderer
+        answers `Page.getLayoutMetrics` in milliseconds. Guessing wrong is cheap in one
+        direction only, which is why the recovery is `Target.activateTarget` — it reloads
+        a genuinely discarded tab and merely focuses a live one.
+
+        Returns ``responsive``, ``revived`` or ``unrecoverable``. Nothing is raised: the
+        caller asked whether it could proceed, and "no" is an answer.
+        """
+        try:
+            self.cdp("Page.getLayoutMetrics", timeout=probe)
+            return "responsive"
+        except Timeout:
+            pass
+        # Browser-level, so it answers even while the renderer will not — which is the
+        # whole reason it can be the recovery for a renderer that has gone.
+        self._conn.request("Target.activateTarget", {"targetId": self.target_id},
+                           timeout=probe)
+        try:
+            self.cdp("Page.getLayoutMetrics", timeout=revive)
+            state = "revived"
+        except Timeout:
+            state = "unrecoverable"
+        self._j.write("note", event="renderer_revive", state=state,
+                      target_id=self.target_id)
+        return state
+
     def goto(self, url: str, *, timeout: float = 20.0, wait_until: str = "load",
              usable_after: float | None = NAVIGATION_GRACE_DEFAULT,
              digest: bool = False,
@@ -1842,7 +1889,15 @@ class Tab:
 
         with self._j.call("goto", url=url), \
              self._armed(lambda m: m.get("method") in NAVIGATION_EVENTS) as w:
-            nav = self.cdp("Page.navigate", {"url": url}, timeout=timeout)
+            try:
+                nav = self.cdp("Page.navigate", {"url": url}, timeout=timeout)
+            except RendererUnresponsive:
+                # The navigate never came back, which on a background tab usually means
+                # the renderer was discarded rather than that the site is slow. Revive
+                # and try once; a tab that stays dead re-raises with its class intact.
+                if self.ensure_renderer() == "unrecoverable":
+                    raise
+                nav = self.cdp("Page.navigate", {"url": url}, timeout=timeout)
             if err := nav.get("errorText"):
                 raise NavigationFailed(err, requested=url, landed=self._try_url())
             loader = nav.get("loaderId")

@@ -13,7 +13,7 @@ import json
 
 import pytest
 
-from harness.core.outcome import ElementGone, ScopeRefused
+from harness.core.outcome import ElementGone, RendererUnresponsive, ScopeRefused
 from tests.unit.conftest import _evaluates
 
 
@@ -169,3 +169,48 @@ def test_ax_reports_only_the_states_the_platform_actually_set(tab):
     rows = {r["name"]: r for r in t.ax(refs=False)}
     assert rows["Terms"]["checked"] == "true"
     assert "checked" not in rows["Ads"] and "invalid" not in rows["Terms"]
+
+
+# --- Memory-Saver-discarded tabs ------------------------------------------------------
+
+def _renderer(tab, answers):
+    """Answer Page.getLayoutMetrics from `answers` in order; "hang" means no renderer."""
+    _browser, t = tab
+    seen = {"activated": 0, "probes": 0}
+    original = t.cdp
+
+    def fake(method, params=None, **kw):
+        if method == "Page.getLayoutMetrics":
+            seen["probes"] += 1
+            reply = answers.pop(0) if answers else "ok"
+            if reply == "hang":
+                raise RendererUnresponsive("Page.getLayoutMetrics did not answer in 3.0s")
+            return {}
+        return original(method, params, **kw)
+
+    t.cdp = fake
+    t._conn.request = lambda method, params=None, **kw: (
+        seen.__setitem__("activated", seen["activated"] + 1) or {})
+    return t, seen
+
+
+def test_a_live_renderer_costs_one_probe_and_no_reactivation(tab):
+    """The happy path has to be nearly free, or it cannot sit in front of anything."""
+    t, seen = _renderer(tab, ["ok"])
+    assert t.ensure_renderer() == "responsive"
+    assert seen == {"activated": 0, "probes": 1}
+
+
+def test_a_discarded_tab_is_reactivated_and_reported_as_revived(tab):
+    """CDP exposes no `discarded` flag, so the unanswered probe *is* the signal."""
+    t, seen = _renderer(tab, ["hang", "ok"])
+    assert t.ensure_renderer() == "revived"
+    assert seen == {"activated": 1, "probes": 2}
+
+
+def test_a_tab_that_stays_dead_says_so_rather_than_raising(tab):
+    """The caller asked whether it could proceed. "No" is an answer, and `goto` needs it
+    to decide between retrying and re-raising the original failure."""
+    t, seen = _renderer(tab, ["hang", "hang"])
+    assert t.ensure_renderer() == "unrecoverable"
+    assert seen["activated"] == 1
