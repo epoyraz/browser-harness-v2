@@ -37,7 +37,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from harness.core.bench import render, rollup
+from evidence.bench import render, rollup
 
 CV_DEFAULT = "/Users/rebourne/Desktop/Bewerbung 2026/Lebenslauf – Enes Poyraz.pdf"
 URL = "https://joblens.ch/suche"

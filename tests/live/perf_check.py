@@ -27,11 +27,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import _browser
 
+from evidence.trace import render
 from harness.connect.cdp import Connection, WebSocketTransport
 from harness.connect.endpoint import discover
 from harness.connect.session import SessionRegistry
 from harness.core.journal import Journal
-from harness.core.trace import render
 from harness.ops.batch import fetch_all
 from harness.ops.forms import fill_form, form_schema
 from harness.ops.page import Tab
