@@ -47,6 +47,9 @@ Use the highest-level bounded helper that answers the question:
    again — `page_text()` re-sends all of it every time.
 3. `find(text=...)` to locate the element you mean; `extract(selector, fields)` for
    repeated records. Reach for these **before** writing `querySelectorAll(...).map(...)`.
+   When a substring is not enough, `find(pattern=r"(apply|bewerb|postul)", exclude=
+   r"(newsletter|privacy)", max_len=60)` takes regular expressions and a length cap —
+   a sentence containing the word is rarely the control carrying it.
 4. `snapshot()` or `form_schema()` when you need every control rather than one;
    `form_values()` to read a form back after writing it.
 5. `see()` only when layout, imagery, overlap, or a visually empty page matters.
@@ -135,6 +138,8 @@ performs bounded in-page GETs with browser cookies and counted failures. Do not 
 
 ```python
 rows = find("Add to basket")             # the elements whose name says this
+hits = find(pattern=r"(apply|bewerb)",   # or a regex, with an exclusion and a cap
+            exclude=r"(privacy)", max_len=60)
 hits = extract("li.card",                # repeated records, each with a ref to act on
                {"title": "h3", "price": ".price", "url": "a@href"})
 elements = snapshot()                    # every control: ref, role/tag/name, viewport box

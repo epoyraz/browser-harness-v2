@@ -769,6 +769,14 @@ def _accepts(accept: str, path: str) -> bool:
 #: `querySelectorAll(...).filter(...)` JS — both are this function with an argument.
 _SNAPSHOT_FN_JS = """((query) => {
   const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  if (query) {
+    // Compiled once, and reported rather than swallowed: a regex that does not compile
+    // would otherwise match nothing, which is indistinguishable from "no such element".
+    try {
+      if (query.pattern) query.pattern = new RegExp(query.pattern, 'i');
+      if (query.exclude) query.exclude = new RegExp(query.exclude, 'i');
+    } catch (e) { return {error: 'bad_pattern', detail: String(e).slice(0, 200)}; }
+  }
   const sel = 'a[href],button,input,select,textarea,[role=button],[role=link],' +
     '[role=checkbox],[role=radio],[role=combobox],[role=menuitem],[role=tab],' +
     '[onclick],[contenteditable=true]';
@@ -811,6 +819,16 @@ _SNAPSHOT_FN_JS = """((query) => {
       // computation, and guessing one here would be a different helper.
       const name = it.name.toLowerCase();
       if (query.text && !name.includes(String(query.text).toLowerCase())) continue;
+      // `pattern` and `exclude` exist because the one real consumer of "find the element
+      // that says X" in this repo could not use `text`. The apply-link scorer in
+      // applications/document.py needs a multilingual alternation, a disqualifying
+      // pattern, and a length cap — a substring match expresses none of the three, so it
+      // hand-rolled the whole query in raw JS.
+      if (query.pattern && !query.pattern.test(it.name)) continue;
+      if (query.exclude && query.exclude.test(it.name)) continue;
+      // A sentence containing the word is not the control. Measured there as
+      // `txt.length > 60`, which rejects prose while keeping every real button label.
+      if (query.max_len && it.name.length > query.max_len) continue;
       if (query.tag && it.tag !== String(query.tag).toLowerCase()) continue;
       if (query.role && String(el.getAttribute('role') || '').toLowerCase()
           !== String(query.role).toLowerCase()) continue;
@@ -2176,25 +2194,43 @@ class Tab:
         with self._j.call("snapshot"):
             return self._world_js(SNAPSHOT_JS) or []
 
-    def find(self, text: str | None = None, *, role: str | None = None,
-             tag: str | None = None, type: str | None = None,
+    def find(self, text: str | None = None, *, pattern: str | None = None,
+             exclude: str | None = None, max_len: int | None = None,
+             role: str | None = None, tag: str | None = None, type: str | None = None,
              limit: int = 20) -> list[dict[str, Any]]:
-        """The elements whose name contains ``text``, filtered in the page.
+        """The elements whose name matches, filtered in the page.
 
         `snapshot()` answers "what is here"; this answers "where is the thing I mean",
         which is what a caller actually has. Rows are snapshot rows, so `click_ref`,
         `set_value` and `select_option` take them unchanged.
 
-        Matching is case-insensitive substring against the same `name` the caller gets
-        back, and `name_source` still says which link of the chain produced it — a match
-        on a placeholder is weaker evidence than a match on an aria-label, and the caller
-        can see which it got.
+        ``text`` is a case-insensitive substring. ``pattern`` and ``exclude`` are regular
+        expressions, and ``max_len`` caps the name's length — the three together are what
+        the apply-link scanner in `applications/document.py` needed and a substring could
+        not give it: one alternation across seven languages, a disqualifying pattern for
+        newsletter and privacy links, and a cap that rejects a sentence containing the
+        word in favour of the button carrying it.
+
+        Deliberately absent: matching on `href`. Measured in that same scanner — scoring
+        on the URL found nothing the label had not already found, and did produce a false
+        positive, a "Candidates Privacy Notice" link whose href contained `/apply/`. It is
+        a tie-break, not evidence, and offering it here would invite it as evidence.
+
+        `name_source` still says which link of the naming chain matched, so a hit on a
+        placeholder can be weighed differently from one on an aria-label.
         """
-        query = {"text": text, "role": role, "tag": tag, "type": type,
-                 "limit": max(1, int(limit))}
-        with self._j.call("find", text=bool(text), role=role, tag=tag, limit=limit):
-            source = _SNAPSHOT_FN_JS + f"({json.dumps(query)})"
-            return self._world_js(source) or []
+        query: dict[str, Any] = {
+            "text": text, "pattern": pattern, "exclude": exclude,
+            "max_len": int(max_len) if max_len else None,
+            "role": role, "tag": tag, "type": type, "limit": max(1, int(limit))}
+        with self._j.call("find", text=bool(text), pattern=bool(pattern),
+                          role=role, tag=tag, limit=limit):
+            got = self._world_js(_SNAPSHOT_FN_JS + f"({json.dumps(query)})")
+        if isinstance(got, dict) and got.get("error") == "bad_pattern":
+            raise ScopeRefused("find() pattern is not valid JavaScript regex",
+                               pattern=pattern or exclude,
+                               browser_error=got.get("detail", ""))
+        return got or []
 
     def extract(self, selector: str, fields: dict[str, str] | None = None, *,
                 limit: int = 200, max_chars: int = 20_000) -> dict[str, Any]:

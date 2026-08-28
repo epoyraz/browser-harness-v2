@@ -19,6 +19,11 @@ sys.path[:0] = [str(ROOT), str(ROOT / "tests" / "live")]
 
 PAGE = """<!doctype html><meta charset=utf-8><title>Shop</title>
 <a href="/a">Alpha link</a><a href="/b">Beta link</a>
+<a href="/j1">Auf diese Stelle bewerben</a>
+<a href="/j2">Postuler maintenant</a>
+<a href="/newsletter">Job-Alert abonnieren</a>
+<a href="/apply/privacy">Candidates Privacy Notice</a>
+<a href="/j3">We are always happy to receive an application from candidates who bewerben themselves early</a>
 <button aria-label="Add to basket">Buy</button>
 <button>Unrelated</button>
 <ul>
@@ -60,12 +65,36 @@ try:
     check("find matches on the accessible name", len(rows)==1 and rows[0]["tag"]=="button", rows[0]["name"] if rows else "")
     check("find reports which link named it", rows and rows[0].get("name_source")=="aria", rows[0].get("name_source") if rows else "")
     check("find rows are snapshot rows a click takes", bool(rows and rows[0]["ref"]), rows[0]["ref"] if rows else "")
-    check("find filters by tag", len(t.find(tag="a"))==5, "5 anchors incl. the 3 in cards")
+    anchors = PAGE.count("<a href=")
+    check("find filters by tag", len(t.find(tag="a", limit=99))==anchors,
+          f"{anchors} anchors in the fixture")
     check("find honours its limit", len(t.find(tag="a", limit=1))==1)
     check("find on nothing is empty, not an error", t.find("no-such-control")==[])
 
+    # The real query, taken from applications/document.py: one alternation across seven
+    # languages, a disqualifying pattern, and a cap that rejects prose containing the verb.
+    APPLY = r"(bewerb|apply|postul|candidat|candida|sollicit|solicit|aplicar|ansok)"
+    NOT_APPLY = r"(newsletter|job.?alert|abonnier|privacy|notice)"
+    hits = t.find(pattern=APPLY, exclude=NOT_APPLY, max_len=60, tag="a")
+    names = sorted(h["name"] for h in hits)
+    check("pattern matches across languages a substring cannot",
+          names == ["Auf diese Stelle bewerben", "Postuler maintenant"], str(names))
+    check("exclude drops the newsletter and the privacy link",
+          not any("abonnier" in n or "Privacy" in n for n in names))
+    check("max_len rejects the sentence that merely contains the verb",
+          not any(len(n) > 60 for n in names))
+    check("without exclude, the decoys come back",
+          len(t.find(pattern=APPLY, max_len=60, tag="a")) > len(hits))
+    try:
+        t.find(pattern="(unclosed")
+        check("an uncompilable pattern is refused, not silently empty", False)
+    except HarnessError as e:
+        check("an uncompilable pattern is refused, not silently empty", True,
+              e.outcome.cls.value)
+
     out = t.extract("a")
-    check("extract defaults to text+href", out["returned"]==5 and out["rows"][0]["text"]=="Alpha link",
+    check("extract defaults to text+href",
+          out["returned"]==anchors and out["rows"][0]["text"]=="Alpha link",
           f'{out["returned"]} rows')
     check("extract rows carry a ref to act on", all(r.get("ref") for r in out["rows"]))
     cards = t.extract("li.card", {"title":"h3","price":".price","url":"a@href"})
