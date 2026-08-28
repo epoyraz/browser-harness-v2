@@ -245,11 +245,16 @@ def test_locate_application_falls_back_to_the_posting_when_the_candidate_is_not_
 
     result = locate_application(session, _ROUTED_POSTING)
 
-    # One extra `goto` and nothing else: the original path runs from the posting.
+    # The original path runs from the posting, and the fallback costs one extra `goto`
+    # plus the candidate's own state wait: the two scripted states are consumed one by the
+    # route probe and one by the posting's hop, so the posting inherits nothing from the
+    # rejected candidate. Without route-first this case needs only the second of them.
     assert visited == [_ROUTED_FORM, _ROUTED_POSTING]
     assert result["hops"][0]["via"] == "route_rule"
     assert result["hops"][0]["accepted"] is False
+    assert result["hops"][0]["application_state"] == {"state": "stable_failure"}
     assert result["hops"][1]["url"] == _ROUTED_POSTING
+    assert result["hops"][1]["application_state"] == {"state": "usable_ui"}
     assert followed == [[_ROUTED_FORM]]  # the candidate stays available to the old path
     assert result["terminal_state"] == "form"
 

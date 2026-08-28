@@ -182,8 +182,8 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     -> apply view, and for a known ATS the second URL is a function of the first, so the
     posting's ``goto`` (3.5 s mean) plus its inspect and state wait bought nothing. A
     candidate that does not land on a form costs one extra ``goto`` back to the posting
-    and nothing else — the workflow from there is the unchanged one.
-    ``BH_APPLICATION_ROUTE_FIRST=0`` restores landing on the posting.
+    *plus* the candidate's own state wait below — the workflow from there is the
+    unchanged one. ``BH_APPLICATION_ROUTE_FIRST=0`` restores landing on the posting.
     """
     if hop_budget < 1:
         raise ValueError("hop_budget must be positive")
@@ -214,9 +214,10 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
         if accepted:
             pending_state = probe  # reused by the first hop, as a transition's state is
         else:
-            # A real fallback: one `goto` back to the posting, then nothing else changes.
-            # `landing` stays in `route_candidates`, because the old path reaches it with
-            # the posting's cookies and losing a form is not worth saving a hop.
+            # A real fallback: one `goto` back to the posting — that `goto` and the probe
+            # above are what it costs — and then nothing else changes. `landing` stays in
+            # `route_candidates`, because the old path reaches it with the posting's
+            # cookies and losing a form is not worth saving a hop.
             with session.journal.bind(stage="navigate", fallback="route_rule"):
                 navigation = session.tab().goto(url, timeout=timeout, **_navigation_wait())
 
