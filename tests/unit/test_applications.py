@@ -259,6 +259,33 @@ def test_locate_application_falls_back_to_the_posting_when_the_candidate_is_not_
     assert result["terminal_state"] == "form"
 
 
+def test_locate_application_falls_back_when_the_probe_said_form_but_the_document_is_not(
+        session, monkeypatch):
+    """The route probe is a readiness check, not a verdict. When it says `form` and
+    `prepare_application` — the authority — then rejects the document, the posting must
+    still be visited. Before this guard the loop re-followed the same candidate out of
+    `route_candidates` and ended `cycle` with the posting never navigated to
+    (reproduced 2026-08-28 in the review of perf/integrated, against this same double).
+    """
+    monkeypatch.delenv("BH_APPLICATION_ROUTE_FIRST", raising=False)
+    visited = _locate_double(
+        session, monkeypatch,
+        states=[{"state": "form", "fields": 3}, {"state": "usable_ui"}],
+        prepared=[_document(_ROUTED_FORM, is_application=False),
+                  _document(_ROUTED_POSTING, is_application=False, control={"ref": "e1"}),
+                  _document(_ROUTED_FORM, is_application=True)])
+
+    result = locate_application(session, _ROUTED_POSTING)
+
+    assert visited == [_ROUTED_FORM, _ROUTED_POSTING]       # the posting IS visited
+    assert result["hops"][0]["via"] == "route_rule"
+    assert result["hops"][0]["accepted"] is False
+    assert result["hops"][0]["rejected_by"] == "prepare_application"
+    assert result["hops"][1]["route_fallback"] is True      # the rejected candidate row
+    assert result["hops"][2]["url"] == _ROUTED_POSTING      # the old path, from the posting
+    assert result["terminal_state"] == "form"
+
+
 def test_locate_application_is_unchanged_when_no_route_rule_matches(session, monkeypatch):
     monkeypatch.delenv("BH_APPLICATION_ROUTE_FIRST", raising=False)
     visited = _locate_double(

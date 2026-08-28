@@ -183,7 +183,10 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     posting's ``goto`` (3.5 s mean) plus its inspect and state wait bought nothing. A
     candidate that does not land on a form costs one extra ``goto`` back to the posting
     *plus* the candidate's own state wait below — the workflow from there is the
-    unchanged one. ``BH_APPLICATION_ROUTE_FIRST=0`` restores landing on the posting.
+    unchanged one. The same fallback runs when the probe said ``form`` but
+    ``prepare_application`` then rejects the document: the probe is a readiness check,
+    the inspect is the verdict. ``BH_APPLICATION_ROUTE_FIRST=0`` restores landing on the
+    posting.
     """
     if hop_budget < 1:
         raise ValueError("hop_budget must be positive")
@@ -199,6 +202,7 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     pending_state: dict[str, Any] | None = None
     prepared: dict[str, Any] = {}
     terminal = "budget_exhausted"
+    on_route_landing = False           # still on the candidate, not yet inspected
 
     if route_first:
         # The readiness check every landing already gets, asked one navigation earlier.
@@ -213,6 +217,7 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
                      "navigation": navigation})
         if accepted:
             pending_state = probe  # reused by the first hop, as a transition's state is
+            on_route_landing = True
         else:
             # A real fallback: one `goto` back to the posting — that `goto` and the probe
             # above are what it costs — and then nothing else changes. `landing` stays in
@@ -254,6 +259,19 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
         if is_application:
             terminal = "form"
             break
+        if on_route_landing:
+            # The probe said `form`; `prepare_application` — the authority on whether a
+            # document is an application — has just disagreed. Fall back to the posting
+            # now, once. Without this the loop re-followed the same candidate out of
+            # `route_candidates` and ended `cycle` with the posting never visited
+            # (reproduced 2026-08-28 against the scripted session double in the review of
+            # perf/integrated).
+            on_route_landing = False
+            hops[0].update(accepted=False, rejected_by="prepare_application")
+            row["route_fallback"] = True
+            with session.journal.bind(stage="navigate", fallback="route_rule"):
+                navigation = session.tab().goto(url, timeout=timeout, **_navigation_wait())
+            continue
         if fingerprint in seen:
             terminal = "cycle"
             break
