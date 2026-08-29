@@ -126,6 +126,37 @@ NAVIGATION_EVENTS = frozenset({
     "Network.loadingFailed",
 })
 
+#: `querySelectorAll` that also descends into every *open* shadow root, in document order.
+#: Measured 2026-08-29 on jobs.smartrecruiters.com (`oneclick-ui`): the whole application
+#: form — 2 file inputs, 4 text, 2 email, 1 tel, 1 textarea — sits under 1,798 shadow
+#: hosts, and `document.querySelectorAll('input')` returns nothing at all, so `find()`,
+#: `form_schema()` and `read_page()` all reported an empty page with an "Apply" button.
+#: The same shape (a framework mounting its controls in shadow DOM) is how Teamtailor and
+#: several Salesforce career sites are built. Closed roots stay unreachable from script;
+#: `frames()` covers those through `DOM.performSearch`.
+#:
+#: One definition serves both worlds: the isolated-world runtime installs `__bh.deepAll`
+#: (which also puts newly found shadow roots under the mutation observer, so a click that
+#: only changes shadow content still counts as a consequence); a main-world evaluation,
+#: where `__bh` is invisible by design, falls back to the inline copy.
+_DEEP_ALL_JS = """
+  const deepAll = (window.__bh && window.__bh.deepAll) || ((selector, root) => {
+    const scopeRoot = root || document;
+    // `BH_DEEP_QUERY=0` (an A/B switch, set at runtime install) restores the shallow query.
+    if (window[Symbol.for('browser-harness.shallow')] === true)
+      return [...scopeRoot.querySelectorAll(selector)];
+    const out = [], seen = new Set();
+    const walk = scope => {
+      for (const el of scope.querySelectorAll(selector))
+        if (!seen.has(el)) { seen.add(el); out.push(el); }
+      for (const host of scope.querySelectorAll('*'))
+        if (host.shadowRoot) walk(host.shadowRoot);
+    };
+    walk(scopeRoot);
+    return out;
+  });
+"""
+
 #: Installed on every new document (item 18). Idempotent; `__bh.mutations` is the DOM
 #: delta counter, `__bh.refs` the snapshot ref registry. Lives in the isolated world, so
 #: `__bh` is reachable from harness JS and invisible to the page.
@@ -133,6 +164,24 @@ RUNTIME_JS = """(() => {
   const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
   if (bh.runtime) return;
   bh.runtime = true;
+  bh.observedRoots = bh.observedRoots || new WeakSet();
+  bh.shallow = '__SHALLOW__' === '1';   // BH_DEEP_QUERY=0: the pre-2026-08-29 shallow query
+  bh.deepAll = (selector, root) => {
+    const scopeRoot = root || document;
+    if (bh.shallow) return [...scopeRoot.querySelectorAll(selector)];
+    const out = [], seen = new Set();
+    const walk = scope => {
+      for (const el of scope.querySelectorAll(selector))
+        if (!seen.has(el)) { seen.add(el); out.push(el); }
+      for (const host of scope.querySelectorAll('*')) {
+        if (!host.shadowRoot) continue;
+        if (bh.observeRoot) bh.observeRoot(host.shadowRoot);
+        walk(host.shadowRoot);
+      }
+    };
+    walk(scopeRoot);
+    return out;
+  };
   bh.changes = bh.changes || [];
   bh.changeFloor = bh.changeFloor || 0;
   bh.actionStarts = bh.actionStarts || {};
@@ -209,6 +258,16 @@ RUNTIME_JS = """(() => {
   const arm = () => obs.observe(document.documentElement || document,
     {subtree: true, childList: true, attributes: true, characterData: true});
   document.documentElement ? arm() : document.addEventListener('DOMContentLoaded', arm);
+  // A MutationObserver on the document never sees inside a shadow root, so a click whose
+  // whole effect lands in shadow content read as `unverified_mutation`/no-op. Every root
+  // that deepAll() discovers is put under the same observer once.
+  bh.observeRoot = root => {
+    if (!root || bh.observedRoots.has(root)) return;
+    bh.observedRoots.add(root);
+    try {
+      obs.observe(root, {subtree: true, childList: true, attributes: true, characterData: true});
+    } catch (e) { /* a detached root cannot be observed; nothing to count there */ }
+  };
   // Delivery counters, same idea as `mutations`: raw Input.* events are handed to a
   // renderer that may never act on them, and the CDP call ACKs either way. Measured with
   // page-side listeners on a hidden tab: dispatchKeyEvent x2 -> 0 keydowns seen,
@@ -244,6 +303,8 @@ RUNTIME_JS = """(() => {
 #: preserves the guard: a page that wraps our `fetch` still calls through to it.
 SAFETY_JS = """(() => {
   const marker = Symbol.for('browser-harness.dry-run');
+  // Main-world twin of `__bh.shallow`: the inline deepAll fallback reads it (BH_DEEP_QUERY=0).
+  window[Symbol.for('browser-harness.shallow')] = '__SHALLOW__' === '1';
   if (window[marker]) return true;
   const attempts = [];
   // authBudget is deliberately separate from the ordinary dry-run switch.  A caller may
@@ -284,12 +345,16 @@ SAFETY_JS = """(() => {
     // its own handler while preserving the single request budget for the fetch/XHR that
     // handler normally performs.  A native navigation replaces this document and budget.
     if (state.authBudget === 1 && authContext()) return;
-    record('form.submit', {action: event.target && event.target.action || ''});
+    // Property reads (`form.action`) are shadowed by a control named "action" — measured on
+    // three career sites — and then hand back an element. The attribute is always a string.
+    record('form.submit', {action: event.target && event.target.getAttribute
+      && event.target.getAttribute('action') || ''});
     event.preventDefault();
     event.stopImmediatePropagation();
   }, true);
   const blockedSubmit = function() {
-    return record('form.method', {action: this && this.action || ''});
+    return record('form.method', {action: this && this.getAttribute
+      && this.getAttribute('action') || ''});
   };
   for (const name of ['submit', 'requestSubmit']) {
     Object.defineProperty(HTMLFormElement.prototype, name, {
@@ -370,7 +435,7 @@ _DANGER_JS = """(el => {
     : tag === 'button' && !!form && (!type || type === 'submit');
   return {danger, tag, type: type || null,
           label: String(control.innerText || control.value || '').trim().slice(0, 100),
-          action: form && form.action || ''};
+          action: form && (form.getAttribute('action') || '') || ''};
 })"""
 
 _CONTROL_STATE_JS = """(el => {
@@ -480,7 +545,7 @@ _VALIDATION_DELTA_KEYS = frozenset({
 _SEMANTIC_DIGEST_JS = r"""(() => {
   const maxChars = __MAX_CHARS__, maxLinks = __MAX_LINKS__, start = __START__;
   const maxBlocks = 500, maxSemanticChars = 400000, maxBlockChars = 100000;
-  const contentOnly = __CONTENT_ONLY__;
+  const contentOnly = __CONTENT_ONLY__;""" + _DEEP_ALL_JS + r"""
   const root = contentOnly
     ? (document.querySelector('main,[role=main],article') || document.body)
     : document.body;
@@ -524,8 +589,8 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
     rows.push({node: el, value});
   };
   if (root) {
-    const semantic = root.querySelectorAll(
-      'h1,h2,h3,h4,h5,h6,p,pre,blockquote,ul,ol,dl,table');
+    const semantic = deepAll(
+      'h1,h2,h3,h4,h5,h6,p,pre,blockquote,ul,ol,dl,table', root);
     for (const el of semantic) {
       if (!visible(el)) continue;
       if (el.matches('p,pre,blockquote') && el.closest('li,table')) continue;
@@ -539,9 +604,9 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
       add(el, kind, el.innerText || el.textContent, extra);
     }
 
-    const controls = root.querySelectorAll(
+    const controls = deepAll(
       'input:not([type=hidden]),textarea,select,button,[role=button],'
-      + '[role=checkbox],[role=radio],[role=combobox]');
+      + '[role=checkbox],[role=radio],[role=combobox]', root);
     for (const el of controls) {
       if (!visible(el)) continue;
       const tag = el.tagName.toLowerCase(), type = String(el.type || '').toLowerCase();
@@ -576,7 +641,7 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
     const ownedSelector = 'h1,h2,h3,h4,h5,h6,p,pre,blockquote,ul,ol,dl,table,'
       + genericSelector + ',input,textarea,select,button,[role=button],'
       + '[role=checkbox],[role=radio],[role=combobox],a,label';
-    const generic = [root, ...root.querySelectorAll(genericSelector)];
+    const generic = [root, ...deepAll(genericSelector, root)];
     for (const el of generic) {
       if (!visible(el)) continue;
       const direct = [];
@@ -594,7 +659,7 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
   let linkCandidates = 0, linksTruncated = false;
   const scopes = root && root !== document.body ? [root, document] : [document];
   for (const scope of scopes) {
-    for (const a of scope.querySelectorAll('a[href]')) {
+    for (const a of deepAll('a[href]', scope)) {
       if (links.length >= maxLinks) { linksTruncated = true; break; }
       if (scope === document && root && root.contains(a)) continue;
       if (contentOnly && a.closest('nav,header,footer,aside')) continue;
@@ -629,7 +694,7 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
 
   let raw = clean((root && root.innerText) || '');
   if (contentOnly && root) {
-    for (const select of root.querySelectorAll('select')) {
+    for (const select of deepAll('select', root)) {
       const verbose = clean(select.innerText || select.textContent);
       const chosen = [...select.selectedOptions].map(option => clean(option.textContent))
         .filter(Boolean);
@@ -655,10 +720,39 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
   const humanPattern = /verify (?:that )?you are human|complete (?:the )?security check|are you (?:a )?robot|unusual traffic|press and hold|human verification/;
   if (humanPattern.test(lead)) signals.push('human_verification_text');
   const uniqueSignals = [...new Set(signals)];
+  // A captcha asset is evidence of a captcha, not of a wall. Insel Gruppe's application
+  // form (13 visible fields, 6 KB of text) loads reCAPTCHA to guard its submit and was
+  // reported `detected: true` — the same verdict as a Cloudflare interstitial — so a
+  // batch that honoured the flag skipped 23 of 53 real forms (measured 2026-08-29). A
+  // wall is a page with nothing else on it: the verification text, or captcha markers on
+  // a document with at most one visible control and little prose. Anything more is a
+  // form that happens to embed a captcha, and `kind` says which.
+  const bodyText = String((document.body && document.body.innerText) || '').trim();
+  const visibleControls = deepAll('input:not([type=hidden]),textarea,select')
+    .filter(el => visible(el) && !(el.closest && el.closest(challengeSelector))).length;
+  const wallOnly = '__WALL_ONLY__' !== '0';   // BH_CHALLENGE_WALL_ONLY=0: any signal counts
+  const walled = !wallOnly ? uniqueSignals.length > 0
+    : uniqueSignals.includes('human_verification_text')
+    || (uniqueSignals.length > 0 && visibleControls <= 1 && bodyText.length < 2500);
+  const challengeKind = !uniqueSignals.length ? 'none' : walled ? 'wall' : 'embedded';
+  // A document that is complete yet painted nothing while its tab is hidden is not an
+  // empty page: Abacus Umantis' jobportal, pastaHR and Workday's apply flow all render
+  // 0 bytes in a background tab and the full form within 4 s of Target.activateTarget
+  // (measured 2026-08-29). Report it, so the caller can activate rather than conclude.
+  const allControls = deepAll('input,textarea,select,button').length;
+  const blankWhileHidden = document.visibilityState === 'hidden'
+    && document.readyState === 'complete' && bodyText.length === 0 && allControls === 0;
   return {
     document_id: String(performance.timeOrigin || 0),
     url: location.href, title: document.title, ready_state: document.readyState,
     language: document.documentElement.lang || navigator.language || '',
+    rendered: {text_chars: bodyText.length, controls: allControls,
+      elements: document.getElementsByTagName('*').length,
+      visibility: document.visibilityState},
+    blank_while_hidden: blankWhileHidden,
+    hint: blankWhileHidden
+      ? 'document complete but nothing painted while the tab is hidden; call activate_tab() and read again'
+      : null,
     // Raw character paging, which is what `page_text(start=)` returns text through.
     // `read_page` continuations should use the document-bound semantic cursor instead:
     // an offset cannot prove the document did not change between two calls.
@@ -668,8 +762,9 @@ _SEMANTIC_DIGEST_JS = r"""(() => {
     blocks: rows.map(row => row.value), block_chars: semanticChars,
     block_candidates: blockCandidates, blocks_truncated: blocksTruncated,
     links, link_candidates: linkCandidates, links_truncated: linksTruncated,
-    challenge: {detected: uniqueSignals.length > 0,
-      confidence: uniqueSignals.includes('challenge_asset') ||
+    challenge: {detected: walled, kind: challengeKind,
+      confidence: !walled ? 'none' :
+                  uniqueSignals.includes('challenge_asset') ||
                   uniqueSignals.includes('challenge_dom') ? 'high' :
                   uniqueSignals.length ? 'medium' : 'none',
       signals: uniqueSignals}
@@ -780,7 +875,7 @@ def _accepts(accept: str, path: str) -> bool:
 #: `next(e for e in snapshot() if ... in e['name'])` in Python, or the same filter as raw
 #: `querySelectorAll(...).filter(...)` JS — both are this function with an argument.
 _SNAPSHOT_FN_JS = """((query) => {
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});""" + _DEEP_ALL_JS + """
   if (query) {
     // Compiled once, and reported rather than swallowed: a regex that does not compile
     // would otherwise match nothing, which is indistinguishable from "no such element".
@@ -793,7 +888,7 @@ _SNAPSHOT_FN_JS = """((query) => {
     '[role=checkbox],[role=radio],[role=combobox],[role=menuitem],[role=tab],' +
     '[onclick],[contenteditable=true]';
   const out = [];
-  for (const el of document.querySelectorAll(sel)) {
+  for (const el of deepAll(sel)) {
     const r = el.getBoundingClientRect();
     const invisible = !bh.visible(el);
     // A file input is never clicked — clicking opens a native picker that blocks the
@@ -867,9 +962,9 @@ SNAPSHOT_JS = _SNAPSHOT_FN_JS + "(null)"
 #: attribute, `"."` the matched element itself. Absent fields are null rather than missing,
 #: so every row has the same keys and a caller can index them positionally.
 _EXTRACT_JS = r"""((selector, fields, limit, maxChars) => {
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});""" + _DEEP_ALL_JS + r"""
   let nodes;
-  try { nodes = document.querySelectorAll(selector); }
+  try { nodes = deepAll(selector); }
   catch (e) { return {error: 'bad_selector', detail: String(e).slice(0, 200)}; }
   const names = Object.keys(fields || {});
   const rows = [];
@@ -919,7 +1014,7 @@ _EXTRACT_JS = r"""((selector, fields, limit, maxChars) => {
 #: is `_CONTROL_STATE_JS` itself, so a value read here and a value reported inside an
 #: action's consequence cannot disagree, and a password field redacts identically.
 _FORM_VALUES_JS = """((ref) => {
-  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});
+  const bh = window.__bh || (window.__bh = {refs: {}, n: 0, mutations: 0});""" + _DEEP_ALL_JS + """
   const state = (__CONTROL_STATE__);
   if (ref) {
     const el = bh.refs[ref];
@@ -927,7 +1022,7 @@ _FORM_VALUES_JS = """((ref) => {
     return {values: [Object.assign({ref}, state(el) || {})]};
   }
   const out = [];
-  for (const el of document.querySelectorAll('input,select,textarea')) {
+  for (const el of deepAll('input,select,textarea')) {
     if (el.type === 'hidden') continue;
     const value = state(el);
     if (!value) continue;
@@ -1061,8 +1156,8 @@ WATCH_FORM_JS = """((minFields, token) => {
 })(__MIN__, __TOKEN__)"""
 
 #: Read the same counts back without arming an observer, for the final report.
-FORM_COUNTS_JS = """(() => {
-  const all = document.querySelectorAll('input,textarea,select');
+FORM_COUNTS_JS = """(() => {""" + _DEEP_ALL_JS + """
+  const all = deepAll('input,textarea,select');
   return [all.length,
           [...all].filter(e => e.offsetParent !== null).length,
           ((document.body && document.body.innerText) || '').trim().length];
@@ -3136,7 +3231,8 @@ class Tab:
                   .replace("__MAX_CHARS__", str(max_chars))
                   .replace("__MAX_LINKS__", str(max_links))
                   .replace("__START__", str(start))
-                  .replace("__CONTENT_ONLY__", "true" if content_only else "false"))
+                  .replace("__CONTENT_ONLY__", "true" if content_only else "false")
+                  .replace("__WALL_ONLY__", os.environ.get("BH_CHALLENGE_WALL_ONLY", "1")))
         value = self._main_js(source, timeout=15.0)
         raw = value if isinstance(value, dict) else {}
         if not semantic:
@@ -3195,7 +3291,7 @@ class Tab:
                 f" const direct = ({_DANGER_JS})(el); if (direct && direct.danger) return direct;"
                 " const form = el.form || (el.closest && el.closest('form'));"
                 " return {danger: !!form, tag: el.tagName.toLowerCase(), type: el.type || null,"
-                " action: form && form.action || ''};})()", timeout=timeout)
+                " action: form && (form.getAttribute('action') || '') || ''};})()", timeout=timeout)
             self._refuse_danger(danger, key=key)
         base: dict[str, Any] = {"key": key, "code": code, "modifiers": modifiers}
         down = {**base, "type": "keyDown"}

@@ -69,11 +69,48 @@ MAX_DAEMON_FRAME = MAX_FRAME + (1 << 20)
 # could immediately read the loaded page, proving that neither Chrome nor the daemon had
 # died. Keep the byte ceiling as the real memory bound, but give ordinary event bursts room
 # to drain. A genuinely stalled peer is still evicted by that byte ceiling (or this count).
-_PEER_OUTBOUND_FRAMES = max(1, int(os.environ.get("BH_PEER_OUTBOUND_FRAMES") or 2048))
+# 2048 → 32768 (2026-08-29): with events filtered and slimmed, the count cap tripped on
+# frames of ~500 bytes — a 10-worker teardown cancels every in-flight request at once and
+# `Network.loadingFailed` arrived faster than the client parsed it (107,250 frames, 0.56 MB
+# buffered, evicted 0.2 s before the run ended, marking its last records failed). The byte
+# ceiling below is the memory bound; the count only needs to exceed a burst.
+_PEER_OUTBOUND_FRAMES = max(1, int(os.environ.get("BH_PEER_OUTBOUND_FRAMES") or 32768))
 _PEER_OUTBOUND_BYTES = max(
     MAX_DAEMON_FRAME + 1,  # one maximum legal line plus its newline delimiter
     int(os.environ.get("BH_PEER_OUTBOUND_BYTES") or (MAX_DAEMON_FRAME + 1)),
 )
+
+
+#: What a filtered client reads from the four Network events it subscribes to: the ids
+#: `goto()` joins on, the type/status/error fields diagnostics keeps. Everything else —
+#: request headers, POST bodies, the initiator stack trace, response headers/timing — is
+#: dropped before fan-out. Measured 2026-08-29: a page issuing ~900 requests/s produced
+#: 2.7 GB of `Network.requestWillBeSent` (23 KB each) in 131 s and evicted the client;
+#: the same events slimmed are ~200 bytes.
+_SLIM_NETWORK_KEYS = frozenset({
+    "requestId", "loaderId", "frameId", "type", "timestamp", "wallTime", "errorText",
+    "canceled", "blockedReason", "encodedDataLength", "hasUserGesture", "documentURL",
+})
+_SLIM_REQUEST_KEYS = frozenset({"url", "method"})
+_SLIM_RESPONSE_KEYS = frozenset({"url", "status", "statusText", "mimeType", "protocol",
+                                 "fromDiskCache", "fromServiceWorker"})
+
+
+def _slim_event(msg: dict[str, Any]) -> dict[str, Any]:
+    method = str(msg.get("method") or "")
+    if not method.startswith("Network."):
+        return msg
+    params = msg.get("params")
+    if not isinstance(params, dict):
+        return msg
+    slim = {k: v for k, v in params.items() if k in _SLIM_NETWORK_KEYS}
+    request = params.get("request")
+    if isinstance(request, dict):
+        slim["request"] = {k: v for k, v in request.items() if k in _SLIM_REQUEST_KEYS}
+    response = params.get("response")
+    if isinstance(response, dict):
+        slim["response"] = {k: v for k, v in response.items() if k in _SLIM_RESPONSE_KEYS}
+    return {**msg, "params": slim}
 
 
 def _encode_frame(payload: dict[str, Any]) -> bytes:
@@ -92,9 +129,9 @@ class _Peer:
     """
 
     __slots__ = (
-        "_buffered", "_enqueued_bytes", "_enqueued_frames", "_max_bytes",
+        "_buffered", "_enqueued_bytes", "_enqueued_frames", "_filtered_frames", "_max_bytes",
         "_outbound", "_overflows", "_peak_bytes", "_peak_frames", "_sent_bytes",
-        "_sent_frames", "_state_lock", "_writer", "closed", "sock",
+        "_sent_frames", "_state_lock", "_writer", "closed", "methods", "sock",
     )
 
     _STOP = object()
@@ -103,6 +140,14 @@ class _Peer:
                  max_bytes: int = _PEER_OUTBOUND_BYTES):
         self.sock = sock
         self.closed = threading.Event()
+        #: Event filter negotiated at `subscribe`: None forwards every CDP event (the
+        #: pre-2026-08-29 contract, kept for old clients). Measured on a 10-worker
+        #: 100-posting run: unfiltered fan-out enqueued 265 MB / 39,638 frames in 41 s,
+        #: overflowed the 2,048-frame queue and evicted the client mid-run. The client
+        #: reads about eighteen event methods; `Network.responseReceivedExtraInfo` and
+        #: `Network.dataReceived` — the bulk — are not among them.
+        self.methods: tuple[frozenset[str], tuple[str, ...]] | None = None
+        self._filtered_frames = 0
         self._outbound: queue.Queue[bytes | object] = queue.Queue(maxsize=max(1, max_frames))
         self._max_bytes = max(1, max_bytes)
         self._buffered = 0
@@ -187,6 +232,7 @@ class _Peer:
                 "peak_frames": self._peak_frames,
                 "peak_bytes": self._peak_bytes,
                 "overflows": self._overflows,
+                "filtered_frames": self._filtered_frames,
                 "buffered_bytes": self._buffered,
                 "queued_frames": self._outbound.qsize(),
             }
@@ -537,10 +583,15 @@ class Daemon:
             # A client that wants CDP events gets them pushed on this same socket. The
             # alternative — a second connection — would cost a consent prompt (D7), and
             # polling would reintroduce exactly the latency D13 removed.
+            spec = request.get("methods")
+            if isinstance(spec, dict):
+                exact = frozenset(str(m) for m in (spec.get("exact") or []) if m)
+                prefixes = tuple(str(p) for p in (spec.get("prefixes") or []) if p)
+                peer.methods = (exact, prefixes) if (exact or prefixes) else None
             with self._plock:
                 self._peers.add(peer)
             return _value(ok({"subscribed": True, "protocol": PROTOCOL_VERSION,
-                              "version": VERSION}))
+                              "version": VERSION, "filtered": peer.methods is not None}))
         return self.handle(request, peer=peer)
 
     def _broadcast(self, msg: dict[str, Any]) -> None:
@@ -551,11 +602,27 @@ class Daemon:
         if not peers:
             return
         frame = {"event": msg}
+        slim_frame: dict[str, Any] | None = None
+        method = str(msg.get("method") or "")
         for peer in peers:
-            if not peer.send(frame):
+            spec = peer.methods
+            if spec is not None and method not in spec[0] and not method.startswith(spec[1]):
+                peer._filtered_frames += 1
+                continue
+            if spec is not None:
+                if slim_frame is None:
+                    slim_frame = {"event": _slim_event(msg)}
+                out = slim_frame
+            else:
+                out = frame
+            if not peer.send(out):
+                stats = peer.stats()
+                # A send fails for two unrelated reasons: the queue overflowed (eviction —
+                # the reader fell behind) or the client had already closed its socket (it
+                # finished). Both used to be logged as `peer_evicted`.
                 self.journal.write(
-                    "daemon", event="peer_evicted", method=msg.get("method"),
-                    **peer.stats())
+                    "daemon", event="peer_evicted" if stats.get("overflows") else "peer_gone",
+                    method=msg.get("method"), **stats)
                 with self._plock:
                     self._peers.discard(peer)
 

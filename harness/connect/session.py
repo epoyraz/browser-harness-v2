@@ -22,6 +22,7 @@ round trip into a dictionary lookup.
 """
 from __future__ import annotations
 
+import os
 import threading
 from dataclasses import dataclass, field
 from enum import Enum
@@ -261,22 +262,37 @@ class SessionRegistry:
             # the daemon this is the first operation that needs the script assets.
             from harness.ops.page import BINDING, RUNTIME_JS, SAFETY_JS, WORLD
 
+            # Experiment switches read here, in the daemon, because this is where the
+            # document-start scripts are installed. `BH_DEEP_QUERY=0` restores the shallow
+            # (pre-shadow-DOM) query in both worlds; `BH_BLOCK_URLS` is a comma-separated
+            # `Network.setBlockedURLs` pattern list applied to every prepared session.
+            shallow = "1" if os.environ.get("BH_DEEP_QUERY", "1").strip() == "0" else "0"
             self._conn.request(
                 "Page.addScriptToEvaluateOnNewDocument",
-                {"source": SAFETY_JS, "runImmediately": True},
+                {"source": SAFETY_JS.replace("'__SHALLOW__'", f"'{shallow}'"),
+                 "runImmediately": True},
                 session_id=session.session_id,
                 timeout=10.0,
             )
             self._conn.request(
                 "Page.addScriptToEvaluateOnNewDocument",
                 {
-                    "source": RUNTIME_JS,
+                    "source": RUNTIME_JS.replace("'__SHALLOW__'", f"'{shallow}'"),
                     "worldName": WORLD,
                     "runImmediately": True,
                 },
                 session_id=session.session_id,
                 timeout=10.0,
             )
+            blocked = [p.strip() for p in os.environ.get("BH_BLOCK_URLS", "").split(",")
+                       if p.strip()]
+            if blocked:
+                try:
+                    self._conn.request("Network.setBlockedURLs", {"urls": blocked},
+                                       session_id=session.session_id, timeout=10.0)
+                except HarnessError as error:
+                    self._j.write("daemon", event="block_urls_failed", target_id=target_id,
+                                  error=f"{type(error).__name__}: {str(error)[:120]}")
             binding = True
             try:
                 self._conn.request(

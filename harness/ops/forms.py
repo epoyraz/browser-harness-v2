@@ -26,7 +26,7 @@ import time
 from typing import Any
 
 from harness.core.outcome import Class, NotAForm, Outcome, Tally, fail, ok
-from harness.ops.page import Tab
+from harness.ops.page import _DEEP_ALL_JS, Tab
 
 
 def _digits(s: str) -> str:
@@ -43,7 +43,7 @@ def _digits(s: str) -> str:
 #: here knew what an application form and a login form were, which is knowledge about
 #: recruiting software rather than about browsers.
 _SCHEMA_BODY_JS = """(() => {
-  const bh = window.__bh;
+  const bh = window.__bh;""" + _DEEP_ALL_JS + """
   //: Text that names something has a letter in it. Lever renders its required marker as a
   //: lone "\\u2731" in its own element, which is the nearest text to the control it marks —
   //: so the proximity fallback picked it as four custom questions' labels, and a caller
@@ -51,7 +51,10 @@ _SCHEMA_BODY_JS = """(() => {
   const LETTER = /[^\\W\\d_]/u;
   const labelFor = el => {
     if (el.id) {
-      const l = document.querySelector('label[for="' + CSS.escape(el.id) + '"]');
+      // A control inside a shadow root is labelled from inside that root; `document`
+      // never sees either of them.
+      const scope = (el.getRootNode && el.getRootNode()) || document;
+      const l = scope.querySelector('label[for="' + CSS.escape(el.id) + '"]');
       if (l && l.innerText.trim()) return l.innerText.trim();
     }
     const wrap = el.closest('label');
@@ -139,7 +142,7 @@ _SCHEMA_BODY_JS = """(() => {
     const legend = fieldset && fieldset.querySelector(':scope > legend');
     if (legend && legend.innerText.trim()) return legend.innerText.trim().slice(0, 160);
     if (!el.name) return null;
-    const peers = [...(el.form || document).querySelectorAll(
+    const peers = [...(el.form || (el.getRootNode && el.getRootNode()) || document).querySelectorAll(
       'input[type="' + type + '"][name="' + CSS.escape(el.name) + '"]')];
     if (peers.length < 2) return null;            // not a group; its own label is the label
     let container = el.parentElement;
@@ -197,7 +200,7 @@ _SCHEMA_BODY_JS = """(() => {
   };
   const fields = [], files = [], fieldNodes = [], fileNodes = [];
   const seen = new Set();
-  const els = document.querySelectorAll(
+  const els = deepAll(
     'input,select,textarea,[role=combobox],[contenteditable=true]');
   for (const el of els) {
     if (seen.has(el)) continue;
@@ -312,15 +315,15 @@ _SCHEMA_BODY_JS = """(() => {
     fields.push(f);
     fieldNodes.push(el);
   }
-  const submitNodes = [...document.querySelectorAll(
-    'button[type=submit],input[type=submit],input[type=button],button:not([type])')]
+  const submitNodes = deepAll(
+    'button[type=submit],input[type=submit],input[type=button],button:not([type])')
     .filter(b => !bh.furniture(b));
   const submits = submitNodes.map(b => (b.innerText || b.value || '').trim()).filter(Boolean);
   // "fewer than 2 real fields" is true of a bot wall, an unbooted SPA and a form whose
   // controls are all hidden — three different problems with three different fixes. Say
   // which one it is, and carry the counts that prove it.
   const textLen = ((document.body && document.body.innerText) || '').trim().length;
-  const controls = [...document.querySelectorAll('input,textarea,select')];
+  const controls = deepAll('input,textarea,select');
   const inDom = controls.length;
   const visible = controls.filter(e => e.offsetParent !== null).length;
   // "0 visible" is where diagnosis used to stop, and it stopped one step short of the

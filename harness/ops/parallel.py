@@ -25,7 +25,12 @@ DEFAULT_WORKERS = 8
 # 150 ms), so a single immediate Target.getTargets snapshot is not an isolation boundary.
 # The event-driven wait adds only the quiet window, never an unconditional max-duration
 # sleep, and the cap prevents a page that continuously opens targets from holding a worker.
-POPUP_CLEANUP_QUIET = 0.2
+# 200 → 50 ms (2026-08-29): two replicates of the 100-posting corpus at 50 ms — 320 items —
+# announced zero late popups, and the four opener descendants that did appear were all
+# caught. Cleanup dropped from 20.9 s to 6.2 s per run; forms were unchanged (+3/−0, +5/−0,
+# +2/−3 against adjacent controls). `cleanup_descendants` in the run summary is the
+# tripwire: a descendant found *after* the window would show up as a leaked tab there.
+POPUP_CLEANUP_QUIET = max(0.0, float(os.environ.get("BH_POPUP_QUIET_MS", "50") or 50) / 1000)
 POPUP_CLEANUP_MAX_WAIT = 0.8
 
 
@@ -35,14 +40,24 @@ class CancelToken:
     def __init__(self, *, timeout: float | None = None):
         self._event = threading.Event()
         self.deadline = None if timeout is None else time.monotonic() + max(0.0, timeout)
+        self.reason: str | None = None
 
-    def cancel(self) -> None:
+    def cancel(self, reason: str | None = None) -> None:
+        if reason and self.reason is None:
+            self.reason = reason
         self._event.set()
 
     @property
     def cancelled(self) -> bool:
         return self._event.is_set() or (
             self.deadline is not None and time.monotonic() >= self.deadline)
+
+
+def _is_browser_gone(error: Exception) -> bool:
+    """True for the one failure that is the whole run's, not the item's."""
+    if isinstance(error, HarnessError):
+        return error.outcome.cls is Class.BROWSER_DISCONNECTED
+    return type(error).__name__ == "BrowserDisconnected"
 
 
 def _failure(item: Any, error: Exception) -> dict[str, Any]:
@@ -213,6 +228,7 @@ def _cleanup_observation_failure(session: Any, kind: str, identifier: str,
 
 def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
              workers: int = 0, reuse_tabs: bool = True, isolated: bool = False,
+             own_window: bool | None = None,
              worker_limit: int = MAX_WORKERS,
              timeout: float | None = None, token: CancelToken | None = None,
              progress: Callable[[int, int, dict[str, Any]], None] | None = None,
@@ -233,6 +249,8 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
         return []
     worker_count = workers or int(os.environ.get("BH_WORKERS") or 0) or DEFAULT_WORKERS
     worker_count = max(1, min(worker_count, len(todo), max(1, worker_limit)))
+    windowed = (bool(own_window) if own_window is not None
+                else os.environ.get("BH_PARALLEL_OWN_WINDOW", "").strip().lower() in ("1", "true", "yes"))
     cancel = token or CancelToken(timeout=timeout)
     if token is not None and timeout is not None:
         deadline = time.monotonic() + max(0.0, timeout)
@@ -320,7 +338,8 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                             worker_context = item_context
                     context_id = worker_context if reuse_tabs else item_context
                     if worker_tab is None or not reuse_tabs:
-                        tab = session.new_tab(context_id=context_id)
+                        tab = (session.new_tab(context_id=context_id, new_window=True)
+                               if windowed else session.new_tab(context_id=context_id))
                         item_tab = tab.target_id
                         ledger.acquire("tab", item_tab,
                                        lambda tid=item_tab: session.close_tab(
@@ -336,6 +355,14 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                         record = {"item": item, "ok": True, "value": fn(item)}
                 except Exception as error:  # noqa: BLE001 — one page must not erase siblings
                     record = _failure(item, error)
+                    # A dead browser is not one page's failure. Left alone, every worker
+                    # keeps claiming items and each one fails instantly on `new_tab`, so a
+                    # 500-item run reported 265 `browser_disconnected` results in seconds
+                    # with no work behind them (measured 2026-08-29). Stop claiming; the
+                    # unstarted items are reported as such, with the reason on them.
+                    if _is_browser_gone(error) and os.environ.get(
+                            "BH_PARALLEL_STOP_ON_DISCONNECT", "1").strip() != "0":
+                        cancel.cancel(reason="browser_disconnected")
                 finally:
                     failures = []
                     root_tab = worker_tab or item_tab
@@ -411,12 +438,18 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
         for future in futures:
             future.result()
 
-    reason = "deadline" if cancel.deadline is not None and time.monotonic() >= cancel.deadline \
-        else "cancelled"
+    if cancel.reason:
+        reason = cancel.reason
+    elif cancel.deadline is not None and time.monotonic() >= cancel.deadline:
+        reason = "deadline"
+    else:
+        reason = "cancelled"
+    unstarted_class = (Class.BROWSER_DISCONNECTED if reason == "browser_disconnected"
+                       else Class.CANCELLED)
     for index, record in enumerate(records):
         if record is None:
             records[index] = {"item": todo[index], "ok": False,
-                              "class": Class.CANCELLED.value,
+                              "class": unstarted_class.value,
                               "error": f"parallel item did not start: {reason}"}
     return [record for record in records if record is not None]
 

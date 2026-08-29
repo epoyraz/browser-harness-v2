@@ -230,7 +230,8 @@ class Session:
         self.journal.write("note", event="resource_released", resource_kind="browser_context",
                            identifier=context_id)
 
-    def new_tab(self, url: str = "about:blank", *, context_id: str | None = None) -> Tab:
+    def new_tab(self, url: str = "about:blank", *, context_id: str | None = None,
+                new_window: bool = False) -> Tab:
         """Create, attach, and make current. Always `about:blank` first, then navigate:
         passing a url to `createTarget` races the attach, so the brief blank page reads as
         'complete' and a wait returns before the real navigation starts (v1's comment).
@@ -247,6 +248,11 @@ class Session:
         explicit opt-in for the page that genuinely needs visibility.
         """
         params = {"url": "about:blank", "background": True}
+        if new_window:
+            # Its own window makes the tab the selected tab of that window, so pages that
+            # only paint while visible render without `activate_tab()` — an experiment
+            # switch (`parallel(own_window=True)`), measured 2026-08-29.
+            params["newWindow"] = True
         if context_id is not None:
             with self._tabs_lock:
                 if context_id not in self._contexts:

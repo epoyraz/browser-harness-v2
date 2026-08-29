@@ -131,6 +131,26 @@ def ensure_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> d
         f"endpoint strategies declined", daemon=name)
 
 
+#: The CDP events client-side code actually reads (navigation waits, document watches,
+#: dialogs, opener-tree cleanup, diagnostics, stale-session detection). Sent to the daemon
+#: at `subscribe` so its fan-out skips the rest — `Network.responseReceivedExtraInfo`,
+#: `Network.dataReceived` and friends carried 265 MB in 41 s on a 10-worker run and got
+#: the client evicted (2026-08-29). `BH_EVENT_FILTER=0` sends everything, as before.
+EVENT_FILTER: dict[str, list[str]] = {
+    "exact": ["Network.requestWillBeSent", "Network.loadingFinished", "Network.loadingFailed",
+              "Network.responseReceived",
+              # Runtime is named exactly: `Runtime.consoleAPICalled` alone carried 521 MB in
+              # 40 s on the second pilot (a page logging large objects in a loop).
+              "Runtime.bindingCalled", "Runtime.executionContextsCleared",
+              "Runtime.executionContextCreated", "Runtime.executionContextDestroyed"],
+    # `Log.entryAdded` / `Runtime.exceptionThrown` are diagnostics-only and unbounded: a
+    # page repeating one console error produced 986 MB / 60k frames on the third pilot
+    # and evicted the client after every form had already filled. Diagnostics keeps
+    # `Network.loadingFailed`, `Network.responseReceived` and the crash events.
+    "prefixes": ["Page.", "Target.", "Inspector."],
+}
+
+
 class RemoteConnection:
     """A `Connection` that lives in another process. Same interface, one socket.
 
@@ -161,7 +181,10 @@ class RemoteConnection:
         self._buf = bytearray()
         self._reader = threading.Thread(target=self._pump, name="bh-client", daemon=True)
         self._reader.start()
-        subscribed = self._call({"meta": "subscribe"}, timeout=10.0)
+        payload: dict[str, Any] = {"meta": "subscribe"}
+        if os.environ.get("BH_EVENT_FILTER", "1").strip() != "0":
+            payload["methods"] = EVENT_FILTER
+        subscribed = self._call(payload, timeout=10.0)
         value = subscribed.get("value") or {}
         _validate_protocol(value)
 

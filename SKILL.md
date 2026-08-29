@@ -118,6 +118,21 @@ If a navigation times out, call `read_page()` once before navigating again: a st
 subresource can suppress Chrome's lifecycle event even though the requested document is
 already readable. Do not repeatedly reload the same URL.
 
+Every read and query descends into open shadow roots (`find`, `snapshot`, `extract`,
+`form_schema`, `form_values`, `read_page`): a SmartRecruiters or Teamtailor form that lives
+entirely in shadow DOM reports its fields like any other form. Only closed roots stay out
+of reach — `frames()` finds those through CDP search.
+
+`read_page()`/`open_page()` carry `rendered` (`text_chars`, `controls`, `elements`,
+`visibility`) and `blank_while_hidden`. When the latter is true the document is complete
+but painted nothing because its tab is hidden — Abacus Umantis' jobportal, pastaHR and
+Workday's apply flow all do this — and `hint` says what to do: `activate_tab()` and read
+again. Do not wait it out; it never renders while hidden.
+
+`challenge.kind` separates `wall` (a verification interstitial — stop the item) from
+`embedded` (a real form that loads reCAPTCHA to guard its submit — carry on; only the
+final submit can be affected). `challenge.detected` is true for walls only.
+
 If `challenge.detected` is true, or the page visibly asks for a CAPTCHA/human verification,
 stop that item and report the challenge. Never solve, click, wait out, or repeatedly reload
 a CAPTCHA. Continue with other independent items if the task allows it.
@@ -130,7 +145,10 @@ print([r["value"] for r in rows if r.get("ok")])
 ```
 
 It shares cache/cookies, preserves input order, counts per-page failures, and budgets printed
-text across the batch. Use lower-level `parallel()` for custom work; keep workers around
+text across the batch. If the browser connection dies mid-run, `parallel()` stops claiming
+items: the unstarted ones come back as `class: browser_disconnected` with
+`error: "parallel item did not start: browser_disconnected"` rather than as hundreds of
+instant per-item failures — resume those, do not re-run the whole input. Use lower-level `parallel()` for custom work; keep workers around
 five and normally use `isolated=False` for public research.
 
 After an official URL returns 404, do not batch-guess nearby slugs. Discover the next URL

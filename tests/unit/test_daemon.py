@@ -236,6 +236,52 @@ def test_one_stalled_peer_cannot_delay_events_for_a_healthy_peer():
         daemon.stop()
 
 
+def test_a_subscribed_method_filter_keeps_the_bulk_off_the_wire():
+    """Measured 2026-08-29: unfiltered fan-out enqueued 265 MB of `Network.*ExtraInfo`
+    (then 521 MB of `Runtime.consoleAPICalled`, then 986 MB of `Log.entryAdded`) on a
+    10-worker run and evicted the client mid-run. A peer that names its events gets only
+    those; a peer that names none keeps the old everything-contract."""
+    filtered_sock = _CapturingSendSocket()
+    legacy_sock = _CapturingSendSocket()
+    filtered = _Peer(filtered_sock, max_frames=8, max_bytes=1 << 20)
+    filtered.methods = (frozenset({"Network.loadingFinished", "Network.requestWillBeSent"}),
+                        ("Page.", "Target."))
+    legacy = _Peer(legacy_sock, max_frames=8, max_bytes=1 << 20)
+    daemon = Daemon("peer-filter-test", FakeBrowser("a"))
+    with daemon._plock:
+        daemon._peers.update((filtered, legacy))
+    try:
+        for method in ("Network.responseReceivedExtraInfo", "Page.lifecycleEvent",
+                       "Log.entryAdded", "Target.targetCreated", "Network.loadingFinished",
+                       "Runtime.consoleAPICalled"):
+            daemon._broadcast({"method": method, "params": {"x": "y" * 2000}})
+        assert legacy_sock.wait_for(6), "the legacy peer must still get every event"
+        assert filtered_sock.wait_for(3)
+        got = [json.loads(f)["event"]["method"] for f in filtered_sock.frames]
+        assert got == ["Page.lifecycleEvent", "Target.targetCreated", "Network.loadingFinished"]
+        # Network events reach a filtered peer slimmed to the fields the client reads; the
+        # legacy peer still gets the full payload.
+        daemon._broadcast({"method": "Network.requestWillBeSent", "params": {
+            "requestId": "r1", "loaderId": "l1", "frameId": "f1", "type": "XHR",
+            "request": {"url": "https://x.test/a", "method": "POST", "headers": {"h": "v" * 5000},
+                        "postData": "p" * 5000},
+            "initiator": {"type": "script", "stack": {"callFrames": [{}] * 50}}}})
+        assert filtered_sock.wait_for(4) and legacy_sock.wait_for(7)
+        slim = json.loads(filtered_sock.frames[-1])["event"]["params"]
+        assert slim == {"requestId": "r1", "loaderId": "l1", "frameId": "f1", "type": "XHR",
+                        "request": {"url": "https://x.test/a", "method": "POST"}}
+        full = json.loads(legacy_sock.frames[-1])["event"]["params"]
+        assert "initiator" in full and "postData" in full["request"]
+        assert filtered.stats()["filtered_frames"] == 3
+        assert legacy.stats()["filtered_frames"] == 0
+        with daemon._plock:
+            assert filtered in daemon._peers and legacy in daemon._peers
+    finally:
+        filtered.close()
+        legacy.close()
+        daemon.stop()
+
+
 # --- TODO 7's done-when ------------------------------------------------------
 
 def test_sequential_clients_reuse_a_live_page_without_rediscovery(runtime):

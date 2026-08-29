@@ -123,6 +123,9 @@ class SemanticPageCache:
             "url", "title", "ready_state", "language", "links", "challenge",
             "text_chars", "block_chars", "block_candidates", "blocks_truncated",
             "link_candidates", "links_truncated",
+            # Rendering evidence: what the document holds regardless of the text budget,
+            # and the hidden-tab verdict a caller must not mistake for an empty page.
+            "rendered", "blank_while_hidden", "hint",
         )}
         complete = {**meta, "document_version": version, "blocks": blocks}
         content_ref = self.store.put(complete)
