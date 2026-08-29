@@ -328,7 +328,95 @@ def test_run_application_plans_and_fills_without_a_submit_operation(session, mon
         skills=False)
     assert result["stage"] == "filled" and result["fill"] == {"ok": True}
     assert result["audit"] == [{"status": "planned"}]
+    assert result["uploads"] == {"enabled": False, "ok": True, "inputs": [],
+                                  "attempted": 0, "succeeded": 0,
+                                  "required_unmapped": 0}
     assert "prepared" not in result  # location is the single authoritative copy
+
+
+def test_run_application_opt_in_uploads_are_verified_in_the_same_result(
+        session, monkeypatch, tmp_path):
+    cv = tmp_path / "cv.pdf"
+    cv.write_bytes(b"specimen")
+    monkeypatch.setattr(workflow, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "schema": {"fields": [{"ref": "e1"}]},
+            "file_inputs": [{"ref": "cv", "label": "Resume*", "required": True,
+                             "multiple": False, "accept": ".pdf"}],
+            "language": "en"}, "hops": [], "navigation": {}, "wall_ms": 1})
+    monkeypatch.setattr("harness.session.forms.fill_form", lambda tab, plan, **kw: type(
+        "Filled", (), {"ok": True, "to_json": lambda self: {"ok": True}})())
+    seen = {}
+
+    class Uploaded(dict):
+        ok = True
+
+    def upload(_self, ref, paths, *, timeout):
+        seen.update(ref=ref, paths=paths, timeout=timeout)
+        return Uploaded(attached=["cv.pdf"], requested=1, accept=".pdf")
+
+    monkeypatch.setattr(type(session.tab()), "upload_file", upload)
+    result = run_application(
+        session, "https://a.test", planner=lambda *_: [{"ref": "e1", "value": "x"}],
+        file_resolver=lambda field: str(cv) if field["label"] == "Resume*" else None,
+        skills=False,
+    )
+
+    assert result["stage"] == "filled"
+    assert result["uploads"]["ok"] is True
+    assert result["uploads"]["attempted"] == result["uploads"]["succeeded"] == 1
+    assert result["uploads"]["inputs"][0]["files"] == ["cv.pdf"]
+    assert result["uploads"]["inputs"][0]["attached"] == ["cv.pdf"]
+    assert seen == {"ref": "cv", "paths": str(cv), "timeout": 25.0}
+
+
+def test_run_application_marks_an_unmapped_required_file_input_partial(session, monkeypatch):
+    monkeypatch.setattr(workflow, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "schema": {"fields": [{"ref": "e1"}]},
+            "file_inputs": [{"ref": "cv", "label": "Resume*", "required": True,
+                             "multiple": False}],
+            "language": "en"}, "hops": [], "navigation": {}, "wall_ms": 1})
+    monkeypatch.setattr("harness.session.forms.fill_form", lambda tab, plan, **kw: type(
+        "Filled", (), {"ok": True, "to_json": lambda self: {"ok": True}})())
+
+    result = run_application(
+        session, "https://a.test", planner=lambda *_: [{"ref": "e1", "value": "x"}],
+        file_resolver=lambda _field: None, skills=False,
+    )
+
+    assert result["stage"] == "partial"
+    assert result["uploads"]["ok"] is False
+    assert result["uploads"]["required_unmapped"] == 1
+    assert result["uploads"]["inputs"][0]["status"] == "required_unmapped"
+
+
+def test_run_application_can_attach_without_a_field_planner(session, monkeypatch, tmp_path):
+    cv = tmp_path / "cv.pdf"
+    cv.write_bytes(b"specimen")
+    monkeypatch.setattr(workflow, "locate_application", lambda *a, **kw: {
+        "terminal_state": "form", "prepared": {
+            "is_application": True, "schema": {"fields": []},
+            "file_inputs": [{"ref": "cv", "label": "Resume*", "required": True}],
+            "language": "en"}, "hops": [], "navigation": {}, "wall_ms": 1})
+
+    class Uploaded(dict):
+        ok = True
+
+    monkeypatch.setattr(
+        type(session.tab()), "upload_file",
+        lambda _self, ref, paths, *, timeout: Uploaded(
+            attached=["cv.pdf"], requested=1, accept=".pdf"),
+    )
+    result = run_application(
+        session, "https://a.test", planner=None,
+        file_resolver=lambda _field: str(cv), skills=False,
+    )
+
+    assert result["stage"] == "form"
+    assert result["fill"] is None
+    assert result["uploads"]["ok"] is True
+    assert result["uploads"]["succeeded"] == 1
 
 
 def test_run_application_forwards_human_readable_presentation(session, monkeypatch):
@@ -410,4 +498,3 @@ def test_run_application_keeps_two_argument_planners_compatible(
 
     assert len(calls) == 1
     assert result["skills"]["matches"][0]["id"] == "apply/test"
-

@@ -42,6 +42,9 @@ from harness.ops.profile import ApplicantProfile, load_answer_file
 
 ROOT = Path.cwd()
 INPUT = Path(os.environ.get("BH_APPLICATION_INPUT", ROOT / "jobs.json"))
+# Type one field at a time (a watchable recording) instead of the one batched write.
+HUMAN_READABLE = os.environ.get("BH_HUMAN_READABLE", "0").strip() == "1"
+HUMAN_PAUSE = float(os.environ.get("BH_HUMAN_PAUSE", "0.18"))
 OUT = Path(os.environ.get(
     "BH_APPLICATION_TELEMETRY_OUT",
     ROOT / "outputs" / "job-form-telemetry-2026-08-08",
@@ -56,6 +59,9 @@ WORKER_LIMIT = int(os.environ.get("BH_APPLICATION_WORKER_LIMIT", "10"))
 RUN_TIMEOUT = float(os.environ.get("BH_APPLICATION_TIMEOUT_SECONDS", str(4 * 60 * 60)))
 MEMORY_INTERVAL = float(os.environ.get("BH_CHROME_MEMORY_INTERVAL_SECONDS", "2"))
 MAX_HOPS = 2
+# Optional per-input document resolver (label -> path(s)); the workflow attaches with
+# evidence and never submits. None keeps the CV-only `BH_APPLICATION_UPLOADS` path.
+FILE_RESOLVER = None
 UPLOAD_CV = os.environ.get("BH_APPLICATION_UPLOADS", "").strip().lower() in {
     "1", "true", "yes",
 }
@@ -75,6 +81,7 @@ PROFILE = {
     "street_name": "Büchelerstrasse",
     "house_number": "12",
     "postal_code": "8212",
+    "state_province": "Schaffhausen",
     "city": "Neuhausen am Rheinfall",
     "country_en": "Switzerland",
     "country_de": "Schweiz",
@@ -103,9 +110,16 @@ PROFILE = {
 }
 
 REQUIRED = ROOT / "required.txt"
-APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=str(CV))
-if REQUIRED.is_file():
-    APPLICANT = APPLICANT.merged(load_answer_file(REQUIRED))
+# A persona file replaces the built-in profile wholesale (`BH_APPLICANT_PROFILE=<json>`)
+# and does not merge `required.txt`: tests and demos run as a synthetic applicant only.
+PERSONA = os.environ.get("BH_APPLICANT_PROFILE", "").strip()
+if PERSONA:
+    PROFILE = json.loads(Path(PERSONA).read_text(encoding="utf-8"))
+    APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=PERSONA)
+else:
+    APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=str(CV))
+    if REQUIRED.is_file():
+        APPLICANT = APPLICANT.merged(load_answer_file(REQUIRED))
 # The ontology knows what fields ask for; this run supplies what to answer.
 ontology.configure(APPLICANT, PROFILE, str(CV))
 
@@ -671,7 +685,9 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
             session,
             start_url, timeout=25, transition_timeout=15, hop_budget=6,
             candidates=application_route_candidates(start_url),
-            planner=active_planner())
+            planner=active_planner(),
+            human_readable=HUMAN_READABLE, human_pause=HUMAN_PAUSE,
+            file_resolver=FILE_RESOLVER)
     except Exception as error:
         error_class = getattr(getattr(error, "cls", None), "value", type(error).__name__)
         result["status"] = ("navigation_failed" if error_class == "navigation_failed"
@@ -722,6 +738,9 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     result["fill_plan_count"] = len(plan)
     result["fill_ms"] = application.get("fill_ms")
     result["fill"] = application.get("fill")
+    if FILE_RESOLVER is not None:
+        # Distinct from the CV-only `uploads` list below, which is still written.
+        result["attachments"] = application.get("uploads")
 
     file_inputs = prepared.get("file_inputs") or []
     chosen, ambiguous = cv_inputs(file_inputs)

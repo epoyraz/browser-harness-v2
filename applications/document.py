@@ -147,9 +147,10 @@ _PREPARE_JS = """(() => {
   const fileInputs = [...document.querySelectorAll('input[type=file]')].map(el => {
     const ref = bh.ref(el);
     const label = el.id ? document.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
+    const labelText = (label && label.innerText || el.getAttribute('aria-label') || '').trim();
     return {ref, name: el.name || el.id || 'file',
-            label: (label && label.innerText || el.getAttribute('aria-label') || '').trim(),
-            accept: el.accept || '', multiple: !!el.multiple};
+            label: labelText, accept: el.accept || '', multiple: !!el.multiple,
+            required: !!el.required || labelText.includes('*')};
   });
   // The verb is rarely the first word. "Auf diese Stelle bewerben" is the commonest German
   // apply label there is, and an anchored pattern can never match it — measured 1 hit in 34

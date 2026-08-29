@@ -146,6 +146,12 @@ def start(tab: Any, *, name: str | None = None, quality: int = 88,
           every_nth_frame: int = 1) -> ScreencastRecorder:
     name = name or time.strftime("screencast-%Y%m%d-%H%M%S")
     directory = recordings_root() / name
+    # Never append to an earlier recording of the same name: `frames.jsonl` would carry
+    # both runs' rows while `frames/000001.jpg` onwards is overwritten by the newer one.
+    suffix = 1
+    while (directory / "frames.jsonl").exists():
+        suffix += 1
+        directory = recordings_root() / f"{name}-r{suffix}"
     directory.mkdir(parents=True, exist_ok=True)
     return ScreencastRecorder(tab, directory, quality=quality,
                               max_width=max_width, max_height=max_height,
