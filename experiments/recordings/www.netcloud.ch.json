@@ -1,0 +1,261 @@
+[
+ {
+  "host": "www.netcloud.ch",
+  "company": "Netcloud",
+  "recorded_from": "netcloud__Netcloud_senior-vmware-engineer",
+  "form_url": "https://forms.swisshrmonline.ch/251883269739373?xvna=Senior%20VMware%20Engineer&xvnu=1007&xsou=%25mediaName%25",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > a:nth-of-type(2)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input_29",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "q29_SalutationCode",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#input_31",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "q31_FirstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#input_32",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "q32_LastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input_33",
+    "label": "Strasse und Nr.*",
+    "kind": "text",
+    "name": "q33_Address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#input_86",
+    "label": "Land*",
+    "kind": "select",
+    "name": "q86_Country",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz (CH)",
+     "Deutschland (DE)",
+     "Frankreich (FR)",
+     "Österreich (AT)",
+     "Algerien (DZ)",
+     "Australien (AU)",
+     "Belgien (BE)"
+    ],
+    "options_count": 69,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#input_34",
+    "label": "PLZ*",
+    "kind": "text",
+    "name": "q34_PostCode",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#input_54",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "q54_City",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#lite_mode_23",
+    "label": "Geburtsdatum*",
+    "kind": "text",
+    "name": "lite_mode_23",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#input_107",
+    "label": "Nationalität*",
+    "kind": "select",
+    "name": "q107_Nationality",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz (CH)",
+     "Deutschland (DE)",
+     "Frankreich (FR)",
+     "Österreich (AT)",
+     "Algerien (DZ)",
+     "Australien (AU)",
+     "Belgien (BE)"
+    ],
+    "options_count": 69,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#input_14",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "q14_PrivateEmail",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input_37_full",
+    "label": "Mobil",
+    "kind": "tel",
+    "name": "q37_PrivateMobilePhone[full]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#input_15_full",
+    "label": "Telefon",
+    "kind": "tel",
+    "name": "q15_PrivatePhone[full]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#input_94",
+    "label": "Schulabschluss",
+    "kind": "select",
+    "name": "q94_xxSchulabschluss",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Kein Abschluss",
+     "Sekundarstufe",
+     "Mittelschule",
+     "Berufsmatura",
+     "Matura / Abitur"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#input_111",
+    "label": "Höchster Bildungsabschluss",
+    "kind": "select",
+    "name": "q111_xxBildungslevel",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "kein Schulabschluss",
+     "obligatorische Schule",
+     "Eidg. Berufsattest EBA",
+     "Eidg. Fähigkeitszeugnis EFZ",
+     "Zertifikat Sachbearbeiter / Assistent",
+     "Eidg. Fachausweis",
+     "Höhere Fachschule (HF)"
+    ],
+    "options_count": 11,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#input_112",
+    "label": "Berufserfahrung",
+    "kind": "select",
+    "name": "q112_xxBerufserfahrung",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Keine",
+     "1-2 Jahre",
+     "3-5 Jahre",
+     "6-10 Jahre",
+     ">10 Jahre"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "experience_years"
+   },
+   {
+    "selector": "#lite_mode_89",
+    "label": "Früheste Eintrittsmöglichkeit",
+    "kind": "text",
+    "name": "lite_mode_89",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#input_114",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?*",
+    "kind": "select",
+    "name": "q114_JobAdSource",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Website",
+     "Mitarbeitende",
+     "Freunde, Bekannte",
+     "Online Plattform",
+     "Linkedin",
+     "Stellenvermittler",
+     "Sonstiges"
+    ],
+    "options_count": 8,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "d3274aac544fd585",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:13",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

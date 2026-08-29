@@ -1,0 +1,178 @@
+[
+ {
+  "host": "jobs.fressnapf-maxizoo.com",
+  "company": "Fressnapf Schweiz AG",
+  "recorded_from": "fressnapf-schweiz-ag__FressnapfSchweizAG_a4876f23-53bc-4b28-9610-7c4fc7cdc73b",
+  "form_url": "https://ea-fressnapf.cfapps.eu20-001.hana.ondemand.com/easyapply/index.html?sap-language=de_DE&ReqId=10979&utm_source=TalentsConnect&utm_medium=organic&utm_campaign=TalentsConnect",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn-offer-detail-application-external",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#__select0-hiddenSelect",
+    "label": "Anrede",
+    "kind": "combobox",
+    "name": "__select0-hiddenSelect",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#__select0-hiddenInput",
+    "label": "Anrede",
+    "kind": "text",
+    "name": "__select0-hiddenInput",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#__input0-inner",
+    "label": "Vorname:",
+    "kind": "text",
+    "name": "__input0-inner",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#__input1-inner",
+    "label": "Nachname:",
+    "kind": "text",
+    "name": "__input1-inner",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#__input2-inner",
+    "label": "E-Mail-Adresse",
+    "kind": "email",
+    "name": "__input2-inner",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#__input3-inner",
+    "label": "Telefonnummer",
+    "kind": "text",
+    "name": "__input3-inner",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#__input5-inner",
+    "label": "Postleitzahl:",
+    "kind": "text",
+    "name": "__input5-inner",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#__input6-inner",
+    "label": "Ort:",
+    "kind": "text",
+    "name": "__input6-inner",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "#__select1-hiddenSelect",
+    "label": "Land/Region des Wohnorts",
+    "kind": "combobox",
+    "name": "__select1-hiddenSelect",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#__select1-hiddenInput",
+    "label": "Land/Region des Wohnorts",
+    "kind": "text",
+    "name": "__select1-hiddenInput",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#__picker0-inner",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "__picker0-inner",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#__picker1-inner",
+    "label": "Frühestmöglicher Eintritt",
+    "kind": "text",
+    "name": "__picker1-inner",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#__input7-inner",
+    "label": "Gehaltsvorstellung",
+    "kind": "text",
+    "name": "__input7-inner",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#__select2-hiddenSelect",
+    "label": "Besitzt du eine EU- oder EFTA-Staatsangehörigkeit oder eine gültige EU-Arbeitserlaubnis?",
+    "kind": "combobox",
+    "name": "__select2-hiddenSelect",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#__select2-hiddenInput",
+    "label": "Besitzt du eine EU- oder EFTA-Staatsangehörigkeit oder eine gültige EU-Arbeitserlaubnis?",
+    "kind": "text",
+    "name": "__select2-hiddenInput",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#__select3-hiddenSelect",
+    "label": "Bist du derzeit oder warst du jemals bei Fressnapf | Maxi Zoo angestellt?",
+    "kind": "combobox",
+    "name": "__select3-hiddenSelect",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "debecdd66863e787",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:26",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

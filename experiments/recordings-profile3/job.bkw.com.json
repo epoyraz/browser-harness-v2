@@ -1,0 +1,109 @@
+[
+ {
+  "host": "job.bkw.com",
+  "company": "BKW",
+  "recorded_from": "BKW_7298",
+  "form_url": "https://career5.successfactors.eu/career?company=BKW&career_ns=job_application&career_job_req_id=27382&jobPipeline=bkw.extranet&lang=de_DE&login_ns=register",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#application-buttons > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#fbclc_userName",
+    "label": "E-Mail-Adresse: *",
+    "kind": "text",
+    "name": "fbclc_userName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#fbclc_emailConf",
+    "label": "E-Mail-Adresse erneut eingeben: *",
+    "kind": "text",
+    "name": "fbclc_emailConf",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#fbclc_fName",
+    "label": "Vorname: *",
+    "kind": "text",
+    "name": "fbclc_fName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#fbclc_lName",
+    "label": "Nachname: *",
+    "kind": "text",
+    "name": "fbclc_lName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#fbclc_country",
+    "label": "Land/Region des Wohnorts:*",
+    "kind": "select",
+    "name": "fbclc_country",
+    "required": true,
+    "options_sample": [
+     "- Bitte auswählen -",
+     "Deutschland",
+     "Österreich",
+     "Schweiz",
+     "Afghanistan",
+     "Angola",
+     "Anguilla",
+     "Albanien"
+    ],
+    "options_count": 237,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#fbclc_emailEnabled",
+    "label": "Benachrichtigung:",
+    "kind": "checkbox",
+    "name": "fbclc_emailEnabled",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#fbclc_pwd",
+    "label": "Wählen Sie ein Kennwort: *",
+    "kind": "password",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#fbclc_pwdConf",
+    "label": "Kennwort erneut eingeben: *",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "c1f1c111788caf0e",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:20:13",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

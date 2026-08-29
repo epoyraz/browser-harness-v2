@@ -1,0 +1,170 @@
+[
+ {
+  "host": "spital-lachen.ch",
+  "company": "Spital Lachen",
+  "recorded_from": "spital-lachen__12314",
+  "form_url": "https://recruitingapp-2889.umantis.com/Vacancies/1061/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "E-Mail-Adresse",
+    "kind": "text",
+    "name": "form_data9",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "textarea[name=\"form_data12\"]",
+    "label": "Strasse",
+    "kind": "textarea",
+    "name": "form_data12",
+    "required": false,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data13",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data14\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data14",
+    "required": false,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data15\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data15",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Österreich",
+     "Deutschland",
+     "---------------------------------",
+     "Afghanistan",
+     "Ägypten"
+    ],
+    "options_count": 239,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data16\"]",
+    "label": "Telefon / Mobile",
+    "kind": "text",
+    "name": "form_data16",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data30\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data30",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Arbeitsagentur",
+     "Flyer, Informationsbroschüre",
+     "Freunde, Bekannte",
+     "Homepage der Unternehmung",
+     "Hospitaljobs",
+     "Indeed"
+    ],
+    "options_count": 18,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data39\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data39",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data42\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data42",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "9045ff34616ce1d6",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:24",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

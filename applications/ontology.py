@@ -38,6 +38,7 @@ ANSWER_KEYS = {
     "correspondence_language": "correspondence_language",
     "preferred_location": "preferred_location",
     "former_employee": "former_employee",
+    "state_province": "state_province",
 }
 
 
@@ -256,8 +257,22 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
             or has_word(text, "citizen")):
         return "work_authorization"
     if (any(x in text for x in ("postal code", "postcode", "postleitzahl"))
+            or label == "postal"
+            or name in {"postal", "postal code", "postcode", "zip"}
+            or name.endswith("postal-value")
             or has_word(text, "zip", "plz", "npa")):
         return "postal_code"
+    # Address subdivisions are not a city. JazzHR calls this optional free-text input
+    # `State/Province` (`resumator-state-value`); leaving it unclassified made every
+    # otherwise complete Fincons recording omit the canton. Keep the short `state` token
+    # to exact labels/names so prose such as "current state of employment" is not matched.
+    if (label in {"state", "province", "state/province", "state / province",
+                  "state or province", "canton", "kanton", "bundesland"}
+            or name in {"state", "province", "state province", "canton", "kanton"}
+            or name.endswith("state-value")
+            or any(x in text for x in ("state/province", "state or province",
+                                        "state / province"))):
+        return "state_province"
     # A combined box asks for both parts and wants the whole line. "hausnummer" is a
     # substring of "Strasse und Hausnummer", so testing the number first claimed the
     # combined field and wrote the bare number into it: measured 2026-08-27 on the CSS
@@ -277,7 +292,10 @@ def _semantic_uncached(field: dict[str, Any]) -> str:
         return "preferred_location"
     if any(x in text for x in ("current location", "residence", "wohnort", "lieu de residence")):
         return "location"
-    if name == "city" or has_word(label, "city", "ort", "ville", "stadt"):
+    if (name == "city" or has_word(label, "city", "ort", "ville", "stadt")
+            # A bare French "Lieu *" / "Localité" is the town line of an address block
+            # (Kanton Luzern, 2026-08-29); "lieu de naissance" was taken above.
+            or label.strip(" *:") in ("lieu", "localite", "localité")):
         return "city"
     if any(x in text for x in ("street", "strasse", "address", "adresse postale")):
         return "street"
@@ -355,7 +373,7 @@ def semantic(field: dict[str, Any]) -> str:
 EXTRA_PROFILE = {
     "salary_expectation", "availability", "linkedin_url", "github_url", "portfolio_url",
     "tailored_response", "referral_source", "gender_or_salutation", "demographic", "consent",
-    "criminal_record", "workload_percent", "side_job", "onsite_ok",
+    "criminal_record", "workload_percent", "side_job", "onsite_ok", "state_province",
 }
 
 
@@ -408,6 +426,12 @@ def option_candidates(semantic_name: str, value: Any, language: str,
     }
     answer = str(value)
     out = [answer, *candidates.get(semantic_name, [])]
+    if semantic_name == "education" and re.search(r"\b(bachelor|b\.?\s?sc|b\.?\s?a|bsc)\b", norm(value)):
+        # The default rung list is Master-first because the original applicant holds one;
+        # a profile that says Bachelor must not be planned up a rung.
+        out = [answer, "Bachelor", "Bachelor's degree", "Bachelor of Science", "Bachelor Université",
+               "Bachelor (Universität)", "Bachelor (Fachhochschule)", "Fachhochschule", "Hochschule",
+               "University degree", "Hochschulabschluss", "Bachelor's", "Bachelors"]
     if semantic_name == "availability":
         # A "Kündigungsfrist" select offers notice periods, not start dates, and three
         # forms measured 2026-08-27 reported no_option_match against the immediate
@@ -417,8 +441,14 @@ def option_candidates(semantic_name: str, value: Any, language: str,
                     "1 Monat", "3 months", "keine"])
     if semantic_name == "gender_or_salutation":
         # "Mr" without the stop misses "Mr."; a gender select asks a different question
-        # with the same semantic, and offers Male/männlich instead of a salutation.
-        out.extend(["Herr", "Mr", "Monsieur", "Mr.", "M.", "Male", "männlich", "Mann",
+        # with the same semantic, and offers Male/männlich instead of a salutation. The
+        # fallback list follows the applicant's own salutation — a profile that says
+        # "Frau"/"Ms" must never be offered "Herr" (2026-08-29, second persona).
+        female = norm(value) in ("frau", "ms", "mrs", "miss", "madame", "mme", "signora",
+                                 "female", "weiblich", "femme", "w", "f")
+        out.extend(["Frau", "Ms", "Mrs", "Madame", "Ms.", "Mme", "Female", "weiblich",
+                    "Frau*", "Femme", "Signora"] if female else
+                   ["Herr", "Mr", "Monsieur", "Mr.", "M.", "Male", "männlich", "Mann",
                     "Homme", "Signore"])
     if semantic_name == "availability":
         out.extend(["disponible de suite", "de suite", "Disponible immédiatement",
@@ -451,6 +481,7 @@ def localized(semantic_name: str, language: str, field: dict[str, Any]) -> Any:
     if semantic_name == "street": return PROFILE["street"]
     if semantic_name == "house_number": return PROFILE["house_number"]
     if semantic_name == "postal_code": return PROFILE["postal_code"]
+    if semantic_name == "state_province": return PROFILE.get("state_province")
     if semantic_name == "city": return PROFILE["city"]
     if semantic_name == "location": return PROFILE["location"]
     if semantic_name == "birth_place": return PROFILE["birth_place"]

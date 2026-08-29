@@ -1,0 +1,87 @@
+[
+ {
+  "host": "crossing.recruitee.com",
+  "company": "cross-ING",
+  "recorded_from": "cross-ing__cross-ING_1999976",
+  "form_url": "https://crossing.recruitee.com/o/hr-recruiting-assistant-50/c/new",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#tabs--19--tab--1",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-candidate\\.name-2",
+    "label": "Vor- und Nachname *",
+    "kind": "text",
+    "name": "candidate.name",
+    "required": true,
+    "autocomplete": "name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input-candidate\\.email-3",
+    "label": "E-Mail-Adresse *",
+    "kind": "email",
+    "name": "candidate.email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input-candidate\\.phone-4",
+    "label": "Telefonnummer *",
+    "kind": "tel",
+    "name": "candidate.phone",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > textarea:nth-of-type(1)",
+    "label": "Per wann bist du verfügbar und in welchem Pensum können wir auf dich zählen? *",
+    "kind": "textarea",
+    "name": "candidate.openQuestionAnswers.7447194.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > textarea:nth-of-type(1)",
+    "label": "Was sind deine Lohnvorstellungen bei 100%? - Bitte Jahreslohn angeben. *",
+    "kind": "textarea",
+    "name": "candidate.openQuestionAnswers.7447195.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > textarea:nth-of-type(1)",
+    "label": "Mit welchen Fähigkeiten und Eigenschaften machst du unser Team erfolgreicher? *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "31ef740cdbb36ee3",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:59",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

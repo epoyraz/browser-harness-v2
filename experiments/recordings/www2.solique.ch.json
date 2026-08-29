@@ -1,0 +1,113 @@
+[
+ {
+  "host": "www2.solique.ch",
+  "company": "Galenica",
+  "recorded_from": "galenica__Galenica_3132709_4058562",
+  "form_url": "https://recruitingapp-2883.umantis.com/Vacancies/7567/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#container > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data10",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data21\"]",
+    "label": "LinkedIn-Profil",
+    "kind": "text",
+    "name": "form_data21",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "select[name=\"form_data30\"]",
+    "label": "Wie bist du auf diese Stelle aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data30",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Website des Unternehmens",
+     "Social Media",
+     "▹ LinkedIn",
+     "▹ Youtube / frag.apothekerin",
+     "▹ Facebook",
+     "Mitarbeiterempfehlung"
+    ],
+    "options_count": 27,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data34\"]",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.",
+    "kind": "checkbox",
+    "name": "form_data34",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "9bd70546c70b95cf",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:56",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

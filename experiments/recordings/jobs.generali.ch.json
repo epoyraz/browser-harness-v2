@@ -1,0 +1,145 @@
+[
+ {
+  "host": "jobs.generali.ch",
+  "company": "Generali",
+  "recorded_from": "generali__Generali_7dd75bd8-d678-412f-814c-8b3c7f2667f0",
+  "form_url": "https://recruitingapp-2717.umantis.com/Vacancies/6975/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data4",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data5",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data9",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "select[name=\"form_data15\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data15",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch Samoa"
+    ],
+    "options_count": 237,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Mobiltelefon",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data33\"]",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data33",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Generali Stellenportal",
+     "Empfehlung",
+     "Jobs.ch",
+     "Indeed",
+     "Jobup",
+     "LinkedIn"
+    ],
+    "options_count": 9,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data44\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data44",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data12\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "6a9b53cbe0f089ff",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:05:19",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

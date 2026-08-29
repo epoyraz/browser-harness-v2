@@ -1,0 +1,213 @@
+[
+ {
+  "host": "jobs.ksa.ch",
+  "company": "KSA",
+  "recorded_from": "ksa__KSA_10163154",
+  "form_url": "https://jobs.ksa.ch/umantis/122706/de/apply/5671?srcIDPMS=10163154&srcTextPMS=kantonsspital-aarau-ag&source=kantonsspital-aarau-ag&canalId=1003009&publishId=10163154&ohvk=47fb3b79-3323-4738-b133-b151d9afb3f7",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#salutation",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "salutation",
+    "required": false,
+    "options_sample": [
+     "",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#first_name",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#birthdate",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "birthdate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#address_street",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "address_street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#address_zip",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "address_zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#address_city",
+    "label": "Wohnort",
+    "kind": "text",
+    "name": "address_city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#address_country",
+    "kind": "select",
+    "name": "address_country",
+    "required": false,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "---------------------------------",
+     "Afghanistan"
+    ],
+    "options_count": 239,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "street"
+   },
+   {
+    "selector": "#phone",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail-Adresse / Login",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#is_employee",
+    "label": "Ich bin bereits KSA-Mitarbeiter/in",
+    "kind": "checkbox",
+    "name": "is_employee",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#former_employee",
+    "label": "Waren Sie bereits für das KSA tätig?",
+    "kind": "checkbox",
+    "name": "former_employee",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#recommendation_source",
+    "label": "Wie sind Sie auf das KSA aufmerksam geworden?",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "",
+     "Homepage Kantonsspital Aarau AG",
+     "Online-Stelleninserat",
+     "Familie / Freunde / Bekannte",
+     "Mitarbeitende/r Kantonsspital Aarau AG",
+     "Social-Media-Plattform",
+     "Infoanlass / Kongress / Tagung",
+     "Aus- und Weiterbildungsstätte"
+    ],
+    "options_count": 9,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#cappf_customer_defined_text_3",
+    "label": "Jahreslohn bei 100%",
+    "kind": "text",
+    "name": "application_customer-defined-text-3",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#cappf_customer_defined_text_4",
+    "label": "Empfehlung von (Vor- und Nachname KSA-Mitarbeitende/r eingeben)",
+    "kind": "text",
+    "name": "application_customer-defined-text-4",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#data_release_agreed_true",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden können. *",
+    "kind": "radio",
+    "name": "data_release_agreed",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden *",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "64b5b7b685ddc74c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:54",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

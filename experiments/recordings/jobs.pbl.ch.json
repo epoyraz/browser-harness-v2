@@ -1,0 +1,134 @@
+[
+ {
+  "host": "jobs.pbl.ch",
+  "company": "Psychiatrie Baselland",
+  "recorded_from": "psychiatrie-baselland__PsychiatrieBaselland_70aea319-07ea-4f0c-8d6c-6c2f6158d194",
+  "form_url": "https://jobs.pbl.ch/umantis/2893/de/apply/1688?srcIDPMS=10160807&srcTextPMS=pbl_internet&source=pbl_internet&canalId=1002053&publishId=10160807&ohvk=70aea319-07ea-4f0c-8d6c-6c2f6158d194",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#buttonInline > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#salutation_Salutation_M",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#birthdate",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "birthdate",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#phone",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail/Benutzername",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#recommendation_source",
+    "label": "Hier bin ich auf die Stelle aufmerksam geworden:",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Homepage Psychiatrie Baselland",
+     "Online Stellenmärkte (z. B. jobs.ch)",
+     "Freunde, Bekannte",
+     "Interne Stellenausschreibung",
+     "Internet-Suchmaschine",
+     "Messeauftritt",
+     "Social Media"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#is_employee",
+    "label": "Ich bin bereits Mitarbeitende / Mitarbeitender der PBL",
+    "kind": "checkbox",
+    "name": "is_employee",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#former_employee",
+    "label": "Ich habe schon einmal für die PBL gearbeitet",
+    "kind": "checkbox",
+    "name": "former_employee",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden *",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "3326b23c016b1ff3",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:53",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

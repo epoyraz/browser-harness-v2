@@ -1,0 +1,217 @@
+[
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_65778086",
+  "form_url": "https://vaudoise.softgarden.io/applications/d13cc1f3-eb42-4470-8e3c-7e2c1768d1b5?7&isEditMode=true&l=de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id9e",
+    "label": "Vorname *",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#id9f",
+    "label": "Nachname *",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#ida1",
+    "label": "E-Mail *",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#ida4",
+    "label": "Telefon *",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#idb1",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#idb3",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "value": "105000"
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:17",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_67005910",
+  "form_url": "https://vaudoise.softgarden.io/applications/fe34e191-042c-4fa9-97e2-4f20ca322c14?5&isEditMode=true&l=de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id50",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#id51",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#id53",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#id56",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#id62",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#id64",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "value": "105000"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "3e61af1cd878f805",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:40:44",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_65778086",
+  "form_url": "https://vaudoise.softgarden.io/applications/39c4c98c-2d65-4766-97a6-1e3d3ab5ecbc?17&isEditMode=true&l=de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id13b",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#id13c",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#id13e",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#id141",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#id14d",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#id14f",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "value": "105000"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "3aec0a2f6e0a447c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:40:51",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

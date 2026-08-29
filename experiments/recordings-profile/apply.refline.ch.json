@@ -1,0 +1,144 @@
+[
+ {
+  "host": "apply.refline.ch",
+  "company": "Kanton Luzern",
+  "recorded_from": "Kanton_Luzern_gen_aaae17c6782c",
+  "form_url": "https://apply.refline.ch/891537/6091/cjZX4DBbBTfaOM-08fuKVwM4lwU3UtROr9SwuCQFh92FkYfYZLfcec/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-0",
+    "label": "Frau",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "bitte wählen...",
+     "Kanton Luzern Websites",
+     "Empfehlung Mitarbeiter/in des Kantons Lu",
+     "LinkedIn",
+     "weitere Social Media",
+     "jobs.ch",
+     "zebis.ch",
+     "sozialinfo.ch"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#form-widgets-contactComment",
+    "label": "Bei einer Empfehlung durch eine/n Mitarbeiter/in des Kantons Luzern bitte Vor- und Nachname sowie Funktion oder Abteilung/Dienststelle der Person angeben.",
+    "kind": "textarea",
+    "name": "form.widgets.contactComment",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   }
+  ],
+  "files": [
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "59eff0f8b5fc7a98",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:56:48",
+  "stats": {
+   "uses": 18,
+   "successes": 2,
+   "consecutive_failures": 3,
+   "last_ok": "2026-08-29T21:58:12"
+  }
+ }
+]

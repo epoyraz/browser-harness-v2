@@ -1,0 +1,77 @@
+[
+ {
+  "host": "karriere.ipt.ch",
+  "company": "ipt",
+  "recorded_from": "ipt__ipt_82376",
+  "form_url": "https://karriere.ipt.ch/jobs/admin-finance-specialist",
+  "language": "de",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "vorname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#name",
+    "label": "Name *",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#eMail",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "eMail",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon *",
+    "kind": "number",
+    "name": "telefon",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#deinLinkedinProfil",
+    "label": "Dein LinkedIn-Profil",
+    "kind": "text",
+    "name": "deinLinkedinProfil",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "#wieBistDuAufIptAufmerksamGeworden",
+    "label": "Wie bist du auf ipt aufmerksam geworden?",
+    "kind": "text",
+    "name": "wieBistDuAufIptAufmerksamGeworden",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "e77ac8e7eee8e882",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:04:36",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

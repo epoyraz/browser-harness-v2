@@ -1,0 +1,114 @@
+[
+ {
+  "host": "jobs.ekz.ch",
+  "company": "EKZ",
+  "recorded_from": "ekz__EKZEltop_022ecc4c-6e2c-48e8-8914-cf7588f11768",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_ROT/ekz/de/apply?id=4423&jobPipeline=ekzinternet&canalId=1003036&publishId=10161894&company=Elektrizit%C3%A4tswerke%20des%20Kantons%20Z%C3%BCrich&ohvk=022ecc4c-6e2c-48e8-8914-cf7588f11768",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#showcase-button > button:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#name",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefonnummer*",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country",
+    "label": "Land*",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Land",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien"
+    ],
+    "options_count": 204,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "E-Mail",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie. *",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#saveDataAcknowledge",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "checkbox",
+    "name": "custfreigabepool",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "1618844daa7bdd3c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:12",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

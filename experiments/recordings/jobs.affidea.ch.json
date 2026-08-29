@@ -1,0 +1,60 @@
+[
+ {
+  "host": "jobs.affidea.ch",
+  "company": "Affidea",
+  "recorded_from": "affidea__Affidea_2718727",
+  "form_url": "https://jobs.affidea.ch/o/comptable/c/new",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#tabs--19--tab--1",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-candidate\\.name-5",
+    "label": "Nom complet *",
+    "kind": "text",
+    "name": "candidate.name",
+    "required": true,
+    "autocomplete": "name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input-candidate\\.email-6",
+    "label": "Adresse e-mail *",
+    "kind": "email",
+    "name": "candidate.email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input-candidate\\.phone-7",
+    "label": "Numéro de téléphone *",
+    "kind": "tel",
+    "name": "candidate.phone",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "d606b175035c25b5",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:16",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,125 @@
+[
+ {
+  "host": "jobs.sanitas.com",
+  "company": "Sanitas",
+  "recorded_from": "sanitas__Sanitas_gen_c0de880b714d",
+  "form_url": "https://recruitingapp-2731.umantis.com/Vacancies/5709/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data4",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data9",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data14\"]",
+    "label": "Mobiltelefon",
+    "kind": "text",
+    "name": "form_data14",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data25\"]",
+    "label": "Wie bist du auf diese Stelle aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data25",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Sanitas Stellenportal",
+     "Intranet",
+     "Sanitas Job-Abo",
+     "jobs.ch",
+     "jobup.ch",
+     "ict jobs"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data29\"]",
+    "label": "Ich bin bereits Sanitas-Mitarbeiter:in.",
+    "kind": "checkbox",
+    "name": "form_data29",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "input[name=\"form_data35\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden.",
+    "kind": "checkbox",
+    "name": "form_data35",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "cec07f1292834d34",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:54",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,102 @@
+[
+ {
+  "host": "enovetic.jobs.personio.de",
+  "company": "enovetic",
+  "recorded_from": "enovetic__enovetic_2772988",
+  "form_url": "https://enovetic.jobs.personio.de/job/2772988/apply",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Auf diese Stelle bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#field-first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#field-last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#field-email",
+    "label": "E-Mail*\n(erforderlich)",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#field-gender",
+    "label": "Geschlecht*\n(erforderlich)",
+    "kind": "select",
+    "name": "gender",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Männlich",
+     "Weiblich",
+     "Divers",
+     "Unbestimmt"
+    ],
+    "options_count": 5,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "LinkedIn*\n(erforderlich)",
+    "kind": "text",
+    "name": "custom_attribute_1324883",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "#field-phone",
+    "label": "Telefon*\n(erforderlich)",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#field-salary_expectations",
+    "label": "Gehaltsvorstellung*\n(erforderlich)",
+    "kind": "text",
+    "name": "salary_expectations",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "4dad534910020a08",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:49",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

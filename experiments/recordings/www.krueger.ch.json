@@ -1,0 +1,77 @@
+[
+ {
+  "host": "www.krueger.ch",
+  "company": "Krüger + Co. AG",
+  "recorded_from": "kruger-co-ag__KruegerCoAG_commercial-externe-suisse-romande-h-f-d-2-forel-vd",
+  "form_url": "https://www.krueger.ch/job/commercial-externe-suisse-romande-h-f-d-2/",
+  "language": "de-DE",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#quform_2_40_4e7d2f",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "quform_2_40",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "Frau",
+     "Herr",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"quform_4_13\"]",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "quform_4_13",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Frau",
+     "Herr",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"quform_4_17\"]",
+    "label": "Bevorzugte Sprache*",
+    "kind": "select",
+    "name": "quform_4_17",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Deutsch",
+     "Französisch",
+     "Italienisch"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "correspondence_language"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "660f18463c50c2e3",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:06:33",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,237 @@
+[
+ {
+  "host": "jobs.axonlab.com",
+  "company": "Axon Lab",
+  "recorded_from": "axon-lab__AxonLab_420",
+  "form_url": "https://jobs.axonlab.com/Lehrstelle-als-Kaufmannfrau-EFZ-de-f420.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#nation",
+    "label": "Nationalität *",
+    "kind": "select",
+    "name": "bewerbung_form[nation]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Ausweis B (Aufenthaltsbewilligung)",
+     "Ausweis C (Niederlassungsbewilligung)",
+     "Ausweis L (Kurzaufenthaltsbewilligung)",
+     "Ausweis N (Asylsuchende/Asylbewerber)",
+     "Ausweis F (Vorläufig aufgenommene Auslän",
+     "Ausweis C1 (Niederlassungsbewilligung mi"
+    ],
+    "options_count": 24,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon/Mobile *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#kuendigungs_frist",
+    "label": "Kündigungsfrist *",
+    "kind": "select",
+    "name": "bewerbung_form[kuendigungs_frist]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "keine",
+     "1 Monat",
+     "2 Monate",
+     "3 Monate",
+     "6 Monate",
+     "andere"
+    ],
+    "options_count": 7,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#schulabschluss",
+    "label": "Schulabschluss *",
+    "kind": "select",
+    "name": "bewerbung_form[schulabschluss]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Kein Abschluss",
+     "Hauptschulabschluss",
+     "Mittlere Reife",
+     "abgeschlossene Berufsausbildung",
+     "Fachhochschulreife",
+     "Hochschulreife (Abitur)",
+     "Matura"
+    ],
+    "options_count": 11,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#gehaltswunsch",
+    "label": "Gehaltswunsch p.a. (nur Zahl) *",
+    "kind": "text",
+    "name": "bewerbung_form[gehaltswunsch]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie haben Sie uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "finest-jobs.com",
+     "Homepage",
+     "www.jobs.ch",
+     "andere Stellenplattformen",
+     "Personalvermittler",
+     "Mitarbeiterempfehlung",
+     "Xing, LinkedIn"
+    ],
+    "options_count": 9,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "669571cfef5049b3",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:56",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,312 @@
+[
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "vaudoise__Vaudoise_62226199",
+  "form_url": "https://vaudoise.softgarden.io/applications/df96cb7c-6b63-4c27-ad3e-671b069fce51?1&isEditMode=false&isNew=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "ONLINE BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id1",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id2",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id3",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id5",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id8",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#id11",
+    "label": "Wo haben Sie diese Jobanzeige gefunden? *",
+    "kind": "select",
+    "name": "questions:questions:0:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "LinkedIn",
+     "JobUp",
+     "Jobs.ch",
+     "Vaudoise.ch",
+     "Xing",
+     "Indeed",
+     "Glassdoor"
+    ],
+    "options_count": 14,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#id12",
+    "label": "Bitte geben Sie Ihr Geburtsdatum im Format TT.MM.JJJJ an *",
+    "kind": "text",
+    "name": "questions:questions:1:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#id13",
+    "label": "Bitte geben Sie Ihre Gehaltsvorstellung pro Jahr an (fix und variabel) bezogen auf 100 % (Format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:2:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#id14",
+    "label": "Fakultativ: Bitte geben Sie Ihr aktuelles Erwerbseinkommen pro Jahr an (fix und variabel), bezogen auf 100 % (Format : 75000). *",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "e7531c36abd48f58",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:09",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_67005910",
+  "form_url": "https://vaudoise.softgarden.io/applications/15c8a220-1531-44d1-a6bd-d0c289c9f7e5?5&isEditMode=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id4f",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id50",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id51",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id53",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id56",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#id60",
+    "label": "Où avez-vous trouvé cette offre d'emploi ? *",
+    "kind": "select",
+    "name": "questions:questions:1:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "LinkedIn",
+     "JobUp",
+     "Jobs.ch",
+     "Vaudoise.ch",
+     "Xing",
+     "Indeed",
+     "Glassdoor"
+    ],
+    "options_count": 14,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#id61",
+    "label": "Quel est votre préavis ? *",
+    "kind": "select",
+    "name": "questions:questions:2:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1 mois",
+     "2 mois",
+     "3 mois",
+     "6 mois",
+     "disponible de suite"
+    ],
+    "options_count": 6,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#id62",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#id63",
+    "label": "Veuillez renseigner votre niveau d'étude le plus élevé. *",
+    "kind": "select",
+    "name": "questions:questions:4:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1. Master Université",
+     "2. Bachelor Université",
+     "3. Master Haute Ecole",
+     "4. Bachelor Haute Ecole",
+     "5. Formation professionnelle supérieure ",
+     "6. Baccalauréat ou Maturité fédérale",
+     "7. Apprentissage avec CFC obtenu"
+    ],
+    "options_count": 10,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#id64",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#id59",
+    "label": "Wählen Sie eine Option, um Ihren Lebenslauf hochzuladen *",
+    "name": "cvBorder:cvBorder_body:cv:upload:oneRowPanel:cvParser:form:cvFileInput",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#id5d",
+    "label": "file upload button",
+    "name": "attachments:uploadForm:upload",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "e59fd4a2f1a3b7b0",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:00:58",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

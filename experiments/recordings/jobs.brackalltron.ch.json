@@ -1,0 +1,84 @@
+[
+ {
+  "host": "jobs.brackalltron.ch",
+  "company": "Brack",
+  "recorded_from": "brack__Brack_gen_e766b439374e",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2960/de/apply/1816?srcIDPMS=10161964&srcTextPMS=competec_internet&source=competec_internet&canalId=1005615&publishId=10161964&ohvk=c45e690c-55fb-400c-bda2-8391d4316db7",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#intropage > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"first_name\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"last_name\"]",
+    "label": "Name",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"address_city\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "address_city",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "E-Mail",
+    "kind": "text",
+    "name": "email",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#application_salary",
+    "label": "Deine Lohnvorstellung (Jahresgehalt 100 %)",
+    "kind": "text",
+    "name": "applicant_customer-defined-text-15",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "a069a771427cc7cf",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:24",
+  "stats": {
+   "uses": 5,
+   "successes": 5,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T21:06:14"
+  }
+ }
+]

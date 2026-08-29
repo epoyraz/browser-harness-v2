@@ -1,0 +1,424 @@
+[
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "Harmattan AI",
+  "recorded_from": "harmattan-ai__harmattan_ai_e49fbad7-e047-422a-bbb3-be87c7127374",
+  "form_url": "https://jobs.ashbyhq.com/harmattan-ai/e49fbad7-e047-422a-bbb3-be87c7127374/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"7563cfad-53e6-4bf3-8f84-653f1e25c3db\"]",
+    "label": "How did you hear about us?",
+    "kind": "text",
+    "name": "7563cfad-53e6-4bf3-8f84-653f1e25c3db",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"7285d795-4364-4038-8679-a4649e1e01f9\"]",
+    "label": "What are your salary expectations?",
+    "kind": "text",
+    "name": "7285d795-4364-4038-8679-a4649e1e01f9",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#\\31 51cdd83-3c1f-408c-9bb9-adef3f8fadae",
+    "label": "When can you start?",
+    "kind": "text",
+    "name": "151cdd83-3c1f-408c-9bb9-adef3f8fadae",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"c1dbe3e4-721c-4cbd-8d65-2034adff66b3\"]",
+    "label": "Why are you interested in Harmattan AI?",
+    "kind": "text",
+    "semantic": "tailored_response"
+   }
+  ],
+  "fingerprint": "2a6ccd135f1e43a1",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:14",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "Blockstream",
+  "recorded_from": "blockstream__Blockstream_5dc8fec2-3a59-4a5b-9ad7-f44bcd1163a4",
+  "form_url": "https://jobs.ashbyhq.com/blockstream/5dc8fec2-3a59-4a5b-9ad7-f44bcd1163a4/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "div:nth-of-type(2) > fieldset:nth-of-type(1) > div:nth-of-type(2) > span:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Male",
+    "kind": "radio",
+    "name": "274167c1-02a9-41a1-8a5b-562920a87d05__systemfield_eeoc_gender",
+    "required": false,
+    "group_label": "Input gender",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "cd3a957ae3ca751c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:26",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "Air Apps",
+  "recorded_from": "air-apps__AirApps_ec14952b-818d-401e-be27-c0ef0f3a61b6",
+  "form_url": "https://jobs.ashbyhq.com/airapps/ec14952b-818d-401e-be27-c0ef0f3a61b6/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)",
+    "label": "Phone number",
+    "kind": "tel",
+    "name": "415302c7-76c5-4ec1-bea3-925ba86f706d",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"985ad1e5-4660-4318-901b-cd93001f3208\"]",
+    "label": "LinkedIn",
+    "kind": "text",
+    "name": "985ad1e5-4660-4318-901b-cd93001f3208",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Pick date...",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "30c318de755d6848",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:05:04",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "DeepJudge",
+  "recorded_from": "deepjudge__DeepJudge_740cf0e0-38e7-4ad5-90d7-fd05fa73b33f",
+  "form_url": "https://jobs.ashbyhq.com/deepjudge/740cf0e0-38e7-4ad5-90d7-fd05fa73b33f/application",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#overview > a:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Apply for this Job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"74abcc64-cdcd-403d-8398-b8e2c58889c7\"]",
+    "label": "LinkedIn or other personal website",
+    "kind": "url",
+    "name": "74abcc64-cdcd-403d-8398-b8e2c58889c7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "input[name=\"bb753e53-e7e4-4336-b41a-e7d28b201f6a\"]",
+    "label": "What is your earliest start date and are there any constraints we should be aware of?",
+    "kind": "text",
+    "name": "bb753e53-e7e4-4336-b41a-e7d28b201f6a",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "input[name=\"476c1706-b674-4d74-a5de-b4d5d4a0135e\"]",
+    "label": "How did you hear about this position?",
+    "kind": "text",
+    "name": "476c1706-b674-4d74-a5de-b4d5d4a0135e",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#\\35 27a113d-4c83-411e-bdb1-4d61c2dce67f",
+    "label": "Describe one engineering project that you think showcases your skills. Explain a bit about what the goal of the project was, which technologies you used and what were the challenges you had to overcome?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#form > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(3) > textarea:nth-of-type(1)",
+    "label": "Describe a technical issue you encountered during a customer deployment that required deep troubleshooting across infrastructure, networking, authentication, or application behavior. How did you identify the root cause and resolve it?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "textarea[name=\"dcfe898d-ddff-4943-af20-7b3c0ee68f38\"]",
+    "label": "Tell us about a time you worked directly with a customer or stakeholder to solve a complex technical problem. How did you balance technical constraints, customer expectations, and successful delivery?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "d1b32b1d224864ea",
+  "hops": 3,
+  "recorded_at": "2026-08-29T20:06:49",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "NEURA Robotics",
+  "recorded_from": "neura-robotics__NeuraRobotics_b9a92a48-80b2-4e73-829d-51077f0591f6",
+  "form_url": "https://jobs.ashbyhq.com/neura-robotics-gmbh/b9a92a48-80b2-4e73-829d-51077f0591f6/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(8) > input:nth-of-type(1)",
+    "label": "Salary expectations?",
+    "kind": "number",
+    "name": "03367749-8c8b-4c5d-bc66-3634b95d4fe2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "input[name=\"I agree\"]",
+    "label": "I agree",
+    "kind": "checkbox",
+    "name": "I agree",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Pick date...",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "605bc7913a3a850b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:51",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "Alohi",
+  "recorded_from": "alohi__Alohi_550a0060-1042-491f-a8aa-a9ce25a2698f",
+  "form_url": "https://jobs.ashbyhq.com/alohi/550a0060-1042-491f-a8aa-a9ce25a2698f/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Linkedin Profile",
+    "kind": "text",
+    "name": "93f98310-3e03-45b0-80b1-367356d3b6eb",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Minimum Salary Expectation",
+    "kind": "text",
+    "name": "742037cc-85b2-4f51-9305-3110c3d911af",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "div:nth-of-type(8) > fieldset:nth-of-type(1) > div:nth-of-type(1) > span:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Available Immediately",
+    "kind": "radio",
+    "name": "360a0ec5-f434-494a-9e6c-b429794a1acb_bcac06f4-7cad-4bcf-addc-cf60c4272157",
+    "required": false,
+    "group_label": "Notice Period",
+    "label_source": "markup",
+    "semantic": "availability"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Pick date...",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[name=\"be1ccc7c-d824-4257-b0d2-6d89175fcfad\"]",
+    "label": "Please share links to examples of your work across both product design (UI/UX) and brand/marketing design (e.g. illustrations, campaign assets, or brand identity). You may submit a single portfolio or separate links.",
+    "kind": "text",
+    "semantic": "portfolio_url"
+   }
+  ],
+  "fingerprint": "07023b2afc48dd9c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:19",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

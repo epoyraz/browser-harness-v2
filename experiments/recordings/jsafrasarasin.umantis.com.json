@@ -1,0 +1,177 @@
+[
+ {
+  "host": "jsafrasarasin.umantis.com",
+  "company": "J. Safra Sarasin",
+  "recorded_from": "j-safra-sarasin__JSafraSarasin_506",
+  "form_url": "https://jsafrasarasin.umantis.com/Vacancies/506/Application/New/2",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "body:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Mr",
+    "kind": "radio",
+    "name": "form_data5",
+    "required": false,
+    "group_label": "Salutation",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "First name",
+    "kind": "text",
+    "name": "form_data6",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Last name",
+    "kind": "text",
+    "name": "form_data7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "City",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data10\"]",
+    "label": "Country",
+    "kind": "select",
+    "name": "form_data10",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "----------------------------------------",
+     "Switzerland",
+     "Afghanistan",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra"
+    ],
+    "options_count": 239,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"form_data11\"]",
+    "label": "Nationality",
+    "kind": "select",
+    "name": "form_data11",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "----------------------------------------",
+     "Swiss",
+     "Afghan",
+     "Åland Swedish",
+     "Albanian",
+     "Algerian",
+     "American"
+    ],
+    "options_count": 206,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "select[name=\"form_data12\"]",
+    "label": "Current Swiss work permit status",
+    "kind": "select",
+    "name": "form_data12",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "----------------------------------------",
+     "Swiss Citizenship",
+     "I do not (yet) hold a permit in Switzerl",
+     "C-Permit (Residence)",
+     "B-Permit (Long-term stay)",
+     "L-Permit (Short-term stay)",
+     "G-Permit (Cross border)"
+    ],
+    "options_count": 11,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Date of birth",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "E-mail address / login",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "select[name=\"form_data29\"]",
+    "label": "How did you hear about this job?",
+    "kind": "select",
+    "name": "form_data29",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "----------------------------------------",
+     "Company Website",
+     "Company activities/events (please specif",
+     "Jobs.ch",
+     "Jobup.ch",
+     "Jobscout24.ch",
+     "LinkedIn"
+    ],
+    "options_count": 10,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data41\"]",
+    "label": "I agree to the Applicant Data Privacy Statement",
+    "kind": "checkbox",
+    "name": "form_data41",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "be850714c2c79e0b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:51",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

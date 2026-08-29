@@ -1,0 +1,220 @@
+[
+ {
+  "host": "jobs.visana.ch",
+  "company": "Visana",
+  "recorded_from": "visana__Visana_10165804",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/visanaserv/de/apply?id=4970&jobPipeline=visana_internet&canalId=1004518&publishId=10165804&lang=de_DE&ohvk=f558d3bb-ba65-43b4-adf9-ff40d3276ec5",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "body:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(2)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#cust_anrede",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "cust_anrede",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse/Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#postalCode",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Wohnort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Ägypten",
+     "Afghanistan"
+    ],
+    "options_count": 215,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "required": false,
+    "autocomplete": "fomantic-search",
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#others-wrapper > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Weitere Beilagen (Zeugnisse, Diplome usw.)",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "education"
+   },
+   {
+    "selector": "#cust_rcmKuendigungsfrist",
+    "label": "Kündigungsfrist",
+    "kind": "text",
+    "name": "cust_rcmKuendigungsfrist",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#cust_rcmLohnvorstellung",
+    "label": "Lohnvorstellung (Jahresgehalt brutto 100 %)",
+    "kind": "number",
+    "name": "cust_rcmLohnvorstellung",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#cust_empl",
+    "label": "Bist du bereits Visana-Mitarbeiter*in?",
+    "kind": "select",
+    "name": "cust_empl",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Ja",
+     "Nein"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#cust_rcmVertragsunterlagen",
+    "label": "Sollte es zu einer Anstellung kommen, bin ich damit einverstanden, dass mir Visana die Vertragsunterlagen per E-Mail zustellt. Meine E-Mail Adresse kann ich jederzeit in meinem Kandidatenprofil anpassen.",
+    "kind": "select",
+    "name": "cust_rcmVertragsunterlagen",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Ja",
+     "Nein"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "consent"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "d41a15ea50de7037",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:05",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

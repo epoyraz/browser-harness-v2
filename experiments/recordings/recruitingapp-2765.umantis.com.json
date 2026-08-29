@@ -1,0 +1,86 @@
+[
+ {
+  "host": "recruitingapp-2765.umantis.com",
+  "company": "Apleona",
+  "recorded_from": "apleona__Apleona_2547",
+  "form_url": "https://recruitingapp-2765.umantis.com/Vacancies/2547/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "body:nth-of-type(1) > section:nth-of-type(5) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Hier bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data12\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data12",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data42\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus bis zu 18 Monaten weitergespeichert werden dürfen und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data42",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data45\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data45",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "77efae1fdc4e80e7",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:43",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,114 @@
+[
+ {
+  "host": "www.belimo.com",
+  "company": "Belimo",
+  "recorded_from": "belimo__Belimo_2638",
+  "form_url": "https://www.belimo.com/ch/en_GB/jobs/2638",
+  "language": "en-GB",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#first-name",
+    "label": "First name *",
+    "kind": "text",
+    "name": "first-name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last-name",
+    "label": "Family name *",
+    "kind": "text",
+    "name": "last-name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#email",
+    "label": "Email *",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phone",
+    "label": "Phone *",
+    "kind": "text",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#country",
+    "label": "Country of Residence *",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "",
+     "Aaland Islands",
+     "Afghanistan",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola"
+    ],
+    "options_count": 249,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#question-answer-1",
+    "label": "Per wann könntest du frühestens bei uns starten? *",
+    "kind": "textarea",
+    "name": "question-answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#question-answer-2",
+    "label": "Wie sehen deine Gehaltsvorstellungen aus? *",
+    "kind": "textarea",
+    "name": "question-answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#data-policy",
+    "label": "I agree to the Data Policy. ⇨ *",
+    "kind": "checkbox",
+    "name": "data-policy",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#question-answer-3",
+    "label": "Hast Du bereits erste Erfahrung im Recruiting oder HR Services gesammelt? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "253866c480becfad",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:03:56",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

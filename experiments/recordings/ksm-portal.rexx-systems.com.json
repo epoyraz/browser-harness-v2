@@ -1,0 +1,277 @@
+[
+ {
+  "host": "ksm-portal.rexx-systems.com",
+  "company": "Klinik Schloss Mammern",
+  "recorded_from": "klinik-schloss-mammern__KlinikSchlossMammern_mitarbeiter-in-waescherei-100",
+  "form_url": "https://ksm-portal.rexx-systems.com/Mitarbeiterin-Waescherei-100-de-f204.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#nation",
+    "label": "Nationalität *",
+    "kind": "select",
+    "name": "bewerbung_form[nation]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweizer/in",
+     "EU mit unbefristeter Arbeitserlaubnis",
+     "EU mit befristeter Arbeitserlaubnis",
+     "EU ohne Arbeitserlaubnis",
+     "Nicht EU mit unbefristeter Arbeitserlaub",
+     "Nicht EU mit befristeter Arbeitserlaubni",
+     "Nicht EU ohne Arbeitserlaubnis"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon / Mobil *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#erfahrung_pref_inJ",
+    "label": "Berufserfahrung",
+    "kind": "select",
+    "name": "bewerbung_form[erfahrung_pref_inJ]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Keine",
+     "1-2 Jahre",
+     "3-5 Jahre",
+     "6-10 Jahren",
+     ">10 Jahre"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "experience_years"
+   },
+   {
+    "selector": "#freifeld2_ms",
+    "label": "Kündigungsfrist",
+    "kind": "textarea",
+    "name": "bewerbung_form[freifeld2_ms]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#freifeld5_ta",
+    "label": "Wie haben Sie uns gefunden?",
+    "kind": "textarea",
+    "name": "bewerbung_form[freifeld5_ta]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#freifeld3_d",
+    "label": "Frühester Eintritt (TT.MM.JJJJ)",
+    "kind": "text",
+    "name": "bewerbung_form[freifeld3_d]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#kuendigungs_frist",
+    "label": "Kündigungsfrist *",
+    "kind": "select",
+    "name": "bewerbung_form[kuendigungs_frist]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "1 Monat zum Monatsende",
+     "2 Monate zum Monatsende",
+     "3 Monate zum Monatsende",
+     "6 Monate zum Monatsende",
+     "sofort verfügbar"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Frühester Eintritt (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#gehaltswunsch",
+    "label": "Lohnwunsch (Jahreslohn in Zahl) *",
+    "kind": "text",
+    "name": "bewerbung_form[gehaltswunsch]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie haben Sie uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Job-Room",
+     "ksm-jobs",
+     "Ostjob",
+     "finest-jobs.com",
+     "andere Plattformen",
+     "Matto",
+     "Talentgrabber"
+    ],
+    "options_count": 12,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#freifeld2_txt",
+    "label": "Wunscharbeitspensum *",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "89b1509bfe14593d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:40",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

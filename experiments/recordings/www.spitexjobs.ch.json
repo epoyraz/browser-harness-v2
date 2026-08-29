@@ -1,0 +1,75 @@
+[
+ {
+  "host": "www.spitexjobs.ch",
+  "company": "Spitex",
+  "recorded_from": "spitex__Spitex_J982990",
+  "form_url": "https://www.spitexjobs.ch/job/dipl-pflegefachfrau-pflegefachmann-hf-im-tagdienst-mo-fr/J982990/bewerbung",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#wwj-application-and-contact-ribbon > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#dossierbidder-firstname",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "dossierbidder.firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#dossierbidder-lastname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "dossierbidder.lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dossierbidder-phonedirect",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "dossierbidder.phonedirect",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#dossierbidder-email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "dossierbidder.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#dossierbidder-accept_generaltermsandconditions",
+    "label": "Ich akzeptiere die Allgemeinen Geschäftsbedingungen\nund habe die Datenschutzerklärung zur Kenntnis genommen.",
+    "kind": "checkbox",
+    "name": "dossierbidder.accept_generaltermsandconditions",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8797c870cbd14691",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:24",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

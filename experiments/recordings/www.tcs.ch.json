@@ -1,0 +1,85 @@
+[
+ {
+  "host": "www.tcs.ch",
+  "company": "TCS",
+  "recorded_from": "tcs__TCS_8fea963d",
+  "form_url": "https://app.skeeled.com/offer/c/6a9137caf9ee9f548fea963d?lang=de&show_description=true",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-v-0-0-0-53",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "input-v-0-0-0-53",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#input-v-0-0-0-56",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "input-v-0-0-0-56",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input-v-0-0-0-59",
+    "label": "Email*",
+    "kind": "text",
+    "name": "input-v-0-0-0-59",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > textarea:nth-of-type(1)",
+    "label": "Antwort*",
+    "kind": "textarea",
+    "name": "field-properties1profile1openQuestions16a9137a56c8cc17e670b77e2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > textarea:nth-of-type(1)",
+    "label": "Antwort*",
+    "kind": "textarea",
+    "name": "field-properties1profile1openQuestions16a9137b007c011f220a67321",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "#checkbox-v-0-0-0-82",
+    "label": "Ich erkläre, dass ich den Datenschutzhinweis für Bewerber von Touring Club Suisse zur Kenntnis genommen habe und stimme zu, dass meine Daten sowie meine Bewerbungsunterlagen in der von Touring Club Suisse festgelegten Weise und festgelegte Dauer verarbeitet und aufbewahrt werden.",
+    "kind": "checkbox",
+    "name": "checkbox-v-0-0-0-82",
+    "required": false,
+    "group_label": "Datenschutzrichtlinie",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8deef4b39362fe5b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:05",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

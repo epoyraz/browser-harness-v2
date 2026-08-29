@@ -1,0 +1,219 @@
+[
+ {
+  "host": "karriere.iwb.ch",
+  "company": "IWB",
+  "recorded_from": "iwb__IWB_10161254",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_ROT/IWB/de/apply?id=9350&jobPipeline=iwb-internet&canalId=1006457&publishId=10161254&ohvk=e67da860-4e63-4c78-bb00-f6709d27f3a5",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "body:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Geschlecht*",
+    "kind": "select",
+    "name": "cust_gender",
+    "required": true,
+    "options_sample": [
+     "Geschlecht*",
+     "Weiblich",
+     "Männlich",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstname",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Tel.*",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer*",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#postalCode",
+    "label": "PLZ*",
+    "kind": "text",
+    "name": "postalCode",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land*",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Land*",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Italien",
+     "Frankreich",
+     "Liechtenstein",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#source",
+    "kind": "select",
+    "name": "referralSource",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "IWB-Homepage",
+     "Persönliche Empfehlung",
+     "Regionale Arbeitsvermittlung (RAV)",
+     "Lehrstellennachweis",
+     "Sonstige",
+     "jobs.ch",
+     "yousty.ch"
+    ],
+    "options_count": 19,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"cust_referralSourcedetail\"]",
+    "label": "bspw. BZ, Name des Mitarbeiters (max. 200 Zeichen)",
+    "kind": "text",
+    "name": "cust_referralSourcedetail",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#cust_Period_of_notice",
+    "label": "Bitte Kündigungsfrist angeben",
+    "kind": "text",
+    "name": "cust_Period_of_notice",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#cust_lohn",
+    "label": "Bitte Jahreslohn angeben",
+    "kind": "text",
+    "name": "cust_lohn",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#question_1",
+    "label": null,
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#question_2",
+    "label": null,
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#question_3",
+    "label": null,
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "d7cd8c8346d05977",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:37",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

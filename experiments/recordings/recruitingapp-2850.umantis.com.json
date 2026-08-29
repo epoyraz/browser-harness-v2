@@ -1,0 +1,155 @@
+[
+ {
+  "host": "recruitingapp-2850.umantis.com",
+  "company": "Bürgenstock Hotels",
+  "recorded_from": "burgenstock-hotels__B_C3_BCrgenstock_Hotels_1562",
+  "form_url": "https://recruitingapp-2850.umantis.com/Vacancies/1562/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#button > a:nth-of-type(1)",
+    "label": "jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data10",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "textarea[name=\"form_data17\"]",
+    "label": "Strasse",
+    "kind": "textarea",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data19\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data19",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data20\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data20",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "----------------------------------------"
+    ],
+    "options_count": 239,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data23\"]",
+    "label": "Telefon / Mobiltelefon",
+    "kind": "text",
+    "name": "form_data23",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data36\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data36",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Arbeitsagentur",
+     "Flyer, Informationsbroschüre",
+     "Freunde, Bekannte",
+     "Homepage der Unternehmung",
+     "Interne Stellenausschreibung",
+     "Internet-Suchmaschine"
+    ],
+    "options_count": 12,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data45\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data45",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "0f3f304b7fbb2059",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:31",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

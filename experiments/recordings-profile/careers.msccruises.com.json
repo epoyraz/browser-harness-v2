@@ -1,0 +1,238 @@
+[
+ {
+  "host": "careers.msccruises.com",
+  "company": "MSC Cruises",
+  "recorded_from": "MSC_Cruises_17244",
+  "form_url": "https://careers.msccruises.com/gb/en/apply?jobSeqNo=MCTMCUGB17244EXTERNALENGB&step=1&stepname=personalInformation",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "a[aria-label=\"Apply Now Test Analyst\"]",
+    "label": "Apply now",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#firstName",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "firstName",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "lastName",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#country",
+    "label": "Country of Residence*",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Please Select",
+     "Afghanistan",
+     "Aaland Islands",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola"
+    ],
+    "options_count": 247,
+    "autocomplete": "cntry-name",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#cust_Nationality",
+    "label": "Nationality*",
+    "kind": "select",
+    "name": "cust_Nationality",
+    "required": true,
+    "options_sample": [
+     "Please Select",
+     "Afghanistan",
+     "Åland Islands",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola"
+    ],
+    "options_count": 247,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#cust_otherNationalities",
+    "label": "Second Nationality",
+    "kind": "select",
+    "name": "cust_otherNationalities",
+    "required": false,
+    "options_sample": [
+     "Please Select",
+     "Afghanistan",
+     "Åland Islands",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola"
+    ],
+    "options_count": 247,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": "Country Code*",
+    "kind": "select",
+    "name": "untitled8241.countryPhoneCode",
+    "required": true,
+    "options_sample": [
+     "Please Select",
+     "Åland Islands (+358)",
+     "Albania (+355)",
+     "Algeria (+213)",
+     "American Samoa (+1)",
+     "Andorra (+376)",
+     "Angola (+244)",
+     "Anguilla (+1)"
+    ],
+    "options_count": 237,
+    "autocomplete": "tel-country-code",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "input[aria-label=\"Phone Number (No spaces)\"]",
+    "label": "Phone Number (No spaces)*",
+    "kind": "text",
+    "name": "untitled8241.cellPhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#cust_SalaryExp",
+    "label": "Expected Salary",
+    "kind": "text",
+    "name": "cust_SalaryExp",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#sourceType",
+    "label": "How did you hear about us?*",
+    "kind": "select",
+    "name": "sourceType",
+    "required": true,
+    "options_sample": [
+     "Please Select",
+     "MSC Cruises Website",
+     "Job Board",
+     "Social Media",
+     "Career Fair/Event",
+     "Recruitment Agency",
+     "Employee Referral",
+     "Other"
+    ],
+    "options_count": 8,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#languageData\\[0\\]\\.language",
+    "label": "Language*",
+    "kind": "select",
+    "name": "languageData[0].language",
+    "required": true,
+    "options_sample": [
+     "Please Select",
+     "African",
+     "Afrikaans",
+     "Albanian",
+     "Amharic",
+     "Arabic",
+     "Armenian",
+     "Azerbaijani"
+    ],
+    "options_count": 119,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "correspondence_language"
+   },
+   {
+    "selector": "#emailAgreement",
+    "label": "*\nBy submitting your application, you also confirm your consent to the possible transfer of your personal data outside the national borders and you agree to the Terms of Use.",
+    "kind": "checkbox",
+    "name": "emailAgreement",
+    "required": true,
+    "group_label": "You are applying for",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > input:nth-of-type(1)",
+    "label": "",
+    "name": "file",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "li:nth-of-type(4) > div:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "",
+    "name": "file",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [
+   {
+    "selector": "#applicantSource",
+    "label": "Specific source*",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "d64c1456779edda1",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:50:13",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

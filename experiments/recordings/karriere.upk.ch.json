@@ -1,0 +1,215 @@
+[
+ {
+  "host": "karriere.upk.ch",
+  "company": "UPK",
+  "recorded_from": "upk__UPK_1152",
+  "form_url": "https://karriere.upk.ch/Dipl-Pflegefachfrau-Pflegefachmann-HF-FH-80-fuer-den-Berei-de-f1152.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#header_links > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Deutschland",
+     "Österreich",
+     "Schweiz",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#freifeld3_txt",
+    "label": "Nationalität",
+    "kind": "text",
+    "name": "bewerbung_form[freifeld3_txt]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#fax",
+    "label": "Falls Sie über einen UPK-Mitarbeitenden auf die Stelle aufmerksam geworden sind, geben Sie bitte den Vor-, Nachnamen der Person an:",
+    "kind": "text",
+    "name": "bewerbung_form[fax]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Frühester Eintritt (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#gehaltswunsch",
+    "label": "Gehaltsvorstellung (Jahr 100%)",
+    "kind": "text",
+    "name": "bewerbung_form[gehaltswunsch]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie haben Sie uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "jobs.ch",
+     "finest-jobs.com",
+     "andere Jobbörse",
+     "Talentgrabber",
+     "Homepage",
+     "Messe / Events",
+     "persönliche Empfehlung"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#vordef_bew_feld_12",
+    "label": "Kündigungsfrist",
+    "kind": "text",
+    "name": "bewerbung_form[vordef_bew_feld_12]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#vordef_bew_feld_209",
+    "label": "Üben Sie zum Zeitpunkt Ihrer potenziellen Anstellung bei den UPK Basel eine weitere bezahlte Tätigkeit im Ausland aus? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "1c939fc4f0d25e07",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:05:07",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

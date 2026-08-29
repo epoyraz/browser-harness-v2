@@ -1,0 +1,73 @@
+[
+ {
+  "host": "careers.richemont.com",
+  "company": "Richemont",
+  "recorded_from": "Richemont_jr129923",
+  "form_url": "https://richemont.wd3.myworkdayjobs.com/de-DE/richemont/introduceYourself",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "button[data-automation-id=\"navigationItem-Initiativbewerbung\"]",
+    "label": "Initiativbewerbung",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-3",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "input-3",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#input-4",
+    "label": "Zweiter Vorname",
+    "kind": "text",
+    "name": "input-4",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#input-8",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "input-8",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input-11",
+    "label": "Telefonnummer",
+    "kind": "text",
+    "name": "input-11",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#input-6",
+    "label": "Familienname*",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "a2cec971ce534bed",
+  "hops": 4,
+  "recorded_at": "2026-08-29T19:57:53",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

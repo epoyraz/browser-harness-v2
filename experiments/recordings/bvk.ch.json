@@ -1,0 +1,212 @@
+[
+ {
+  "host": "bvk.ch",
+  "company": "BVK",
+  "recorded_from": "bvk__BVK_spezialist-in-digital-engagement-crm-automation-80",
+  "form_url": "https://bvk.abacuscity.ch/de/jobform_1_730001/Spezialist-in-Digital-Engagement%2C-CRM-%26-Automation-%2880%25%29",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"customeraddressshopperanrede\"]",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "customeraddressshopperanrede",
+    "required": true,
+    "options_sample": [
+     "",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppervorname\"]",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "customeraddressshoppervorname",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppername\"]",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "customeraddressshoppername",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"customeraddressstreetwithouthousenumber\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "customeraddressstreetwithouthousenumber",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"customeraddresshousenumber\"]",
+    "label": "Hausnummer",
+    "kind": "text",
+    "name": "customeraddresshousenumber",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperplz\"]",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "customeraddressshopperplz",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperort\"]",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "customeraddressshopperort",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"customeraddressshopperland\"]",
+    "label": "Land *",
+    "kind": "select",
+    "name": "customeraddressshopperland",
+    "required": true,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Vereinigte Staaten von Amerika"
+    ],
+    "options_count": 253,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"DateOfBirth\"]",
+    "label": "Geburtsdatum *",
+    "kind": "date",
+    "name": "DateOfBirth",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"Nationality\"]",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "Nationality",
+    "required": false,
+    "options_sample": [
+     "",
+     "",
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien"
+    ],
+    "options_count": 254,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppertelefon\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "customeraddressshoppertelefon",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppermobile\"]",
+    "label": "Mobiltelefon *",
+    "kind": "text",
+    "name": "customeraddressshoppermobile",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperaddressemail\"]",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "customeraddressshopperaddressemail",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"LAP__USERFIELD1\"]",
+    "label": "Verfügbar per *",
+    "kind": "date",
+    "name": "LAP__USERFIELD1",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "availability"
+   },
+   {
+    "selector": "input[name=\"LAP__USERFIELD5\"]",
+    "label": "Ich bin damit einverstanden, dass die Bewerbung für andere Vakanzen innerhalb der BVK in Betracht gezogen werden darf",
+    "kind": "checkbox",
+    "name": "LAP__USERFIELD5",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#termsandconditions",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen. *",
+    "kind": "checkbox",
+    "name": "jobportal_taca",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "select[name=\"LAA__USERFIELD1\"]",
+    "label": "Wie wurden Sie auf diese Stelle aufmerksam? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "0d55fbb4cb3722aa",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:10:15",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

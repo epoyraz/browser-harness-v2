@@ -1,0 +1,75 @@
+[
+ {
+  "host": "stellen.spitaeler-sh.ch",
+  "company": "Spitäler Schaffhausen",
+  "recorded_from": "spitaler-schaffhausen__SpitaelerSH_10165426",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2973/de/apply/1906?srcIDPMS=10165426&srcTextPMS=%canalname%&source=%canalname%&canalId=1008352&publishId=10165426&comp=1906&img=&img-m=Hochschulstudent/in+Employer+Branding+&+Social+Media&ohvk=43d6439d-8e58-46b2-bc00-165727f47dc6",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"first_name\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"last_name\"]",
+    "label": "Name",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"address_city\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "address_city",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "E-Mail",
+    "kind": "text",
+    "name": "email",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "61e61bf64e7b87ac",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:28",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,120 @@
+[
+ {
+  "host": "synpulse.careers.hibob.com",
+  "company": "Synpulse",
+  "recorded_from": "synpulse__Synpulse_b3e4d027-5046-46c8-bace-fe8e527f38ee",
+  "form_url": "https://synpulse.careers.hibob.com/jobs/b3e4d027-5046-46c8-bace-fe8e527f38ee/apply",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > b-button:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Apply",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#\\/candidate\\/firstName",
+    "label": "Preferred First Name",
+    "kind": "text",
+    "name": "/candidate/firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#\\/candidate\\/lastName",
+    "label": "Last name",
+    "kind": "text",
+    "name": "/candidate/lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#\\/candidate\\/email",
+    "label": "Email",
+    "kind": "text",
+    "name": "/candidate/email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#\\/candidate\\/phone",
+    "label": "Contact Number",
+    "kind": "text",
+    "name": "/candidate/phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#\\/candidate\\/address",
+    "label": "Personal Address",
+    "kind": "text",
+    "name": "/candidate/address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "form:nth-of-type(1) > div:nth-of-type(7) > b-input:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "State/Province/Region",
+    "kind": "text",
+    "name": "/candidate/field_16468891",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "state_province"
+   },
+   {
+    "selector": "form:nth-of-type(1) > div:nth-of-type(8) > b-input:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Zip/Post/Postal Code",
+    "kind": "text",
+    "name": "/candidate/field_16468893",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#\\/candidate\\/city",
+    "label": "City",
+    "kind": "text",
+    "name": "/candidate/city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "form:nth-of-type(1) > div:nth-of-type(10) > b-input:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Legal Full Name",
+    "kind": "text",
+    "name": "/candidate/field_17944019",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#bsiss-\\/application\\/desiredSalary",
+    "label": "Desired salary",
+    "kind": "tel",
+    "name": "bsiss-/application/desiredSalary",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "fed9c668cf6df3f7",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:31",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

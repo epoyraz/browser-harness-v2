@@ -1,0 +1,83 @@
+[
+ {
+  "host": "helbling.ch",
+  "company": "Helbling",
+  "recorded_from": "helbling__Helbling_1198",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/ce984096-e44e-479a-947c-a733685d6447/c9b39049-0be1-7ae4-dca3-34588613b7ba",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(2)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#\\33 5cce5a1-c8c3-478e-83b7-f6aeae62b564",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Nationality",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "autocomplete": "nationality",
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Language\"]",
+    "label": "Korrespondenzsprache*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Language",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "correspondence_language"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "3a4396ff5c0dd0b6",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:12",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

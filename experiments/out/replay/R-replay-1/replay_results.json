@@ -1,0 +1,4452 @@
+{
+ "summary": {
+  "wall_ms": 220056.1,
+  "employers": 53,
+  "postings": 100,
+  "failed_groups": 0,
+  "by_mode": {
+   "discover": {
+    "n": 54,
+    "ok": 24,
+    "median_wall_ms": 12415.8
+   },
+   "replay": {
+    "n": 11,
+    "ok": 11,
+    "median_wall_ms": 4099.2
+   },
+   "skipped": {
+    "n": 20,
+    "ok": 0,
+    "median_wall_ms": 0.0
+   },
+   "replay_fallback": {
+    "n": 15,
+    "ok": 14,
+    "median_wall_ms": 5717.6
+   }
+  },
+  "recordings": 21,
+  "replay_enabled": true
+ },
+ "entries": [
+  {
+   "job_id": "Kanton_Luzern_gen_aaae17c6782c",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 0,
+   "url": "https://apply.refline.ch/891537/6091/pub/1/index.html",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 8522.1,
+   "fill_plan_count": 8,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Kanton_Luzern_gen_caefeda5688e",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 1,
+   "url": "https://apply.refline.ch/891537/5996/pub/5/index.html",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 7,
+    "filled": 7,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024792.272,
+     "observed": {
+      "attempted": 7,
+      "succeeded": 7,
+      "failed": 0,
+      "fields": 7,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 3,
+       "changed_regions": [
+        {
+         "kind": "style",
+         "text": "@-webkit-keyframes rotate { from { -webkit-transform: rotate(0deg); } to { -webkit-transform: rotate(360deg); } } @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } .dropbox-dropin-btn, .dropbox-dropin-btn:link, .dropbox-dropin-btn:hover { display: inline-block; height: 14px; font-family: \"Lucida Grande\", \"Segoe UI\", \"Tahoma\", \"Helvetica Neue\", \"Helvetica\", sans-serif; font-size: 11px; font-weight: 600; color: #636363; text-decoration: none; padding: 1px 7px 5px 3px; border: 1px solid #ebebeb; border-radius: 2px; border-bottom-color: #d4d4d4; background: #fcfcfc; background: -moz-linear-gradient(top, #fcfcfc 0%, #f5f5f5 100%); background: -webkit-linear-gradient(top, #fcfcfc 0%, #f5f5f5 100%); background: linear-gradient(to bottom, #fcfcfc 0%, #f5f5f5 100%); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fcfcfc', endColorstr='#f5f5f5',GradientType=0); } .dropbox-dropin-default:hover, .dropbox-dropin-error:hover { border-color: #dedede; border-bottom-color: #cacaca; background: #fdfdfd; background: -moz-linear-gradient(top, #fdfdfd 0%, #f5f5f5 100%); background: -webkit-linear-gradient(top, #fdfdfd 0%, #f5f5f5 100%); background: linear-gradient(to bottom, #fdfdfd 0%, #f5f5f5 100%); filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fdfdfd', endColorstr='#f5f5f5',GradientType=0); } .dropbox-dropin-default:active, .dropbox-dropin-error:active { border-color: #d1d1d1; box-shadow: inset 0 1px 1px rgba(0,0,0,0.1); } .dropbox-dropin-btn .dropin-btn-status { display: inline-block; width: 15px; height: 14px; vertical-align: bottom; margin: 0 5px 0 2px; background: transparent url('https://www.dropbox.com/static/metaserver/static/images/widgets/dbx-saver-status.png') no-repeat; position: relative; top: 2px; } .dropbox-dropin-default .dropin-btn-status { background-position: 0px 0px; } .dropbox-dropin-progress .dropin-btn-status { width: 18px; margin: 0 4px 0 0; background: url('https://www.dropbox.com/static/metaserver/static/images/widgets/dbx-progress.png') no-repeat center center; -webkit-animation-name: rotate; -webkit-animation-duration: 1.7s; -webkit-animation-iteration-count: infinite; -webkit-animation-timing-function: linear; animation-name: rotate; animation-duration: 1.7s; animation-iteration-count: infinite; animation-timing-function: linear; } .dropbox-dropin-success .dropin-btn-status { background-position: -15px 0px; } .dropbox-dropin-disabled { background: #e0e0e0; border: 1px #dadada solid; border-bottom: 1px solid #ccc; box-shadow: none; } .dropbox-dropin-disabled .dropin-btn-status { background-position: -30px 0px; } .dropbox-dropin-error .dropin-btn-status { background-position: -45px 0px; } @media only screen and (-webkit-min-device-pixel-ratio: 1.4) { .dropbox-dropin-btn .dropin-btn-status { background-image: url('https://www.dropbox.com/static/metaserver/static/images/widgets/dbx-saver-status-2x.png'); background-size: 60px 14px; -webkit-background-size: 60px 14px; } .dropbox-dropin-progress .dropin-btn-status { background: url('https://www.dropbox.com/static/metaserver/static/images/widgets/dbx-progress-2x.png') no-repeat center center; background-size: 20px 20px; -webkit-background-size: 20px 20px; } } .dropbox-saver:hover, .dropbox-chooser:hover { text-decoration: none; cursor: pointer; } .dropbox-chooser, .dropbox-dropin-btn { line-height: 11px !important; text-decoration: none !important; box-sizing: content-box !important; -webkit-box-sizing: content-box !important; -moz-box-sizing: content-box !important; }",
+         "related": false,
+         "removed": false
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 0,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "mr",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e7": {
+         "changed": false,
+         "keys": [],
+         "before": {},
+         "after": {}
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "05.02.1987",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 7,
+        "verified": 7,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 1639.6
+   },
+   "ok": true,
+   "wall_ms": 1639.6,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c"
+  },
+  {
+   "job_id": "Kanton_Luzern_gen_67cc89d18824",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 2,
+   "url": "https://apply.refline.ch/891537/6008/pub/10/index.html",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 7,
+    "filled": 7,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024793.211,
+     "observed": {
+      "attempted": 7,
+      "succeeded": 7,
+      "failed": 0,
+      "fields": 7,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 2,
+       "changed_regions": [],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 0,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "mr",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e7": {
+         "changed": false,
+         "keys": [],
+         "before": {},
+         "after": {}
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "05.02.1987",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 7,
+        "verified": 7,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 938.8
+   },
+   "ok": true,
+   "wall_ms": 938.9,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c"
+  },
+  {
+   "job_id": "CSS_1a36e481",
+   "company": "CSS",
+   "host": "jobs.css.ch",
+   "position": 0,
+   "url": "https://jobs.css.ch/offene-stellen/expert-data-engineer-w-m/1a36e481-f317-47f8-ae2d-f51ce3b497f9",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 17685.1,
+   "fill_plan_count": 18,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "CSS_679e9fe7",
+   "company": "CSS",
+   "host": "jobs.css.ch",
+   "position": 1,
+   "url": "https://jobs.css.ch/offene-stellen/seniorjava-integration-engineer-w-m/679e9fe7-b3dd-43c2-a64c-b4b014c0c9dc",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 13,
+    "filled": 13,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024805.026,
+     "observed": {
+      "attempted": 13,
+      "succeeded": 13,
+      "failed": 0,
+      "fields": 13,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 131,
+       "changed_regions": [
+        {
+         "kind": "form",
+         "text": "Persönliche Angaben Anrede Anrede * Vorname Nachname Geburtsdatum * Tel. Strasse und Hausnummer Postleitzahl Ort Land wählen Schweiz Schweiz Ägypten Afghanistan Albanien Algerien Andorra Angola Anguilla Antarktis Antigua/Barbuda Argentinien Armenien Aruba Aserbaidschan Australien Bahamas Bahrain Bangladesch Barbados Belarus Belgien Belize Benin Bermuda Bhutan Bolivien Bosnien-Herz. Botsuana Brasilien Bulgarien Burkina-Faso Burundi Chile China Cookinseln Costa Rica Deutschland Dominica Dominik. Rep. Dschibuti Dänemark Ecuador El Salvador Elfenbeinküste Eritrea Estland Falklandinseln Fidschi Finnland Frankreich Färöer Gabun Gambia Georgien Ghana Gibraltar Gournsey Grenada Griechenland Grönland Guadeloupe Guam Guatemala Guinea Guinea-Bissau Guyana Haiti Honduras Indien Indonesien Irak Iran Irland Island Israel Italien Jamaika Japan Jemen Jersey Jordanien Jugoslawien Kaimaninseln Kambodscha Kamerun Kanada Kap Verde Kasachstan Katar Kenia Kirgisistan Kiribati Kolumbien Komoren Kongo Kosovo Kroatien Kuba Kuwait Laos Lesotho Lettland Libanon Liberia Libyen Liechtenstein Litauen Luxemburg Madagaskar Malawi Malaysia Malediven Mali Malta Man Insel Marokko Martinique Mauritius Mayotte Mazedonien Mexiko Minor Outl.Ins. Moldau Monaco Mongolei Montenegro Mosambik Myanmar Namibia Nauru Nepal Neukaledonien Neuseeland Nicaragua Niederlande Niger Nigeria Niue-Inseln Nordkorea Norwegen Österreich Oman Ost Timor Osttimor Pakistan Palau Palästina Panama Papua-Neuguinea Paraguay Peru Philippinen Polen Portugal Puerto Rico Reunion Ruanda Rumänien Russische Foed. Salomonen Sambia San Marino Saudi-Arabien Schweden Senegal Serbien Serbien/Monten. Seychellen Sierra Leone Simbabwe Singapur Sint Maarten Slowakei Slowenien Somalia Spanien Sri Lanka St. Helena St. Lucia Sudan Suriname Swasiland Syrien Südafrika Südkorea Südsudan Tadschikistan Taiwan Tansania Thailand Togo Tonga Trinidad,Tobago Tschad Tschechische Republik Tunesien Turkmenistan Tuvalu Türkei USA Uganda Ukraine Ungarn Uruguay Usbekistan Vanuatu Vatikanstadt Venezuela Ver.Arab.Emir. Verein. Königr. Vietnam West Sahara Zentralaf. Rep. Zypern Nationalität Schweiz Schweiz Afghanistan Albanien Algerien Andorra Angola Anguilla Antarktis Antigua/Barbuda Argentinien Armenien Aruba Aserbaidschan Australien Bahamas Bahrain Bangladesch Barbados Belarus Belgien Belize Benin Bermuda Bhutan Bolivien Bosnien-Herz. Botsuana Brasilien Bulgarien Burkina-Faso Burundi Chile China Cookinseln Costa Rica Deutschland Dominica Dominik. Rep. Dschibuti Dänemark Ecuador El Salvador Elfenbeinküste Eritrea Estland Falklandinseln Fidschi Finnland Frankreich Färöer Gabun Gambia Georgien Ghana Gibraltar Gournsey Grenada Griechenland Grönland Guadeloupe Guam Guatemala Guinea Guinea-Bissau Guyana Haiti Honduras Indien Indonesien Irak Iran Irland Island Israel Italien Jamaika Japan Jemen Jersey Jordanien Jugoslawien Kaimaninseln Kambodscha Kamerun Kanada Kap Verde Kasachstan Katar Kenia Kirgisistan Kiribati Kolumbien Komoren Kongo Kosovo Kroatien Kuba Kuwait Laos Lesotho Lettland Libanon Liberia Libyen Liechtenstein Litauen Luxemburg Madagaskar Malawi Malaysia Malediven Mali Malta Man Insel Marokko Martinique Mauritius Mayotte Mazedonien Mexiko Minor Outl.Ins. Moldau Monaco Mongolei Montenegro Mosambik Myanmar Namibia Nauru Nepal Neukaledonien Neuseeland Nicaragua Niederlande Niger Nigeria Niue-Inseln Nordkorea Norwegen Oman Osttimor Pakistan Palau Palästina Panama Papua-Neuguinea Paraguay Peru Philippinen Polen Portugal Puerto Rico Reunion Ruanda Rumänien Russische Foed. Salomonen Sambia San Marino Saudi-Arabien Schweden Senegal Serbien Seychellen Sierra Leone Simbabwe Singapur Sint Maarten Slowakei Slowenien Somalia Spanien Sri Lanka St. Helena St. Lucia Sudan Suriname Swasiland Syrien Südafrika Südkorea Südsudan Tadschikistan Taiwan Tansania Thailand Togo Tonga Trinidad,Tobago Tschad Tschechische Republik Tunesien Turkmenistan Tuvalu Türkei USA Uganda Ukraine Ungarn Uruguay Usbekistan Vanuatu Vatikanstadt Venezuela Ver.Arab.",
+         "related": true,
+         "removed": false,
+         "ref": "#form"
+        }
+       ],
+       "regions_truncated": true,
+       "history_truncated": true,
+       "related_regions": 1,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "05.02.1987",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e8": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "8212",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Büchelerstrasse 12",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e10": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e7": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Neuhausen am Rheinfall",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e12": {
+         "changed": false,
+         "keys": [],
+         "before": {},
+         "after": {}
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e11": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e13": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "on",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e9": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e10",
+        "e11",
+        "e13",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6",
+        "e7",
+        "e8",
+        "e9"
+       ],
+       "write_validation": {
+        "attempted": 13,
+        "verified": 13,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 5234.5
+   },
+   "ok": true,
+   "wall_ms": 5234.5,
+   "recording": "CSS_1a36e481"
+  },
+  {
+   "job_id": "Expleo_55519",
+   "company": "Expleo",
+   "host": "expleo-jobs-ch-en.icims.com",
+   "position": 0,
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/55519/devops-engineer-%28m-w%29/job?in_iframe=1",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Expleo_50717",
+   "company": "Expleo",
+   "host": "expleo-jobs-ch-en.icims.com",
+   "position": 1,
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/50717/business-analyst/job?in_iframe=1",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "vlot_15332446",
+   "company": "vlot",
+   "host": "join.com",
+   "position": 0,
+   "url": "https://join.com/companies/vlot/16618722-fintech-software-entwickler-f-c-react",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 18566.1,
+   "fill_plan_count": null,
+   "hops": 4
+  },
+  {
+   "job_id": "NVIDIA_893397378484",
+   "company": "NVIDIA",
+   "host": "jobs.nvidia.com",
+   "position": 0,
+   "url": "https://jobs.nvidia.com/careers/job/893397378484",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 20747.0,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "RUAG_gen_adf64bc1fdab",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 0,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/f48073a5-1687-46d4-b2ae-62a60c51c9ad",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 15757.4,
+   "fill_plan_count": 7,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "RUAG_gen_c326bb5d7369",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 1,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/cf3f0f85-7f62-49ca-bb40-906799bf4ec6",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 6,
+    "filled": 6,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024802.839,
+     "observed": {
+      "attempted": 6,
+      "succeeded": 6,
+      "failed": 0,
+      "fields": 6,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 3,
+       "changed_regions": [
+        {
+         "kind": "body",
+         "text": "DEVOPS ENGINEER C5I BEWERBER-LOGIN PERSONALVERMITTLER-LOGIN Bewerbung DevOps Engineer C5I (w/m/d) PERSÖNLICHE ANGABEN Vorname Nachname Telefonnummer E-Mail Sprache Sprache auswählen Wie bist du auf uns aufmerksam geworden? Bitte auswählen DOKUMENTE Bewerbungsunterlagen * Lebenslauf / Gesamtdossier doc docx pdf zip jpg jpeg png, max. 50MB Keine Datei Weitere Dokumente (Optional) Motivationsschreiben, Zeugnisse oder Diplome doc docx pdf zip jpg jpeg png, max. 4 Dateien, max. 50MB Keine Datei DATENFREIGABE * Ich bin damit einverstanden, dass meine Daten bis zu drei Jahre nach der Stellenbesetzung gespeichert werden und ich auf Stellenangebote hingewiesen werde. Dieses Einverständnis kann ich jederzeit widerrufen. Ich möchte, dass meine Daten nach dem aktuellen Bewerbungsverfahren gelöscht werden. Ich habe die Datenschutzerklärung für Bewerbende gelesen und verstanden. *",
+         "related": true,
+         "removed": false
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 1,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "on",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "true",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 6,
+        "verified": 6,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 4968.1
+   },
+   "ok": true,
+   "wall_ms": 4968.1,
+   "recording": "RUAG_gen_adf64bc1fdab"
+  },
+  {
+   "job_id": "RUAG_gen_221f77a253ef",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 2,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/261ba52f-b169-4e6a-b842-6019e4b2c7aa",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 6,
+    "filled": 6,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024808.494,
+     "observed": {
+      "attempted": 6,
+      "succeeded": 6,
+      "failed": 0,
+      "fields": 6,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 2,
+       "changed_regions": [],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 0,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "on",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "true",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 6,
+        "verified": 6,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 5654.9
+   },
+   "ok": true,
+   "wall_ms": 5654.9,
+   "recording": "RUAG_gen_adf64bc1fdab"
+  },
+  {
+   "job_id": "RUAG_gen_a982422a50b7",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 3,
+   "url": "https://jobs.ruag.ch/offene-stellen/ai-engineer-c5i/4afaa9aa-74c1-4b4d-9232-cf65651ce8ec",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 6,
+    "filled": 6,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024817.013,
+     "observed": {
+      "attempted": 6,
+      "succeeded": 6,
+      "failed": 0,
+      "fields": 6,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 3,
+       "changed_regions": [
+        {
+         "kind": "body",
+         "text": "AI ENGINEER C5I BEWERBER-LOGIN PERSONALVERMITTLER-LOGIN Bewerbung AI Engineer C5I (w/m/d) PERSÖNLICHE ANGABEN Vorname Nachname Telefonnummer E-Mail Sprache Sprache auswählen Wie bist du auf uns aufmerksam geworden? Bitte auswählen DOKUMENTE Bewerbungsunterlagen * Lebenslauf / Gesamtdossier doc docx pdf zip jpg jpeg png, max. 50MB Keine Datei Weitere Dokumente (Optional) Motivationsschreiben, Zeugnisse oder Diplome doc docx pdf zip jpg jpeg png, max. 4 Dateien, max. 50MB Keine Datei DATENFREIGABE * Ich bin damit einverstanden, dass meine Daten bis zu drei Jahre nach der Stellenbesetzung gespeichert werden und ich auf Stellenangebote hingewiesen werde. Dieses Einverständnis kann ich jederzeit widerrufen. Ich möchte, dass meine Daten nach dem aktuellen Bewerbungsverfahren gelöscht werden. Ich habe die Datenschutzerklärung für Bewerbende gelesen und verstanden. *",
+         "related": true,
+         "removed": false
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 1,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "on",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "true",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 6,
+        "verified": 6,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 8518.2
+   },
+   "ok": true,
+   "wall_ms": 8518.2,
+   "recording": "RUAG_gen_adf64bc1fdab"
+  },
+  {
+   "job_id": "RUAG_gen_92274acc2551",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 4,
+   "url": "https://jobs.ruag.ch/offene-stellen/software-engineer-c5i/ec08db9a-3b4f-4aad-8eb5-6134c5e87458",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 6,
+    "filled": 6,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024822.094,
+     "observed": {
+      "attempted": 6,
+      "succeeded": 6,
+      "failed": 0,
+      "fields": 6,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 5,
+       "changed_regions": [
+        {
+         "kind": "form",
+         "text": "PERSÖNLICHE ANGABEN Vorname Nachname Telefonnummer E-Mail Sprache Sprache auswählen Wie bist du auf uns aufmerksam geworden? Bitte auswählen DOKUMENTE Bewerbungsunterlagen * Lebenslauf / Gesamtdossier doc docx pdf zip jpg jpeg png, max. 50MB Keine Datei Weitere Dokumente (Optional) Motivationsschreiben, Zeugnisse oder Diplome doc docx pdf zip jpg jpeg png, max. 4 Dateien, max. 50MB Keine Datei DATENFREIGABE * Ich bin damit einverstanden, dass meine Daten bis zu drei Jahre nach der Stellenbesetzung gespeichert werden und ich auf Stellenangebote hingewiesen werde. Dieses Einverständnis kann ich jederzeit widerrufen. Ich möchte, dass meine Daten nach dem aktuellen Bewerbungsverfahren gelöscht werden. Ich habe die Datenschutzerklärung für Bewerbende gelesen und verstanden. *",
+         "related": true,
+         "removed": false,
+         "ref": "#umantisForm"
+        },
+        {
+         "kind": "body",
+         "text": "SOFTWARE ENGINEER C5I BEWERBER-LOGIN PERSONALVERMITTLER-LOGIN Bewerbung Software Engineer C5I (w/m/d) PERSÖNLICHE ANGABEN Vorname Nachname Telefonnummer E-Mail Sprache Sprache auswählen Wie bist du auf uns aufmerksam geworden? Bitte auswählen DOKUMENTE Bewerbungsunterlagen * Lebenslauf / Gesamtdossier doc docx pdf zip jpg jpeg png, max. 50MB Keine Datei Weitere Dokumente (Optional) Motivationsschreiben, Zeugnisse oder Diplome doc docx pdf zip jpg jpeg png, max. 4 Dateien, max. 50MB Keine Datei DATENFREIGABE * Ich bin damit einverstanden, dass meine Daten bis zu drei Jahre nach der Stellenbesetzung gespeichert werden und ich auf Stellenangebote hingewiesen werde. Dieses Einverständnis kann ich jederzeit widerrufen. Ich möchte, dass meine Daten nach dem aktuellen Bewerbungsverfahren gelöscht werden. Ich habe die Datenschutzerklärung für Bewerbende gelesen und verstanden. *",
+         "related": true,
+         "removed": false
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 2,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "on",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "true",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 6,
+        "verified": 6,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 5081.1
+   },
+   "ok": true,
+   "wall_ms": 5081.1,
+   "recording": "RUAG_gen_adf64bc1fdab"
+  },
+  {
+   "job_id": "Roche_202608-121795",
+   "company": "Roche",
+   "host": "roche.wd3.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Machine-Learning-Engineer_202608-121795-2/apply",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Vaudoise_67005910",
+   "company": "Vaudoise",
+   "host": "vaudoise.softgarden.io",
+   "position": 0,
+   "url": "https://vaudoise.softgarden.io/job/67005910",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 10471.6,
+   "fill_plan_count": 10,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Vaudoise_65778086",
+   "company": "Vaudoise",
+   "host": "vaudoise.softgarden.io",
+   "position": 1,
+   "url": "https://vaudoise.softgarden.io/job/65778086",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 6,
+    "filled": 0,
+    "missing": [
+     "Vorname *",
+     "Nachname *",
+     "E-Mail *",
+     "Telefon *",
+     "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+     "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *"
+    ],
+    "reason": "6 of 6 recorded fields did not resolve",
+    "ms": 1493.4
+   },
+   "ok": true,
+   "wall_ms": 4691.5,
+   "recording": "Vaudoise_67005910",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 3198.0,
+    "workflow_terminal": "form",
+    "fill_plan_count": 10
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "Salesforce_JR350958",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Lead-Forward-Deployed-Engineer_JR350958",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Salesforce_JR350960",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 1,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Lausanne/Forward-Deployed-Engineer_JR350960",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Salesforce_JR350790",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 2,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Forward-Deployed-Engineer_JR350790",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Salesforce_JR349194",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 3,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Forward-Deployed-Engineer_JR349194",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Salesforce_JR349201",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 4,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Lead-Forward-Deployed-Engineer_JR349201",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Salesforce_JR349191",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 5,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Lead-Forward-Deployed-Engineer_JR349191",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Salesforce_JR349988-1",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 6,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Senior-Forward-Deployed-Engineer_JR349988-1",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Bundesverwaltung_10160647",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 0,
+   "url": "https://jobs.admin.ch/offene-stellen/ict-system-spezialist-in-senior-1327/a10da274-8361-454e-9fa0-ecd2ba0ea5c6",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 27365.3,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "Bundesverwaltung_10128744",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 1,
+   "url": "https://jobs.admin.ch/offene-stellen/ict-system-spezialist-in-senior-1211/320ac8fc-3043-4966-ba8c-50fce0571734",
+   "mode": "discover",
+   "ok": false,
+   "status": "authentication_required",
+   "wall_ms": 13641.4,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "Bundesverwaltung_10123612",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 2,
+   "url": "https://jobs.admin.ch/offene-stellen/ict-devops-engineer-data-analytics-senior/cc6f8275-0088-4fea-847a-f640949bc33b",
+   "mode": "discover",
+   "ok": false,
+   "status": "authentication_required",
+   "wall_ms": 6088.7,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "Bundesverwaltung_10158697",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 3,
+   "url": "https://jobs.admin.ch/offene-stellen/lehrgang-als-ict-systemspezialist-in-junior-an-der-ict-warrior-academy-start-im-maerz-2027/3ca76392-4a89-4ede-9360-9811c3427b92",
+   "mode": "discover",
+   "ok": false,
+   "status": "authentication_required",
+   "wall_ms": 6014.5,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "Mimic_am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+   "company": "Mimic",
+   "host": "jobs.gem.com",
+   "position": 0,
+   "url": "https://jobs.gem.com/mimicrobotics-com/am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 20571.1,
+   "fill_plan_count": 4,
+   "hops": 1,
+   "recorded": true
+  },
+  {
+   "job_id": "Mimic_am9icG9zdDohvbB9aDWzwurqy6QSQzMi",
+   "company": "Mimic",
+   "host": "jobs.gem.com",
+   "position": 1,
+   "url": "https://jobs.gem.com/mimicrobotics-com/am9icG9zdDohvbB9aDWzwurqy6QSQzMi",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 4,
+    "filled": 0,
+    "missing": [
+     "First name",
+     "Last name",
+     "Email",
+     "LinkedIn URL"
+    ],
+    "reason": "4 of 4 recorded fields did not resolve",
+    "ms": 2454.0
+   },
+   "ok": true,
+   "wall_ms": 7498.6,
+   "recording": "Mimic_am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 5044.6,
+    "workflow_terminal": "form",
+    "fill_plan_count": 5
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "Ansam_8232616",
+   "company": "Ansam Group",
+   "host": "carrieres.ansam.ch",
+   "position": 0,
+   "url": "https://carrieres.ansam.ch/jobs/8232616-responsable-applicatif",
+   "mode": "discover",
+   "ok": false,
+   "status": "authentication_required",
+   "wall_ms": 8131.5,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "Ansam_8268016",
+   "company": "Ansam Group",
+   "host": "carrieres.ansam.ch",
+   "position": 1,
+   "url": "https://carrieres.ansam.ch/jobs/8268016-developpeur-euse-delphi",
+   "mode": "discover",
+   "ok": false,
+   "status": "authentication_required",
+   "wall_ms": 2401.8,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "Wavestone_62655224",
+   "company": "Wavestone",
+   "host": "switzerland-career.wavestone.com",
+   "position": 0,
+   "url": "https://switzerland-career.wavestone.com/jobs/62655224/Consultant-Agile-Transformation-Schweiz-all-genders-/",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 16048.8,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "Wavestone_64928931",
+   "company": "Wavestone",
+   "host": "switzerland-career.wavestone.com",
+   "position": 1,
+   "url": "https://switzerland-career.wavestone.com/jobs/64928931/Scrum-Master-Agile-Transformation-Schweiz-all-genders-/",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 8878.9,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+   "company": "DeepJudge",
+   "host": "jobs.ashbyhq.com",
+   "position": 0,
+   "url": "https://jobs.ashbyhq.com/deepjudge/6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 3196.7,
+   "fill_plan_count": 4,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Microsoft_1970393556933021",
+   "company": "Microsoft",
+   "host": "apply.careers.microsoft.com",
+   "position": 0,
+   "url": "https://apply.careers.microsoft.com/careers/job/1970393556933021",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 25321.4,
+   "fill_plan_count": null,
+   "hops": 1
+  },
+  {
+   "job_id": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+   "company": "SonarSource",
+   "host": "jobs.lever.co",
+   "position": 0,
+   "url": "https://jobs.lever.co/sonarsource/13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 6917.3,
+   "fill_plan_count": 9,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "SonarSource_063c3fa2-788a-4e2b-b35e-80ff7b122739",
+   "company": "SonarSource",
+   "host": "jobs.lever.co",
+   "position": 1,
+   "url": "https://jobs.lever.co/sonarsource/063c3fa2-788a-4e2b-b35e-80ff7b122739",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "partial",
+    "planned": 8,
+    "filled": 7,
+    "missing": [],
+    "reason": "batched fill reported failures",
+    "fill": {
+     "ok": false,
+     "class": "partial",
+     "ts": 1788024804.632,
+     "detail": "7/8 succeeded",
+     "observed": {
+      "attempted": 8,
+      "succeeded": 7,
+      "failed": 1,
+      "fields": 8,
+      "consequence": {
+       "effect": "partial_validation",
+       "verified": false,
+       "mutation_count": 21,
+       "changed_regions": [
+        {
+         "kind": "li",
+         "text": "Current location ✱",
+         "related": true,
+         "removed": false
+        },
+        {
+         "kind": "div",
+         "text": "",
+         "related": false,
+         "removed": false
+        },
+        {
+         "kind": "div",
+         "text": "",
+         "related": false,
+         "removed": false
+        },
+        {
+         "kind": "li",
+         "text": "Yes, Sonar can contact me about future job opportunities for up to 3 years Privacy policy",
+         "related": true,
+         "removed": false
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 2,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e8": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "1",
+          "valid": true,
+          "checked": false,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "https://www.linkedin.com/in/enes-poyraz-a17b07133/",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Xona AI",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e7": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "21-29",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "",
+          "valid": false,
+          "valueMissing": true,
+          "typeMismatch": false,
+          "validationMessage": "Fülle dieses Feld aus."
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6",
+        "e7",
+        "e8"
+       ],
+       "write_validation": {
+        "attempted": 8,
+        "verified": 7,
+        "failed": 1
+       }
+      }
+     },
+     "retryable": false,
+     "recovery": "some items failed — `failures` carries the typed reason for each one",
+     "failures": [
+      {
+       "ok": false,
+       "class": "value_rejected",
+       "ts": 1788024804.632,
+       "detail": "value did not stick",
+       "observed": {
+        "ref": "e4",
+        "ok": false,
+        "want": "Neuhausen am Rheinfall, Switzerland",
+        "got": "",
+        "settled": "",
+        "mode": "type",
+        "escalated_from": "value"
+       },
+       "retryable": false,
+       "recovery": "the control refused or rewrote the value — try another write mode (insert, type) or a different value"
+      }
+     ]
+    },
+    "ms": 1673.0
+   },
+   "ok": true,
+   "wall_ms": 4377.5,
+   "recording": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 2704.5,
+    "workflow_terminal": "form",
+    "fill_plan_count": 10
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "JuliusBaer_r-18971",
+   "company": "Julius Bär",
+   "host": "juliusbaer.wd3.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-System-Architect-ML---AI-100---f-m-d-_r-18971-2",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "JuliusBaer_r-16579",
+   "company": "Julius Bär",
+   "host": "juliusbaer.wd3.myworkdayjobs.com",
+   "position": 1,
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Citrix-NetScaler-Engineer-100---f-m-d-_r-16579-2",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "epam_bltlhinbqhlvbryudmk",
+   "company": "EPAM",
+   "host": "careers.epam.com",
+   "position": 0,
+   "url": "https://careers.epam.com/en/vacancy/oms-lead-engineer-bltlhinbqhlvbryudmk_en",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 13668.1,
+   "fill_plan_count": 4,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "HoshiiAG_16520465",
+   "company": "Hoshii AG",
+   "host": "join.com",
+   "position": 0,
+   "url": "https://join.com/companies/hoshii/16577727-forward-deployed-software-engineer",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 8511.0,
+   "fill_plan_count": null,
+   "hops": 3
+  },
+  {
+   "job_id": "BSTeam_37987",
+   "company": "BS-Team",
+   "host": "www.bs-team.ch",
+   "position": 0,
+   "url": "https://www.bs-team.ch/jobs/expert-sharepoint-m365/",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 25256.2,
+   "fill_plan_count": 5,
+   "hops": 1,
+   "recorded": true
+  },
+  {
+   "job_id": "BSTeam_36773",
+   "company": "BS-Team",
+   "host": "www.bs-team.ch",
+   "position": 1,
+   "url": "https://www.bs-team.ch/jobs/chef-de-projet-it/",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 5,
+    "filled": 5,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024832.212,
+     "observed": {
+      "attempted": 5,
+      "succeeded": 5,
+      "failed": 0,
+      "fields": 5,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 17,
+       "changed_regions": [
+        {
+         "kind": "form",
+         "text": "Prénom et nom * Email * Téléphone * Lieu de résidence (Code postal, ville) * Ajoutez votre dossier * Type(s) autorisé(s): .pdf, .doc, .docx En utilisant ce formulaire, vous acceptez le stockage et le traitement de vos données par ce site web. *",
+         "related": true,
+         "removed": false,
+         "ref": "#awsm-application-form"
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 1,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "yes",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Neuhausen am Rheinfall, Switzerland",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5"
+       ],
+       "write_validation": {
+        "attempted": 5,
+        "verified": 5,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 4022.8
+   },
+   "ok": true,
+   "wall_ms": 4022.8,
+   "recording": "BSTeam_37987"
+  },
+  {
+   "job_id": "BSTeam_32288",
+   "company": "BS-Team",
+   "host": "www.bs-team.ch",
+   "position": 2,
+   "url": "https://www.bs-team.ch/jobs/product-owner-plan-de-reprise-dactivite-pra-disaster-recovery-plan-drp/",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 5,
+    "filled": 5,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024836.312,
+     "observed": {
+      "attempted": 5,
+      "succeeded": 5,
+      "failed": 0,
+      "fields": 5,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 17,
+       "changed_regions": [
+        {
+         "kind": "form",
+         "text": "Prénom et nom * Email * Téléphone * Lieu de résidence (Code postal, ville) * Ajoutez votre dossier * Type(s) autorisé(s): .pdf, .doc, .docx En utilisant ce formulaire, vous acceptez le stockage et le traitement de vos données par ce site web. *",
+         "related": true,
+         "removed": false,
+         "ref": "#awsm-application-form"
+        }
+       ],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 1,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "yes",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "aria-invalid",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "aria-invalid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Neuhausen am Rheinfall, Switzerland",
+          "valid": true,
+          "aria-invalid": "false",
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5"
+       ],
+       "write_validation": {
+        "attempted": 5,
+        "verified": 5,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 4099.2
+   },
+   "ok": true,
+   "wall_ms": 4099.2,
+   "recording": "BSTeam_37987"
+  },
+  {
+   "job_id": "ThomsonReuters_JREQ200738",
+   "company": "Thomson Reuters",
+   "host": "thomsonreuters.wd5.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland-Zug-Zug/Senior-Product-Security-Engineer_JREQ200738",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Rivia_am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+   "company": "Rivia",
+   "host": "jobs.gem.com",
+   "position": 0,
+   "url": "https://jobs.gem.com/rivia/am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 4,
+    "filled": 0,
+    "missing": [
+     "First name",
+     "Last name",
+     "Email",
+     "LinkedIn URL"
+    ],
+    "reason": "4 of 4 recorded fields did not resolve",
+    "ms": 2414.1
+   },
+   "ok": true,
+   "wall_ms": 6418.8,
+   "recording": "Mimic_am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 4004.7,
+    "workflow_terminal": "form",
+    "fill_plan_count": 8
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "BakerHughes_R164293",
+   "company": "Baker Hughes",
+   "host": "bakerhughes.wd5.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/job/CH-ZH-ZURICH-TECHNOPARK-STRASSE-1/Software-Engineer---Embedded-Software--d-f-m-_R164293-1",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "AutoForm_5158",
+   "company": "AutoForm",
+   "host": "careers.autoform.com",
+   "position": 0,
+   "url": "https://careers.autoform.com/en/jobs/job-search/advertisement/senior-software-engineer-26-12-jw/",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 12415.8,
+   "fill_plan_count": 7,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "AutoForm_5157",
+   "company": "AutoForm",
+   "host": "careers.autoform.com",
+   "position": 1,
+   "url": "https://careers.autoform.com/en/jobs/job-search/advertisement/senior-software-engineer-m-f-80-100-1/",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 6,
+    "filled": 6,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024821.072,
+     "observed": {
+      "attempted": 6,
+      "succeeded": 6,
+      "failed": 0,
+      "fields": 6,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 251,
+       "changed_regions": [
+        {
+         "kind": "form",
+         "text": "We look forward to receiving your application. Please fill out the form below (fields marked with * are required to submit this form). Gender * --- Please select --- Female Male Div Not specified Title First Name * Surname * E-mail * Phone * Your LinkedIn Profile Notes The sum of your attachments should not exceed 15 MB and preferably in PDF format. Attachment Attachment I agree that AutoForm collects, processes and uses my personal information for updating and sending information. I can revoke my consent at any time. I have read the Privacy Policy and accept them hereby. * Apply now Don't fill this field!",
+         "related": true,
+         "removed": false
+        }
+       ],
+       "regions_truncated": true,
+       "history_truncated": true,
+       "related_regions": 1,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "checked": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "yes",
+          "valid": true,
+          "checked": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "https://www.linkedin.com/in/enes-poyraz-a17b07133/",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 6,
+        "verified": 6,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 1416.8
+   },
+   "ok": true,
+   "wall_ms": 1416.8,
+   "recording": "AutoForm_5158"
+  },
+  {
+   "job_id": "DigitalWaveFinanceAG_B1B5C73CAF",
+   "company": "Digital Wave Finance AG",
+   "host": "apply.workable.com",
+   "position": 0,
+   "url": "https://apply.workable.com/dwf/j/B1B5C73CAF",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 14951.4,
+   "fill_plan_count": 11,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_1ba9e9f4c1f8",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 0,
+   "url": "https://apply.refline.ch/792841/11284/pub/1",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 7,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "ms": 8509.4
+   },
+   "ok": true,
+   "wall_ms": 12978.8,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 4469.4,
+    "workflow_terminal": "form",
+    "fill_plan_count": 0
+   }
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_238727d9ac12",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 1,
+   "url": "https://apply.refline.ch/792841/11241/pub/1",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 7,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "ms": 720.7
+   },
+   "ok": true,
+   "wall_ms": 4236.4,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 3515.7,
+    "workflow_terminal": "form",
+    "fill_plan_count": 0
+   }
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_bb2244e94443",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 2,
+   "url": "https://apply.refline.ch/792841/11287/pub/3",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 7,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "ms": 2734.0
+   },
+   "ok": true,
+   "wall_ms": 5717.6,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 2983.6,
+    "workflow_terminal": "form",
+    "fill_plan_count": 0
+   }
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_37ad9a0532c7",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 3,
+   "url": "https://apply.refline.ch/792841/11331/pub/1",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 7,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "ms": 946.6
+   },
+   "ok": true,
+   "wall_ms": 4692.1,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 3745.5,
+    "workflow_terminal": "form",
+    "fill_plan_count": 0
+   }
+  },
+  {
+   "job_id": "CryptoFinance_49C70CEE5E",
+   "company": "Crypto Finance AG",
+   "host": "apply.workable.com",
+   "position": 0,
+   "url": "https://apply.workable.com/j/49C70CEE5E",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 12981.4,
+   "fill_plan_count": 15,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "CryptoFinance_CC933BBD7A",
+   "company": "Crypto Finance AG",
+   "host": "apply.workable.com",
+   "position": 1,
+   "url": "https://apply.workable.com/j/CC933BBD7A",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 14,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "ms": 656.2
+   },
+   "ok": true,
+   "wall_ms": 5204.5,
+   "recording": "CryptoFinance_49C70CEE5E",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 4548.3,
+    "workflow_terminal": "form",
+    "fill_plan_count": 15
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "Brack_gen_e9539f58830f",
+   "company": "Brack",
+   "host": "jobs.brackalltron.ch",
+   "position": 0,
+   "url": "https://jobs.brackalltron.ch/offene-stellen/senior-software-engineer/78db4f7a-d102-458b-8921-22e8f150f1e9",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 15916.9,
+   "fill_plan_count": 6,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "TiM_dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 0,
+   "url": "https://career.ti8m.com/offene-stellen/praktikum-java-kotlin/dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 18135.5,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_9feefbec-a75c-4822-82a8-f9141ce4d24d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 1,
+   "url": "https://career.ti8m.com/offene-stellen/senior-fullstack-engineer-java-angular/9feefbec-a75c-4822-82a8-f9141ce4d24d",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 6990.7,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_fc2dd119-3d49-4799-82ec-36cc58326a0e",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 2,
+   "url": "https://career.ti8m.com/offene-stellen/senior-data-engineer/fc2dd119-3d49-4799-82ec-36cc58326a0e",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 7004.8,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_5b10ee45-d5a1-4521-a337-b237aa1eb70d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 3,
+   "url": "https://career.ti8m.com/offene-stellen/senior-system-engineer-mit-schwerpunkt-kubernetes-openshift/5b10ee45-d5a1-4521-a337-b237aa1eb70d",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 6882.1,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 4,
+   "url": "https://career.ti8m.com/offene-stellen/professional-data-engineer/1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 6777.4,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_f114aa82-f48f-42a9-a47d-ecae2da39ce4",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 5,
+   "url": "https://career.ti8m.com/offene-stellen/lead-engineer-frontend-product-architect-frontend/f114aa82-f48f-42a9-a47d-ecae2da39ce4",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 6489.1,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_e2f0a4af-8d2e-472d-9ffa-3e3ae8a5a21d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 6,
+   "url": "https://career.ti8m.com/offene-stellen/application-engineer-technical-project-manager/e2f0a4af-8d2e-472d-9ffa-3e3ae8a5a21d",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 6445.1,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_d4613aaf-ae08-4f4a-a836-da47919b73ec",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 7,
+   "url": "https://career.ti8m.com/offene-stellen/azure-cloud-architect/d4613aaf-ae08-4f4a-a836-da47919b73ec",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 7771.0,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "MSC_Cruises_17244",
+   "company": "MSC Cruises",
+   "host": "careers.msccruises.com",
+   "position": 0,
+   "url": "https://careers.msccruises.com/gb/en/job/17244/Test-Analyst",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 40063.1,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "MSC_Cruises_17171",
+   "company": "MSC Cruises",
+   "host": "careers.msccruises.com",
+   "position": 1,
+   "url": "https://careers.msccruises.com/gb/en/job/17171/AI-Tech-Lead",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 58383.8,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "Eraneos_JR100288",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/Senior-Consultant-Generative-AI---Agentic-AI-60-100-_JR100288",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Eraneos_JR100287",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 1,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/Senior-Consultant-Generative-AI---Agentic-AI-60-100-_JR100287-1",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Eraneos_JR100116",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 2,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/XMLNAME--Senior--Consultant-Solution-Architect-Financial-Services--60-100---all-genders-_JR100116",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Eraneos_JR100263",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 3,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/Enterprise-Solution-Architect-80-100-_JR100263",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Eraneos_JR100258",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 4,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/XMLNAME--Senior--Data-Analytics-Consultant-60-80-_JR100258",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "BCG_794",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 0,
+   "url": "https://careers.bcg.com/global/en/job/794",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 34432.3,
+   "fill_plan_count": null,
+   "hops": 1
+  },
+  {
+   "job_id": "BCG_795",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 1,
+   "url": "https://careers.bcg.com/global/en/job/795",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 40112.3,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "BCG_799",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 2,
+   "url": "https://careers.bcg.com/global/en/job/799",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 48046.7,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "BCG_802",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 3,
+   "url": "https://careers.bcg.com/global/en/job/802",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 58094.6,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+   "company": "NZZ",
+   "host": "karriere.nzz.ch",
+   "position": 0,
+   "url": "https://karriere.nzz.ch/offene-stellen/data-generalist-senior-data-scientist-engineer-w-m/c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 12566.8,
+   "fill_plan_count": 15,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Pax_10094251",
+   "company": "Pax",
+   "host": "ohws.prospective.ch",
+   "position": 0,
+   "url": "https://ohws.prospective.ch/public/v1/jobs/319c2e03-10af-4c4b-810b-6a50c0123156",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 5973.5,
+   "fill_plan_count": 16,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Arina_16298292",
+   "company": "Arina",
+   "host": "join.com",
+   "position": 0,
+   "url": "https://join.com/companies/arina/16634644-forensic-solution-engineer-m-w-d",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 8345.9,
+   "fill_plan_count": null,
+   "hops": 4
+  },
+  {
+   "job_id": "Richemont_jr129923",
+   "company": "Richemont",
+   "host": "careers.richemont.com",
+   "position": 0,
+   "url": "https://careers.richemont.com/en/jobs/jr129923/ingenieur-ri-firmware-architecture-ultra-low-power-hf/",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 3113.6,
+   "fill_plan_count": null,
+   "hops": 1
+  },
+  {
+   "job_id": "MonolithicPower_R-1456",
+   "company": "Monolithic Power Systems",
+   "host": "monolithicpower.wd12.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://monolithicpower.wd12.myworkdayjobs.com/MPS_Careers/job/Schaffhausen---Switzerland/IT-Infrastrucure-Engineer_R-1456",
+   "mode": "skipped",
+   "reason": "declared_mode_account",
+   "ok": false,
+   "wall_ms": 0.0
+  },
+  {
+   "job_id": "Destinus_47D8F41867",
+   "company": "Destinus",
+   "host": "apply.workable.com",
+   "position": 0,
+   "url": "https://apply.workable.com/j/47D8F41867",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 14,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "ms": 1072.9
+   },
+   "ok": true,
+   "wall_ms": 6705.4,
+   "recording": "CryptoFinance_CC933BBD7A",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 5632.4,
+    "workflow_terminal": "form",
+    "fill_plan_count": 16
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "Alohi_c04ce541-0cda-46eb-807f-914853681c67",
+   "company": "Alohi",
+   "host": "jobs.ashbyhq.com",
+   "position": 0,
+   "url": "https://jobs.ashbyhq.com/alohi/c04ce541-0cda-46eb-807f-914853681c67",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 4,
+    "filled": 0,
+    "missing": [
+     "Name",
+     "Email",
+     "What is your earliest start date, and are there any constraints we should be aware of?",
+     "How did you hear about this position?"
+    ],
+    "reason": "4 of 4 recorded fields did not resolve",
+    "ms": 1196.0
+   },
+   "ok": true,
+   "wall_ms": 4990.3,
+   "recording": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 3794.3,
+    "workflow_terminal": "form",
+    "fill_plan_count": 5
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "adesso_2680",
+   "company": "adesso",
+   "host": "www.adesso.ch",
+   "position": 0,
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2680",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 8504.9,
+   "fill_plan_count": 15,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "ANYbotics_7e305a48-4628-4a6a-b054-0367b6f6e586",
+   "company": "ANYbotics",
+   "host": "jobs.lever.co",
+   "position": 0,
+   "url": "https://jobs.lever.co/anybotics/7e305a48-4628-4a6a-b054-0367b6f6e586",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 9,
+    "filled": 0,
+    "missing": [
+     "What is your current notice period?",
+     "Male"
+    ],
+    "reason": "2 of 9 recorded fields did not resolve",
+    "ms": 3898.7
+   },
+   "ok": true,
+   "wall_ms": 6867.0,
+   "recording": "SonarSource_063c3fa2-788a-4e2b-b35e-80ff7b122739",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 2968.3,
+    "workflow_terminal": "form",
+    "fill_plan_count": 8
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "ONLU_995",
+   "company": "ONLU AG",
+   "host": "onlu.ch",
+   "position": 0,
+   "url": "https://onlu.ch/jobs/devops-software-engineer-m-w-80-100-2/",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 2880.5,
+   "fill_plan_count": 4,
+   "hops": 1,
+   "recorded": true
+  },
+  {
+   "job_id": "FinconsGroup_hEPeMkC7c1",
+   "company": "Fincons Group",
+   "host": "fincons.applytojob.com",
+   "position": 0,
+   "url": "https://fincons.applytojob.com/apply/hEPeMkC7c1/Senior-ApplikationsEntwickler-In-80-100",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 5505.7,
+   "fill_plan_count": 11,
+   "hops": 1,
+   "recorded": true
+  },
+  {
+   "job_id": "harmattan_ai_4c08b32b-5abf-426f-8ee0-b172bd7a8ead",
+   "company": "Harmattan AI",
+   "host": "jobs.ashbyhq.com",
+   "position": 0,
+   "url": "https://jobs.ashbyhq.com/harmattan-ai/4c08b32b-5abf-426f-8ee0-b172bd7a8ead",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 4,
+    "filled": 0,
+    "missing": [
+     "Name",
+     "Email",
+     "What is your earliest start date, and are there any constraints we should be aware of?",
+     "How did you hear about this position?"
+    ],
+    "reason": "4 of 4 recorded fields did not resolve",
+    "ms": 2090.0
+   },
+   "ok": true,
+   "wall_ms": 3488.5,
+   "recording": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 1398.5,
+    "workflow_terminal": "form",
+    "fill_plan_count": 5
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "Meier_Tobler_2b0b6e61-4708-4619-91af-b56ab9d1d0c8",
+   "company": "Meier Tobler",
+   "host": "ohws.prospective.ch",
+   "position": 0,
+   "url": "https://ohws.prospective.ch/public/v1/jobs/2b0b6e61-4708-4619-91af-b56ab9d1d0c8",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "step:click",
+    "planned": 12,
+    "filled": 0,
+    "missing": [],
+    "reason": "apply control not found: footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "ms": 6698.5
+   },
+   "ok": false,
+   "wall_ms": 29595.8,
+   "recording": "Pax_10094251",
+   "fallback": {
+    "status": "no_application_form",
+    "wall_ms": 22897.3,
+    "workflow_terminal": "cycle",
+    "fill_plan_count": null
+   }
+  },
+  {
+   "job_id": "MicroserviceSolutions_senior-backend-developer",
+   "company": "Microservice Solutions",
+   "host": "microservice-solutions.ch",
+   "position": 0,
+   "url": "https://microservice-solutions.ch/career/senior-backend-developer",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 18331.5,
+   "fill_plan_count": null,
+   "hops": 4
+  },
+  {
+   "job_id": "finnova_10099704",
+   "company": "finnova",
+   "host": "jobs.finnova.com",
+   "position": 0,
+   "url": "https://jobs.finnova.com/offene-stellen/software-engineer-kartenverwaltung-schalter-all/3914a5fc-ec52-4974-b11a-f477303803fc",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 11450.1,
+   "fill_plan_count": 3,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "finnova_10159332",
+   "company": "finnova",
+   "host": "jobs.finnova.com",
+   "position": 1,
+   "url": "https://jobs.finnova.com/offene-stellen/product-owner-gebuehren-tarife-und-geldwaescherei-all/ea9d05d6-8c57-496d-b439-65f7ec098ade",
+   "mode": "replay_fallback",
+   "replay": {
+    "ok": false,
+    "stage": "resolve",
+    "planned": 1,
+    "filled": 0,
+    "missing": [
+     "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*"
+    ],
+    "reason": "1 of 1 recorded fields did not resolve",
+    "ms": 5571.4
+   },
+   "ok": true,
+   "wall_ms": 11454.1,
+   "recording": "finnova_10099704",
+   "fallback": {
+    "status": "form_processed",
+    "wall_ms": 5882.7,
+    "workflow_terminal": "form",
+    "fill_plan_count": 3
+   },
+   "re_recorded": true
+  },
+  {
+   "job_id": "BKW_7298",
+   "company": "BKW",
+   "host": "job.bkw.com",
+   "position": 0,
+   "url": "https://job.bkw.com/offene-stellen/quantitative-commodity-analyst-all/e0a5a6c3-658d-4626-bb31-2ab1f6d48c29",
+   "mode": "discover",
+   "ok": false,
+   "status": "workflow_failed",
+   "wall_ms": 27807.7,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "Aity_10163811",
+   "company": "aity AG",
+   "host": "jobs.aity.ch",
+   "position": 0,
+   "url": "https://jobs.aity.ch/offene-stellen/servicenow-engineer-a/3a964941-e62c-4a7c-b1fe-4ecc351a4462",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 11094.8,
+   "fill_plan_count": 13,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Aity_10159359",
+   "company": "aity AG",
+   "host": "jobs.aity.ch",
+   "position": 1,
+   "url": "https://jobs.aity.ch/offene-stellen/datenbank-engineer-a/6c44e887-e6f9-4524-a3de-af2725f641fb",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 9,
+    "filled": 9,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024854.992,
+     "observed": {
+      "attempted": 9,
+      "succeeded": 9,
+      "failed": 0,
+      "fields": 9,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 2,
+       "changed_regions": [],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 0,
+       "validation": {
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Büchelerstrasse 12",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e8": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Neuhausen am Rheinfall",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "8212",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e7": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "12",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Enes",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        },
+        "e9": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "patternMismatch": null,
+          "value": null,
+          "valid": null,
+          "valueMissing": null,
+          "typeMismatch": null,
+          "validationMessage": null
+         },
+         "after": {
+          "patternMismatch": false,
+          "value": "1987-02-05",
+          "valid": true,
+          "valueMissing": false,
+          "typeMismatch": false,
+          "validationMessage": ""
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6",
+        "e7",
+        "e8",
+        "e9"
+       ],
+       "write_validation": {
+        "attempted": 9,
+        "verified": 9,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 2772.1
+   },
+   "ok": true,
+   "wall_ms": 2772.1,
+   "recording": "Aity_10163811"
+  },
+  {
+   "job_id": "AdvertimaVision_aFKdIK5rZD",
+   "company": "Advertima Vision",
+   "host": "advertimavisionag.applytojob.com",
+   "position": 0,
+   "url": "https://advertimavisionag.applytojob.com/apply/aFKdIK5rZD/Senior-Software-Engineer-Full-Stack-Fleet-Management",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 3423.1,
+   "fill_plan_count": 8,
+   "hops": 1,
+   "recorded": true
+  },
+  {
+   "job_id": "Kanton_Genf_gen_48d923bc5346",
+   "company": "Kanton Genf",
+   "host": "www.ge.ch",
+   "position": 0,
+   "url": "https://www.ge.ch/offres-emploi-etat-geneve/liste-offres/1912",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 9028.5,
+   "fill_plan_count": 12,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "MettlerToledo_99655860032",
+   "company": "Mettler Toledo",
+   "host": "jobs.mt.com",
+   "position": 0,
+   "url": "https://jobs.mt.com/de/stellenbeschreibung/nanikon/dsp-engineer/36870/99655860032",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 21532.8,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "Universitätsspital_Zürich_10158611",
+   "company": "Universitätsspital Zürich",
+   "host": "jobs.usz.ch",
+   "position": 0,
+   "url": "https://jobs.usz.ch/offene-stellen/data-platform-engineer/840b991b-5c55-42ef-9b5d-333181ea06e2",
+   "mode": "discover",
+   "ok": false,
+   "status": "generic_form",
+   "wall_ms": 12501.9,
+   "fill_plan_count": null,
+   "hops": 1
+  }
+ ],
+ "failed_groups": []
+}

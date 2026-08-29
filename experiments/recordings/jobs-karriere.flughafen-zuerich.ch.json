@@ -1,0 +1,142 @@
+[
+ {
+  "host": "jobs-karriere.flughafen-zuerich.ch",
+  "company": "Flughafen Zürich",
+  "recorded_from": "flughafen-zurich__Flughafen_Zuerich_10155500",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2951/de/apply/1829?srcIDPMS=10155500&srcTextPMS=flughafenzh-internet&source=flughafenzh-internet&canalId=1006782&publishId=10155500&img=&ohvk=e1ea7275-b5f9-4e9c-88df-aa36c1235e48",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "Jetzt bewerben",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#applicant_salutation",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "salutation",
+    "required": false,
+    "options_sample": [
+     "",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail Adresse",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefon / Mobile",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_recommendation",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Karriereseite der Flughafen Zürich AG",
+     "Mitarbeiter:in Flughafen Zürich AG",
+     "jobs.ch",
+     "LinkedIn",
+     "Xing",
+     "Facebook",
+     "Internet-Suchmaschine"
+    ],
+    "options_count": 13,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#applicant_is_employee",
+    "label": "Ich bin bereits Mitarbeiter:in der Flughafen Zürich AG",
+    "kind": "checkbox",
+    "name": "is_employee",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#applicant_former_employee",
+    "label": "Ich war schon einmal für die Flughafen Zürich AG tätig",
+    "kind": "checkbox",
+    "name": "former_employee",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#data_release_agreed_true",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "data_release_agreed",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden.",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "e02dc919c2e81afc",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:05:13",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

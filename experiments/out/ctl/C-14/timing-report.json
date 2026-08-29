@@ -1,0 +1,3290 @@
+{
+  "whole_set": {
+    "attempts": 100,
+    "companies": 53,
+    "wall_ms": 110420.0,
+    "sum_attempt_duration_ms": 1049094.1,
+    "attempt_duration_ms": {
+      "count": 100,
+      "min": 199.6,
+      "mean": 10490.9,
+      "median": 9095.1,
+      "p95": 25213.5,
+      "max": 58633.0
+    },
+    "cleanup_target_query_ms": {
+      "count": 100,
+      "min": 188.8,
+      "mean": 209.0,
+      "median": 209.6,
+      "p95": 218.1,
+      "max": 219.3
+    },
+    "sum_cleanup_target_query_ms": 20902.6,
+    "cleanup_descendants": 0
+  },
+  "companies": [
+    {
+      "company": "adesso",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 12476.6,
+        "mean": 12476.6,
+        "median": 12476.6,
+        "p95": 12476.6,
+        "max": 12476.6
+      },
+      "sum_attempt_duration_ms": 12476.6,
+      "observed_span_ms": 12476.6
+    },
+    {
+      "company": "Advertima Vision",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 2890.1,
+        "mean": 2890.1,
+        "median": 2890.1,
+        "p95": 2890.1,
+        "max": 2890.1
+      },
+      "sum_attempt_duration_ms": 2890.1,
+      "observed_span_ms": 2890.0
+    },
+    {
+      "company": "aity AG",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 5198.6,
+        "mean": 7864.0,
+        "median": 7864.0,
+        "p95": 10529.4,
+        "max": 10529.4
+      },
+      "sum_attempt_duration_ms": 15728.0,
+      "observed_span_ms": 10529.6
+    },
+    {
+      "company": "Alohi",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 2313.9,
+        "mean": 2313.9,
+        "median": 2313.9,
+        "p95": 2313.9,
+        "max": 2313.9
+      },
+      "sum_attempt_duration_ms": 2313.9,
+      "observed_span_ms": 2313.9
+    },
+    {
+      "company": "Ansam Group",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "authentication_required": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 3773.7,
+        "mean": 6155.5,
+        "median": 6155.5,
+        "p95": 8537.4,
+        "max": 8537.4
+      },
+      "sum_attempt_duration_ms": 12311.1,
+      "observed_span_ms": 87733.8
+    },
+    {
+      "company": "ANYbotics",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 6317.2,
+        "mean": 6317.2,
+        "median": 6317.2,
+        "p95": 6317.2,
+        "max": 6317.2
+      },
+      "sum_attempt_duration_ms": 6317.2,
+      "observed_span_ms": 6317.2
+    },
+    {
+      "company": "Arina",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 9220.4,
+        "mean": 9220.4,
+        "median": 9220.4,
+        "p95": 9220.4,
+        "max": 9220.4
+      },
+      "sum_attempt_duration_ms": 9220.4,
+      "observed_span_ms": 9220.4
+    },
+    {
+      "company": "AutoForm",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 5658.4,
+        "mean": 7873.4,
+        "median": 7873.4,
+        "p95": 10088.5,
+        "max": 10088.5
+      },
+      "sum_attempt_duration_ms": 15746.9,
+      "observed_span_ms": 10088.6
+    },
+    {
+      "company": "Baker Hughes",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "skipped_by_metadata": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 216.3,
+        "mean": 216.3,
+        "median": 216.3,
+        "p95": 216.3,
+        "max": 216.3
+      },
+      "sum_attempt_duration_ms": 216.3,
+      "observed_span_ms": 216.4
+    },
+    {
+      "company": "BCG",
+      "attempts": 4,
+      "successful_worker_attempts": 4,
+      "statuses": {
+        "no_application_form": 4
+      },
+      "attempt_duration_ms": {
+        "count": 4,
+        "min": 23978.0,
+        "mean": 25162.4,
+        "median": 25162.6,
+        "p95": 26346.3,
+        "max": 26346.3
+      },
+      "sum_attempt_duration_ms": 100649.5,
+      "observed_span_ms": 29612.6
+    },
+    {
+      "company": "BKW",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 16219.4,
+        "mean": 16219.4,
+        "median": 16219.4,
+        "p95": 16219.4,
+        "max": 16219.4
+      },
+      "sum_attempt_duration_ms": 16219.4,
+      "observed_span_ms": 16219.4
+    },
+    {
+      "company": "Brack",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 11883.2,
+        "mean": 11883.2,
+        "median": 11883.2,
+        "p95": 11883.2,
+        "max": 11883.2
+      },
+      "sum_attempt_duration_ms": 11883.2,
+      "observed_span_ms": 11883.2
+    },
+    {
+      "company": "BS-Team",
+      "attempts": 3,
+      "successful_worker_attempts": 3,
+      "statuses": {
+        "form_processed": 2,
+        "workflow_failed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 3,
+        "min": 6799.6,
+        "mean": 14575.5,
+        "median": 11713.4,
+        "p95": 25213.5,
+        "max": 25213.5
+      },
+      "sum_attempt_duration_ms": 43726.5,
+      "observed_span_ms": 52652.9
+    },
+    {
+      "company": "Bundesverwaltung",
+      "attempts": 4,
+      "successful_worker_attempts": 4,
+      "statuses": {
+        "authentication_required": 3,
+        "workflow_failed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 4,
+        "min": 5773.2,
+        "mean": 16033.5,
+        "median": 17692.0,
+        "p95": 22976.9,
+        "max": 22976.9
+      },
+      "sum_attempt_duration_ms": 64134.1,
+      "observed_span_ms": 101387.0
+    },
+    {
+      "company": "Crypto Finance AG",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 1,
+        "workflow_failed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 9285.2,
+        "mean": 28803.9,
+        "median": 28803.9,
+        "p95": 48322.7,
+        "max": 48322.7
+      },
+      "sum_attempt_duration_ms": 57607.9,
+      "observed_span_ms": 63323.7
+    },
+    {
+      "company": "CSS",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 8776.3,
+        "mean": 13491.7,
+        "median": 13491.7,
+        "p95": 18207.1,
+        "max": 18207.1
+      },
+      "sum_attempt_duration_ms": 26983.4,
+      "observed_span_ms": 35690.8
+    },
+    {
+      "company": "DeepJudge",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 12277.6,
+        "mean": 12277.6,
+        "median": 12277.6,
+        "p95": 12277.6,
+        "max": 12277.6
+      },
+      "sum_attempt_duration_ms": 12277.6,
+      "observed_span_ms": 12277.6
+    },
+    {
+      "company": "Destinus",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 7495.8,
+        "mean": 7495.8,
+        "median": 7495.8,
+        "p95": 7495.8,
+        "max": 7495.8
+      },
+      "sum_attempt_duration_ms": 7495.8,
+      "observed_span_ms": 7495.9
+    },
+    {
+      "company": "Digital Wave Finance AG",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 13190.6,
+        "mean": 13190.6,
+        "median": 13190.6,
+        "p95": 13190.6,
+        "max": 13190.6
+      },
+      "sum_attempt_duration_ms": 13190.6,
+      "observed_span_ms": 13190.7
+    },
+    {
+      "company": "EPAM",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 16765.2,
+        "mean": 16765.2,
+        "median": 16765.2,
+        "p95": 16765.2,
+        "max": 16765.2
+      },
+      "sum_attempt_duration_ms": 16765.2,
+      "observed_span_ms": 16765.2
+    },
+    {
+      "company": "Eraneos",
+      "attempts": 5,
+      "successful_worker_attempts": 5,
+      "statuses": {
+        "skipped_by_metadata": 5
+      },
+      "attempt_duration_ms": {
+        "count": 5,
+        "min": 200.7,
+        "mean": 204.2,
+        "median": 201.3,
+        "p95": 215.4,
+        "max": 215.4
+      },
+      "sum_attempt_duration_ms": 1021.1,
+      "observed_span_ms": 23327.2
+    },
+    {
+      "company": "Expleo",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "skipped_by_metadata": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 216.3,
+        "mean": 310.4,
+        "median": 310.4,
+        "p95": 404.5,
+        "max": 404.5
+      },
+      "sum_attempt_duration_ms": 620.8,
+      "observed_span_ms": 622.6
+    },
+    {
+      "company": "Fincons Group",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 8052.4,
+        "mean": 8052.4,
+        "median": 8052.4,
+        "p95": 8052.4,
+        "max": 8052.4
+      },
+      "sum_attempt_duration_ms": 8052.4,
+      "observed_span_ms": 8052.4
+    },
+    {
+      "company": "finnova",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 1,
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 7659.4,
+        "mean": 12251.0,
+        "median": 12251.0,
+        "p95": 16842.5,
+        "max": 16842.5
+      },
+      "sum_attempt_duration_ms": 24501.9,
+      "observed_span_ms": 27101.9
+    },
+    {
+      "company": "Harmattan AI",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 3340.9,
+        "mean": 3340.9,
+        "median": 3340.9,
+        "p95": 3340.9,
+        "max": 3340.9
+      },
+      "sum_attempt_duration_ms": 3340.9,
+      "observed_span_ms": 3340.9
+    },
+    {
+      "company": "Hoshii AG",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 18862.5,
+        "mean": 18862.5,
+        "median": 18862.5,
+        "p95": 18862.5,
+        "max": 18862.5
+      },
+      "sum_attempt_duration_ms": 18862.5,
+      "observed_span_ms": 18862.4
+    },
+    {
+      "company": "Julius Bär",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "skipped_by_metadata": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 199.6,
+        "mean": 207.1,
+        "median": 207.1,
+        "p95": 214.5,
+        "max": 214.5
+      },
+      "sum_attempt_duration_ms": 414.1,
+      "observed_span_ms": 55113.5
+    },
+    {
+      "company": "Kanton Genf",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 7131.5,
+        "mean": 7131.5,
+        "median": 7131.5,
+        "p95": 7131.5,
+        "max": 7131.5
+      },
+      "sum_attempt_duration_ms": 7131.5,
+      "observed_span_ms": 7131.5
+    },
+    {
+      "company": "Kanton Luzern",
+      "attempts": 3,
+      "successful_worker_attempts": 3,
+      "statuses": {
+        "form_processed": 3
+      },
+      "attempt_duration_ms": {
+        "count": 3,
+        "min": 4454.2,
+        "mean": 7888.1,
+        "median": 9604.7,
+        "p95": 9605.3,
+        "max": 9605.3
+      },
+      "sum_attempt_duration_ms": 23664.2,
+      "observed_span_ms": 22601.0
+    },
+    {
+      "company": "Meier Tobler",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 22126.5,
+        "mean": 22126.5,
+        "median": 22126.5,
+        "p95": 22126.5,
+        "max": 22126.5
+      },
+      "sum_attempt_duration_ms": 22126.5,
+      "observed_span_ms": 22126.5
+    },
+    {
+      "company": "Mettler Toledo",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 14348.7,
+        "mean": 14348.7,
+        "median": 14348.7,
+        "p95": 14348.7,
+        "max": 14348.7
+      },
+      "sum_attempt_duration_ms": 14348.7,
+      "observed_span_ms": 14348.7
+    },
+    {
+      "company": "Microservice Solutions",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 18415.4,
+        "mean": 18415.4,
+        "median": 18415.4,
+        "p95": 18415.4,
+        "max": 18415.4
+      },
+      "sum_attempt_duration_ms": 18415.4,
+      "observed_span_ms": 18415.4
+    },
+    {
+      "company": "Microsoft",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 25883.0,
+        "mean": 25883.0,
+        "median": 25883.0,
+        "p95": 25883.0,
+        "max": 25883.0
+      },
+      "sum_attempt_duration_ms": 25883.0,
+      "observed_span_ms": 25883.0
+    },
+    {
+      "company": "Mimic",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 1,
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 6095.1,
+        "mean": 15308.2,
+        "median": 15308.2,
+        "p95": 24521.3,
+        "max": 24521.3
+      },
+      "sum_attempt_duration_ms": 30616.4,
+      "observed_span_ms": 72448.0
+    },
+    {
+      "company": "Monolithic Power Systems",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "skipped_by_metadata": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 216.1,
+        "mean": 216.1,
+        "median": 216.1,
+        "p95": 216.1,
+        "max": 216.1
+      },
+      "sum_attempt_duration_ms": 216.1,
+      "observed_span_ms": 216.1
+    },
+    {
+      "company": "MSC Cruises",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "no_application_form": 1,
+        "workflow_failed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 12686.7,
+        "mean": 35659.8,
+        "median": 35659.8,
+        "p95": 58633.0,
+        "max": 58633.0
+      },
+      "sum_attempt_duration_ms": 71319.7,
+      "observed_span_ms": 65607.0
+    },
+    {
+      "company": "NVIDIA",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 23302.7,
+        "mean": 23302.7,
+        "median": 23302.7,
+        "p95": 23302.7,
+        "max": 23302.7
+      },
+      "sum_attempt_duration_ms": 23302.7,
+      "observed_span_ms": 23302.7
+    },
+    {
+      "company": "NZZ",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 13898.5,
+        "mean": 13898.5,
+        "median": 13898.5,
+        "p95": 13898.5,
+        "max": 13898.5
+      },
+      "sum_attempt_duration_ms": 13898.5,
+      "observed_span_ms": 13898.5
+    },
+    {
+      "company": "ONLU AG",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 11480.1,
+        "mean": 11480.1,
+        "median": 11480.1,
+        "p95": 11480.1,
+        "max": 11480.1
+      },
+      "sum_attempt_duration_ms": 11480.1,
+      "observed_span_ms": 11480.1
+    },
+    {
+      "company": "Pax",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 7992.7,
+        "mean": 7992.7,
+        "median": 7992.7,
+        "p95": 7992.7,
+        "max": 7992.7
+      },
+      "sum_attempt_duration_ms": 7992.7,
+      "observed_span_ms": 7992.6
+    },
+    {
+      "company": "Richemont",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 4221.6,
+        "mean": 4221.6,
+        "median": 4221.6,
+        "p95": 4221.6,
+        "max": 4221.6
+      },
+      "sum_attempt_duration_ms": 4221.6,
+      "observed_span_ms": 4221.6
+    },
+    {
+      "company": "Rivia",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "form_processed": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 9121.2,
+        "mean": 9121.2,
+        "median": 9121.2,
+        "p95": 9121.2,
+        "max": 9121.2
+      },
+      "sum_attempt_duration_ms": 9121.2,
+      "observed_span_ms": 9121.2
+    },
+    {
+      "company": "Roche",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "skipped_by_metadata": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 403.0,
+        "mean": 403.0,
+        "median": 403.0,
+        "p95": 403.0,
+        "max": 403.0
+      },
+      "sum_attempt_duration_ms": 403.0,
+      "observed_span_ms": 403.0
+    },
+    {
+      "company": "RUAG",
+      "attempts": 5,
+      "successful_worker_attempts": 5,
+      "statuses": {
+        "form_processed": 5
+      },
+      "attempt_duration_ms": {
+        "count": 5,
+        "min": 5671.1,
+        "mean": 14507.6,
+        "median": 19506.8,
+        "p95": 20249.5,
+        "max": 20249.5
+      },
+      "sum_attempt_duration_ms": 72537.8,
+      "observed_span_ms": 64240.7
+    },
+    {
+      "company": "Salesforce",
+      "attempts": 7,
+      "successful_worker_attempts": 7,
+      "statuses": {
+        "skipped_by_metadata": 7
+      },
+      "attempt_duration_ms": {
+        "count": 7,
+        "min": 200.4,
+        "mean": 208.2,
+        "median": 202.9,
+        "p95": 217.8,
+        "max": 217.8
+      },
+      "sum_attempt_duration_ms": 1457.3,
+      "observed_span_ms": 43079.5
+    },
+    {
+      "company": "SonarSource",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 5082.5,
+        "mean": 6242.8,
+        "median": 6242.8,
+        "p95": 7403.1,
+        "max": 7403.1
+      },
+      "sum_attempt_duration_ms": 12485.6,
+      "observed_span_ms": 22591.7
+    },
+    {
+      "company": "Thomson Reuters",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "skipped_by_metadata": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 203.0,
+        "mean": 203.0,
+        "median": 203.0,
+        "p95": 203.0,
+        "max": 203.0
+      },
+      "sum_attempt_duration_ms": 203.0,
+      "observed_span_ms": 203.0
+    },
+    {
+      "company": "ti&m",
+      "attempts": 8,
+      "successful_worker_attempts": 8,
+      "statuses": {
+        "no_application_form": 8
+      },
+      "attempt_duration_ms": {
+        "count": 8,
+        "min": 8164.7,
+        "mean": 10591.3,
+        "median": 9777.1,
+        "p95": 17161.3,
+        "max": 17161.3
+      },
+      "sum_attempt_duration_ms": 84730.6,
+      "observed_span_ms": 54698.0
+    },
+    {
+      "company": "Universitätsspital Zürich",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "generic_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 9993.0,
+        "mean": 9993.0,
+        "median": 9993.0,
+        "p95": 9993.0,
+        "max": 9993.0
+      },
+      "sum_attempt_duration_ms": 9993.0,
+      "observed_span_ms": 9993.0
+    },
+    {
+      "company": "Vaudoise",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 4997.4,
+        "mean": 9182.3,
+        "median": 9182.3,
+        "p95": 13367.2,
+        "max": 13367.2
+      },
+      "sum_attempt_duration_ms": 18364.6,
+      "observed_span_ms": 24392.8
+    },
+    {
+      "company": "vlot",
+      "attempts": 1,
+      "successful_worker_attempts": 1,
+      "statuses": {
+        "no_application_form": 1
+      },
+      "attempt_duration_ms": {
+        "count": 1,
+        "min": 17200.1,
+        "mean": 17200.1,
+        "median": 17200.1,
+        "p95": 17200.1,
+        "max": 17200.1
+      },
+      "sum_attempt_duration_ms": 17200.1,
+      "observed_span_ms": 17200.1
+    },
+    {
+      "company": "Wavestone",
+      "attempts": 2,
+      "successful_worker_attempts": 2,
+      "statuses": {
+        "form_processed": 2
+      },
+      "attempt_duration_ms": {
+        "count": 2,
+        "min": 10092.5,
+        "mean": 11067.0,
+        "median": 11067.0,
+        "p95": 12041.4,
+        "max": 12041.4
+      },
+      "sum_attempt_duration_ms": 22133.9,
+      "observed_span_ms": 21118.1
+    },
+    {
+      "company": "Zürcher Kantonalbank",
+      "attempts": 4,
+      "successful_worker_attempts": 4,
+      "statuses": {
+        "form_processed": 4
+      },
+      "attempt_duration_ms": {
+        "count": 4,
+        "min": 4098.9,
+        "mean": 5219.9,
+        "median": 4804.3,
+        "p95": 7172.0,
+        "max": 7172.0
+      },
+      "sum_attempt_duration_ms": 20879.5,
+      "observed_span_ms": 61432.6
+    }
+  ],
+  "attempts": [
+    {
+      "rank": 1,
+      "company": "Kanton Luzern",
+      "company_aliases": [
+        "Kanton Luzern"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Kanton_Luzern_gen_aaae17c6782c",
+      "title": "Senior Full Stack Developer (a)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 9605.3,
+      "work_wall_ms": 9193.3,
+      "queued_ms": 0.4,
+      "completed_ms": 9605.6,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 213.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5148104.0
+    },
+    {
+      "rank": 2,
+      "company": "Kanton Luzern",
+      "company_aliases": [
+        "Kanton Luzern"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Kanton_Luzern_gen_caefeda5688e",
+      "title": "Senior DevOps Engineer Experience Technologies (a)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 9604.7,
+      "work_wall_ms": 9197.3,
+      "queued_ms": 0.7,
+      "completed_ms": 9605.5,
+      "worker_id": 1,
+      "target_id": "45BC2FFC86FC00D8CF95A14FA824B135",
+      "cleanup_target_query_ms": 213.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5155712.0
+    },
+    {
+      "rank": 3,
+      "company": "CSS",
+      "company_aliases": [
+        "CSS"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "CSS_1a36e481",
+      "title": "Expert Data Engineer (w/m) 80-100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 18207.1,
+      "work_wall_ms": 17796.9,
+      "queued_ms": 1.1,
+      "completed_ms": 18208.2,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 213.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 3581568.0
+    },
+    {
+      "rank": 4,
+      "company": "Expleo",
+      "company_aliases": [
+        "Expleo"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Expleo_55519",
+      "title": "DevOps Engineer (M/W)",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 404.5,
+      "work_wall_ms": 0.0,
+      "queued_ms": 1.4,
+      "completed_ms": 405.9,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 214.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 5,
+      "company": "vlot",
+      "company_aliases": [
+        "vlot"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "vlot_15332446",
+      "title": "Fintech Software Entwickler (F#, C#, React)",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 17200.1,
+      "work_wall_ms": 16788.4,
+      "queued_ms": 1.7,
+      "completed_ms": 17201.8,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 212.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 38138656.0
+    },
+    {
+      "rank": 6,
+      "company": "NVIDIA",
+      "company_aliases": [
+        "NVIDIA"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "NVIDIA_893397378484",
+      "title": "Senior System Software Engineer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 23302.7,
+      "work_wall_ms": 22886.8,
+      "queued_ms": 2.0,
+      "completed_ms": 23304.7,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 217.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 33246512.0
+    },
+    {
+      "rank": 7,
+      "company": "RUAG",
+      "company_aliases": [
+        "RUAG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "RUAG_gen_adf64bc1fdab",
+      "title": "DevOps Engineer C5I",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 20249.5,
+      "work_wall_ms": 19846.2,
+      "queued_ms": 2.3,
+      "completed_ms": 20251.8,
+      "worker_id": 6,
+      "target_id": "CBE1AB17C7A618E84FF2A704A8B92CCE",
+      "cleanup_target_query_ms": 207.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 9689632.0
+    },
+    {
+      "rank": 8,
+      "company": "RUAG",
+      "company_aliases": [
+        "RUAG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "RUAG_gen_c326bb5d7369",
+      "title": "DevOps Engineer C5I",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 19583.0,
+      "work_wall_ms": 19167.5,
+      "queued_ms": 2.5,
+      "completed_ms": 19585.5,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 216.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 10796204.0
+    },
+    {
+      "rank": 9,
+      "company": "RUAG",
+      "company_aliases": [
+        "RUAG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "RUAG_gen_221f77a253ef",
+      "title": "DevOps Engineer C5I",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 19506.8,
+      "work_wall_ms": 19092.6,
+      "queued_ms": 2.8,
+      "completed_ms": 19509.6,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 217.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 11225824.0
+    },
+    {
+      "rank": 10,
+      "company": "Roche",
+      "company_aliases": [
+        "Roche"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Roche_202608-121795",
+      "title": "Machine Learning Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 403.0,
+      "work_wall_ms": 0.0,
+      "queued_ms": 3.0,
+      "completed_ms": 406.0,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 204.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 11,
+      "company": "Vaudoise",
+      "company_aliases": [
+        "Vaudoise"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Vaudoise_67005910",
+      "title": "Développeur / développeuse (.NET / Angular / Azure) (h/f/x) - 80-100 %",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 13367.2,
+      "work_wall_ms": 13159.1,
+      "queued_ms": 407.1,
+      "completed_ms": 13774.3,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 207.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4429892.0
+    },
+    {
+      "rank": 12,
+      "company": "Expleo",
+      "company_aliases": [
+        "Expleo"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Expleo_50717",
+      "title": "Business Analyst",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 216.3,
+      "work_wall_ms": 0.0,
+      "queued_ms": 407.8,
+      "completed_ms": 624.0,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 215.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 13,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR350958",
+      "title": "Lead Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 202.0,
+      "work_wall_ms": 0.0,
+      "queued_ms": 624.9,
+      "completed_ms": 826.9,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 201.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 14,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR350960",
+      "title": "Lead Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 217.8,
+      "work_wall_ms": 0.0,
+      "queued_ms": 827.7,
+      "completed_ms": 1045.5,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 217.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 15,
+      "company": "Bundesverwaltung",
+      "company_aliases": [
+        "Bundesverwaltung"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Bundesverwaltung_10160647",
+      "title": "ICT-System-Spezialist/-in Senior (1327)",
+      "ok": true,
+      "status": "workflow_failed",
+      "skip_reason": null,
+      "duration_ms": 22921.4,
+      "work_wall_ms": 22715.3,
+      "queued_ms": 1046.5,
+      "completed_ms": 23968.0,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 205.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4089368.0
+    },
+    {
+      "rank": 16,
+      "company": "Mimic",
+      "company_aliases": [
+        "Mimic"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Mimic_am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+      "title": "Robotics Engineer, Model Deployment",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 24521.3,
+      "work_wall_ms": 24311.6,
+      "queued_ms": 9607.3,
+      "completed_ms": 34128.7,
+      "worker_id": 1,
+      "target_id": "45BC2FFC86FC00D8CF95A14FA824B135",
+      "cleanup_target_query_ms": 208.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 50824004.0
+    },
+    {
+      "rank": 17,
+      "company": "Ansam Group",
+      "company_aliases": [
+        "Ansam Group"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Ansam_8232616",
+      "title": "Responsable Applicatif",
+      "ok": true,
+      "status": "authentication_required",
+      "skip_reason": null,
+      "duration_ms": 8537.4,
+      "work_wall_ms": 8322.0,
+      "queued_ms": 9608.6,
+      "completed_ms": 18145.9,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 214.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7450900.0
+    },
+    {
+      "rank": 18,
+      "company": "Wavestone",
+      "company_aliases": [
+        "Wavestone"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Wavestone_62655224",
+      "title": "Consultant Agile Transformation Schweiz (all genders)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 12041.4,
+      "work_wall_ms": 11829.0,
+      "queued_ms": 13775.7,
+      "completed_ms": 25817.1,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 212.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 1875684.0
+    },
+    {
+      "rank": 19,
+      "company": "DeepJudge",
+      "company_aliases": [
+        "DeepJudge"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+      "title": "Frontend Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 12277.6,
+      "work_wall_ms": 12072.9,
+      "queued_ms": 17203.3,
+      "completed_ms": 29480.9,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 204.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 14216940.0
+    },
+    {
+      "rank": 20,
+      "company": "Kanton Luzern",
+      "company_aliases": [
+        "Kanton Luzern"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Kanton_Luzern_gen_67cc89d18824",
+      "title": "KI-Engineer / KI-Plattform-Spezialist/in (a)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 4454.2,
+      "work_wall_ms": 4240.9,
+      "queued_ms": 18147.2,
+      "completed_ms": 22601.4,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 212.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4691924.0
+    },
+    {
+      "rank": 21,
+      "company": "Microsoft",
+      "company_aliases": [
+        "Microsoft"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Microsoft_1970393556933021",
+      "title": "Principal Forward Deployed Engineer - Software Engineer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 25883.0,
+      "work_wall_ms": 25677.2,
+      "queued_ms": 18209.6,
+      "completed_ms": 44092.6,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 205.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 32774112.0
+    },
+    {
+      "rank": 22,
+      "company": "SonarSource",
+      "company_aliases": [
+        "SonarSource"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+      "title": "AI Researcher - Post-Training",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7403.1,
+      "work_wall_ms": 7187.1,
+      "queued_ms": 19510.7,
+      "completed_ms": 26913.8,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 215.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 8265752.0
+    },
+    {
+      "rank": 23,
+      "company": "Julius Bär",
+      "company_aliases": [
+        "Julius Bär"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "JuliusBaer_r-18971",
+      "title": "Senior System Architect ML & AI 100% (f/m/d)",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 214.5,
+      "work_wall_ms": 0.0,
+      "queued_ms": 19587.0,
+      "completed_ms": 19801.5,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 214.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 24,
+      "company": "Vaudoise",
+      "company_aliases": [
+        "Vaudoise"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Vaudoise_65778086",
+      "title": "Senior Fullstack Engineer & Technical Leader (.NET / Angular / Azure) (h/f/x) - 80-100 %",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 4997.4,
+      "work_wall_ms": 4785.5,
+      "queued_ms": 19802.5,
+      "completed_ms": 24799.9,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 211.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5111304.0
+    },
+    {
+      "rank": 25,
+      "company": "EPAM",
+      "company_aliases": [
+        "EPAM"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "epam_bltlhinbqhlvbryudmk",
+      "title": "OMS Lead Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 16765.2,
+      "work_wall_ms": 16548.0,
+      "queued_ms": 20253.3,
+      "completed_ms": 37018.5,
+      "worker_id": 6,
+      "target_id": "CBE1AB17C7A618E84FF2A704A8B92CCE",
+      "cleanup_target_query_ms": 216.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 17318484.0
+    },
+    {
+      "rank": 26,
+      "company": "Hoshii AG",
+      "company_aliases": [
+        "Hoshii AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "HoshiiAG_16520465",
+      "title": "Forward-Deployed Software Engineer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 18862.5,
+      "work_wall_ms": 18645.1,
+      "queued_ms": 22603.4,
+      "completed_ms": 41465.8,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 216.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 77547308.0
+    },
+    {
+      "rank": 27,
+      "company": "BS-Team",
+      "company_aliases": [
+        "BS-Team"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BSTeam_37987",
+      "title": "Expert SharePoint M365",
+      "ok": true,
+      "status": "workflow_failed",
+      "skip_reason": null,
+      "duration_ms": 25213.5,
+      "work_wall_ms": 25024.1,
+      "queued_ms": 23305.7,
+      "completed_ms": 48519.2,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 188.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 1728204.0
+    },
+    {
+      "rank": 28,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR350790",
+      "title": "Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 202.9,
+      "work_wall_ms": 0.0,
+      "queued_ms": 23969.2,
+      "completed_ms": 24172.1,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 202.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 29,
+      "company": "Thomson Reuters",
+      "company_aliases": [
+        "Thomson Reuters"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "ThomsonReuters_JREQ200738",
+      "title": "Senior Product Security Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 203.0,
+      "work_wall_ms": 0.0,
+      "queued_ms": 24173.4,
+      "completed_ms": 24376.4,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 202.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 30,
+      "company": "Bundesverwaltung",
+      "company_aliases": [
+        "Bundesverwaltung"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Bundesverwaltung_10128744",
+      "title": "ICT-System-Spezialist/-in Senior (1211)",
+      "ok": true,
+      "status": "authentication_required",
+      "skip_reason": null,
+      "duration_ms": 22976.9,
+      "work_wall_ms": 22758.4,
+      "queued_ms": 24380.6,
+      "completed_ms": 47357.5,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 218.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 14005652.0
+    },
+    {
+      "rank": 31,
+      "company": "Wavestone",
+      "company_aliases": [
+        "Wavestone"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Wavestone_64928931",
+      "title": "Scrum Master Agile Transformation Schweiz (all genders)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 10092.5,
+      "work_wall_ms": 9880.4,
+      "queued_ms": 24801.3,
+      "completed_ms": 34893.8,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 211.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 10134952.0
+    },
+    {
+      "rank": 32,
+      "company": "Rivia",
+      "company_aliases": [
+        "Rivia"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Rivia_am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+      "title": "Senior Infrastructure Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 9121.2,
+      "work_wall_ms": 8913.4,
+      "queued_ms": 25818.4,
+      "completed_ms": 34939.6,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 207.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 45283552.0
+    },
+    {
+      "rank": 33,
+      "company": "CSS",
+      "company_aliases": [
+        "CSS"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "CSS_679e9fe7",
+      "title": "Senior Java & Integration Engineer (w/m) 80-100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 8776.3,
+      "work_wall_ms": 8567.8,
+      "queued_ms": 26915.6,
+      "completed_ms": 35691.9,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 208.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7560796.0
+    },
+    {
+      "rank": 34,
+      "company": "Baker Hughes",
+      "company_aliases": [
+        "Baker Hughes"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BakerHughes_R164293",
+      "title": "Software Engineer - Embedded Software (d/f/m)",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 216.3,
+      "work_wall_ms": 0.0,
+      "queued_ms": 29482.1,
+      "completed_ms": 29698.5,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 216.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 35,
+      "company": "AutoForm",
+      "company_aliases": [
+        "AutoForm"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "AutoForm_5158",
+      "title": "(Senior) Software Engineer (m/f) 80–100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 10088.5,
+      "work_wall_ms": 9881.4,
+      "queued_ms": 29700.2,
+      "completed_ms": 39788.8,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 206.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5953360.0
+    },
+    {
+      "rank": 36,
+      "company": "AutoForm",
+      "company_aliases": [
+        "AutoForm"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "AutoForm_5157",
+      "title": "(Senior) Software Engineer (m/f) 80-100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 5658.4,
+      "work_wall_ms": 5451.4,
+      "queued_ms": 34130.0,
+      "completed_ms": 39788.5,
+      "worker_id": 1,
+      "target_id": "45BC2FFC86FC00D8CF95A14FA824B135",
+      "cleanup_target_query_ms": 206.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5978988.0
+    },
+    {
+      "rank": 37,
+      "company": "Bundesverwaltung",
+      "company_aliases": [
+        "Bundesverwaltung"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Bundesverwaltung_10123612",
+      "title": "ICT DevOps Engineer Data & Analytics Senior",
+      "ok": true,
+      "status": "authentication_required",
+      "skip_reason": null,
+      "duration_ms": 12462.6,
+      "work_wall_ms": 12243.3,
+      "queued_ms": 34895.2,
+      "completed_ms": 47357.7,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 218.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16391852.0
+    },
+    {
+      "rank": 38,
+      "company": "Digital Wave Finance AG",
+      "company_aliases": [
+        "Digital Wave Finance AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "DigitalWaveFinanceAG_B1B5C73CAF",
+      "title": "C# Developer Platform",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 13190.6,
+      "work_wall_ms": 12976.4,
+      "queued_ms": 34941.1,
+      "completed_ms": 48131.8,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 213.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 23238548.0
+    },
+    {
+      "rank": 39,
+      "company": "Zürcher Kantonalbank",
+      "company_aliases": [
+        "Zürcher Kantonalbank"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Zürcher_Kantonalbank_gen_1ba9e9f4c1f8",
+      "title": "Input Engineer Dokumentenmanagement (m/w/d)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7172.0,
+      "work_wall_ms": 6960.9,
+      "queued_ms": 35693.6,
+      "completed_ms": 42865.6,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 210.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4059272.0
+    },
+    {
+      "rank": 40,
+      "company": "SonarSource",
+      "company_aliases": [
+        "SonarSource"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "SonarSource_063c3fa2-788a-4e2b-b35e-80ff7b122739",
+      "title": "Sales Solutions Engineer - EMEA",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 5082.5,
+      "work_wall_ms": 4888.0,
+      "queued_ms": 37019.9,
+      "completed_ms": 42102.4,
+      "worker_id": 6,
+      "target_id": "CBE1AB17C7A618E84FF2A704A8B92CCE",
+      "cleanup_target_query_ms": 194.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5455916.0
+    },
+    {
+      "rank": 41,
+      "company": "Crypto Finance AG",
+      "company_aliases": [
+        "Crypto Finance AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "CryptoFinance_49C70CEE5E",
+      "title": "Frontend Developer (Angular)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 9285.2,
+      "work_wall_ms": 9071.3,
+      "queued_ms": 39790.9,
+      "completed_ms": 49076.1,
+      "worker_id": 1,
+      "target_id": "45BC2FFC86FC00D8CF95A14FA824B135",
+      "cleanup_target_query_ms": 212.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 36668808.0
+    },
+    {
+      "rank": 42,
+      "company": "Brack",
+      "company_aliases": [
+        "Brack"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Brack_gen_e9539f58830f",
+      "title": "Senior Software Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 11883.2,
+      "work_wall_ms": 11673.3,
+      "queued_ms": 39792.3,
+      "completed_ms": 51675.5,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 208.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4433144.0
+    },
+    {
+      "rank": 43,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+      "title": "Praktikum Java/Kotlin",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 17161.3,
+      "work_wall_ms": 16951.6,
+      "queued_ms": 41467.0,
+      "completed_ms": 58628.3,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 209.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 11535888.0
+    },
+    {
+      "rank": 44,
+      "company": "MSC Cruises",
+      "company_aliases": [
+        "MSC Cruises"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "MSC_Cruises_17244",
+      "title": "Test Analyst",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 12686.7,
+      "work_wall_ms": 12491.1,
+      "queued_ms": 42103.8,
+      "completed_ms": 54790.5,
+      "worker_id": 6,
+      "target_id": "CBE1AB17C7A618E84FF2A704A8B92CCE",
+      "cleanup_target_query_ms": 195.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 9012212.0
+    },
+    {
+      "rank": 45,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR349194",
+      "title": "Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 213.8,
+      "work_wall_ms": 0.0,
+      "queued_ms": 42866.6,
+      "completed_ms": 43080.4,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 213.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 46,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR349201",
+      "title": "Lead Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 217.8,
+      "work_wall_ms": 0.0,
+      "queued_ms": 43081.3,
+      "completed_ms": 43299.1,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 217.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 47,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR349191",
+      "title": "Lead Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 200.4,
+      "work_wall_ms": 0.0,
+      "queued_ms": 43300.0,
+      "completed_ms": 43500.5,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 200.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 48,
+      "company": "Salesforce",
+      "company_aliases": [
+        "Salesforce"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Salesforce_JR349988-1",
+      "title": "Senior Forward Deployed Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 202.6,
+      "work_wall_ms": 0.0,
+      "queued_ms": 43501.8,
+      "completed_ms": 43704.4,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 202.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 49,
+      "company": "Eraneos",
+      "company_aliases": [
+        "Eraneos"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Eraneos_JR100288",
+      "title": "Senior Consultant Generative AI & Agentic AI 60-100%",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 201.1,
+      "work_wall_ms": 0.0,
+      "queued_ms": 43705.4,
+      "completed_ms": 43906.5,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 200.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 50,
+      "company": "Eraneos",
+      "company_aliases": [
+        "Eraneos"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Eraneos_JR100287",
+      "title": "Senior Consultant Generative AI & Agentic AI 60-100%",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 200.7,
+      "work_wall_ms": 0.0,
+      "queued_ms": 43907.7,
+      "completed_ms": 44108.4,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 200.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 51,
+      "company": "BCG",
+      "company_aliases": [
+        "BCG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BCG_794",
+      "title": "AI Tech Consultant (all genders) - BCG Platinion Zurich, Switzerland",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 23994.2,
+      "work_wall_ms": 23774.8,
+      "queued_ms": 44093.7,
+      "completed_ms": 68087.8,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 218.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 8084776.0
+    },
+    {
+      "rank": 52,
+      "company": "BCG",
+      "company_aliases": [
+        "BCG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BCG_795",
+      "title": "Senior AI Tech Consultant (all genders) - BCG Platinion Zurich, Switzerland",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 23978.0,
+      "work_wall_ms": 23759.5,
+      "queued_ms": 44109.7,
+      "completed_ms": 68087.6,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 218.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 8094288.0
+    },
+    {
+      "rank": 53,
+      "company": "BCG",
+      "company_aliases": [
+        "BCG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BCG_799",
+      "title": "Senior AI Tech Architect (all genders) - BCG Platinion Zurich, Switzerland",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 26331.0,
+      "work_wall_ms": 26125.7,
+      "queued_ms": 47359.1,
+      "completed_ms": 73690.1,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 204.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 8064464.0
+    },
+    {
+      "rank": 54,
+      "company": "BCG",
+      "company_aliases": [
+        "BCG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BCG_802",
+      "title": "AI Tech Architect (all genders) - BCG Platinion Zurich, Switzerland",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 26346.3,
+      "work_wall_ms": 26128.4,
+      "queued_ms": 47360.0,
+      "completed_ms": 73706.3,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 217.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7997660.0
+    },
+    {
+      "rank": 55,
+      "company": "NZZ",
+      "company_aliases": [
+        "NZZ"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+      "title": "Data Generalist / Senior Data Scientist-Engineer (w/m) 80 - 100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 13898.5,
+      "work_wall_ms": 13682.5,
+      "queued_ms": 48133.7,
+      "completed_ms": 62032.2,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 215.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 6582136.0
+    },
+    {
+      "rank": 56,
+      "company": "Pax",
+      "company_aliases": [
+        "Pax"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Pax_10094251",
+      "title": "Senior Data Engineer (w/m/d)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7992.7,
+      "work_wall_ms": 7793.1,
+      "queued_ms": 48520.7,
+      "completed_ms": 56513.3,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 198.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 22687112.0
+    },
+    {
+      "rank": 57,
+      "company": "MSC Cruises",
+      "company_aliases": [
+        "MSC Cruises"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "MSC_Cruises_17171",
+      "title": "AI Tech Lead",
+      "ok": true,
+      "status": "workflow_failed",
+      "skip_reason": null,
+      "duration_ms": 58633.0,
+      "work_wall_ms": 58415.8,
+      "queued_ms": 49077.8,
+      "completed_ms": 107710.8,
+      "worker_id": 1,
+      "target_id": "45BC2FFC86FC00D8CF95A14FA824B135",
+      "cleanup_target_query_ms": 216.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 84647476.0
+    },
+    {
+      "rank": 58,
+      "company": "Zürcher Kantonalbank",
+      "company_aliases": [
+        "Zürcher Kantonalbank"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Zürcher_Kantonalbank_gen_238727d9ac12",
+      "title": "Fullstack DevOps Engineer (m/w/d)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 4820.9,
+      "work_wall_ms": 4622.6,
+      "queued_ms": 51676.8,
+      "completed_ms": 56497.7,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 197.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 3938840.0
+    },
+    {
+      "rank": 59,
+      "company": "Crypto Finance AG",
+      "company_aliases": [
+        "Crypto Finance AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "CryptoFinance_CC933BBD7A",
+      "title": "Linux System Engineer",
+      "ok": true,
+      "status": "workflow_failed",
+      "skip_reason": null,
+      "duration_ms": 48322.7,
+      "work_wall_ms": 48109.2,
+      "queued_ms": 54791.9,
+      "completed_ms": 103114.6,
+      "worker_id": 6,
+      "target_id": "CBE1AB17C7A618E84FF2A704A8B92CCE",
+      "cleanup_target_query_ms": 212.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 47527280.0
+    },
+    {
+      "rank": 60,
+      "company": "Eraneos",
+      "company_aliases": [
+        "Eraneos"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Eraneos_JR100116",
+      "title": "(Senior) Consultant Solution Architect Financial Services 80-100%",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 215.4,
+      "work_wall_ms": 0.0,
+      "queued_ms": 56498.9,
+      "completed_ms": 56714.3,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 215.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 61,
+      "company": "RUAG",
+      "company_aliases": [
+        "RUAG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "RUAG_gen_a982422a50b7",
+      "title": "AI Engineer C5I",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 5671.1,
+      "work_wall_ms": 5459.4,
+      "queued_ms": 56514.8,
+      "completed_ms": 62185.9,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 211.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 10802764.0
+    },
+    {
+      "rank": 62,
+      "company": "RUAG",
+      "company_aliases": [
+        "RUAG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "RUAG_gen_92274acc2551",
+      "title": "Software Engineer C5I",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7527.4,
+      "work_wall_ms": 7321.5,
+      "queued_ms": 56715.5,
+      "completed_ms": 64243.0,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 205.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 10908780.0
+    },
+    {
+      "rank": 63,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_9feefbec-a75c-4822-82a8-f9141ce4d24d",
+      "title": "Senior Fullstack Engineer (Java & Angular)",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 9069.0,
+      "work_wall_ms": 8860.0,
+      "queued_ms": 58629.6,
+      "completed_ms": 67698.6,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 208.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 12907988.0
+    },
+    {
+      "rank": 64,
+      "company": "Arina",
+      "company_aliases": [
+        "Arina"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Arina_16298292",
+      "title": "Forensic Solution Engineer m/w/d",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 9220.4,
+      "work_wall_ms": 9027.6,
+      "queued_ms": 62034.3,
+      "completed_ms": 71254.7,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 192.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 58283680.0
+    },
+    {
+      "rank": 65,
+      "company": "Richemont",
+      "company_aliases": [
+        "Richemont"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Richemont_jr129923",
+      "title": "Ingénieur R&I Firmware & Architecture Ultra Low Power (H/F)",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 4221.6,
+      "work_wall_ms": 4014.4,
+      "queued_ms": 62187.7,
+      "completed_ms": 66409.3,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 206.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 10017152.0
+    },
+    {
+      "rank": 66,
+      "company": "BS-Team",
+      "company_aliases": [
+        "BS-Team"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BSTeam_36773",
+      "title": "Chef de Projet IT",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 11713.4,
+      "work_wall_ms": 11496.0,
+      "queued_ms": 64245.2,
+      "completed_ms": 75958.6,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 216.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 21405684.0
+    },
+    {
+      "rank": 67,
+      "company": "Monolithic Power Systems",
+      "company_aliases": [
+        "Monolithic Power Systems"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "MonolithicPower_R-1456",
+      "title": "IT Infrastrucure Engineer",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 216.1,
+      "work_wall_ms": 0.0,
+      "queued_ms": 66410.5,
+      "completed_ms": 66626.6,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 215.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 68,
+      "company": "Eraneos",
+      "company_aliases": [
+        "Eraneos"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Eraneos_JR100263",
+      "title": "Enterprise Solution Architect 80-100%",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 201.3,
+      "work_wall_ms": 0.0,
+      "queued_ms": 66627.6,
+      "completed_ms": 66828.9,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 200.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 69,
+      "company": "Eraneos",
+      "company_aliases": [
+        "Eraneos"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Eraneos_JR100258",
+      "title": "(Senior) Data Analytics Consultant 60-100%",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 202.6,
+      "work_wall_ms": 0.0,
+      "queued_ms": 66829.9,
+      "completed_ms": 67032.6,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 202.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 70,
+      "company": "Destinus",
+      "company_aliases": [
+        "Destinus"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Destinus_47D8F41867",
+      "title": "IT Security Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7495.8,
+      "work_wall_ms": 7293.2,
+      "queued_ms": 67034.1,
+      "completed_ms": 74530.0,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 202.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 26056272.0
+    },
+    {
+      "rank": 71,
+      "company": "BS-Team",
+      "company_aliases": [
+        "BS-Team"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BSTeam_32288",
+      "title": "Product Owner Plan de Reprise d’Activité (PRA) / Disaster Recovery Plan (DRP)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 6799.6,
+      "work_wall_ms": 6587.5,
+      "queued_ms": 67699.8,
+      "completed_ms": 74499.4,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 211.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 21020740.0
+    },
+    {
+      "rank": 72,
+      "company": "Alohi",
+      "company_aliases": [
+        "Alohi"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Alohi_c04ce541-0cda-46eb-807f-914853681c67",
+      "title": "Backend Developer (VoIP)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 2313.9,
+      "work_wall_ms": 2093.6,
+      "queued_ms": 68089.1,
+      "completed_ms": 70403.0,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 219.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 14834060.0
+    },
+    {
+      "rank": 73,
+      "company": "adesso",
+      "company_aliases": [
+        "adesso"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "adesso_2680",
+      "title": "Software Architekt Java (all genders)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 12476.6,
+      "work_wall_ms": 12263.8,
+      "queued_ms": 68090.2,
+      "completed_ms": 80566.8,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 212.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 10947148.0
+    },
+    {
+      "rank": 74,
+      "company": "ANYbotics",
+      "company_aliases": [
+        "ANYbotics"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "ANYbotics_7e305a48-4628-4a6a-b054-0367b6f6e586",
+      "title": "Software Engineering Internship - AI Platform",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 6317.2,
+      "work_wall_ms": 6104.7,
+      "queued_ms": 70405.1,
+      "completed_ms": 76722.3,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 212.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 5422344.0
+    },
+    {
+      "rank": 75,
+      "company": "ONLU AG",
+      "company_aliases": [
+        "ONLU AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "ONLU_995",
+      "title": "DevOps / Software Engineer (m/w) 80 - 100% - Zug - Zürich - Luzern - Basel: German Speaking= MUST",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 11480.1,
+      "work_wall_ms": 11275.8,
+      "queued_ms": 71256.4,
+      "completed_ms": 82736.5,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 203.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7088904.0
+    },
+    {
+      "rank": 76,
+      "company": "Fincons Group",
+      "company_aliases": [
+        "Fincons Group"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "FinconsGroup_hEPeMkC7c1",
+      "title": "Senior Applikations-Entwickler: in 80 - 100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 8052.4,
+      "work_wall_ms": 7845.4,
+      "queued_ms": 73691.7,
+      "completed_ms": 81744.1,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 206.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7513232.0
+    },
+    {
+      "rank": 77,
+      "company": "Harmattan AI",
+      "company_aliases": [
+        "Harmattan AI"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "harmattan_ai_4c08b32b-5abf-426f-8ee0-b172bd7a8ead",
+      "title": "Software Test & Validation Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 3340.9,
+      "work_wall_ms": 3128.8,
+      "queued_ms": 73707.5,
+      "completed_ms": 77048.4,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 211.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 18634048.0
+    },
+    {
+      "rank": 78,
+      "company": "Julius Bär",
+      "company_aliases": [
+        "Julius Bär"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "JuliusBaer_r-16579",
+      "title": "Remote Access Engineer (Citrix NetScaler & Zscaler Private Access) 100% (f/m/d)",
+      "ok": true,
+      "status": "skipped_by_metadata",
+      "skip_reason": "declared_mode_account",
+      "duration_ms": 199.6,
+      "work_wall_ms": 0.0,
+      "queued_ms": 74500.9,
+      "completed_ms": 74700.5,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 199.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 79,
+      "company": "Meier Tobler",
+      "company_aliases": [
+        "Meier Tobler"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Meier_Tobler_2b0b6e61-4708-4619-91af-b56ab9d1d0c8",
+      "title": "DevSecOps Platform Engineer 80-100% (w/m)",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 22126.5,
+      "work_wall_ms": 21923.0,
+      "queued_ms": 74532.3,
+      "completed_ms": 96658.8,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 203.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 20699564.0
+    },
+    {
+      "rank": 80,
+      "company": "Microservice Solutions",
+      "company_aliases": [
+        "Microservice Solutions"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "MicroserviceSolutions_senior-backend-developer",
+      "title": "Senior Backend Developer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 18415.4,
+      "work_wall_ms": 18198.4,
+      "queued_ms": 74702.8,
+      "completed_ms": 93118.2,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 215.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 41015580.0
+    },
+    {
+      "rank": 81,
+      "company": "Mimic",
+      "company_aliases": [
+        "Mimic"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Mimic_am9icG9zdDohvbB9aDWzwurqy6QSQzMi",
+      "title": "Forward Deployed Robotics Engineer",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 6095.1,
+      "work_wall_ms": 5902.0,
+      "queued_ms": 75960.2,
+      "completed_ms": 82055.3,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 192.5,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 47448592.0
+    },
+    {
+      "rank": 82,
+      "company": "finnova",
+      "company_aliases": [
+        "finnova"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "finnova_10099704",
+      "title": "Software Engineer Kartenverwaltung & Schalter (all) 100%",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 16842.5,
+      "work_wall_ms": 16634.5,
+      "queued_ms": 76724.3,
+      "completed_ms": 93566.8,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 207.1,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16321032.0
+    },
+    {
+      "rank": 83,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_fc2dd119-3d49-4799-82ec-36cc58326a0e",
+      "title": "Senior Data Engineer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 10948.9,
+      "work_wall_ms": 10740.1,
+      "queued_ms": 77050.1,
+      "completed_ms": 87998.9,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 208.4,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 9828620.0
+    },
+    {
+      "rank": 84,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_5b10ee45-d5a1-4521-a337-b237aa1eb70d",
+      "title": "Senior System Engineer mit Schwerpunkt Kubernetes / OpenShift",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 10709.3,
+      "work_wall_ms": 10501.0,
+      "queued_ms": 80568.8,
+      "completed_ms": 91278.1,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 207.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16296508.0
+    },
+    {
+      "rank": 85,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+      "title": "Professional Data Engineer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 9123.2,
+      "work_wall_ms": 8913.7,
+      "queued_ms": 81745.5,
+      "completed_ms": 90868.8,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 209.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 15269020.0
+    },
+    {
+      "rank": 86,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_f114aa82-f48f-42a9-a47d-ecae2da39ce4",
+      "title": "Lead Engineer Frontend / Product Architect Frontend",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 9954.6,
+      "work_wall_ms": 9751.2,
+      "queued_ms": 82057.0,
+      "completed_ms": 92011.6,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 202.9,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16281752.0
+    },
+    {
+      "rank": 87,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_e2f0a4af-8d2e-472d-9ffa-3e3ae8a5a21d",
+      "title": "Application Engineer / Technical Project Manager",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 9599.6,
+      "work_wall_ms": 9381.1,
+      "queued_ms": 82737.7,
+      "completed_ms": 92337.3,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 218.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16194740.0
+    },
+    {
+      "rank": 88,
+      "company": "ti&m",
+      "company_aliases": [
+        "ti&m"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "TiM_d4613aaf-ae08-4f4a-a836-da47919b73ec",
+      "title": "Azure Cloud Architect",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 8164.7,
+      "work_wall_ms": 7945.8,
+      "queued_ms": 88000.3,
+      "completed_ms": 96165.0,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 218.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16277696.0
+    },
+    {
+      "rank": 89,
+      "company": "BKW",
+      "company_aliases": [
+        "BKW"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "BKW_7298",
+      "title": "Quantitative Commodity Analyst (all)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 16219.4,
+      "work_wall_ms": 16010.9,
+      "queued_ms": 90870.2,
+      "completed_ms": 107089.6,
+      "worker_id": 9,
+      "target_id": "8A3CF82C37C223DFAF6C4CB8A7BADC7D",
+      "cleanup_target_query_ms": 208.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 19408936.0
+    },
+    {
+      "rank": 90,
+      "company": "Zürcher Kantonalbank",
+      "company_aliases": [
+        "Zürcher Kantonalbank"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Zürcher_Kantonalbank_gen_bb2244e94443",
+      "title": "Product Owner Mobile Apps (m/w/d)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 4098.9,
+      "work_wall_ms": 3888.8,
+      "queued_ms": 91279.3,
+      "completed_ms": 95378.2,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 209.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4377004.0
+    },
+    {
+      "rank": 91,
+      "company": "aity AG",
+      "company_aliases": [
+        "aity AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Aity_10163811",
+      "title": "ServiceNow Engineer (a)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 10529.4,
+      "work_wall_ms": 10313.2,
+      "queued_ms": 92013.3,
+      "completed_ms": 102542.7,
+      "worker_id": 4,
+      "target_id": "29094461B26D0A98EF14F045AAC42B8D",
+      "cleanup_target_query_ms": 215.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 3101256.0
+    },
+    {
+      "rank": 92,
+      "company": "Zürcher Kantonalbank",
+      "company_aliases": [
+        "Zürcher Kantonalbank"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Zürcher_Kantonalbank_gen_37ad9a0532c7",
+      "title": "Scrum Master (m/w/d)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 4787.7,
+      "work_wall_ms": 4580.6,
+      "queued_ms": 92338.6,
+      "completed_ms": 97126.2,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 206.6,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 4096168.0
+    },
+    {
+      "rank": 93,
+      "company": "Advertima Vision",
+      "company_aliases": [
+        "Advertima Vision"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "AdvertimaVision_aFKdIK5rZD",
+      "title": "Senior Software Engineer (Full Stack), Fleet Management",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 2890.1,
+      "work_wall_ms": 2695.3,
+      "queued_ms": 93119.7,
+      "completed_ms": 96009.7,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 194.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7777144.0
+    },
+    {
+      "rank": 94,
+      "company": "Ansam Group",
+      "company_aliases": [
+        "Ansam Group"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Ansam_8268016",
+      "title": "Développeur·euse Delphi",
+      "ok": true,
+      "status": "authentication_required",
+      "skip_reason": null,
+      "duration_ms": 3773.7,
+      "work_wall_ms": 3568.2,
+      "queued_ms": 93568.7,
+      "completed_ms": 97342.4,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 205.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 12548620.0
+    },
+    {
+      "rank": 95,
+      "company": "Kanton Genf",
+      "company_aliases": [
+        "Kanton Genf"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Kanton_Genf_gen_48d923bc5346",
+      "title": "Conseiller/ère en numérique orienté-e Servicenow (Product Owner)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7131.5,
+      "work_wall_ms": 6931.1,
+      "queued_ms": 95379.5,
+      "completed_ms": 102511.0,
+      "worker_id": 2,
+      "target_id": "9C7BE71005F39D5DB52D1A84482399F1",
+      "cleanup_target_query_ms": 200.0,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 7471180.0
+    },
+    {
+      "rank": 96,
+      "company": "Mettler Toledo",
+      "company_aliases": [
+        "Mettler Toledo"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "MettlerToledo_99655860032",
+      "title": "DSP Engineer",
+      "ok": true,
+      "status": "no_application_form",
+      "skip_reason": null,
+      "duration_ms": 14348.7,
+      "work_wall_ms": 14137.9,
+      "queued_ms": 96011.5,
+      "completed_ms": 110360.2,
+      "worker_id": 0,
+      "target_id": "EA42845E0753A64634BF3E9D395188ED",
+      "cleanup_target_query_ms": 210.2,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 12790168.0
+    },
+    {
+      "rank": 97,
+      "company": "finnova",
+      "company_aliases": [
+        "finnova"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "finnova_10159332",
+      "title": "Product Owner Gebühren, Tarife und Geldwäscherei (all) 100%",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 7659.4,
+      "work_wall_ms": 7449.1,
+      "queued_ms": 96166.9,
+      "completed_ms": 103826.2,
+      "worker_id": 7,
+      "target_id": "6C390500D10E240B1EDBA86194A94396",
+      "cleanup_target_query_ms": 209.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 21686016.0
+    },
+    {
+      "rank": 98,
+      "company": "Bundesverwaltung",
+      "company_aliases": [
+        "Bundesverwaltung"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Bundesverwaltung_10158697",
+      "title": "Lehrgang als ICT-Systemspezialist/-in Junior an der ICT Warrior Academy (Start im März 2027)",
+      "ok": true,
+      "status": "authentication_required",
+      "skip_reason": null,
+      "duration_ms": 5773.2,
+      "work_wall_ms": 5557.7,
+      "queued_ms": 96660.4,
+      "completed_ms": 102433.5,
+      "worker_id": 5,
+      "target_id": "0F3D6BA17C5520D06116F81E51098C17",
+      "cleanup_target_query_ms": 214.7,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 16344572.0
+    },
+    {
+      "rank": 99,
+      "company": "Universitätsspital Zürich",
+      "company_aliases": [
+        "Universitätsspital Zürich"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Universitätsspital_Zürich_10158611",
+      "title": "Data Platform Engineer 80-100%",
+      "ok": true,
+      "status": "generic_form",
+      "skip_reason": null,
+      "duration_ms": 9993.0,
+      "work_wall_ms": 9787.1,
+      "queued_ms": 97128.0,
+      "completed_ms": 107121.0,
+      "worker_id": 3,
+      "target_id": "CA1E45A79F10B420FF9596F4FDDE5BD8",
+      "cleanup_target_query_ms": 204.8,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": null
+    },
+    {
+      "rank": 100,
+      "company": "aity AG",
+      "company_aliases": [
+        "aity AG"
+      ],
+      "employer_group_id": null,
+      "employer_site": null,
+      "job_id": "Aity_10159359",
+      "title": "Datenbank Engineer (a)",
+      "ok": true,
+      "status": "form_processed",
+      "skip_reason": null,
+      "duration_ms": 5198.6,
+      "work_wall_ms": 4982.7,
+      "queued_ms": 97344.4,
+      "completed_ms": 102542.9,
+      "worker_id": 8,
+      "target_id": "712D3E18346C4C5243A96DA1B0A8EABD",
+      "cleanup_target_query_ms": 215.3,
+      "cleanup_descendants": 0,
+      "js_heap_used_bytes": 3740376.0
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+[
+ {
+  "host": "jobs.lever.co",
+  "company": "SonarSource",
+  "recorded_from": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+  "form_url": "https://jobs.lever.co/sonarsource/13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0/apply",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "APPLY FOR THIS JOB",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"name\"]",
+    "label": "Full name\n✱",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "Email\n✱",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Phone\n✱",
+    "kind": "text",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#location-input",
+    "label": "Current location\n✱",
+    "kind": "text",
+    "name": "location",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "input[name=\"org\"]",
+    "label": "Current company",
+    "kind": "text",
+    "name": "org",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "current_company"
+   },
+   {
+    "selector": "input[name=\"urls[LinkedIn]\"]",
+    "label": "LinkedIn URL\n✱",
+    "kind": "text",
+    "name": "urls[LinkedIn]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "select[name=\"eeo[gender]\"]",
+    "label": "Gender\nSelect ...\nMale\nFemale\nDecline to self-identify",
+    "kind": "select",
+    "name": "eeo[gender]",
+    "required": false,
+    "options_sample": [
+     "Select ...",
+     "Male",
+     "Female",
+     "Decline to self-identify"
+    ],
+    "options_count": 4,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Female",
+    "kind": "radio",
+    "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+    "required": false,
+    "group_label": "What gender do you identify as?",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"consent[marketing]\"]",
+    "label": "Yes, Sonar can contact me about future job opportunities for up to 3 years\nPrivacy policy",
+    "kind": "checkbox",
+    "name": "consent[marketing]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#resume-upload-input",
+    "label": "",
+    "name": "resume",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [
+   {
+    "selector": "li:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": null,
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "ul:nth-of-type(1) > li:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Type your response",
+    "kind": "text",
+    "semantic": "tailored_response"
+   },
+   {
+    "selector": "li:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": null,
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "88ec5be867632ee0",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:04:03",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,1835 @@
+[
+ {
+  "host": "apply.refline.ch",
+  "company": "Möbel Pfister",
+  "recorded_from": "mobel-pfister__MoebelPfister_3450_1",
+  "form_url": "https://apply.refline.ch/424626/3450/wKIQlA8wo1PuGUWvKZJx7.q.SZMhCMgC60JjQV56Tasau1ly2t-tYg/apply",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Monsieur",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Civilité",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nom de famille *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Prénom *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Date de naissance (jj.mm.aaaa) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalités *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalités *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Afrique du Sud",
+     "Åland, Îles",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Andorre",
+     "Angola"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Rue, n° *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "Code postal *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Pays *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Afrique du Sud",
+     "Åland, Îles",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Andorre",
+     "Angola"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-permit",
+    "label": "Permis de travail (si pas CH)",
+    "kind": "select",
+    "name": "form.widgets.permit:list",
+    "required": false,
+    "options_sample": [
+     "Pas de valeur",
+     "B EU/EFTA",
+     "C EU/EFTA",
+     "Ci EU/EFTA",
+     "G EU/EFTA",
+     "L EU/EFTA",
+     "Bachelor",
+     "C"
+    ],
+    "options_count": 14,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "Email *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "Vérifier l'email *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Téléphone 1 *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-workPhone",
+    "label": "Téléphone 2",
+    "kind": "text",
+    "name": "form.widgets.workPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "Comment avez-vous entendu parler de nous? *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "(Aucune valeur)",
+     "Facebook",
+     "Par une connaissance",
+     "www.indeed.ch",
+     "Instagram",
+     "Autre portail d’offres d’emploi",
+     "LinkedIn",
+     "Employé Pfister (veuillez indiquer le no"
+    ],
+    "options_count": 16,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#form-widgets-expectedSalary",
+    "label": "Salaire escompté *",
+    "kind": "text",
+    "name": "form.widgets.expectedSalary",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#form-widgets-city",
+    "label": "Lieu *",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "03713998bb761b79",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:59",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Kanton Luzern",
+  "recorded_from": "kanton-luzern__Kanton_Luzern_gen_1294044bb7d5",
+  "form_url": "https://apply.refline.ch/891537/5086/dH0bwISWgwm5hNDvKnE4v7GcOq4ax7pklG-qQHI-JKQG3ftx01cuUU/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "bitte wählen...",
+     "Kanton Luzern Websites",
+     "Empfehlung Mitarbeiter/in des Kantons Lu",
+     "LinkedIn",
+     "weitere Social Media",
+     "jobs.ch",
+     "zebis.ch",
+     "sozialinfo.ch"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#form-widgets-contactComment",
+    "label": "Bei einer Empfehlung durch eine/n Mitarbeiter/in des Kantons Luzern bitte Vor- und Nachname sowie Funktion oder Abteilung/Dienststelle der Person angeben.",
+    "kind": "textarea",
+    "name": "form.widgets.contactComment",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "fc6b9bddfb386e2f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:30",
+  "stats": {
+   "uses": 5,
+   "successes": 3,
+   "consecutive_failures": 2,
+   "last_ok": "2026-08-29T20:30:40"
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Kanton Graubunden",
+  "recorded_from": "kanton-graubunden__Kanton_Graubunden_gen_af92d128ab92",
+  "form_url": "https://apply.refline.ch/514915/2825/zoofRgtJvQVQR0j5QFZARxt8xBUCyhSktzyD7sr7GbVPrQn6pS0Ro0/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#sticky_titles > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalitäten *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalitäten *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "E-Mail bestätigen *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "karriere.gr.ch / jobs.gr.ch",
+     "jobs.ch",
+     "Social Media",
+     "suedostschweizjobs.ch",
+     "jobs.nzz.ch",
+     "itjobs.ch",
+     "medicjobs.ch",
+     "Andere Printmedien"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c29fbd4e6b0d592b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:24",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "FHNW",
+  "recorded_from": "fhnw__FHNW_4565_1",
+  "form_url": "https://apply.refline.ch/655298/4565/wKIQlA8wo1PuGUWvKZJx7.q.SZMhCMgC60JjQV56Tasau1ly2t-tYg/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#content_box > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalitäten *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalitäten *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Strasse, Nr *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "form.widgets.city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "E-Mail bestätigen *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon Privat",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-workPhone",
+    "label": "Telefon Geschäft",
+    "kind": "text",
+    "name": "form.widgets.workPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-mobilePhone",
+    "label": "Telefon Mobile",
+    "kind": "text",
+    "name": "form.widgets.mobilePhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-question2",
+    "label": "Bitte teilen Sie uns Ihren Gehaltswunsch (Jahressalär 100% inkl. 13. Monatslohn) mit. *",
+    "kind": "textarea",
+    "name": "form.widgets.question2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "Wie wurden Sie auf uns aufmerksam? *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "(Kein Wert)",
+     "Aargauer Zeitung",
+     "academics.ch",
+     "alpha.ch",
+     "Basellandschaftliche Zeitung",
+     "Basler Zeitung",
+     "Facebook",
+     "fhnw.ch"
+    ],
+    "options_count": 32,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#form-widgets-question0",
+    "label": "Verfügen Sie über einen kaufmännischen EFZ-Abschluss? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#form-widgets-question1",
+    "label": "Verfügen Sie über eine Weiterbildung mit eidg. Fachausweis oder äquivalent? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "8879dd7b9675c3a9",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:59",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Burckhardt",
+  "recorded_from": "burckhardt__Burckhardt_0338",
+  "form_url": "https://apply.refline.ch/403125/0338/zoofRgtJvQVQR0j5QFZARxt8xBUCyhSktzyD7sr7GbVPrQn6pS0Ro0/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#pub > div:nth-of-type(2) > div:nth-of-type(6) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Strasse, Nr *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "form.widgets.city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#s2id_autogen2",
+    "label": "Nationalitäten *",
+    "kind": "text",
+    "name": "s2id_autogen2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalitäten *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden:",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": false,
+    "options_sample": [
+     "Persönliche Empfehlung (bitte angeben)",
+     "Printmedien",
+     "Online Stellenplattform",
+     "Homepage",
+     "Andere Kanäle"
+    ],
+    "options_count": 5,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "dace5cebe6f306a2",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:52",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Pilatus-Bahnen",
+  "recorded_from": "pilatus-bahnen__PilatusBahnen_0523",
+  "form_url": "https://apply.refline.ch/449361/0523/s9c70UK6eZwtj8L2wiYz-gEwLWgsYK0iT2.QAOIJgdLPRHvurVxQxE/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(12) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalitäten *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalitäten *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Strasse, Nr *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "form.widgets.city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "E-Mail bestätigen *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Empfehlung durch Mitarbeitende der Pilat",
+     "Homepage der Pilatus-Bahnen AG",
+     "gastrojob.ch",
+     "Hosco.com",
+     "Hotelcareer.ch",
+     "Work in Lucerne",
+     "Indeed.ch"
+    ],
+    "options_count": 16,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c00d204173e813cc",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:20",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Reusspark",
+  "recorded_from": "reusspark__Reusspark_0679_9",
+  "form_url": "https://apply.refline.ch/621615/0679/Ffs5Y84vcfqFLpwIDA3D7rRpGIwP-UPt.FiVnisc80I0.3-sL5oUl0/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#footer > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalitäten *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalitäten *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Strasse, Nr *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "form.widgets.city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "E-Mail bestätigen *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon 1 *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-workPhone",
+    "label": "Telefon 2",
+    "kind": "text",
+    "name": "form.widgets.workPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden:",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": false,
+    "options_sample": [
+     "(Kein Wert)",
+     "Bekannte / Freunde",
+     "Mitarbeiter/in Reusspark",
+     "Personalvermittlung",
+     "Homepage Reusspark",
+     "jobs.ch/jobscout24.ch",
+     "sozjobs.ch",
+     "Instagram"
+    ],
+    "options_count": 12,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "3adeef59ac502d2c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:23",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Zuger Kantonalbank",
+  "recorded_from": "zuger-kantonalbank__ZugerKB_0629_2",
+  "form_url": "https://apply.refline.ch/254093/0629/s9c70UK6eZwtj8L2wiYz-gEwLWgsYK0iT2.QAOIJgdLPRHvurVxQxE/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#sticky_titles > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Strasse, Nr *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "form.widgets.city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "E-Mail bestätigen *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "Jobs.ch",
+     "Firmenwebseite",
+     "LinkedIn",
+     "Freunde / Bekannte",
+     "Empfehlung durch Mitarbeitende",
+     "Personaldienstleister",
+     "Sonstiges"
+    ],
+    "options_count": 7,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#form-widgets-question0",
+    "label": "Erwarteter Salärrahmen *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "d2d509c37ec6a3dd",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:22",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Caritas",
+  "recorded_from": "caritas__Caritas_2351_1",
+  "form_url": "https://apply.refline.ch/126757/2351/Ffs5Y84vcfqFLpwIDA3D7rRpGIwP-UPt.FiVnisc80I0.3-sL5oUl0/apply",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#pub > div:nth-of-type(10) > a:nth-of-type(1)",
+    "label": "Candidature en ligne",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Monsieur",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Civilité",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Prénom *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nom de famille *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Date de naissance (jj.mm.aaaa) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalités *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalités *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Afrique du Sud",
+     "Åland, Îles",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Andorre",
+     "Angola"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Rue, n° *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "Code postal *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Pays *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Afrique du Sud",
+     "Åland, Îles",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Andorre",
+     "Angola"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "Email *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "Vérifier l'email *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Téléphone 1 *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-workPhone",
+    "label": "Téléphone 2",
+    "kind": "text",
+    "name": "form.widgets.workPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-question0",
+    "label": "Quelles sont vos prétentions salariales? Salaire annuel à 100%, 13e salaire inclus *",
+    "kind": "textarea",
+    "name": "form.widgets.question0",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "Comment nous avez-vous trouvé?",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": false,
+    "options_sample": [
+     "(Aucune valeur)",
+     "Homepage Caritas Suisse",
+     "cinfo",
+     "epojobs",
+     "Jobmail",
+     "www.jobs.ch",
+     "www.jobup.ch",
+     "Kampajobs"
+    ],
+    "options_count": 17,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#form-widgets-city",
+    "label": "Lieu *",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#form-widgets-question2",
+    "label": "Quelle serait la charge de travail idéale pour vous? *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#form-widgets-question1",
+    "label": "Quand serez-vous disponible? *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#form-widgets-question3",
+    "label": "Quelle a été votre principale motivation pour postuler à ce poste? *",
+    "kind": "textarea",
+    "semantic": "tailored_response"
+   }
+  ],
+  "fingerprint": "c9c65a2bf4356111",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:30",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.refline.ch",
+  "company": "Kanton Luzern",
+  "recorded_from": "Kanton_Luzern_gen_aaae17c6782c",
+  "form_url": "https://apply.refline.ch/891537/6091/RUz-0RPXleG14jwpJG9L7Ht-w0ofSGiTgJXb2TMeN.LNt-N8Lxo2Cg/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-0",
+    "label": "Frau",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "bitte wählen...",
+     "Kanton Luzern Websites",
+     "Empfehlung Mitarbeiter/in des Kantons Lu",
+     "LinkedIn",
+     "weitere Social Media",
+     "jobs.ch",
+     "zebis.ch",
+     "sozialinfo.ch"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#form-widgets-contactComment",
+    "label": "Bei einer Empfehlung durch eine/n Mitarbeiter/in des Kantons Luzern bitte Vor- und Nachname sowie Funktion oder Abteilung/Dienststelle der Person angeben.",
+    "kind": "textarea",
+    "name": "form.widgets.contactComment",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   }
+  ],
+  "files": [
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"qqfile\"]",
+    "label": "",
+    "name": "qqfile",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "59eff0f8b5fc7a98",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:56:55",
+  "stats": {
+   "uses": 1,
+   "successes": 1,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T21:03:26"
+  }
+ }
+]

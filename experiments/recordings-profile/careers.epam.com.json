@@ -1,0 +1,71 @@
+[
+ {
+  "host": "careers.epam.com",
+  "company": "EPAM",
+  "recorded_from": "epam_bltlhinbqhlvbryudmk",
+  "form_url": "https://careers.epam.com/en/vacancy/oms-lead-engineer-bltlhinbqhlvbryudmk_en",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#cta_job_apply_unauthorized",
+    "label": "APPLY",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#name",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "autocomplete": "no",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "autocomplete": "no",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "autocomplete": "no",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#react-select-2-input",
+    "label": "Current Country*",
+    "kind": "combobox",
+    "name": "react-select-2-input",
+    "required": true,
+    "needs_interaction": true,
+    "autocomplete": "no",
+    "label_source": "markup",
+    "semantic": "country"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "71216d991b2c584f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:51:48",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ }
+]

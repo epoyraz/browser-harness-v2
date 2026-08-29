@@ -1,0 +1,85 @@
+[
+ {
+  "host": "etavis.softgarden.io",
+  "company": "Etavis",
+  "recorded_from": "etavis__Etavis_64303288",
+  "form_url": "https://etavis.softgarden.io/applications/bb403aae-2e39-4edb-9607-5ad4dc3401e1?1&isEditMode=false&isNew=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#main > a:nth-of-type(1)",
+    "label": "Postuler ici",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id1",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id2",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id3",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id5",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id8",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8135b8c7a2dba1ad",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:47",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

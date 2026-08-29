@@ -1,0 +1,89 @@
+[
+ {
+  "host": "ckw.teamtailor.com",
+  "company": "Axpo",
+  "recorded_from": "axpo__Axpo_gen_d88da15d092a",
+  "form_url": "https://ckw.teamtailor.com/jobs/8276422-elektro-bauleiter-in-ebikon-w-m-d/applications/new",
+  "language": "de-inf",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#candidate_answers_attributes_5_choice_2",
+    "label": "Männlich",
+    "kind": "radio",
+    "name": "candidate[answers_attributes][5][choice]",
+    "required": false,
+    "group_label": "Mit welchem Geschlecht identifizierst du dich?\nBei CKW schätzen wir Vielfalt und Inklusion. Um uns kontinuierlich bei der stetigen Sicherstellung einer vielfält",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#candidate_answers_attributes_6_date",
+    "label": "Nenne uns deine Kündigungsfrist resp. deine Verfügbarkeit.*\nErforderlich",
+    "kind": "date",
+    "name": "candidate[answers_attributes][6][date]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#candidate_first_name",
+    "label": "Vorname*\nErforderlich",
+    "kind": "text",
+    "name": "candidate[first_name]",
+    "required": false,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#candidate_last_name",
+    "label": "Nachname*\nErforderlich",
+    "kind": "text",
+    "name": "candidate[last_name]",
+    "required": false,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#candidate_email",
+    "label": "E-Mail*\nErforderlich",
+    "kind": "email",
+    "name": "candidate[email]",
+    "required": false,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#candidate_phone",
+    "label": "Telefon*\nErforderlich",
+    "kind": "tel",
+    "name": "candidate[phone]",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "2fc49e44773de065",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:26",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

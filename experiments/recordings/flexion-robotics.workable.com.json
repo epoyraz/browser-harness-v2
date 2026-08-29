@@ -1,0 +1,125 @@
+[
+ {
+  "host": "flexion-robotics.workable.com",
+  "company": "Flexion",
+  "recorded_from": "flexion__Flexion_5c6a89",
+  "form_url": "https://apply.workable.com/flexion-robotics/j/1E84BE6E47/apply",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "name": "headline",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "current_title"
+   },
+   {
+    "selector": "div[aria-label=\"Telephone country code\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "combobox",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "semantic": "city"
+   },
+   {
+    "selector": "#postcode",
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "33d8f0564385aab3",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:06:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

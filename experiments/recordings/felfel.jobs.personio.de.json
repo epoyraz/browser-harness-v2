@@ -1,0 +1,121 @@
+[
+ {
+  "host": "felfel.jobs.personio.de",
+  "company": "FELFEL",
+  "recorded_from": "felfel__FELFEL_2768537",
+  "form_url": "https://felfel.jobs.personio.de/job/2768537/apply",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#field-first_name",
+    "label": "First",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#field-last_name",
+    "label": "Last",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#field-email",
+    "label": "Email*\n(required)",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#field-phone",
+    "label": "Phone",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#field-available_from",
+    "label": "Available from*\n(required)",
+    "kind": "text",
+    "name": "available_from",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#field-birthday",
+    "label": "Birthday",
+    "kind": "date",
+    "name": "birthday",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#field-years_of_experience",
+    "label": "Years of Experience",
+    "kind": "select",
+    "name": "years_of_experience",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "less than 1 year",
+     "1–2 years",
+     "2–3 years",
+     "3–4 years",
+     "4–5 years",
+     "5–6 years",
+     "6-7 years"
+    ],
+    "options_count": 11,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "experience_years"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(1) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": "I hereby consent to the collection, processing, use, and transfer of my Personal Data as described in our Privacy Policy: https://felfel.ch/en/privacy-policy",
+    "kind": "select",
+    "name": "custom_attribute_4009624",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "Yes",
+     "No"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "43e26866dcd964b8",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

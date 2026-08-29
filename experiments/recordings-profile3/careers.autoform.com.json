@@ -1,0 +1,117 @@
+[
+ {
+  "host": "careers.autoform.com",
+  "company": "AutoForm",
+  "recorded_from": "AutoForm_5158",
+  "form_url": "https://careers.autoform.com/en/jobs/application-form/?backpid=230&jobid=5158&cHash=7cc2c14d696392a2dee51a9d1027f7e5",
+  "language": "en-GB",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply now",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#powermail_field_anrede",
+    "label": "Gender *",
+    "kind": "select",
+    "name": "tx_powermail_pi1[field][anrede]",
+    "required": true,
+    "options_sample": [
+     "--- Please select ---",
+     "Female",
+     "Male",
+     "Div",
+     "Not specified"
+    ],
+    "options_count": 5,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#powermail_field_vorname",
+    "label": "First Name *",
+    "kind": "text",
+    "name": "tx_powermail_pi1[field][vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#powermail_field_nachname",
+    "label": "Surname *",
+    "kind": "text",
+    "name": "tx_powermail_pi1[field][nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#powermail_field_e_mailadresse",
+    "label": "E-mail *",
+    "kind": "email",
+    "name": "tx_powermail_pi1[field][e_mailadresse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#powermail_field_telefon",
+    "label": "Phone *",
+    "kind": "tel",
+    "name": "tx_powermail_pi1[field][telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#powermail_field_linkzuihremlinkedinprofil",
+    "label": "Your LinkedIn Profile",
+    "kind": "url",
+    "name": "tx_powermail_pi1[field][linkzuihremlinkedinprofil]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "#powermail_field_datenschutzerklaerung_1",
+    "label": "I agree that AutoForm collects, processes and uses my personal information for updating and sending information. I can revoke my consent at any time. I have read the Privacy Policy and accept them hereby. *",
+    "kind": "checkbox",
+    "name": "tx_powermail_pi1[field][datenschutzerklaerung]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#powermail_field_attachements",
+    "label": "Attachment",
+    "name": "tx_powermail_pi1[field][attachements][]",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#powermail_field_anhang",
+    "label": "Attachment",
+    "name": "tx_powermail_pi1[field][anhang][]",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "3a7b66c204d4999f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:19:19",
+  "stats": {
+   "uses": 5,
+   "successes": 5,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T22:27:57"
+  }
+ }
+]

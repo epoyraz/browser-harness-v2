@@ -1,0 +1,68 @@
+[
+ {
+  "host": "www.qiminfo.ch",
+  "company": "Qim info",
+  "recorded_from": "qim-info__QimInfo_43164",
+  "form_url": "https://www.qiminfo.ch/poste/avaloq-business-analyst/",
+  "language": "fr-FR",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#form-field-prenom",
+    "label": "Prénom*",
+    "kind": "text",
+    "name": "form_fields[prenom]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-field-nom",
+    "label": "Nom*",
+    "kind": "text",
+    "name": "form_fields[nom]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-field-email",
+    "label": "E-mail*",
+    "kind": "email",
+    "name": "form_fields[email]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-field-telephone",
+    "label": "Téléphone*",
+    "kind": "text",
+    "name": "form_fields[telephone]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"form_fields[field_2555bf2]\"]",
+    "label": "« En soumettant ce formulaire, je confirme avoir pris connaissance de la politique de confidentialité de Qim info et j’accepte que les données saisies soient conservées et réutilisées par l'entreprise pour me recontacter dans le cadre de ma demande.»",
+    "kind": "checkbox",
+    "name": "form_fields[field_2555bf2]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "229154ebf04b3048",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:09:05",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,252 @@
+[
+ {
+  "host": "starbucks-jobs.ch",
+  "company": "Starbucks",
+  "recorded_from": "starbucks__Starbucks_1494",
+  "form_url": "https://starbucks-jobs.ch/Barista-im-Stundenlohn-20-40-de-f1494.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Österreich",
+     "Schweiz",
+     "Deutschland",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#handy",
+    "label": "Mobiltelefon *",
+    "kind": "text",
+    "name": "bewerbung_form[handy]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Frühester Eintritt (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#freifeld1_ms",
+    "label": "Gewünschtes Arbeitspensum *",
+    "kind": "select",
+    "name": "bewerbung_form[freifeld1_ms]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "20%",
+     "30%",
+     "40%",
+     "50%",
+     "60%",
+     "70%",
+     "80%"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "workload_percent"
+   },
+   {
+    "selector": "#vordef_bew_feld_01",
+    "label": "Um welche Uhrzeit kannst du frühestens deine Arbeit aufnehmen? *",
+    "kind": "textarea",
+    "name": "bewerbung_form[vordef_bew_feld_01]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#vordef_bew_feld_04",
+    "label": "Ergänzungen zu deiner Verfügbarkeit",
+    "kind": "textarea",
+    "name": "bewerbung_form[vordef_bew_feld_04]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#freifeld3_z",
+    "label": "Lohnwunsch monatlich brutto (bei 100%) *",
+    "kind": "text",
+    "name": "bewerbung_form[freifeld3_z]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie hast du uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "finest-jobs.com",
+     "Starbucks Website",
+     "Stellenaushang im Coffeehouse",
+     "Persönliche Empfehlung",
+     "Indeed",
+     "Talentgrabber",
+     "Andere Jobbörse"
+    ],
+    "options_count": 9,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#country_2",
+    "label": "Staatsbürgerschaft *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#freifeld1_sb",
+    "label": "Aufenthaltsbewilligung *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#berufsausbildung_m_sb",
+    "label": "Deutsch *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#freifeld4_ms",
+    "label": "Wochentage an denen du arbeiten kannst *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_05",
+    "label": "Bis zu welcher Uhrzeit kannst du spätestens arbeiten? *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "ed5c03dae9c3cc23",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:42",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

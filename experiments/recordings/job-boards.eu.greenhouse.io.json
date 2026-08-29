@@ -1,0 +1,384 @@
+[
+ {
+  "host": "job-boards.eu.greenhouse.io",
+  "company": "Proton",
+  "recorded_from": "proton__Proton_4962235101",
+  "form_url": "https://job-boards.eu.greenhouse.io/proton/jobs/4962235101",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#first_name",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country",
+    "label": "Country*",
+    "kind": "combobox",
+    "name": "country",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Country",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#phone",
+    "label": "Phone*",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#candidate-location",
+    "label": "Location (City)*",
+    "kind": "combobox",
+    "name": "candidate-location",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "div:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Location (City)",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Do you have a work permit or eligibility to work in the office location you're applying for?*",
+    "kind": "combobox",
+    "name": "question_9554298101",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "input[aria-label=\"Where are you currently located? Please state the country. \"]",
+    "label": "Where are you currently located? Please state the country. *",
+    "kind": "text",
+    "name": "question_9554299101",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "What are your salary expectations? Please include the currency and specify whether it's monthly/annual, gross/net. We only ask this to make sure we're in the same ballpark before asking you to commit your time to interviewing with us.*",
+    "kind": "text",
+    "name": "question_9554300101",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "input[aria-label=\"Please share your LinkedIn profile / GitHub / Portfolio\n\"]",
+    "label": "Please share your LinkedIn profile / GitHub / Portfolio",
+    "kind": "text",
+    "name": "question_9554301101",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Do you have experience in building tech SaaS product? *",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Do you have extensive experience in working in B2B oriented environment?*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": null,
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Which Proton office are you applying for?*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": null,
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "51e5299db8168c58",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:02:51",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "job-boards.eu.greenhouse.io",
+  "company": "IMC Trading",
+  "recorded_from": "imc-trading__IMCTrading_4932192101",
+  "form_url": "https://job-boards.eu.greenhouse.io/imc/jobs/4932192101",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#first_name",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country",
+    "label": "Country*",
+    "kind": "combobox",
+    "name": "country",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Country",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#phone",
+    "label": "Phone*",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#candidate-location",
+    "label": "Location (City)*",
+    "kind": "combobox",
+    "name": "candidate-location",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "div:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Location (City)",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "#degree--0",
+    "label": "Degree*",
+    "kind": "combobox",
+    "name": "degree--0",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "education"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Degree",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "education"
+   },
+   {
+    "selector": "#start-month--0",
+    "label": "Start date month*",
+    "kind": "combobox",
+    "name": "start-month--0",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Start date month",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#start-year--0",
+    "label": "Start date year*",
+    "kind": "number",
+    "name": "start-year--0",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "How did you hear about us?*",
+    "kind": "combobox",
+    "name": "question_9345502101",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "How did you hear about us?",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Privacy Statement*",
+    "kind": "combobox",
+    "name": "question_9345503101",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Privacy Statement",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "consent"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "What is your gender/gender identity?",
+    "kind": "combobox",
+    "name": "4005630101",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#school--0",
+    "label": "School*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#discipline--0",
+    "label": "Discipline*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#end-month--0",
+    "label": "End date month*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#end-year--0",
+    "label": "End date year*",
+    "kind": "number",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Confidentiality Acknowledgement*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "20767a4e891885c1",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:08:37",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

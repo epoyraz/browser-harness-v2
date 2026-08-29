@@ -1,0 +1,239 @@
+[
+ {
+  "host": "jobs.emmi.com",
+  "company": "Emmi",
+  "recorded_from": "emmi__Emmi_10162202",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_ROT/ProdEmmi/de/apply?id=19469&jobPipeline=emmi.extranet&canalId=1003228&publishId=10162202&lang=de_DE&ohvk=1ba0e426-89a6-4fbe-85ff-056efffb902c",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#header > div:nth-of-type(1) > a:nth-of-type(2)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#title",
+    "kind": "select",
+    "name": "customSalutation",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen...",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#name",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefon*",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse mit Hausnummer*",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#zip",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "postalCode",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land*",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen...",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Italien",
+     "Frankreich",
+     "Liechtenstein",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land*",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#nationality",
+    "kind": "select",
+    "name": "customNationality",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen...",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Italien",
+     "Frankreich",
+     "Liechtenstein",
+     "Afghanistan"
+    ],
+    "options_count": 248,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Nationalität",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#initialEmail",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#confirmEmail",
+    "label": "E-Mail bestätigen*",
+    "kind": "email",
+    "name": "confirmEmail",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#source",
+    "label": "Wie hast du von dieser Stelle erfahren*",
+    "kind": "select",
+    "name": "referralSource",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen...",
+     "Berufs- / Karrieremesse",
+     "Emmi Job-Abo",
+     "Emmi Mitarbeitende:r",
+     "Emmi Webseite",
+     "Event / Veranstaltung",
+     "Facebook",
+     "Flyer / Informationsbroschüre / Printmed"
+    ],
+    "options_count": 19,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#custEmployeeRecommendation",
+    "label": "Vor- und Nachname des/der Emmi Mitarbeitenden",
+    "kind": "text",
+    "name": "custEmployeeRecommendation",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#custapplattachment-wrapper > input:nth-of-type(1)",
+    "label": "Weitere Beilagen (z.B. Zeugnisse und Diplome)",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "education"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.*",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#resume-wrapper > input:nth-of-type(1)",
+    "label": "Lebenslauf*",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "4642a6e290efb33c",
+  "hops": 3,
+  "recorded_at": "2026-08-29T20:01:53",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

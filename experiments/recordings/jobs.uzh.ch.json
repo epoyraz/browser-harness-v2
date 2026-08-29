@@ -1,0 +1,75 @@
+[
+ {
+  "host": "jobs.uzh.ch",
+  "company": "Universität Zürich",
+  "recorded_from": "universitat-zurich__UniversitaetZuerich_10163053",
+  "form_url": "https://ohws.prospective.ch/public/v1/application/d1af7784-38ea-4b83-ad0a-ff3d0d11556c?lang=en",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Apply now",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#street",
+    "label": "Title",
+    "kind": "text",
+    "name": "street",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "#firstname",
+    "label": "First name *",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Surname *",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "E-mail *",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#single-opt-in",
+    "label": "By activating the \"Send\" function, you agree with our Data Protection Statement.",
+    "kind": "checkbox",
+    "name": "single-opt-in",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8cd0f7c1e48d8ffb",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:45",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

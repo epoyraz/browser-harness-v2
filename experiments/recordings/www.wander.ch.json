@@ -1,0 +1,85 @@
+[
+ {
+  "host": "www.wander.ch",
+  "company": "Wander",
+  "recorded_from": "wander__Wander_fachspezialist-mechanik-im-tagesbetrieb-wmd-100",
+  "form_url": "https://twiningsovocareers.pinpointhq.com/de-F/postings/0730f683-2877-40db-8c40-04a5c3510640/applications/new",
+  "language": "en-GB",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#application_form_application_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "application_form[application][first_name]",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#application_form_application_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "application_form[application][last_name]",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#application_form_application_email",
+    "label": "E-Mail-Adresse",
+    "kind": "email",
+    "name": "application_form[application][email]",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#application_form_application_phone",
+    "label": "Telefon",
+    "kind": "tel",
+    "name": "application_form[application][phone]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#application_form_application_answers_attributes_1_text_answer",
+    "label": "Wie sehen deine Gehaltsvorstellungen für die ausgeschriebene Position aus?",
+    "kind": "textarea",
+    "name": "application_form[application][answers_attributes][1][text_answer]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#application_form_application_answers_attributes_0_text_answer",
+    "label": "Als Arbeitgeber, der auf Chancengleichheit achtet, stellen wir sicher, dass Einstellungsentscheidungen ausschließlich auf der Beurteilung der Fähigkeiten und der Eignung der betreffenden Person beruhen. Solltest Du daher angemessene Anpassungen in Deinem Einstellungsverfahren benötigen, gebe diese bitte hier an.",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "34ca7244d03526b8",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:07",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

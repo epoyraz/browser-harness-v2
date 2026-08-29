@@ -1,0 +1,171 @@
+[
+ {
+  "host": "jobs.ruag.ch",
+  "company": "RUAG",
+  "recorded_from": "RUAG_gen_adf64bc1fdab",
+  "form_url": "https://jobs.ruag.ch/umantis/2514/de/apply/18195?srcIDPMS=10162945&srcTextPMS=ruagextranet&source=ruagextranet&canalId=1004418&publishId=10162945&ohvk=f48073a5-1687-46d4-b2ae-62a60c51c9ad",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#footerRightContent > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "5e32e33ce15037eb",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:57:36",
+  "stats": {
+   "uses": 14,
+   "successes": 12,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T20:12:07"
+  }
+ },
+ {
+  "host": "jobs.ruag.ch",
+  "company": "RUAG",
+  "recorded_from": "RUAG_gen_adf64bc1fdab",
+  "form_url": "https://jobs.ruag.ch/umantis/2514/de/apply/18195?srcIDPMS=10162945&srcTextPMS=ruagextranet&source=ruagextranet&canalId=1004418&publishId=10162945&ohvk=f48073a5-1687-46d4-b2ae-62a60c51c9ad",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#footerRightContent > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_recommendation",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Familie/Freunde/Bekannte",
+     "RUAG Mitarbeitende",
+     "Ehemalige RUAG Mitarbeitende",
+     "Personalvermittlung",
+     "Hochschulmarketing",
+     "Messeauftritt",
+     "Interne Ausschreibung"
+    ],
+    "options_count": 24,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#data_release_agreed_true",
+    "label": "Ich bin damit einverstanden, dass meine Daten bis zu drei Jahre nach der Stellenbesetzung gespeichert werden und ich auf Stellenangebote hingewiesen werde. Dieses Einverständnis kann ich jederzeit widerrufen.",
+    "kind": "radio",
+    "name": "data_release_agreed",
+    "required": true,
+    "group_label": "Datenfreigabe *",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich habe die Datenschutzerklärung für Bewerbende gelesen und verstanden. *",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "cf71fd1105283ba1",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:11:38",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

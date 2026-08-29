@@ -1,0 +1,70 @@
+[
+ {
+  "host": "agilitaschweiz.career.softgarden.de",
+  "company": "AGILITA",
+  "recorded_from": "agilita__Agilita_67020600",
+  "form_url": "https://agilitaschweiz.career.softgarden.de/application/bc829e2b-6b1e-483d-af85-dc522f5c6972/67020600/?version=1&timestamp=1788026615632&locale=de&msid=Nzk3Mg",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#\\:Rl79askm\\:",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "applicationData.firstname",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#\\:Rm79askm\\:",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "applicationData.lastname",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#\\:Rlb9askm\\:",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "applicationData.email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#\\:R5d9askm\\:",
+    "label": "Telefon*",
+    "kind": "tel",
+    "name": "applicationData.phone",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "98f7167ddf2d15fb",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:39",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

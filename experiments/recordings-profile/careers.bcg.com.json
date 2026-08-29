@@ -1,0 +1,273 @@
+[
+ {
+  "host": "careers.bcg.com",
+  "company": "BCG",
+  "recorded_from": "BCG_802",
+  "form_url": "https://platinion.avature.net/CareersDeEn/Register?jobId=802",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#methodButton--later",
+    "label": "Apply Manually",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#\\38 54",
+    "label": "Salutation *\nSelect an option\n[Prefer not to disclose]\n[they/them]\nMr.\nMrs.\nMs.",
+    "kind": "select",
+    "name": "854",
+    "required": false,
+    "options_sample": [
+     "Select an option",
+     "[Prefer not to disclose]",
+     "[they/them]",
+     "Mr.",
+     "Mrs.",
+     "Ms."
+    ],
+    "options_count": 6,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#\\38 56",
+    "label": "First Name *",
+    "kind": "text",
+    "name": "856",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#\\38 57",
+    "label": "Last Name *",
+    "kind": "text",
+    "name": "857",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#\\38 58",
+    "label": "Email Address *",
+    "kind": "email",
+    "name": "858",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#\\38 59",
+    "label": "Phone Number",
+    "kind": "tel",
+    "name": "859",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#\\38 60",
+    "label": "Street Address",
+    "kind": "text",
+    "name": "860",
+    "required": false,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#\\38 61",
+    "label": "Zip Code",
+    "kind": "text",
+    "name": "861",
+    "required": false,
+    "autocomplete": "postal-code",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#\\38 62",
+    "label": "City *",
+    "kind": "text",
+    "name": "862",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#\\38 63",
+    "label": "Country *\nSelect a country\nAfghanistan\nAlbania\nAlgeria\nAmerican Samoa\nAndorra\nAngola\nAnguilla\nAntarctica\nAntigua and Barbuda\nArgentina\nArmenia\nAruba\nAustralia\nAustria\nAzerbaijan\nBahamas\nBahrain\nBangladesh\nBarbados\nBelarus\nBelgium\nBelize\nBenin\nBermuda\nBhutan\nBolivia (Plurinational State of)\nBonaire, Sint Eustatius and Saba\nBosnia and Herzegovina\nBotswana\nBouvet Island\nBrazil\nBritish Indian Ocean Territory\nBrunei Darussalam\nBulgaria\nBurkina Faso\nBurundi\nCabo Verde\nCambodia\nCameroon\nCanada\nCayman Islands\nCentral African Republic\nChad\nChile\nChina\nChristmas Island\nCocos (Keeling) Islands\nColombia\nComoros\nCongo\nCongo, Democratic Republic of the\nCook Islands\nCosta Rica\nCroatia\nCuba\nCuraçao\nCyprus\nCzechia\nCôte d'Ivoire\nDenmark\nDjibouti\nDominica\nDominican Republic\nEcuador\nEgypt\nEl Salvador\nEquatorial Guinea\nEritrea\nEstonia\nEswatini\nEthiopia\nFalkland Islands (Malvinas)\nFaroe Islands\nFiji\nFinland\nFrance\nFrench Guiana\nFrench Polynesia\nFrench Southern Territories\nGabon\nGambia\nGeorgia\nGermany\nGhana\nGibraltar\nGreece\nGreenland\nGrenada\nGuadeloupe\nGuam\nGuatemala\nGuernsey\nGuinea\nGuinea-Bissau\nGuyana\nHaiti\nHeard Island and McDonald Islands\nHoly See (Vatican City State)\nHonduras\nHong Kong\nHungary\nIceland\nIndia\nIndonesia\nIran, Islamic Republic of\nIraq\nIreland\nIsle of Man\nIsrael\nItaly\nJamaica\nJapan\nJersey\nJordan\nKazakhstan\nKenya\nKiribati\nKorea, Democratic People's Republic of\nKorea, Republic of\nKuwait\nKyrgyzstan\nLao People's Democratic Republic\nLatvia\nLebanon\nLesotho\nLiberia\nLibya\nLiechtenstein\nLithuania\nLuxembourg\nMacao\nMadagascar\nMalawi\nMalaysia\nMaldives\nMali\nMalta\nMarshall Islands\nMartinique\nMauritania\nMauritius\nMayotte\nMexico\nMicronesia, Federated States of\nMoldova, Republic of\nMonaco\nMongolia\nMontenegro\nMontserrat\nMorocco\nMozambique\nMyanmar\nNamibia\nNauru\nNepal\nNetherlands\nNetherlands Antilles\nNew Caledonia\nNew Zealand\nNicaragua\nNiger\nNigeria\nNiue\nNorfolk Island\nNorth Macedonia\nNorthern Mariana Islands\nNorway\nOman\nPakistan\nPalau\nPalestine, State of\nPanama\nPapua New Guinea\nParaguay\nPeru\nPhilippines\nPitcairn\nPoland\nPortugal\nPuerto Rico\nQatar\nRomania\nRussian Federation\nRwanda\nRéunion\nSaint Barthélemy\nSaint Helena, Ascension and Tristan da Cunha\nSaint Kitts and Nevis\nSaint Lucia\nSaint Martin (French part)\nSaint Pierre and Miquelon\nSaint Vincent and the Grenadines\nSamoa\nSan Marino\nSao Tome and Principe\nSaudi Arabia\nSenegal\nSerbia\nSeychelles\nSierra Leone\nSingapore\nSint Maarten (Dutch part)\nSlovakia\nSlovenia\nSolomon Islands\nSomalia\nSouth Africa\nSouth Georgia and the South Sandwich Islands\nSouth Sudan\nSpain\nSri Lanka\nSudan\nSuriname\nSvalbard and Jan Mayen\nSweden\nSwitzerland\nSyrian Arab Republic\nTaiwan\nTajikistan\nTanzania, United Republic of\nThailand\nTimor-Leste\nTogo\nTokelau\nTonga\nTrinidad and Tobago\nTunisia\nTurkmenistan\nTurks and Caicos Islands\nTuvalu\nTürkiye\nUganda\nUkraine\nUnited Arab Emirates\nUnited Kingdom of Great Britain and Northern Ireland\nUnited States\nUnited States Minor Outlying Islands\nUruguay\nUzbekistan\nVanuatu\nVenezuela (Bolivarian Republic of)\nVietnam\nVirgin Islands, British\nVirgin Islands, U.S.\nWallis and Futuna\nWestern Sahara\nYemen\nZambia\nZimbabwe\nÅland Islands",
+    "kind": "select",
+    "name": "863",
+    "required": true,
+    "options_sample": [
+     "Select a country",
+     "Afghanistan",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola",
+     "Anguilla"
+    ],
+    "options_count": 251,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#\\38 65",
+    "label": "Current Company *",
+    "kind": "text",
+    "name": "865",
+    "required": true,
+    "autocomplete": "organization",
+    "label_source": "markup",
+    "semantic": "current_company"
+   },
+   {
+    "selector": "#\\38 66",
+    "label": "Job Title *",
+    "kind": "text",
+    "name": "866",
+    "required": true,
+    "autocomplete": "organization-title",
+    "label_source": "markup",
+    "semantic": "current_title"
+   },
+   {
+    "selector": "#\\38 69-1-sample",
+    "label": "Start Date",
+    "kind": "month",
+    "name": "869-1-sample",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "proximity",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#\\38 69-4-sample",
+    "label": "Country of Study",
+    "kind": "select",
+    "name": "869-4-sample",
+    "required": false,
+    "options_sample": [
+     ""
+    ],
+    "options_count": 1,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#\\38 69-1-0",
+    "label": "Start Date",
+    "kind": "month",
+    "name": "869-1-0",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "proximity",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#\\38 69-4-0",
+    "label": "Country of Study",
+    "kind": "select",
+    "name": "869-4-0",
+    "required": false,
+    "options_sample": [
+     ""
+    ],
+    "options_count": 1,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#\\38 70-1-sample",
+    "label": "Language",
+    "kind": "select",
+    "name": "870-1-sample",
+    "required": false,
+    "options_sample": [
+     "Select an option",
+     "Abkhazian",
+     "Afar",
+     "Afrikaans",
+     "Akan",
+     "Albanian",
+     "Amharic",
+     "Arabic"
+    ],
+    "options_count": 185,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "correspondence_language"
+   },
+   {
+    "selector": "select[name=\"1015\"]",
+    "label": "Gender *Select an option",
+    "kind": "select",
+    "name": "1015",
+    "required": false,
+    "options_sample": [
+     "Select an option"
+    ],
+    "options_count": 1,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#\\38 72",
+    "label": "",
+    "name": "file_872",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#\\38 73",
+    "label": "",
+    "name": "file_873",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#\\38 74",
+    "label": "",
+    "name": "file_874",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#\\38 75",
+    "label": "",
+    "name": "file_875",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "3b4308ca6e5d4693",
+  "hops": 3,
+  "recorded_at": "2026-08-29T21:53:20",
+  "stats": {
+   "uses": 4,
+   "successes": 0,
+   "consecutive_failures": 4,
+   "last_ok": null
+  }
+ }
+]

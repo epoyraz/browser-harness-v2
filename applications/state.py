@@ -74,7 +74,11 @@ WATCH_APPLICATION_STATE_JS = """((token) => {
   // until the tab is activated (Abacus Umantis jobportal, pastaHR, Workday apply —
   // measured 2026-08-29): waiting `empty_stable` for it buys nothing. Terminal, so the
   // caller can activate or move on. `BH_APPLICATION_HIDDEN_BLANK=0` disables the state.
-  const hiddenBlank = '__HIDDEN_BLANK__' !== '0' && document.visibilityState === 'hidden'
+  // Headless Chrome reports background tabs as hidden too, but paints them regardless
+  // (measured 2026-08-29: the Abacus jobportal rendered in headless and this verdict
+  // cost a form there), so the state is for headed browsers only.
+  const headless = /HeadlessChrome/i.test(navigator.userAgent || '');
+  const hiddenBlank = '__HIDDEN_BLANK__' !== '0' && !headless && document.visibilityState === 'hidden'
     && document.readyState === 'complete' && text.length === 0 && controls.length === 0
     && fields === 0;
   let state = 'loading';

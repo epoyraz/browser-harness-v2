@@ -110,6 +110,29 @@ def test_the_standard_german_spelling_of_email_is_recognised(label):
     assert classify(label) in {"email", "email_confirm"}
 
 
+@pytest.mark.parametrize(("label", "name", "expected"), [
+    ("Postal", "resumator-postal-value", "postal_code"),
+    ("State/Province", "resumator-state-value", "state_province"),
+    ("Province", "province", "state_province"),
+])
+def test_jazzhr_address_aliases_are_named(label, name, expected):
+    """Bare JazzHR labels were optional, so they vanished from a nominally complete run."""
+    assert classify(label, name) == expected
+
+
+def test_jazzhr_optional_address_fields_are_planned_from_the_profile():
+    schema = {"fields": [
+        {"ref": "state", "label": "State/Province", "name": "resumator-state-value",
+         "kind": "text", "required": False},
+        {"ref": "postal", "label": "Postal", "name": "resumator-postal-value",
+         "kind": "text", "required": False},
+    ]}
+    plan, audit = rules.plan_for(schema, "en")
+    by_ref = {step["ref"]: step["value"] for step in plan}
+    assert by_ref == {"state": "Schaffhausen", "postal": "8212"}
+    assert [row["status"] for row in audit] == ["planned", "planned"]
+
+
 def test_a_repeat_field_is_a_mail_confirmation_only_when_it_is_about_mail():
     """"erneut eingeben" alone is how a form asks for a repeated *password*."""
     assert classify("E-Mail-Adresse erneut eingeben: *") == "email_confirm"

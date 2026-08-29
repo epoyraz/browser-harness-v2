@@ -1,0 +1,269 @@
+[
+ {
+  "host": "jobs.migros.ch",
+  "company": "Migros Take Away",
+  "recorded_from": "migros-take-away__Migros_8ee82e03-ff2f-48a3-a59d-67847501776c",
+  "form_url": "https://recruitingapp-662.umantis.com/Vacancies/379162/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data11",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "LinkedIn-Profil",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "input[name=\"form_data33\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data33",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data36\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data36",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "6b67142deb09cb38",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:10:19",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.migros.ch",
+  "company": "WePractice",
+  "recorded_from": "wepractice__Migros_2fb70772-34e0-45f6-a009-2ee8f09d73ff",
+  "form_url": "https://job-boards.greenhouse.io/leit/jobs/6518824003?gh_src=c4d459173us",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#first_name",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country",
+    "label": "Land*",
+    "kind": "combobox",
+    "name": "country",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#phone",
+    "label": "Telefon*",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[aria-label=\"Ab welchem Datum könntest Du (frühestens) bei uns starten?\"]",
+    "label": "Ab welchem Datum könntest Du (frühestens) bei uns starten?*",
+    "kind": "text",
+    "name": "question_31426300003",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Bis Du Schweizer:in oder besitzt Du eine Arbeitsbewilligung für die Schweiz?*",
+    "kind": "combobox",
+    "name": "question_31426303003",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "input[aria-label=\"Welche Gehaltsvorstellung hast Du (Bruttojahresgehalt in CHF)?\"]",
+    "label": "Welche Gehaltsvorstellung hast Du (Bruttojahresgehalt in CHF)?*",
+    "kind": "text",
+    "name": "question_31426304003",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#gdpr_consent_given_1",
+    "label": "WePractice (Psychotherapeutische Leitungsfunktionen) hat meine Einwilligung zur Erhebung, Speicherung und Verarbeitung meiner Daten für den Zweck, mich für eine Anstellung in Betracht zu ziehen, und bis zu 180 Tage danach.*",
+    "kind": "checkbox",
+    "name": "gdpr_consent_given",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Wo hast Du von uns erfahren?*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[aria-label=\"Welches Pensum wäre ideal für Dich?\"]",
+    "label": "Welches Pensum wäre ideal für Dich?*",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "textarea[aria-label=\"Was sind Deine gewünschten Arbeitstage?\"]",
+    "label": "Was sind Deine gewünschten Arbeitstage?*",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": null,
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Verfügst du über einen eidg. anerkannten Psychotherapeuten Titel?*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(8) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": null,
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Erfüllst Du alle Bedingungen für die OKP Zulassung?*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "88b015a2aa7eb5ce",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:15",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,71 @@
+[
+ {
+  "host": "www.ge.ch",
+  "company": "Kanton Genf",
+  "recorded_from": "Kanton_Genf_gen_48d923bc5346",
+  "form_url": "https://ge.ch/sirhrecrutement/recrutement/candidatAction.do?NOREFPOSTE=115285",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) > a:nth-of-type(1)",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#zy07Nomuse",
+    "label": "*  Nom",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#zy06Prenom",
+    "label": "*  Prénom",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#zy10Datnai",
+    "label": "*  Date de naissance (format jj/mm/aaaa)",
+    "kind": "text",
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#zy0fAdctch",
+    "label": "*  Ville",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#zy0hNumtel",
+    "label": "*  Atteignable au n° de téléphone",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#zy4iAdusml",
+    "label": "*  Adresse courriel (e-mail)",
+    "kind": "text",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#zy4iAdusm2",
+    "label": "*  Confirmation de l'adresse courriel (e-mail)",
+    "kind": "text",
+    "value": "epoyraz.eth@gmail.com"
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:34:12",
+  "stats": {
+   "uses": 1,
+   "successes": 1,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T19:41:35"
+  },
+  "required_unplanned": []
+ }
+]

@@ -1,0 +1,198 @@
+[
+ {
+  "host": "jobs.halter-gruppe.ch",
+  "company": "Halter",
+  "recorded_from": "halter__Halter_10017599",
+  "form_url": "https://halter.abacuscity.ch/de/jobform_3_900005/Bau-Projektleiter-f%C3%BCr-Umbau-und-Sanierung-HRE-ZH",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#footerSticky > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"customeraddressshoppervorname\"]",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "customeraddressshoppervorname",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppername\"]",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "customeraddressshoppername",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"customeraddressstreetwithouthousenumber\"]",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "customeraddressstreetwithouthousenumber",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"customeraddresshousenumber\"]",
+    "label": "Hausnummer *",
+    "kind": "text",
+    "name": "customeraddresshousenumber",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperplz\"]",
+    "label": "Plz *",
+    "kind": "text",
+    "name": "customeraddressshopperplz",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperort\"]",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "customeraddressshopperort",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"customeraddressshopperland\"]",
+    "label": "Land *",
+    "kind": "select",
+    "name": "customeraddressshopperland",
+    "required": true,
+    "options_sample": [
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Vereinigte Staaten von Amerika",
+     "Afghanistan"
+    ],
+    "options_count": 252,
+    "label_source": "proximity",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperaddressemail\"]",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "customeraddressshopperaddressemail",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"u_9_fields__USERFIELD5\"]",
+    "label": "LinkedIn Profil (URL-Erfassen)",
+    "kind": "text",
+    "name": "u_9_fields__USERFIELD5",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "input[name=\"DateOfBirth\"]",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "DateOfBirth",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"customeraddressshopperlanguage\"]",
+    "label": "Sprachcode",
+    "kind": "select",
+    "name": "customeraddressshopperlanguage",
+    "required": false,
+    "options_sample": [
+     "",
+     "Deutsch",
+     "Englisch",
+     "Französisch",
+     "Italienisch"
+    ],
+    "options_count": 5,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppermobile\"]",
+    "label": "Mobiltelefon *",
+    "kind": "text",
+    "name": "customeraddressshoppermobile",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"u_9_fields__USERFIELD4\"]",
+    "label": "Wie bist du auf uns aufmerksam geworden? *",
+    "kind": "select",
+    "name": "u_9_fields__USERFIELD4",
+    "required": true,
+    "options_sample": [
+     "Website",
+     "LinkedIn",
+     "Jobs.ch",
+     "Social Media (Facebook, Instagram, Tikto",
+     "Internet-Suchmaschine",
+     "Freunde, Bekannte",
+     "Empfehlung durch Mitarbeitende",
+     "Stellenvermittler"
+    ],
+    "options_count": 9,
+    "label_source": "proximity",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"u_9_fields__USERFIELD7\"]",
+    "label": "Stellenvermitllung E-Mail",
+    "kind": "text",
+    "name": "u_9_fields__USERFIELD7",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"u_9_fields__USERFIELD8\"]",
+    "label": "Stellenvermittlung Telefon",
+    "kind": "text",
+    "name": "u_9_fields__USERFIELD8",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "f7f3a0f564ce4a04",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:18",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

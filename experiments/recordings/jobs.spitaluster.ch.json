@@ -1,0 +1,131 @@
+[
+ {
+  "host": "jobs.spitaluster.ch",
+  "company": "Spital Uster",
+  "recorded_from": "spital-uster__SpitalUster_10165756",
+  "form_url": "https://jobs.spitaluster.ch/umantis/2838/de/apply/5102?srcIDPMS=10165756&srcTextPMS=spitaluster&source=spitaluster&ohvk=55026143-adc5-4261-a708-7c8e362493d5",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#buttonApplyDesktop",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#lang_Salutation_M",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "salutation",
+    "required": true,
+    "group_label": "Anrede*",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"first_name\"]",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"last_name\"]",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#birthdate",
+    "label": "Geburtsdatum*",
+    "kind": "text",
+    "name": "birthdate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"address_street\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "address_street",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"address_zip\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "address_zip",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"address_city\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "address_city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Telefon*",
+    "kind": "text",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#agreed",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "data_release_agreed",
+    "required": false,
+    "group_label": "Datenfreigbe*:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden.",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "e12e9d83192abb9a",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:35",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

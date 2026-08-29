@@ -1,0 +1,108 @@
+[
+ {
+  "host": "advertimavisionag.applytojob.com",
+  "company": "Advertima Vision",
+  "recorded_from": "AdvertimaVision_aFKdIK5rZD",
+  "form_url": "https://advertimavisionag.applytojob.com/apply/aFKdIK5rZD/Senior-Software-Engineer-Full-Stack-Fleet-Management",
+  "language": "en-us",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#resumator-firstname-value",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "resumator-firstname-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#resumator-lastname-value",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "resumator-lastname-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#resumator-email-value",
+    "label": "Email Address*",
+    "kind": "email",
+    "name": "resumator-email-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#resumator-phone-value",
+    "label": "Phone*",
+    "kind": "tel",
+    "name": "resumator-phone-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#resumator-address-value",
+    "label": "Address*",
+    "kind": "text",
+    "name": "resumator-address-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#resumator-city-value",
+    "label": "City",
+    "kind": "text",
+    "name": "resumator-city-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#resumator-state-value",
+    "label": "State/Province",
+    "kind": "text",
+    "name": "resumator-state-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "state_province"
+   },
+   {
+    "selector": "#resumator-postal-value",
+    "label": "Postal",
+    "kind": "text",
+    "name": "resumator-postal-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#resumator-coverletter-value",
+    "label": "Cover Letter*",
+    "kind": "textarea",
+    "semantic": "tailored_response"
+   },
+   {
+    "selector": "#form_submit_new_resume > div:nth-of-type(1) > div:nth-of-type(8) > textarea:nth-of-type(1)",
+    "label": "Will you now or in the future require visa sponsorship to work in Switzerland?*",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "1a04d24bed36e0b0",
+  "hops": 1,
+  "recorded_at": "2026-08-29T19:51:24",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

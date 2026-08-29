@@ -1,0 +1,256 @@
+[
+ {
+  "host": "jobs.helvetia.com",
+  "company": "Helvetia",
+  "recorded_from": "helvetia__Helvetia_10149195",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/Helvetia/switzerland/de/apply?id=19269&jobPipeline=helvetia-internet&canalId=1002532&publishId=10149195&ohvk=fc7c87e6-9331-4784-bd9d-526dd4d2bc11",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#siteHeader > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#title",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "cust_salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstname",
+    "label": "Vorname (gemäss amtlichem Ausweis)",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname (gemäss amtlichem Ausweis)",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#country",
+    "label": "In welchem Land wohnst du?",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Ägypten",
+     "Afghanistan"
+    ],
+    "options_count": 215,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "In welchem Land wohnst du?",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#gender",
+    "label": "Geschlecht",
+    "kind": "select",
+    "name": "cust_gender",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Männlich",
+     "Weiblich",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#nationality",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "cust_nationality",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Afghanistan",
+     "Ägypten",
+     "Åland",
+     "Albanien",
+     "Algerien",
+     "Amerik. Jungferninseln",
+     "Amerikanisch-Samoa"
+    ],
+    "options_count": 249,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(7) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Nationalität",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#permit",
+    "label": "Arbeitsgenehmigung",
+    "kind": "select",
+    "name": "cust_workPermit",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Keine Arbeitsbewilligung",
+     "Schweizer/-in",
+     "B (Aufenthaltsbewilligung)",
+     "B (Aufenthaltsbewilligung - Student)",
+     "C (Niederlassungsbewilligung)",
+     "G (Grenzgängerbewilligung)",
+     "L (Kurzaufenthaltsbewilligung)"
+    ],
+    "options_count": 9,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "#phoneMain",
+    "label": "Vorwahl / Telefonnummer",
+    "kind": "tel",
+    "name": "phoneMain",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#emailConfirm",
+    "label": "E-Mail Bestätigung",
+    "kind": "email",
+    "name": "emailConfirm",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#source",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "cust_source",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "LinkedIn",
+     "Jobs.ch",
+     "Jobup",
+     "Ostjob.ch",
+     "Helvetia Webseite",
+     "Direktansprache Helvetia Recruiter",
+     "Sonstiges"
+    ],
+    "options_count": 8,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#referral",
+    "label": "Wurdest du von einem Helvetia Mitarbeitenden auf diese Stelle aufmerksam gemacht?",
+    "kind": "select",
+    "name": "cust_referral",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Nein",
+     "Ja"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.*",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#equation",
+    "label": "Ich bin kein Roboter und löse die folgende Rechnung",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "9b477a61a25dc807",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:37",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,429 @@
+[
+ {
+  "host": "app.jobportal.abaservices.ch",
+  "company": "BDO",
+  "recorded_from": "bdo__BDO_93ed8e89-e01d-f9a2-0c1f-842f731d9634",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/3505fa5b-0c08-49ef-852b-1a20eab2630e/93ed8e89-e01d-f9a2-0c1f-842f731d9634?jp=ABACUS",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#i6sih",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"AcceptPrivacyTerms\"]",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+    "kind": "checkbox",
+    "name": "AcceptPrivacyTerms",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Language\"]",
+    "label": "Sprache*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Language",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "correspondence_language"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Sex\"]",
+    "label": "Geschlecht*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Sex",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "caa9315fb116db5a",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:08",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "app.jobportal.abaservices.ch",
+  "company": "Medgate",
+  "recorded_from": "medgate__Medgate_98fb446d-fa1a-fc31-2264-40f89622d7cd",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/aaa92995-6005-40c1-a11f-593620a026c2/8d8928f1-ec5a-50bb-c6d6-90d0ff95a2ad",
+  "language": "de-DE",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"u_9_1_xxx__USERFIELD2\"]",
+    "label": "Wie sind Sie auf Medgate aufmerksam geworden?*",
+    "kind": "select",
+    "name": "u_9_1_xxx__USERFIELD2",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "5c8e6d382aebeb13",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:06:54",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "app.jobportal.abaservices.ch",
+  "company": "Aargauische Kantonalbank",
+  "recorded_from": "aargauische-kantonalbank__AargauischeKantonalbank_045a6429-b48e-4880-da90-f2575b",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/a1507f18-5c0a-4465-b5ed-05aa32202909/d8e8015a-c9c0-4dfa-cbfd-fcc9888643eb?jp=ABACUS",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#i1pdd",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#\\31 5f610fe-2c4b-44ea-b09c-3aa11f573ec5",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "autocomplete": "name-title",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_FirstName\"]",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_FirstName",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_LastName\"]",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_LastName",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Street\"]",
+    "label": "Strasse*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_Street",
+    "required": true,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Zip\"]",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_Zip",
+    "required": true,
+    "autocomplete": "postal-code",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_HouseNumber\"]",
+    "label": "Hausnummer*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_HouseNumber",
+    "required": true,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_City\"]",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_City",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "autocomplete": "country",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Phone\"]",
+    "label": "Telefon (+41 xx xxx xx xx)*",
+    "kind": "tel",
+    "name": "LAMAPPL_xxx_Phone",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_EMail\"]",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "LAMAPPL_xxx_EMail",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_DateOfBirth\"]",
+    "label": "Geburtsdatum*",
+    "kind": "date",
+    "name": "LAMAPPL_xxx_DateOfBirth",
+    "required": true,
+    "autocomplete": "birthdate",
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Nationality\"]",
+    "label": "Nationalität*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Nationality",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "autocomplete": "nationality",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "select[name=\"u_9_fields_xxx__USERFIELD7\"]",
+    "label": "Arbeitsbewilligung*",
+    "kind": "select",
+    "name": "u_9_fields_xxx__USERFIELD7",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "select[name=\"u_9_fields_xxx__USERFIELD6\"]",
+    "label": "Aufmerksam geworden durch*",
+    "kind": "select",
+    "name": "u_9_fields_xxx__USERFIELD6",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"LAMAPP_xxx_Salary\"]",
+    "label": "Salärvorstellung (Jahreszielgehalt bei 100 % Pensum, inkl. variabler Vergütungsbestandteile)",
+    "kind": "number",
+    "name": "LAMAPP_xxx_Salary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "select[name=\"u_9_fields_xxx__USERFIELD2\"]",
+    "label": "Stellenvermittler*in Anrede*",
+    "kind": "select",
+    "name": "u_9_fields_xxx__USERFIELD2",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"AcceptPrivacyTerms\"]",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+    "kind": "checkbox",
+    "name": "AcceptPrivacyTerms",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "667769b0bed86375",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:15",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "app.jobportal.abaservices.ch",
+  "company": "KELLER Pressure",
+  "recorded_from": "keller-pressure__KELLERPressure_ab5c9560-44ff-2c45-81f5-0728fcd81d5a",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/850fe357-6391-4bb4-b856-97acb240747a/ab5c9560-44ff-2c45-81f5-0728fcd81d5a",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#impj9",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"u_a_fields_xxx__USERFIELD3\"]",
+    "label": "Wie bist du auf uns aufmerksam geworden?*",
+    "kind": "select",
+    "name": "u_a_fields_xxx__USERFIELD3",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "a4979f63d73a9269",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:25",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

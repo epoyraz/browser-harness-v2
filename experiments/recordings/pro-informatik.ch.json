@@ -1,0 +1,131 @@
+[
+ {
+  "host": "pro-informatik.ch",
+  "company": "Pro Informatik",
+  "recorded_from": "pro-informatik__ProInformatik_2026082701",
+  "form_url": "https://pro-informatik.ch/offene-stellen-it-jobs/bewerbungsformular/?jid=2026082701-Solution+Architekt+Temenos+Integration",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-referrer",
+    "label": "Job gefunden auf *",
+    "kind": "select",
+    "name": "form_referrer",
+    "required": true,
+    "options_sample": [
+     "─ Job gefunden auf ─",
+     "Pro Informatik Webseite",
+     "LinkedIn",
+     "jobs.ch",
+     "andere"
+    ],
+    "options_count": 5,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#form-gender-male",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_gender",
+    "required": true,
+    "group_label": "Titel *",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-firstname",
+    "label": "Job *",
+    "kind": "text",
+    "name": "form_firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-lastname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form_lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-mobile",
+    "label": "Mobiltelefon *",
+    "kind": "text",
+    "name": "form_mobile",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_nationality\"]",
+    "label": "─ Nationalität ─",
+    "kind": "select",
+    "name": "form_nationality",
+    "required": true,
+    "options_sample": [
+     "─ Nationalität ─",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "────────────────",
+     "Oman",
+     "Neuseeland",
+     "Niue"
+    ],
+    "options_count": 251,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-residence-permit",
+    "label": "Aufenthaltserlaubnis",
+    "kind": "text",
+    "name": "form_residence_permit",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "location"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "select[name=\"job_id\"]",
+    "label": "─ Jobs ─",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "d56cce127472c9bd",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:37",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

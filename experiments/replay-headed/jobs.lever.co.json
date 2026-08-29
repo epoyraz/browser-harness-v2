@@ -1,0 +1,100 @@
+[
+ {
+  "host": "jobs.lever.co",
+  "company": "SonarSource",
+  "recorded_from": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+  "form_url": "https://jobs.lever.co/sonarsource/13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0/apply",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "APPLY FOR THIS JOB",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"name\"]",
+    "label": "Full name\n✱",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "Email\n✱",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Phone\n✱",
+    "kind": "text",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#location-input",
+    "label": "Current location\n✱",
+    "kind": "text",
+    "name": "location",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "input[name=\"org\"]",
+    "label": "Current company",
+    "kind": "text",
+    "name": "org",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "current_company"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"urls[LinkedIn]\"]",
+    "label": "LinkedIn URL\n✱",
+    "kind": "text",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "li:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": null,
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "ul:nth-of-type(1) > li:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Type your response",
+    "kind": "text",
+    "semantic": "tailored_response"
+   },
+   {
+    "selector": "li:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": null,
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "8cd4d8cf50eaa3e4",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:50:54",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

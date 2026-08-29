@@ -1,0 +1,5 @@
+[
+ {"name": "H-replay-1-max", "exp": "replay-headed", "workers": 10, "headed": true, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "auto", "BH_REPLAY_DIR": "C:/Users/enesp/Desktop/coding/harness/experiments/replay-headed", "BH_APPLICATION_SKILLS": "0", "BH_PARALLEL_OWN_WINDOW": "1", "BH_APPLICANT_PROFILE": "C:/Users/enesp/Desktop/coding/harness/v2/tests/fixtures/personas/max_mustermann.json"}},
+ {"name": "H-base-1-martina", "exp": "replay-headed", "workers": 10, "headed": true, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "0", "BH_APPLICATION_SKILLS": "0", "BH_PARALLEL_OWN_WINDOW": "1", "BH_APPLICANT_PROFILE": "C:/Users/enesp/Desktop/coding/harness/v2/tests/fixtures/personas/martina_musterfrau.json"}},
+ {"name": "H-replay-2-martina", "exp": "replay-headed", "workers": 10, "headed": true, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "auto", "BH_REPLAY_DIR": "C:/Users/enesp/Desktop/coding/harness/experiments/replay-headed", "BH_APPLICATION_SKILLS": "0", "BH_PARALLEL_OWN_WINDOW": "1", "BH_APPLICANT_PROFILE": "C:/Users/enesp/Desktop/coding/harness/v2/tests/fixtures/personas/martina_musterfrau.json"}}
+]

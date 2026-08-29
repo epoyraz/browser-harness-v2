@@ -1,0 +1,190 @@
+[
+ {
+  "host": "jobs.aity.ch",
+  "company": "aity AG",
+  "recorded_from": "Aity_10163811",
+  "form_url": "https://aity.abacuscity.ch/de/jobform_1_6499/ServiceNow-Engineer-(a)?srcTextPMS=aityag",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#intro > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#customeraddressshopperanrede",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "customeraddressshopperanrede",
+    "required": true,
+    "options_sample": [
+     "",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#Sex",
+    "label": "Geschlecht *",
+    "kind": "select",
+    "name": "Sex",
+    "required": true,
+    "options_sample": [
+     "",
+     "Männlich",
+     "Weiblich"
+    ],
+    "options_count": 3,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#customeraddressshoppervorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "customeraddressshoppervorname",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#customeraddressshoppername",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "customeraddressshoppername",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#customeraddressstreetwithouthousenumber",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "customeraddressstreetwithouthousenumber",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "#customeraddresshousenumber",
+    "label": "Hausnummer",
+    "kind": "text",
+    "name": "customeraddresshousenumber",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "#customeraddressshopperplz",
+    "label": "Plz *",
+    "kind": "text",
+    "name": "customeraddressshopperplz",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#customeraddressshopperort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "customeraddressshopperort",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "#customeraddressshopperortSelect",
+    "kind": "select",
+    "name": "customeraddressshopperortSelect",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "placeholder_first": false,
+    "semantic": "street"
+   },
+   {
+    "selector": "#customeraddressshopperland",
+    "label": "Land *",
+    "kind": "select",
+    "name": "customeraddressshopperland",
+    "required": true,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Vereinigte Staaten von Amerika"
+    ],
+    "options_count": 253,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#customeraddressshoppermobile",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "customeraddressshoppermobile",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#customeraddressshopperaddressemail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "customeraddressshopperaddressemail",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#DateOfBirth",
+    "label": "Geburtsdatum *",
+    "kind": "date",
+    "name": "DateOfBirth",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "birth_date"
+   }
+  ],
+  "files": [
+   {
+    "selector": "html:nth-of-type(1) > body:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "",
+    "name": "file",
+    "required": false,
+    "multiple": true
+   },
+   {
+    "selector": "html:nth-of-type(1) > body:nth-of-type(1) > input:nth-of-type(2)",
+    "label": "",
+    "name": "file",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "a3704a9465cdbae4",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:20:01",
+  "stats": {
+   "uses": 5,
+   "successes": 5,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T22:28:57"
+  }
+ }
+]

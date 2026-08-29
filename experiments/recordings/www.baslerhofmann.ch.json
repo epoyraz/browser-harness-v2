@@ -1,0 +1,95 @@
+[
+ {
+  "host": "www.baslerhofmann.ch",
+  "company": "Basler & Hofmann",
+  "recorded_from": "basler-hofmann__BaslerHofmann_234",
+  "form_url": "https://recruitingapp-2852.umantis.com/Vacancies/900/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"form_data5\"]",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "form_data5",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 4,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "select[name=\"form_data19\"]",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data19",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Basler & Hofmann Website",
+     "Basler & Hofmann Mitarbeitende",
+     "Online Stellenmärkte",
+     "LinkedIn",
+     "Job-Mail",
+     "Internet-Suchmaschine"
+    ],
+    "options_count": 15,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "38c9450fac9ea793",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:57",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

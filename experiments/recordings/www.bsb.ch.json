@@ -1,0 +1,172 @@
+[
+ {
+  "host": "www.bsb.ch",
+  "company": "Bürgerspital Basel",
+  "recorded_from": "burgerspital-basel__BuergerspitalBasel_berufsabklaerer-berufsabklaererin-100-pro",
+  "form_url": "https://jobs.bsb.ch/Vacancies/1161/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data4",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data5",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data14\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "form_data14",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data15\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data15",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data16\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data16",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data17\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data17",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Afghanistan",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 238,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data19\"]",
+    "label": "E-Mail-Adresse",
+    "kind": "text",
+    "name": "form_data19",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data20\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data20",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data32\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data32",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "bsb.ch",
+     "aerztezeitung.de",
+     "alpha.ch",
+     "jobs.ch",
+     "jobwinner.ch",
+     "Empfehlung durch BSB Mitarbeitende"
+    ],
+    "options_count": 35,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data39\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data39",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data42\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data42",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "139e9f8a4433d1e6",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:41",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

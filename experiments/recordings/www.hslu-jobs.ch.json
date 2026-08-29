@@ -1,0 +1,190 @@
+[
+ {
+  "host": "www.hslu-jobs.ch",
+  "company": "HSLU",
+  "recorded_from": "hslu__HSLU_62b5b401-14cd-48c5-b2e1-cca9e5263931",
+  "form_url": "https://recruitingapp-2678.umantis.com/Vacancies/3513/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#footerWrapper > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data4",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data5",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "textarea[name=\"form_data16\"]",
+    "label": "Strasse",
+    "kind": "textarea",
+    "name": "form_data16",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data19\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data19",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch Samoa",
+     "Andorra"
+    ],
+    "options_count": 236,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data22\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data22",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"form_data23\"]",
+    "label": "Mobiltelefon",
+    "kind": "text",
+    "name": "form_data23",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"form_data24\"]",
+    "label": "LinkedIn-Profil",
+    "kind": "text",
+    "name": "form_data24",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "select[name=\"form_data43\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data43",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Homepage Hochschule Luzern",
+     "Online Stellenmärkte",
+     "Social Media (z.B. Xing)",
+     "Printmedien, Zeitungen, Fachzeitschrifte",
+     "Freunde, Bekannte",
+     "Mitarbeitende Hochschule Luzern"
+    ],
+    "options_count": 10,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data50\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data50",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data53\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data53",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "0bd1119592f0c664",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:20",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

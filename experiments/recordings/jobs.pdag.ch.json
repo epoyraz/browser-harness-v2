@@ -1,0 +1,192 @@
+[
+ {
+  "host": "jobs.pdag.ch",
+  "company": "PDAG",
+  "recorded_from": "pdag__PDAG_10165073",
+  "form_url": "https://atsconnector.prospective.ch/umantis/22705/de/apply/4067?srcIDPMS=10165073&srcTextPMS=pdag.ch&source=pdag.ch&canalId=1000003&publishId=10165073&ohvk=e2097278-18a7-4283-80d8-4fb567027767",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#auszeichnungen > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#applicant_salutation",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "salutation",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Frau",
+     "Herr",
+     "keine Angaben"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail Adresse",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Mobiltelefon",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_city",
+    "label": "Ort",
+    "kind": "text",
+    "name": "address_city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#applicant_street",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "address_street",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#applicant_zip",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "address_zip",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#applicant_country",
+    "kind": "select",
+    "name": "address_country",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "---------------------------------",
+     "Afghanistan"
+    ],
+    "options_count": 239,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "street"
+   },
+   {
+    "selector": "#applicant_nationality",
+    "kind": "select",
+    "name": "nationality",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweizerisch",
+     "Deutsch",
+     "Österreichisch",
+     "Afghanisch",
+     "Ägyptisch",
+     "Åländisch",
+     "Albanisch"
+    ],
+    "options_count": 203,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#applicant_recommendation",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Mitarbeitende/r PDAG",
+     "Online-Stelleninserat",
+     "Ergotherapie.ch",
+     "Fmhjob.ch",
+     "Jobs.ch",
+     "Medjobs.ch",
+     "Psychologie.ch"
+    ],
+    "options_count": 23,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden. *",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#data_release_agreed_true",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden können.",
+    "kind": "radio",
+    "name": "data_release_agreed",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "423c1098e1aefa59",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:08",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

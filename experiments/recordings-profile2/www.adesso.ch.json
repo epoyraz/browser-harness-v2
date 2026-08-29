@@ -1,0 +1,297 @@
+[
+ {
+  "host": "www.adesso.ch",
+  "company": "adesso",
+  "recorded_from": "adesso_2680",
+  "form_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/Software-Architekt-Java-all-genders-de-f2680.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": true,
+    "options_sample": [
+     "Anrede*",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land*",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "Land*",
+     "Deutschland",
+     "Österreich",
+     "Schweiz",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "date",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon*",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#vordef_bew_feld_107",
+    "label": "adesso Schweiz Wunschstandort*",
+    "kind": "select",
+    "name": "bewerbung_form[vordef_bew_feld_107]",
+    "required": true,
+    "options_sample": [
+     "adesso Schweiz Wunschstandort*",
+     "Basel",
+     "Bern",
+     "Lausanne",
+     "Zürich",
+     "Lugano",
+     "Mailand",
+     "St. Gallen"
+    ],
+    "options_count": 8,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "preferred_location"
+   },
+   {
+    "selector": "#vordef_bew_feld_109",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?*",
+    "kind": "select",
+    "name": "bewerbung_form[vordef_bew_feld_109]",
+    "required": true,
+    "options_sample": [
+     "Wie sind Sie auf uns aufmerksam geworden",
+     "adesso.ch",
+     "Google",
+     "Google Jobs",
+     "Recruiting Event",
+     "Jobs.ch",
+     "kununu.com",
+     "linkedin.com"
+    ],
+    "options_count": 11,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#kuendigungs_frist",
+    "label": "Kündigungsfrist",
+    "kind": "select",
+    "name": "bewerbung_form[kuendigungs_frist]",
+    "required": false,
+    "options_sample": [
+     "Kündigungsfrist",
+     "sofort verfügbar",
+     "1 Monat",
+     "2 Monate",
+     "3 Monate",
+     "6 Monate"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#schulabschluss",
+    "label": "Höchster Bildungsabschluss*",
+    "kind": "select",
+    "name": "bewerbung_form[schulabschluss]",
+    "required": true,
+    "options_sample": [
+     "Höchster Bildungsabschluss*",
+     "Hauptschule",
+     "Realschule",
+     "Berufsausbildung",
+     "Fachhochschulreife",
+     "Allgemeine Hochschulreife",
+     "Matura",
+     "Abschluss Universität (Bachelor)"
+    ],
+    "options_count": 14,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#erfahrung_pref_inJ",
+    "label": "Berufserfahrung*",
+    "kind": "select",
+    "name": "bewerbung_form[erfahrung_pref_inJ]",
+    "required": true,
+    "options_sample": [
+     "Berufserfahrung*",
+     "Keine",
+     "1-2 Jahre",
+     "3-5 Jahre",
+     "6-10 Jahre",
+     ">10 Jahre"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "experience_years"
+   }
+  ],
+  "files": [
+   {
+    "selector": "input[name=\"cv_lebenslauf\"]",
+    "label": "",
+    "name": "cv_lebenslauf",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"anschreiben\"]",
+    "label": "",
+    "name": "anschreiben",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"lebenslauf\"]",
+    "label": "",
+    "name": "lebenslauf",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"anlage2\"]",
+    "label": "",
+    "name": "anlage2",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"anlage5\"]",
+    "label": "",
+    "name": "anlage5",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"foto\"]",
+    "label": "",
+    "name": "foto",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "input[name=\"anlage1\"]",
+    "label": "",
+    "name": "anlage1",
+    "required": false,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "3e6c3ccf87f3cf85",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:06:53",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

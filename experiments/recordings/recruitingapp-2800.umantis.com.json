@@ -1,0 +1,136 @@
+[
+ {
+  "host": "recruitingapp-2800.umantis.com",
+  "company": "Kanton St.Gallen",
+  "recorded_from": "kanton-st-gallen__Kanton_St_Gallen_6460",
+  "form_url": "https://recruitingapp-2800.umantis.com/Vacancies/6460/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data7",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data11",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data16\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data16",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data18\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data18",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien"
+    ],
+    "options_count": 238,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"form_data28\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data28",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Homepage des Kanton St.Gallen",
+     "Ostjob.ch",
+     "Jobs.ch",
+     "PublicJobs",
+     "XING",
+     "Weblaw"
+    ],
+    "options_count": 20,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data35\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data35",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "a9a7391220350920",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:03",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

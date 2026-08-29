@@ -200,6 +200,23 @@ out = fill_form([
 print({"ok": out.ok, "observed": out.observed})
 ```
 
+For an application workflow that must also attach documents, make the side effect explicit
+with a resolver. The result carries per-input filenames/status plus aggregate attempted and
+succeeded counts; an unmapped required file input or rejected attachment makes the workflow
+partial instead of silently reporting success:
+
+```python
+result = run_application(
+    url,
+    planner=planner,
+    file_resolver=lambda field: documents_for(field),
+)
+print({"stage": result["stage"], "uploads": result["uploads"]})
+```
+
+Omit `file_resolver` for a no-upload run. File attachment and form submission remain
+independent boundaries; `run_application` never submits.
+
 `set_value`/form steps support `mode="value"` (one call, default), `"insert"` (trusted
 insert), and `"type"` (slow, per-key). Use `type` only for incremental masks/typeaheads.
 Selects take labels, not indices. Hidden real controls are marked `hidden_control`; ARIA

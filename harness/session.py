@@ -12,6 +12,7 @@ D1 was after; the ergonomic convenience of "there is a current tab" was never th
 """
 from __future__ import annotations
 
+import math
 import os
 import threading
 import time
@@ -273,6 +274,36 @@ class Session:
                                identifier=tid)
             self.close_tab(tid)
             raise
+
+    def place_window(self, target_id: str, *, slot: int, slots: int) -> dict[str, Any]:
+        """Tile a tab's own window into cell `slot` of a grid of `slots` on the screen.
+
+        `Target.createTarget(newWindow, background)` stacks every worker window at the
+        same cascade position behind whatever the user is looking at: the user sees
+        nothing, and Windows stops painting occluded windows, which leaves SPAs that only
+        render while visible (the Abacus jobportal, 2026-08-29) blank. A grid keeps every
+        worker window visible and unoccluded by its siblings.
+        """
+        tab = self.tab(target_id)
+        screen = tab.js("({w: screen.availWidth, h: screen.availHeight, "
+                        "l: screen.availLeft || 0, t: screen.availTop || 0})") or {}
+        width_all = int(screen.get("w") or 1920)
+        height_all = int(screen.get("h") or 1080)
+        cols = max(1, math.ceil(math.sqrt(max(1, slots))))
+        rows = max(1, math.ceil(max(1, slots) / cols))
+        width = max(480, width_all // cols)
+        height = max(420, height_all // rows)
+        left = int(screen.get("l") or 0) + (slot % cols) * width
+        top = int(screen.get("t") or 0) + ((slot // cols) % rows) * height
+        window_id = self.conn.request("Browser.getWindowForTarget", {"targetId": target_id})["windowId"]
+        # Bounds only apply to a "normal" window; a maximized one ignores them.
+        self.conn.request("Browser.setWindowBounds",
+                          {"windowId": window_id, "bounds": {"windowState": "normal"}})
+        bounds = {"left": left, "top": top, "width": width, "height": height}
+        self.conn.request("Browser.setWindowBounds", {"windowId": window_id, "bounds": bounds})
+        self.journal.write("note", event="window_placed", target_id=target_id, slot=slot,
+                           slots=slots, **bounds)
+        return bounds
 
     def use_tab(self, target_id: str) -> Tab:
         return self.tab(target_id)

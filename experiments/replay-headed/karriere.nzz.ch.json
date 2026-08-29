@@ -1,0 +1,212 @@
+[
+ {
+  "host": "karriere.nzz.ch",
+  "company": "NZZ",
+  "recorded_from": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/DC74_PROD/neuezrcher/de/apply?id=1127&srcTextPMS=nzz-mediengruppe&ohvk=c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstName",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer*",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#zip",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "postalCode",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land*",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Afghanistan",
+     "Ägypten"
+    ],
+    "options_count": 248,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#cust_citizenship",
+    "label": "Staatsangehörigkeit*",
+    "kind": "select",
+    "name": "cust_citizenship",
+    "required": true,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Afghanistan",
+     "Ägypten"
+    ],
+    "options_count": 248,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#cellPhone",
+    "label": "Mobiltelefon Privat*",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#cust_cellPhone_privat",
+    "label": "Telefon Privat",
+    "kind": "text",
+    "name": "cust_cellPhone_privat",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#cust_empl",
+    "label": "Ich bin bereits Mitarbeiter/in*",
+    "kind": "select",
+    "name": "cust_empl",
+    "required": true,
+    "options_sample": [
+     "",
+     "Nein",
+     "Ja"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "former_employee"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#cust_anrede",
+    "label": "Anrede*",
+    "kind": "select",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#cust_crossborder",
+    "label": "Grenzgänger? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#cust_source",
+    "label": "Über welchen Kanal wurde unsere Stelle gefunden?*",
+    "kind": "select",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#question_1",
+    "label": "Ab wann bist du verfügbar?",
+    "kind": "textarea",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#question_2",
+    "label": null,
+    "kind": "number",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#question_3",
+    "label": "Welchen Beschäftigungsgrad suchst du?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#others-wrapper > input:nth-of-type(1)",
+    "label": "Lebenslauf*",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#equation",
+    "label": "Lösung Rechenaufgabe*",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "ae057ac865f5bd26",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:51:21",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

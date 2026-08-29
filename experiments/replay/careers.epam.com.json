@@ -1,0 +1,97 @@
+[
+ {
+  "host": "careers.epam.com",
+  "company": "EPAM",
+  "recorded_from": "epam_bltlhinbqhlvbryudmk",
+  "form_url": "https://careers.epam.com/en/vacancy/oms-lead-engineer-bltlhinbqhlvbryudmk_en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#cta_job_apply_unauthorized",
+    "label": "APPLY",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#name",
+    "label": "First Name*",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#surname",
+    "label": "Last Name*",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "value": "epoyraz.eth@gmail.com"
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:31",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "careers.epam.com",
+  "company": "EPAM",
+  "recorded_from": "epam_bltlhinbqhlvbryudmk",
+  "form_url": "https://careers.epam.com/en/vacancy/oms-lead-engineer-bltlhinbqhlvbryudmk_en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#cta_job_apply_unauthorized",
+    "label": "APPLY",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#name",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#surname",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "af29c5a2adecf96c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:07",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

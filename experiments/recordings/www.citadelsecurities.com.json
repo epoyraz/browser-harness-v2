@@ -1,0 +1,138 @@
+[
+ {
+  "host": "www.citadelsecurities.com",
+  "company": "Citadel Securities",
+  "recorded_from": "citadel-securities__CitadelSecurities_quantitative-research-analyst-intern-bs-ms",
+  "form_url": "https://www.citadelsecurities.com/careers/details/quantitative-research-analyst-intern-bs-ms-europe-2/",
+  "language": "en-US",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#profile_education__degree_type",
+    "label": "- Select-",
+    "kind": "select",
+    "name": "profile[education][new0][degree_type]",
+    "required": true,
+    "options_sample": [
+     "- Select-",
+     "Associate",
+     "Bachelors",
+     "Certificate",
+     "Diploma",
+     "Doctorate",
+     "Post-Doctorate",
+     "Masters"
+    ],
+    "options_count": 12,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#profile_education__degree_major",
+    "label": "- Select-",
+    "kind": "select",
+    "name": "profile[education][new0][degree_major]",
+    "required": true,
+    "options_sample": [
+     "- Select-",
+     "Computer Science",
+     "Engineering",
+     "Mathematics",
+     "Physics",
+     "Economics",
+     "Finance",
+     "Business"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#profile_education__degree_measure_highest_value",
+    "label": "-Select -",
+    "kind": "select",
+    "name": "profile[education][new0][degree_measure][highest_value]",
+    "required": true,
+    "options_sample": [
+     "-Select -",
+     "4.0",
+     "5.0",
+     "0-100"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#code_preference_1",
+    "label": "Preference 1",
+    "kind": "select",
+    "name": "profile[code_preference][]",
+    "required": false,
+    "options_sample": [
+     "-- Select --",
+     "C++",
+     "Python",
+     "Java",
+     "JavaScript",
+     "TypeScript"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "#code_preference_2",
+    "label": "Preference 2",
+    "kind": "select",
+    "name": "profile[code_preference][]",
+    "required": false,
+    "options_sample": [
+     "-- Select --",
+     "C++",
+     "Python",
+     "Java",
+     "JavaScript",
+     "TypeScript"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "profile_summary"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "select[name=\"answers[][04b576fa-1eae-4a9a-ae39-fae7e81f9a6a]\"]",
+    "label": null,
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"answers[][70dc193e-ef97-489d-8f66-89777c9dce2d]\"]",
+    "label": null,
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "8eb5f28f1498fbd0",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:08:33",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

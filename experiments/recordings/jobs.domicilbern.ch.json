@@ -1,0 +1,96 @@
+[
+ {
+  "host": "jobs.domicilbern.ch",
+  "company": "Domicil",
+  "recorded_from": "domicil__Domicil_1392bc18-f05a-4cba-bf65-8202c3278746",
+  "form_url": "https://recruitingapp-2989.umantis.com/Vacancies/1187/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data3\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data3",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data4",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data5",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data27\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data27",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data30\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data30",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "3e231a1bba3f88b1",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:38",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

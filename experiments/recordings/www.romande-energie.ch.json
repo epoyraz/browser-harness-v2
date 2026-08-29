@@ -1,0 +1,143 @@
+[
+ {
+  "host": "www.romande-energie.ch",
+  "company": "Romande Energie",
+  "recorded_from": "romande-energie__ROMANDE_ENERGIE_4457",
+  "form_url": "https://ats.johdisuite.ch/recruitments/4953/offer/4457/postulation/web?signature=3507fd0f99c0f1f562fb1761c81868fc17f435efeff769f37a8680bf98c12aeb",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Postuler",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#lastname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#firstname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#phone",
+    "label": "Telefonnummer *",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-mail *",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#birth_date",
+    "label": "Geburtsdatum *",
+    "kind": "date",
+    "name": "birth_date",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#address",
+    "label": "Adresse *",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#zip_code",
+    "label": "Postleitzahl *",
+    "kind": "text",
+    "name": "zip_code",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "combobox",
+    "name": "country",
+    "required": true,
+    "needs_interaction": true,
+    "autocomplete": "none",
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#nationality",
+    "label": "Nationalität *",
+    "kind": "combobox",
+    "name": "nationality",
+    "required": true,
+    "needs_interaction": true,
+    "autocomplete": "none",
+    "label_source": "markup",
+    "semantic": "nationality"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#appeal_form",
+    "label": "Berufungsformular *",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Bitte auswählen",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#workingLicense",
+    "label": "Arbeitsbeweiligung *",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "b9a394a666a96e63",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:16",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

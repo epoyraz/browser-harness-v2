@@ -1,0 +1,65 @@
+[
+ {
+  "host": "jobs.brackalltron.ch",
+  "company": "Brack",
+  "recorded_from": "Brack_gen_e9539f58830f",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2960/de/apply/1585?srcIDPMS=10104015&srcTextPMS=competec_internet&source=competec_internet&canalId=1005615&publishId=10104015&ohvk=78db4f7a-d102-458b-8921-22e8f150f1e9",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#intropage > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"first_name\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "input[name=\"last_name\"]",
+    "label": "Name",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "input[name=\"address_city\"]",
+    "label": "Ort",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "E-Mail",
+    "kind": "text",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefon",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#application_salary",
+    "label": "Deine Lohnvorstellung (Jahresgehalt 100 %)",
+    "kind": "text",
+    "value": "105000"
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:47",
+  "stats": {
+   "uses": 1,
+   "successes": 1,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T19:41:11"
+  },
+  "required_unplanned": []
+ }
+]

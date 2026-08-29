@@ -1,0 +1,76 @@
+[
+ {
+  "host": "job.stadtluzern.ch",
+  "company": "Stadt Luzern",
+  "recorded_from": "stadt-luzern__StadtLuzern_10163955",
+  "form_url": "https://recruitingapp-3036.umantis.com/Vacancies/1824/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applyCTA > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data3\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data3",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data4",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data5",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse",
+    "kind": "text",
+    "name": "form_data10",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data28\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data28",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "fc2e03471d30f4bf",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

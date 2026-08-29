@@ -1,0 +1,190 @@
+[
+ {
+  "host": "jobs.emilfrey.ch",
+  "company": "Emil-Frey",
+  "recorded_from": "emil-frey__Emil-Frey_gen_59d1924a2dce",
+  "form_url": "https://jobs.emilfrey.ch/Collaborateurtrice-disposition-administration-fr-f2361.html",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Déposez votre candidature maintenant!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Civilité *",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Monsieur",
+     "Madame"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Prénom *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nom *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Rue *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "CP *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "label": "Pays",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Andorre",
+     "Angola"
+    ],
+    "options_count": 198,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Date de naissance (JJ/MM/AAAA) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Téléphone *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#schulabschluss",
+    "label": "Diplôme de fin d'études",
+    "kind": "select",
+    "name": "bewerbung_form[schulabschluss]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Pas de diplôme",
+     "École primaire",
+     "École secondaire",
+     "École de commerce",
+     "Maturité",
+     "Université / EPF"
+    ],
+    "options_count": 7,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#berufsausbildung_o_sb",
+    "label": "Formation professionnelle (désignation)",
+    "kind": "text",
+    "name": "bewerbung_form[berufsausbildung_o_sb]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "education"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Début prévu (JJ/MM/AAAA) *",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#gehaltswunsch",
+    "label": "Rémunération 100% souhaitée p.a. (chiffre slmt)",
+    "kind": "text",
+    "name": "bewerbung_form[gehaltswunsch]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#ort",
+    "label": "Lieu *",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#mail",
+    "label": "Courrier électronique *",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Comment nous avez-vous trouvés? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "45f7a81a8d100acb",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:01",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

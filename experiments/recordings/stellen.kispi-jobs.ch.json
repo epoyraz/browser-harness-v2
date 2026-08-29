@@ -1,0 +1,161 @@
+[
+ {
+  "host": "stellen.kispi-jobs.ch",
+  "company": "Kinderspital Zürich",
+  "recorded_from": "kinderspital-zurich__Kispi_78438ab6",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2316/de/apply/3734?srcIDPMS=10164021&srcTextPMS=kinderspital&source=kinderspital&canalId=1000429&publishId=10164021&ohvk=78438ab6-fb95-490e-950d-14f5d2f57f2b",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#lang_Salutation_M",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_birthdate_visible",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "birthdate_visible",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail Adresse",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_address_street",
+    "label": "Strasse",
+    "kind": "tel",
+    "name": "address_street",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_address_zip",
+    "label": "PLZ",
+    "kind": "tel",
+    "name": "address_zip",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_address_city",
+    "label": "Ort",
+    "kind": "tel",
+    "name": "address_city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefon / Mobile",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_additional_doc_2_visible",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "applicant_additional_doc_2_visible",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "#applicant_recommendation",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Homepage Kinderspital Zürich",
+     "Mitarbeitende Kinderspital Zürich",
+     "Freunde oder Bekannte",
+     "Flyer / Informationsbroschüre / Printmed",
+     "Google",
+     "Interne Stellenausschreibung",
+     "jobs.ch"
+    ],
+    "options_count": 21,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#data_release_agreed_true",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "data_release_agreed",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden.\nDas Kinderspital Zürich nimmt für diese Position keine unaufgeforderten Bewerbungen von Personalvermittlern entgegen. Personalvermittler reichen daher bitte keine Bewerberunterlagen an unsere Mitarbeitenden oder über unser Online-Karriere-Portal ein. Wir lehnen jegliche Verantwortung für unaufgefordert eingereichte Bewerbungen sowie etwaige Gebühren ab und danken für das Verständnis.",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c101302773a01284",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:35",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

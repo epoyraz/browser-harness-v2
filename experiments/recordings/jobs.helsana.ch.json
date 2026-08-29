@@ -1,0 +1,190 @@
+[
+ {
+  "host": "jobs.helsana.ch",
+  "company": "Helsana",
+  "recorded_from": "helsana__Helsana_gen_717522d66cae",
+  "form_url": "https://jobs.helsana.ch/successfactors/EMEA_STANDARD/Helsana/de/apply?id=34536&jobPipeline=helsanainternet&canalId=1002787&publishId=10162230&ohvk=449bd7e5-1e6f-43db-9eaf-39d8c327ee50",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#wrapper > footer:nth-of-type(1) > article:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#title",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "title",
+    "required": false,
+    "options_sample": [
+     "Anrede",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstname",
+    "label": "*Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "*Tel.",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "*E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#zip",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "Land",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Italien",
+     "Frankreich",
+     "Liechtenstein",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "required": false,
+    "autocomplete": "fomantic-search",
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#question_2",
+    "label": "Welchen Brutto-Jahreslohn stellst du dir bei 100% vor?",
+    "kind": "textarea",
+    "name": "question_2",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#reference",
+    "label": "Empfehlung Nachname / Vorname (optional)",
+    "kind": "text",
+    "name": "cust_referral",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "*Ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#question_1",
+    "label": "Welches Pensum bevorzugst du?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#question_4",
+    "label": "Was hat dich motiviert, dich auf diese Stelle zu bewerben?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "f1792bbb59a6526b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:37",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

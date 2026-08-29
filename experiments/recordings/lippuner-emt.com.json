@@ -1,0 +1,98 @@
+[
+ {
+  "host": "lippuner-emt.com",
+  "company": "Lippuner",
+  "recorded_from": "lippuner__Lippuner_gen_af22a5dd55a3",
+  "form_url": "https://lippuner-emt.com/bewerbungsformular/?stellenid=3178",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(4) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input_2_8",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "input_8",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#input_2_6",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "input_6",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input_2_10",
+    "label": "PLZ / Ort*",
+    "kind": "text",
+    "name": "input_10",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#input_2_3",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "input_3",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input_2_7",
+    "label": "Telefon",
+    "kind": "tel",
+    "name": "input_7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#input_2_5_1",
+    "label": "Ja, ich bin mit der Datenschutzerklärung einverstanden.",
+    "kind": "checkbox",
+    "name": "input_5.1",
+    "required": true,
+    "group_label": "Datenschutzerklärung*",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#input_2_11",
+    "label": "Stelle*",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#input_2_9",
+    "label": "Adresse*",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "af33b77a9d89a15d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:44",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

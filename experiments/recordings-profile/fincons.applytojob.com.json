@@ -1,0 +1,130 @@
+[
+ {
+  "host": "fincons.applytojob.com",
+  "company": "Fincons Group",
+  "recorded_from": "FinconsGroup_hEPeMkC7c1",
+  "form_url": "https://fincons.applytojob.com/apply/hEPeMkC7c1/Senior-ApplikationsEntwickler-In-80-100",
+  "language": "en-us",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#resumator-firstname-value",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "resumator-firstname-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#resumator-lastname-value",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "resumator-lastname-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#resumator-email-value",
+    "label": "Email Address*",
+    "kind": "email",
+    "name": "resumator-email-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#resumator-phone-value",
+    "label": "Phone*",
+    "kind": "tel",
+    "name": "resumator-phone-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#resumator-address-value",
+    "label": "Address",
+    "kind": "text",
+    "name": "resumator-address-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#resumator-city-value",
+    "label": "City",
+    "kind": "text",
+    "name": "resumator-city-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#resumator-state-value",
+    "label": "State/Province",
+    "kind": "text",
+    "name": "resumator-state-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "state_province"
+   },
+   {
+    "selector": "#resumator-postal-value",
+    "label": "Postal",
+    "kind": "text",
+    "name": "resumator-postal-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form_submit_new_resume > div:nth-of-type(1) > div:nth-of-type(7) > label:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "I agree",
+    "kind": "checkbox",
+    "name": "resumator-checkbox-722664-1",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#form_submit_new_resume > div:nth-of-type(1) > div:nth-of-type(8) > input:nth-of-type(1)",
+    "label": "Frühester Eintrittstermin / Entry Date*",
+    "kind": "text",
+    "name": "resumator-questionnaire[2917420]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#form_submit_new_resume > div:nth-of-type(1) > div:nth-of-type(9) > input:nth-of-type(1)",
+    "label": "Geburtsdatum/Birth date",
+    "kind": "text",
+    "name": "resumator-questionnaire[2917424]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#resumator-resume-value",
+    "label": "Resume*",
+    "name": "resumator-resume-value",
+    "required": true,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "34cb3261db669635",
+  "hops": 1,
+  "recorded_at": "2026-08-29T21:50:15",
+  "stats": {
+   "uses": 2,
+   "successes": 2,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T21:57:09"
+  }
+ }
+]

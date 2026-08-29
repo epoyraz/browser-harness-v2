@@ -1,0 +1,167 @@
+[
+ {
+  "host": "mbch.abacuscity.ch",
+  "company": "Mercedes-Benz",
+  "recorded_from": "mercedes-benz__MercedesBenz_19901016",
+  "form_url": "https://mbch.abacuscity.ch/de/jobform_1_19901016/Praktikant-in-Inkasso-100%25-%28m-w-d%29",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(6) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"customeraddressshopperanrede\"]",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "customeraddressshopperanrede",
+    "required": false,
+    "options_sample": [
+     "",
+     "Herr",
+     "Frau",
+     "Keine Angabe"
+    ],
+    "options_count": 4,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppervorname\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "customeraddressshoppervorname",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppername\"]",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "customeraddressshoppername",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"customeraddressstreetwithouthousenumber\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "customeraddressstreetwithouthousenumber",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"customeraddresshousenumber\"]",
+    "label": "Hausnummer",
+    "kind": "text",
+    "name": "customeraddresshousenumber",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperplz\"]",
+    "label": "Plz",
+    "kind": "text",
+    "name": "customeraddressshopperplz",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperort\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "customeraddressshopperort",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"customeraddressshopperland\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "customeraddressshopperland",
+    "required": false,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Vereinigte Staaten von Amerika"
+    ],
+    "options_count": 253,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"customeraddressshopperaddressemail\"]",
+    "label": "E-Mail",
+    "kind": "text",
+    "name": "customeraddressshopperaddressemail",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"DateOfBirth\"]",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "DateOfBirth",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"customeraddressshopperlanguage\"]",
+    "label": "Sprachcode",
+    "kind": "select",
+    "name": "customeraddressshopperlanguage",
+    "required": false,
+    "options_sample": [
+     "",
+     "Deutsch",
+     "Englisch",
+     "Französisch",
+     "Italienisch"
+    ],
+    "options_count": 5,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"customeraddressshoppermobile\"]",
+    "label": "Mobiltelefon",
+    "kind": "text",
+    "name": "customeraddressshoppermobile",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c54f1002910f6f3a",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:13",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

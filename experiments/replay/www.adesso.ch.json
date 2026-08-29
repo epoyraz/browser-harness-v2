@@ -1,0 +1,169 @@
+[
+ {
+  "host": "www.adesso.ch",
+  "company": "adesso",
+  "recorded_from": "adesso_2680",
+  "form_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/Software-Architekt-Java-all-genders-de-f2680.html?sid=bdb2cce6b6658f428c7a0b837a2fb69b",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#vorname",
+    "label": "Vorname*",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname*",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse",
+    "kind": "text",
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ",
+    "kind": "text",
+    "value": "8212"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "date",
+    "value": "1987-02-05"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon*",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail*",
+    "kind": "text",
+    "value": "epoyraz.eth@gmail.com"
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:34:03",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "www.adesso.ch",
+  "company": "adesso",
+  "recorded_from": "adesso_2680",
+  "form_url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/Software-Architekt-Java-all-genders-de-f2680.html",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#vorname",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": false,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "date",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "value": "1987-02-05"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon*",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "bed1d6c3bd2cdd8c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:27",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

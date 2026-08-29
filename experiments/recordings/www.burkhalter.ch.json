@@ -1,0 +1,61 @@
+[
+ {
+  "host": "www.burkhalter.ch",
+  "company": "Burkhalter",
+  "recorded_from": "burkhalter__Burkhalter_gen_74019ba25346",
+  "form_url": "https://www.burkhalter-bildung.ch/infos-tipps/bewerbung",
+  "language": "de-CH",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "li:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(5) > a:nth-of-type(1)",
+    "label": "Bewerbung",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#pac-input",
+    "label": "Ort / PLZ",
+    "kind": "text",
+    "name": "inputLocation",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#lehrbetrieb-kanton",
+    "label": "Kanton",
+    "kind": "select",
+    "name": "lehrbetrieb-kanton",
+    "required": false,
+    "options_sample": [
+     "Alle Kantone",
+     "Aargau",
+     "Appenzell-Ausserrhoden",
+     "Basel-Landschaft",
+     "Basel-Stadt",
+     "Bern",
+     "Freiburg",
+     "Genf"
+    ],
+    "options_count": 21,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "state_province"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "a5ac271a0a4fb15b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:26",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

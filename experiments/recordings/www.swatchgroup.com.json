@@ -1,0 +1,192 @@
+[
+ {
+  "host": "www.swatchgroup.com",
+  "company": "Swatch Group",
+  "recorded_from": "swatch-group__Swatch_Group_32865",
+  "form_url": "https://sg.recruitmentplatform.com/apply/apply.html?jobId=P8MFK026203F3VBQB8NLO7934-272917&langCode=fr_FR&sourceBoard=swatchgroup.com&source=swatchgroup.com",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > aside:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "POSTULER POUR CE POSTE",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form_of_address_1",
+    "label": "Civilité (Obligatoire)",
+    "kind": "select",
+    "name": "form_of_address",
+    "required": true,
+    "options_sample": [
+     "--Veuillez sélectionner--",
+     "Madame",
+     "Monsieur",
+     "Madame/Monsieur"
+    ],
+    "options_count": 4,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#first_name_2",
+    "label": "Prénom (Obligatoire)",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name_3",
+    "label": "Nom (Obligatoire)",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#e-mail_address_4",
+    "label": "Adresse e-mail (email@domain.com) (Obligatoire)",
+    "kind": "email",
+    "name": "e-mail_address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#address_5",
+    "label": "Rue",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city_6",
+    "label": "Ville (Obligatoire)",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#zip_7",
+    "label": "Code postal (Obligatoire)",
+    "kind": "text",
+    "name": "zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country_8",
+    "label": "Pays",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "--Veuillez sélectionner--",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Andorre",
+     "Angola"
+    ],
+    "options_count": 217,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#country-code_phone__mobile__9",
+    "label": "Numéro de téléphone (Obligatoire)",
+    "kind": "select",
+    "name": "country-codephone__mobile_",
+    "required": true,
+    "options_sample": [
+     "Code Pays",
+     "Afghanistan (+93)",
+     "Albanie (+355)",
+     "Algérie (+213)",
+     "Iles Samoa (+1 684)",
+     "Andorre (+376)",
+     "Angola (+244)",
+     "Anguilla (+1 264)"
+    ],
+    "options_count": 238,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "#phone-number_phone__mobile__9",
+    "label": "Numéro de téléphone",
+    "kind": "text",
+    "name": "phone-numberphone__mobile_",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"custom_question_2445\"]",
+    "label": "Wie hoch sind Ihre Gehaltsvorstellungen (Gehalt inkl. Bonuspotential)",
+    "kind": "text",
+    "name": "custom_question_2445",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#suboption_country",
+    "label": "Suisse",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1537\"]",
+    "label": "Allemand (Obligatoire)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1538\"]",
+    "label": "Français (Obligatoire)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1539\"]",
+    "label": "Anglais (Obligatoire)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#dps_dps_24",
+    "label": "Veuillez indiquer votre accord.",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "9b8fddaf0e72023c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:47",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

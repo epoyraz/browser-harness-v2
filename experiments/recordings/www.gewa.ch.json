@@ -1,0 +1,67 @@
+[
+ {
+  "host": "www.gewa.ch",
+  "company": "GEWA",
+  "recorded_from": "gewa__GEWA_300419",
+  "form_url": "https://www.gewa.ch/bewerben?formId=66656&id=300419",
+  "language": "de-CH",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#fui-bewerbenPE-wevuda-fields-vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "fields[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#fui-bewerbenPE-wevuda-fields-nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "fields[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#fui-bewerbenPE-wevuda-fields-telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "fields[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#fui-bewerbenPE-wevuda-fields-eMail",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "fields[eMail]",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "18775cfbd8969baf",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:11",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

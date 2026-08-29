@@ -1,0 +1,368 @@
+[
+ {
+  "host": "www.ge.ch",
+  "company": "Kanton Genf",
+  "recorded_from": "Kanton_Genf_gen_48d923bc5346",
+  "form_url": "https://ge.ch/sirhrecrutement/recrutement/candidatAction.do?NOREFPOSTE=115285",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) > a:nth-of-type(1)",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#zy07Nomuse",
+    "label": "*  Nom",
+    "kind": "text",
+    "name": "zy07Nomuse",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#zy06Prenom",
+    "label": "*  Prénom",
+    "kind": "text",
+    "name": "zy06Prenom",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#zy10Datnai",
+    "label": "*  Date de naissance (format jj/mm/aaaa)",
+    "kind": "text",
+    "name": "zy10Datnai",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#zy12Nation",
+    "label": "*  Nationalité",
+    "kind": "select",
+    "name": "zy12Nation",
+    "required": false,
+    "options_sample": [
+     "",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Ancienne république yougoslave de Macédo",
+     "Andorre"
+    ],
+    "options_count": 262,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#zy0fAdctch",
+    "label": "*  Ville",
+    "kind": "text",
+    "name": "zy0fAdctch",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#zy0fAdcnch",
+    "label": "Canton",
+    "kind": "select",
+    "name": "zy0fAdcnch",
+    "required": false,
+    "options_sample": [
+     "",
+     "APPENZELL RHODES EXTERIEURS",
+     "APPENZELL RHODES INTERIEURS",
+     "ARGOVIE",
+     "BALE CAMPAGNE",
+     "BALE VILLE",
+     "BERNE",
+     "FRIBOURG"
+    ],
+    "options_count": 28,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "state_province"
+   },
+   {
+    "selector": "#zy0fAdcoch",
+    "label": "*  Pays",
+    "kind": "select",
+    "name": "zy0fAdcoch",
+    "required": false,
+    "options_sample": [
+     "",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Ancienne république yougoslave de Macédo",
+     "Andorre"
+    ],
+    "options_count": 262,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#zy0hNumtel",
+    "label": "*  Atteignable au n° de téléphone",
+    "kind": "text",
+    "name": "zy0hNumtel",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#zy4iAdusml",
+    "label": "*  Adresse courriel (e-mail)",
+    "kind": "text",
+    "name": "zy4iAdusml",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#zy4iAdusm2",
+    "label": "*  Confirmation de l'adresse courriel (e-mail)",
+    "kind": "text",
+    "name": "zy4iAdusm2",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#zydiPlomcd",
+    "label": "*  Niveau de formation",
+    "kind": "select",
+    "name": "zydiPlomcd",
+    "required": false,
+    "options_sample": [
+     "",
+     "Attestation fédérale formation prof.",
+     "Autre, voir CV",
+     "Bachelor",
+     "Brevet d'avocat",
+     "Brevet fédéral",
+     "Certificat ECG",
+     "Certificat fédéral de capacité"
+    ],
+    "options_count": 21,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "28c0a5a00c9f8700",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:57:52",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "www.ge.ch",
+  "company": "Kanton Genf",
+  "recorded_from": "Kanton_Genf_gen_48d923bc5346",
+  "form_url": "https://ge.ch/sirhrecrutement/recrutement/candidatAction.do?NOREFPOSTE=115285",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5) > a:nth-of-type(1)",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#zy07Qualit",
+    "label": "*  Titre",
+    "kind": "select",
+    "name": "zy07Qualit",
+    "required": false,
+    "options_sample": [
+     "",
+     "Monsieur",
+     "Madame"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#zy07Nomuse",
+    "label": "*  Nom",
+    "kind": "text",
+    "name": "zy07Nomuse",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#zy06Prenom",
+    "label": "*  Prénom",
+    "kind": "text",
+    "name": "zy06Prenom",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#zy10Datnai",
+    "label": "*  Date de naissance (format jj/mm/aaaa)",
+    "kind": "text",
+    "name": "zy10Datnai",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#zy12Nation",
+    "label": "*  Nationalité",
+    "kind": "select",
+    "name": "zy12Nation",
+    "required": false,
+    "options_sample": [
+     "",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Ancienne république yougoslave de Macédo",
+     "Andorre"
+    ],
+    "options_count": 262,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#zy0fAdctch",
+    "label": "*  Ville",
+    "kind": "text",
+    "name": "zy0fAdctch",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#zy0fAdcnch",
+    "label": "Canton",
+    "kind": "select",
+    "name": "zy0fAdcnch",
+    "required": false,
+    "options_sample": [
+     "",
+     "APPENZELL RHODES EXTERIEURS",
+     "APPENZELL RHODES INTERIEURS",
+     "ARGOVIE",
+     "BALE CAMPAGNE",
+     "BALE VILLE",
+     "BERNE",
+     "FRIBOURG"
+    ],
+    "options_count": 28,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "state_province"
+   },
+   {
+    "selector": "#zy0fAdcoch",
+    "label": "*  Pays",
+    "kind": "select",
+    "name": "zy0fAdcoch",
+    "required": false,
+    "options_sample": [
+     "",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie",
+     "Allemagne",
+     "Ancienne république yougoslave de Macédo",
+     "Andorre"
+    ],
+    "options_count": 262,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#zy0hNumtel",
+    "label": "*  Atteignable au n° de téléphone",
+    "kind": "text",
+    "name": "zy0hNumtel",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#zy4iAdusml",
+    "label": "*  Adresse courriel (e-mail)",
+    "kind": "text",
+    "name": "zy4iAdusml",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#zy4iAdusm2",
+    "label": "*  Confirmation de l'adresse courriel (e-mail)",
+    "kind": "text",
+    "name": "zy4iAdusm2",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#zydiPlomcd",
+    "label": "*  Niveau de formation",
+    "kind": "select",
+    "name": "zydiPlomcd",
+    "required": false,
+    "options_sample": [
+     "",
+     "Attestation fédérale formation prof.",
+     "Autre, voir CV",
+     "Bachelor",
+     "Brevet d'avocat",
+     "Brevet fédéral",
+     "Certificat ECG",
+     "Certificat fédéral de capacité"
+    ],
+    "options_count": 21,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "f00ef4b98bddf64d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:13:08",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

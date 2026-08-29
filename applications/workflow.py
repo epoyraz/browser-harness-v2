@@ -20,6 +20,7 @@ import inspect
 import os
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 # Imported as a module, not a name: a test double patches
@@ -53,10 +54,15 @@ def _navigation_wait() -> dict[str, Any]:
     and compared instead of argued about.
     """
     until = os.environ.get("BH_NAV_WAIT_UNTIL", "").strip() or "load"
-    raw = os.environ.get("BH_NAV_USABLE_AFTER", "").strip()
+    # `usable_after=None` (strict) is the default here since 2026-08-29: on the 100-posting
+    # corpus, paired against five adjacent controls over two replicates, the adaptive early
+    # return never gained a form the strict wait missed (strict: +2/+3/+4/+11/+3 forms,
+    # 0 lost in 5 pairings) and cost 509–1,664 CDP round trips per run, while attempt time
+    # was neutral. The early exit hands the workflow a parsed-but-empty shell that it then
+    # re-probes. `BH_NAV_USABLE_AFTER=0.8` restores the adaptive grace for comparison.
+    raw = os.environ.get("BH_NAV_USABLE_AFTER", "").strip() or "none"
     wait: dict[str, Any] = {"wait_until": until}
-    if raw:
-        wait["usable_after"] = None if raw.lower() == "none" else float(raw)
+    wait["usable_after"] = None if raw.lower() == "none" else float(raw)
     return wait
 
 
@@ -69,8 +75,80 @@ def _planner_accepts_skill_context(planner: Callable[..., Any]) -> bool:
     return True
 
 
+def _attach_files(session: Any, prepared: dict[str, Any],
+                  resolver: Callable[[dict[str, Any]], str | list[str] | None]
+                  ) -> dict[str, Any]:
+    """Resolve and attach application documents with explicit per-input evidence.
 
-def prepare_application(session: Any, *, timeout: float = 20.0) -> dict[str, Any]:
+    A resolver is the opt-in boundary: without one, ``run_application`` never touches a
+    file input. Required inputs that a resolver cannot map, rejected files, and upload
+    errors make the attachment result non-OK instead of silently producing a "filled"
+    application whose documents are missing.
+    """
+    rows: list[dict[str, Any]] = []
+    attempted = succeeded = required_unmapped = 0
+    with session.journal.bind(stage="upload"):
+        for item in prepared.get("file_inputs") or []:
+            row: dict[str, Any] = {
+                "ref": item.get("ref"),
+                "label": item.get("label"),
+                "required": bool(item.get("required")),
+                "multiple": bool(item.get("multiple")),
+            }
+            try:
+                resolved = resolver(dict(item))
+            except Exception as error:  # noqa: BLE001 - resolver failures are evidence
+                row.update(status="resolver_failed", error={
+                    "class": type(error).__name__, "detail": str(error)[:160],
+                })
+                rows.append(row)
+                continue
+            paths = ([resolved] if isinstance(resolved, str)
+                     else list(resolved or []))
+            row["files"] = [Path(path).name for path in paths]
+            if not paths:
+                row["status"] = "required_unmapped" if row["required"] else "unmapped"
+                required_unmapped += int(row["required"])
+                rows.append(row)
+                continue
+            attempted += 1
+            try:
+                outcome = session.tab().upload_file(
+                    str(item.get("ref") or ""), paths if len(paths) > 1 else paths[0],
+                    timeout=25.0,
+                )
+                observed = dict(outcome or {})
+                accepted = bool(getattr(outcome, "ok", True))
+                row.update(
+                    status="attached" if accepted else "rejected",
+                    attached=list(observed.get("attached") or []),
+                    requested=int(observed.get("requested") or len(paths)),
+                    accept=observed.get("accept") or item.get("accept") or "",
+                )
+                succeeded += int(accepted)
+            except HarnessError as error:
+                row.update(status="failed", error={
+                    "class": error.cls.value, "detail": str(error)[:160],
+                })
+            except Exception as error:  # noqa: BLE001 - custom upload doubles/resolvers
+                row.update(status="failed", error={
+                    "class": type(error).__name__, "detail": str(error)[:160],
+                })
+            rows.append(row)
+    return {
+        "enabled": True,
+        "ok": attempted == succeeded and required_unmapped == 0
+        and not any(row["status"].endswith("failed") for row in rows),
+        "inputs": rows,
+        "attempted": attempted,
+        "succeeded": succeeded,
+        "required_unmapped": required_unmapped,
+    }
+
+
+
+def prepare_application(session: Any, *, timeout: float = 20.0,
+                        apply_hint: dict[str, Any] | None = None) -> dict[str, Any]:
     """Guard and inspect the current application, scanning frames only when needed."""
     def is_application(data: dict[str, Any]) -> bool:
         schema = data.get("schema") or {}
@@ -83,7 +161,7 @@ def prepare_application(session: Any, *, timeout: float = 20.0) -> dict[str, Any
 
     main = session.tab()
     with session.journal.call("prepare_application"):
-        prepared = document.prepare_document(main, timeout=timeout)
+        prepared = document.prepare_document(main, timeout=timeout, apply_hint=apply_hint)
         if is_application(prepared):
             return {**prepared, "target_id": main.target_id, "context": "main",
                     "contexts_checked": 1, "is_application": True}
@@ -95,7 +173,8 @@ def prepare_application(session: Any, *, timeout: float = 20.0) -> dict[str, Any
                 continue
             try:
                 frame_tab = session.tab(target_id)
-                frame_data = document.prepare_document(frame_tab, timeout=timeout)
+                frame_data = document.prepare_document(frame_tab, timeout=timeout,
+                                                       apply_hint=apply_hint)
                 candidates.append((frame_tab, frame_data, str(frame.get("kind") or "frame")))
             except HarnessError:
                 continue
@@ -166,7 +245,8 @@ def follow_application(session: Any, prepared: dict[str, Any], *, timeout: float
 def locate_application(session: Any, url: str, *, timeout: float = 25.0,
                        transition_timeout: float = 15.0,
                        hop_budget: int = 6,
-                       candidates: list[str] | None = None) -> dict[str, Any]:
+                       candidates: list[str] | None = None,
+                       apply_hint: dict[str, Any] | None = None) -> dict[str, Any]:
     """Navigate to and locate an application UI without encoding ATS-specific steps.
 
     Every transition shape is handled by :meth:`follow_application`.  The state
@@ -194,15 +274,37 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
     hops: list[dict[str, Any]] = []
     seen: set[tuple[Any, ...]] = set()
     route_candidates = list(candidates or document.application_route_candidates(url))
-    route_first = (document.application_route_candidates(url)
+    # Caller-supplied candidates (a learned route from a skill, or the collector's own
+    # rule lookup) lead route-first; the built-in ATS rules are the fallback.
+    route_first = ((list(candidates) if candidates else document.application_route_candidates(url))
                    if _enabled(os.environ.get("BH_APPLICATION_ROUTE_FIRST")) else [])
     landing = route_first[0] if route_first else url
+    route_landing_error: str | None = None
     with session.journal.bind(stage="navigate"):
-        navigation = session.tab().goto(landing, timeout=timeout, **_navigation_wait())
+        try:
+            navigation = session.tab().goto(landing, timeout=timeout, **_navigation_wait())
+        except HarnessError as error:
+            if landing == url:
+                raise
+            # A candidate route is a guess (a learned URL may carry an expired session
+            # token); the posting is not. Measured 2026-08-29: 11 of 12 forms lost to a
+            # learned-route cache died right here — timeout, unresponsive renderer or a
+            # navigation error on the cached URL — with the posting never visited.
+            route_landing_error = f"{error.cls.value}: {str(error)[:120]}"
+            failed_landing = landing
+            session.journal.write("note", event="route_first_landing_failed",
+                                  candidate=landing, error=route_landing_error)
+            route_first = []
+            landing = url
+            navigation = session.tab().goto(url, timeout=timeout, **_navigation_wait())
     pending_state: dict[str, Any] | None = None
     prepared: dict[str, Any] = {}
     terminal = "budget_exhausted"
     on_route_landing = False           # still on the candidate, not yet inspected
+    if route_landing_error:
+        hops.append({"hop": 0, "via": "route_rule", "url": failed_landing,
+                     "start_url": url, "accepted": False, "error": route_landing_error,
+                     "navigation": navigation})
 
     if route_first:
         # The readiness check every landing already gets, asked one navigation earlier.
@@ -233,7 +335,7 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
             state = pending_state or application_state.wait_for_application_state(session.tab(), 
                 timeout=min(timeout, 12.0))
             pending_state = None
-            prepared = prepare_application(session, timeout=timeout)
+            prepared = prepare_application(session, timeout=timeout, apply_hint=apply_hint)
         verdict = (prepared.get("schema") or {}).get("verdict") or {}
         is_application = bool(prepared.get("is_application"))
         observed_state = str(state.get("state") or "stable_failure")
@@ -249,6 +351,8 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
             "is_application": is_application, "context": prepared.get("context"),
             "contexts_checked": prepared.get("contexts_checked"),
             "apply_link": prepared.get("apply_link"),
+            "apply_link_label": prepared.get("apply_link_label"),
+            "apply_link_selector": prepared.get("apply_link_selector"),
             "apply_control": prepared.get("apply_control"),
             "application_urls": prepared.get("application_urls") or [],
             "application_state": state, "reconciled_state": reconciled,
@@ -303,10 +407,13 @@ def locate_application(session: Any, url: str, *, timeout: float = 25.0,
 
 def run_application(session: Any, url: str, *,
                     planner: Callable[..., Any] | None = None,
+                    file_resolver: Callable[[dict[str, Any]],
+                                            str | list[str] | None] | None = None,
                     timeout: float = 25.0, transition_timeout: float = 15.0,
                     fill_timeout: float = 30.0, hop_budget: int = 6,
                     candidates: list[str] | None = None,
                     skills: bool | None = None,
+                    apply_hint: dict[str, Any] | None = None,
                     human_readable: bool = False,
                     human_pause: float = 0.18) -> dict[str, Any]:
     """Locate and optionally fill an application as one typed, non-submitting flow.
@@ -318,12 +425,13 @@ def run_application(session: Any, url: str, *,
     boundary remains the authority: this
     workflow has no submit operation and cannot weaken the guard. Pass
     ``human_readable=True`` to smoothly reveal and fill one field at a time for a
-    recording; the default keeps the fast batched path.
+    recording; the default keeps the fast batched path. File attachment is independently
+    opt-in through ``file_resolver``; no resolver means no file-input side effect.
     """
     skill_context = application_skills(session, url, enabled=skills)
     located = locate_application(session, 
         url, timeout=timeout, transition_timeout=transition_timeout,
-        hop_budget=hop_budget, candidates=candidates)
+        hop_budget=hop_budget, candidates=candidates, apply_hint=apply_hint)
     prepared = located["prepared"]
     routed_urls = [url]
     routed_urls.extend(str(hop.get("url") or "") for hop in located.get("hops") or [])
@@ -332,8 +440,16 @@ def run_application(session: Any, url: str, *,
     result: dict[str, Any] = {
         "stage": located["terminal_state"], "location": located,
         "skills": skill_context, "plan": [], "audit": [], "fill": None,
+        "uploads": {"enabled": bool(file_resolver), "ok": True, "inputs": [],
+                    "attempted": 0, "succeeded": 0, "required_unmapped": 0},
     }
-    if not prepared.get("is_application") or planner is None:
+    if not prepared.get("is_application"):
+        return result
+    if planner is None:
+        if file_resolver is not None:
+            result["uploads"] = _attach_files(session, prepared, file_resolver)
+            if not result["uploads"]["ok"]:
+                result["stage"] = "partial"
         return result
     planner_args = (prepared.get("schema") or {},
                     str(prepared.get("language") or "en"))
@@ -353,6 +469,10 @@ def run_application(session: Any, url: str, *,
     result["fill"] = outcome.to_json()
     result["fill_ms"] = round((time.perf_counter() - started) * 1000, 1)
     result["stage"] = "filled" if outcome.ok else "partial"
+    if file_resolver is not None:
+        result["uploads"] = _attach_files(session, prepared, file_resolver)
+        if not result["uploads"]["ok"]:
+            result["stage"] = "partial"
     return result
 
 
@@ -397,4 +517,3 @@ def application_skills(session: Any, *urls: str, enabled: bool | None = None) ->
                        matched=len(matches), ids=[item["id"] for item in matches],
                        bytes=packet["bytes"], sha256=packet["sha256"])
     return packet
-

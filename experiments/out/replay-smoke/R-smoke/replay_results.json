@@ -1,0 +1,528 @@
+{
+ "summary": {
+  "wall_ms": 23370.1,
+  "employers": 3,
+  "postings": 6,
+  "failed_groups": 0,
+  "by_mode": {
+   "discover": {
+    "n": 4,
+    "ok": 2,
+    "median_wall_ms": 16061.5
+   },
+   "replay": {
+    "n": 2,
+    "ok": 2,
+    "median_wall_ms": 3123.4
+   }
+  },
+  "recordings": 2,
+  "replay_enabled": true
+ },
+ "entries": [
+  {
+   "job_id": "Kanton_Luzern_gen_aaae17c6782c",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 0,
+   "url": "https://apply.refline.ch/891537/6091/pub/1/index.html",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 9078.7,
+   "fill_plan_count": 8,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "Kanton_Luzern_gen_caefeda5688e",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 1,
+   "url": "https://apply.refline.ch/891537/5996/pub/5/index.html",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 7,
+    "filled": 7,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024752.094,
+     "observed": {
+      "attempted": 7,
+      "succeeded": 7,
+      "failed": 0,
+      "fields": 7,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 2,
+       "changed_regions": [],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 0,
+       "validation": {
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "Enes",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "checked": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "checked": true,
+          "patternMismatch": false,
+          "value": "mr",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "05.02.1987",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e7": {
+         "changed": false,
+         "keys": [],
+         "before": {},
+         "after": {}
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 7,
+        "verified": 7,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 911.2
+   },
+   "ok": true,
+   "wall_ms": 911.2,
+   "recording": "Kanton_Luzern_gen_aaae17c6782c"
+  },
+  {
+   "job_id": "RUAG_gen_adf64bc1fdab",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 0,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/f48073a5-1687-46d4-b2ae-62a60c51c9ad",
+   "mode": "discover",
+   "ok": true,
+   "status": "form_processed",
+   "wall_ms": 16288.9,
+   "fill_plan_count": 7,
+   "hops": 2,
+   "recorded": true
+  },
+  {
+   "job_id": "RUAG_gen_c326bb5d7369",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 1,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/cf3f0f85-7f62-49ca-bb40-906799bf4ec6",
+   "mode": "replay",
+   "replay": {
+    "ok": true,
+    "stage": "filled",
+    "planned": 6,
+    "filled": 6,
+    "missing": [],
+    "reason": null,
+    "fill": {
+     "ok": true,
+     "class": "ok",
+     "ts": 1788024761.54,
+     "observed": {
+      "attempted": 6,
+      "succeeded": 6,
+      "failed": 0,
+      "fields": 6,
+      "consequence": {
+       "effect": "validation",
+       "verified": true,
+       "mutation_count": 2,
+       "changed_regions": [],
+       "regions_truncated": false,
+       "history_truncated": false,
+       "related_regions": 0,
+       "validation": {
+        "e2": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "Poyraz",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e6": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "checked": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "checked": true,
+          "patternMismatch": false,
+          "value": "on",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e5": {
+         "changed": true,
+         "keys": [
+          "checked",
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "checked": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "checked": true,
+          "patternMismatch": false,
+          "value": "true",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e1": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "Enes",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e3": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "+41 77 266 98 58",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        },
+        "e4": {
+         "changed": true,
+         "keys": [
+          "patternMismatch",
+          "typeMismatch",
+          "valid",
+          "validationMessage",
+          "value",
+          "valueMissing"
+         ],
+         "before": {
+          "valid": null,
+          "patternMismatch": null,
+          "value": null,
+          "typeMismatch": null,
+          "validationMessage": null,
+          "valueMissing": null
+         },
+         "after": {
+          "valid": true,
+          "patternMismatch": false,
+          "value": "epoyraz.eth@gmail.com",
+          "typeMismatch": false,
+          "validationMessage": "",
+          "valueMissing": false
+         }
+        }
+       },
+       "validation_changed": [
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e5",
+        "e6"
+       ],
+       "write_validation": {
+        "attempted": 6,
+        "verified": 6,
+        "failed": 0
+       }
+      }
+     }
+    },
+    "ms": 3123.4
+   },
+   "ok": true,
+   "wall_ms": 3123.4,
+   "recording": "RUAG_gen_adf64bc1fdab"
+  },
+  {
+   "job_id": "TiM_dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 0,
+   "url": "https://career.ti8m.com/offene-stellen/praktikum-java-kotlin/dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 16061.5,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_9feefbec-a75c-4822-82a8-f9141ce4d24d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 1,
+   "url": "https://career.ti8m.com/offene-stellen/senior-fullstack-engineer-java-angular/9feefbec-a75c-4822-82a8-f9141ce4d24d",
+   "mode": "discover",
+   "ok": false,
+   "status": "no_application_form",
+   "wall_ms": 7151.2,
+   "fill_plan_count": null,
+   "hops": 2
+  }
+ ],
+ "failed_groups": []
+}

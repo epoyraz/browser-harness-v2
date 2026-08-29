@@ -1,0 +1,9 @@
+[
+ {"name": "CS-01", "exp": "skills-ctl", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "0"}},
+ {"name": "S-static-r1", "exp": "S", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "1", "BH_SKILLS_SOURCES": "C:/Users/enesp/Desktop/coding/harness/experiments/skills/static/sources.toml"}},
+ {"name": "SC-cache-r1", "exp": "SC", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "1", "BH_SKILLS_SOURCES": "C:/Users/enesp/Desktop/coding/harness/experiments/skills/cache/sources.toml"}},
+ {"name": "CS-02", "exp": "skills-ctl", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "0"}},
+ {"name": "SC-cache-r2", "exp": "SC", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "1", "BH_SKILLS_SOURCES": "C:/Users/enesp/Desktop/coding/harness/experiments/skills/cache/sources.toml"}},
+ {"name": "S-static-r2", "exp": "S", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "1", "BH_SKILLS_SOURCES": "C:/Users/enesp/Desktop/coding/harness/experiments/skills/static/sources.toml"}},
+ {"name": "CS-03", "exp": "skills-ctl", "workers": 10, "env": {"BH_APPLICATION_SKILLS": "0"}}
+]

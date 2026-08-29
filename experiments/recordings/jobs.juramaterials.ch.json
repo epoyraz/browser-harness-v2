@@ -1,0 +1,140 @@
+[
+ {
+  "host": "jobs.juramaterials.ch",
+  "company": "JURA Materials",
+  "recorded_from": "jura-materials__JURAMaterials_26269fa9-5e0c-4c45-b5a8-41f02ab6074e",
+  "form_url": "https://jobs.juramaterials.ch/successfactors/EMEA_ROT/Jura/de/apply?id=639&jobPipeline=juramaterials&canalId=1000638&publishId=10161182&ohvk=26269fa9-5e0c-4c45-b5a8-41f02ab6074e",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#stickyHeaderApplyButton > a:nth-of-type(1)",
+    "label": "Bewerben Sie sich",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#cust_salutation",
+    "kind": "select",
+    "name": "cust_salutation",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#salary",
+    "label": "Gehaltsvorstellungen (Bruttojahresgehalt in CHF)",
+    "kind": "text",
+    "name": "cust_salaryExpectations",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#country",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Italien",
+     "Frankreich",
+     "Liechtenstein",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(7) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ihre Unterlagen werden von obenerwähnter Person in einem Zeitraum von ungefähr 4 Wochen bearbeitet. Ihre Daten dienen der Rekrutierung während des Bewerbungsprozesses und werden danach wieder gelöscht (im Falle einer Einstellung, weitere Informationen im Arbeitskodex). Ihre Daten werden grundsätzlich mit Ausnahme von Servicedienstleistern wie z.B. IT-Support nicht an Dritte weitergegeben. Entsprechende Dienstleister sind an strenge Geheimhaltungs- und Datenschutzvorschriften gebunden. Für Fragen oder bei Unklarheiten steht Ihnen unser Datenschutzbeauftragter gerne zur Verfügung datenschutz@juramaterials.ch",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#question_1",
+    "label": "Wurden Sie von einem Jura-Cement-Fabriken AG Mitarbeitenden auf diese Stelle aufmerksam gemacht? Wenn ja, wie heisst die Person?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#equation",
+    "label": "Ich bin kein Roboter und löse die folgende Rechnung",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "03942fac29cf2aad",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:24",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

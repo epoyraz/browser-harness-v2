@@ -1,0 +1,146 @@
+[
+ {
+  "host": "boards.greenhouse.io",
+  "company": "On",
+  "recorded_from": "on__On_8158649",
+  "form_url": "https://job-boards.greenhouse.io/onrunning/jobs/8158649?gh_jid=8158649",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#first_name",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "Email*",
+    "kind": "text",
+    "name": "email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country",
+    "label": "Country",
+    "kind": "combobox",
+    "name": "country",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#phone",
+    "label": "Phone",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[aria-label=\"LinkedIn Profile or Website\"]",
+    "label": "LinkedIn Profile or Website*",
+    "kind": "text",
+    "name": "question_68832971",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "How did you hear about this job?*",
+    "kind": "combobox",
+    "name": "question_68832972",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "How did you hear about this job?",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Your Nationality*",
+    "kind": "combobox",
+    "name": "question_68832973[]",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Your Nationality",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "div:nth-of-type(6) > fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "By continuing, you acknowledge that you have read our Privacy Policy above.",
+    "kind": "checkbox",
+    "name": "question_68832976[]",
+    "required": true,
+    "group_label": "Data Transfer *",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Would On need to apply for a working permit or visa on your behalf?*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(4) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": null,
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Your Pronouns*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "35c4c820bde865e6",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:01:57",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

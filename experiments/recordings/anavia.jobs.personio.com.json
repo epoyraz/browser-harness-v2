@@ -1,0 +1,105 @@
+[
+ {
+  "host": "anavia.jobs.personio.com",
+  "company": "ANAVIA",
+  "recorded_from": "anavia__ANAVIA_2767180",
+  "form_url": "https://anavia.jobs.personio.com/job/2767180/apply",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#field-first_name",
+    "label": "First",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#field-last_name",
+    "label": "Last",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#field-email",
+    "label": "Email*\n(required)",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#field-phone",
+    "label": "Phone*\n(required)",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#field-available_from",
+    "label": "Available from*\n(required)",
+    "kind": "text",
+    "name": "available_from",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#field-salary_expectations",
+    "label": "Expected salary*\n(required)",
+    "kind": "text",
+    "name": "salary_expectations",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > select:nth-of-type(1)",
+    "label": "Work Authorization*\n(required)",
+    "kind": "select",
+    "name": "custom_attribute_4536110",
+    "required": false,
+    "options_sample": [
+     "Please select",
+     "Swiss citizen",
+     "EU/EFTA citizen",
+     "Permit C",
+     "Permit B",
+     "Permit L",
+     "Permit G",
+     "Student permit"
+    ],
+    "options_count": 9,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "work_authorization"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "a7b551a9f099f753",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:05:11",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

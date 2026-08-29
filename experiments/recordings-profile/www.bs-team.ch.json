@@ -1,0 +1,76 @@
+[
+ {
+  "host": "www.bs-team.ch",
+  "company": "BS-Team",
+  "recorded_from": "BSTeam_37987",
+  "form_url": "https://www.bs-team.ch/jobs/expert-sharepoint-m365/",
+  "language": "fr-FR",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#awsm-applicant-name",
+    "label": "Prénom et nom *",
+    "kind": "text",
+    "name": "awsm_applicant_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#awsm-applicant-email",
+    "label": "Email *",
+    "kind": "email",
+    "name": "awsm_applicant_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#awsm-applicant-phone",
+    "label": "Téléphone *",
+    "kind": "tel",
+    "name": "awsm_applicant_phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#awsm_text_1",
+    "label": "Lieu de résidence (Code postal, ville) *",
+    "kind": "text",
+    "name": "awsm_text_1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#awsm_form_privacy_policy",
+    "label": "En utilisant ce formulaire, vous acceptez le stockage et le traitement de vos données par ce site web. *",
+    "kind": "checkbox",
+    "name": "awsm_form_privacy_policy",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#awsm-application-file",
+    "label": "Ajoutez votre dossier *",
+    "name": "awsm_file",
+    "required": true,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "5c9ff11a50307ae5",
+  "hops": 1,
+  "recorded_at": "2026-08-29T21:50:02",
+  "stats": {
+   "uses": 8,
+   "successes": 7,
+   "consecutive_failures": 1,
+   "last_ok": "2026-08-29T21:58:28"
+  }
+ }
+]

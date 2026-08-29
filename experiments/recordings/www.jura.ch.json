@@ -1,0 +1,196 @@
+[
+ {
+  "host": "www.jura.ch",
+  "company": "Kanton Jura",
+  "recorded_from": "kanton-jura__KantonJura_41764",
+  "form_url": "https://recruitingapp-3019.umantis.com/Vacancies/1366/Application/New/3",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(9) > a:nth-of-type(1)",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Adresse e-mail/Identifiant",
+    "kind": "text",
+    "name": "form_data4",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "Prénom",
+    "kind": "text",
+    "name": "form_data11",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data12\"]",
+    "label": "Nom",
+    "kind": "text",
+    "name": "form_data12",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Date de naissance",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"form_data17\"]",
+    "label": "Pays",
+    "kind": "select",
+    "name": "form_data17",
+    "required": true,
+    "options_sample": [
+     "Veuillez faire votre choix",
+     "----------------------------------------",
+     "Suisse",
+     "----------------------------------------",
+     "Afghanistan",
+     "Afrique du Sud",
+     "Albanie",
+     "Algérie"
+    ],
+    "options_count": 240,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Téléphone mobile",
+    "kind": "text",
+    "name": "form_data18",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data19\"]",
+    "label": "Nationalité",
+    "kind": "select",
+    "name": "form_data19",
+    "required": true,
+    "options_sample": [
+     "Veuillez faire votre choix",
+     "----------------------------------------",
+     "Suisse",
+     "----------------------------------------",
+     "Afghan",
+     "Ålandais",
+     "Albanais",
+     "Algérien"
+    ],
+    "options_count": 207,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "select[name=\"form_data21\"]",
+    "label": "Niveau de formation",
+    "kind": "select",
+    "name": "form_data21",
+    "required": true,
+    "options_sample": [
+     "Veuillez faire votre choix",
+     "----------------------------------------",
+     "Doctorat, Brevet d'avocat, etc.",
+     "Master",
+     "Bachelor",
+     "Formation professionnelle supérieure (Br",
+     "Formation professionnelle (AFP, CFC, Mat",
+     "Sans formation"
+    ],
+    "options_count": 9,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "input[name=\"form_data42\"]",
+    "label": "J’accepte que mes données soient enregistrées au delà d’un poste concret, afin d’être tenu informé des postes qui pourraient m’intéresser.",
+    "kind": "radio",
+    "name": "form_data42",
+    "required": false,
+    "group_label": "Autorisation d’utilisation des données *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data45\"]",
+    "label": "J’accepte la déclaration de protection des données.",
+    "kind": "checkbox",
+    "name": "form_data45",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Mot de passe",
+    "kind": "password",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[name=\"form_data14\"]",
+    "label": "Rue",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[name=\"form_data15\"]",
+    "label": "Code postal",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[name=\"form_data16\"]",
+    "label": "Localité",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"form_data20\"]",
+    "label": "Permis de séjour",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"form_data35\"]",
+    "label": "Où avez-vous pris connaissance de notre offre?",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "c452e3a54d8531cc",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:10:18",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,199 @@
+[
+ {
+  "host": "karriere.nzz.ch",
+  "company": "NZZ",
+  "recorded_from": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/DC74_PROD/neuezrcher/de/apply?id=1127&srcTextPMS=nzz-mediengruppe&ohvk=c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstName",
+    "label": "Vorname*",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Nachname*",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer*",
+    "kind": "text",
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#zip",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "value": "8212"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort*",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "E-Mail*",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#cellPhone",
+    "label": "Mobiltelefon Privat*",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#cust_cellPhone_privat",
+    "label": "Telefon Privat",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#question_1",
+    "label": "Ab wann bist du verfügbar?",
+    "kind": "textarea",
+    "value": "immediately"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.*",
+    "kind": "checkbox",
+    "value": true
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:54",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "karriere.nzz.ch",
+  "company": "NZZ",
+  "recorded_from": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/DC74_PROD/neuezrcher/de/apply?id=1127&srcTextPMS=nzz-mediengruppe&ohvk=c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstName",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer*",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#zip",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "postalCode",
+    "required": true,
+    "value": "8212"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#cellPhone",
+    "label": "Mobiltelefon Privat*",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": true,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#cust_cellPhone_privat",
+    "label": "Telefon Privat",
+    "kind": "text",
+    "name": "cust_cellPhone_privat",
+    "required": false,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#question_1",
+    "label": "Ab wann bist du verfügbar?",
+    "kind": "textarea",
+    "name": "question_1",
+    "required": true,
+    "value": "immediately"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.*",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "a761548977449b7d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:24",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

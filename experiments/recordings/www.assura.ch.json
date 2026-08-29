@@ -1,0 +1,81 @@
+[
+ {
+  "host": "www.assura.ch",
+  "company": "Assura",
+  "recorded_from": "assura__6a90321d5eaab28e2003a0c4",
+  "form_url": "https://www.assura.ch/de/karriere/unsere-stellenangebote/apprentis-commerce-assurances-maladie-sociales",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1) > button:nth-of-type(1)",
+    "label": "Ich bewerbe mich",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#name",
+    "label": "Name",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "autocomplete": "put-the-autocomplete-off",
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#firstName",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "firstName",
+    "required": false,
+    "autocomplete": "put-the-autocomplete-off",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#locality",
+    "label": "Postleitzahl",
+    "kind": "combobox",
+    "name": "locality",
+    "required": false,
+    "needs_interaction": true,
+    "autocomplete": "locality",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail-Adresse",
+    "kind": "text",
+    "name": "email",
+    "required": false,
+    "autocomplete": "put-the-autocomplete-off",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phone",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "ba69bb8e67dd64f4",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:20",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

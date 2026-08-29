@@ -1,0 +1,185 @@
+[
+ {
+  "host": "jobs.buhlergroup.com",
+  "company": "Bühler Group",
+  "recorded_from": "buhler-group__Buehler_10163468",
+  "form_url": "https://jobs.buhlergroup.com/successfactors/DC74_PROD/buhlergroup/en/apply?id=3510&jobPipeline=buehlerextranet&canalId=1008005&publishId=10163468&ohvk=2c600db5-9f89-4925-89a2-3b02d08bbf04",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applyButtonHolder > a:nth-of-type(1)",
+    "label": "Apply now",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#male",
+    "label": "Mr.",
+    "kind": "radio",
+    "name": "customSalutation",
+    "required": false,
+    "group_label": "Salutation",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstName",
+    "label": "First name",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Last name",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "Email",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#customPhoneCountryCode",
+    "label": "Phone country code",
+    "kind": "select",
+    "name": "customPhoneCountryCode",
+    "required": false,
+    "options_sample": [
+     "",
+     "+383",
+     "+599",
+     "+263",
+     "+260",
+     "+262",
+     "+967",
+     "+685"
+    ],
+    "options_count": 207,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "#formstep1 > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Phone country code",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#cellPhone",
+    "label": "Phone number",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "Address",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "label": "City",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#zip",
+    "label": "ZIP Code",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "label": "Country",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "",
+     "Switzerland",
+     "Afghanistan",
+     "Chile",
+     "China",
+     "Colombia",
+     "Costa Rica",
+     "Croatia"
+    ],
+    "options_count": 252,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#formstep1 > div:nth-of-type(9) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Country",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#customSourcePrimary",
+    "label": "How did you hear about this position?",
+    "kind": "select",
+    "name": "customSourcePrimary",
+    "required": false,
+    "options_sample": [
+     "",
+     "Bühler Recruiter/HR Manager",
+     "University/College/School",
+     "Job Posting/Job Board",
+     "Referral Bühler Employee",
+     "Bühler Careers Website",
+     "Agency",
+     "LinkedIn"
+    ],
+    "options_count": 11,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "08f0286116e0a4ad",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:20",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

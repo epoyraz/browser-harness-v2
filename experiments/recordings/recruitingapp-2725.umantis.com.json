@@ -1,0 +1,204 @@
+[
+ {
+  "host": "recruitingapp-2725.umantis.com",
+  "company": "globegarden",
+  "recorded_from": "globegarden__globegarden_6170",
+  "form_url": "https://recruitingapp-2725.umantis.com/Vacancies/6170/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#container > div:nth-of-type(5) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Hier online bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data11",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data19\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data19",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Grossbritannien",
+     "-------------------------------------",
+     "Afghanistan"
+    ],
+    "options_count": 237,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data22\"]",
+    "label": "Mobiltelefon",
+    "kind": "text",
+    "name": "form_data22",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Erstmöglicher Eintritt",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "select[name=\"form_data28\"]",
+    "label": "Diplome",
+    "kind": "select",
+    "name": "form_data28",
+    "required": false,
+    "options_sample": [
+     "FABE (KKE)",
+     "staatl. a. Erzieherin",
+     "staatl. a. Kinderpflegerin",
+     "Kindergärtnerin",
+     "Primarlehrerin",
+     "HF Kinderbetreuung",
+     "Sozialpädagogin",
+     "Anderes Diplom"
+    ],
+    "options_count": 14,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "education"
+   },
+   {
+    "selector": "input[aria-label=\"Diplome  multiselect\"]",
+    "label": "Diplome  multiselect",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "education"
+   },
+   {
+    "selector": "select[name=\"form_data39\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data39",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "globegarden-Internetseite",
+     "Mitarbeiter Empfehlung",
+     "Mund-zu-Mund-Propaganda",
+     "Google",
+     "krippenstellen.ch",
+     "kinderkrippen-online.ch"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data47\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data47",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"form_data25\"]",
+    "label": "Gewünschter Arbeitsort",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "25574e537e4bc434",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:00",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

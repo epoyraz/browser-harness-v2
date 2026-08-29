@@ -1,0 +1,268 @@
+[
+ {
+  "host": "jobs.aoz.ch",
+  "company": "AOZ",
+  "recorded_from": "aoz__AOZ_4061131",
+  "form_url": "https://aoz-rexx.ch/fachperson-unternehmenskommunikation-60-100-de-f2324.html?jobPipeline=AOZ%20-%20Internet%202026",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#wrapper > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Geschlecht *",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Männlich",
+     "Weiblich",
+     "Divers",
+     "Ohne Angabe"
+    ],
+    "options_count": 5,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse und Nr. *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land (Wohnsitz) *",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 222,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#erfahrung_pref_inJ",
+    "label": "Berufserfahrung *",
+    "kind": "select",
+    "name": "bewerbung_form[erfahrung_pref_inJ]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Keine",
+     "1-2 Jahre",
+     "3-5 Jahre",
+     "6-10 Jahren",
+     ">10 Jahre"
+    ],
+    "options_count": 6,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "experience_years"
+   },
+   {
+    "selector": "#kuendigungs_frist",
+    "label": "Kündigungsfrist *",
+    "kind": "select",
+    "name": "bewerbung_form[kuendigungs_frist]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "sofort verfügbar",
+     "< 1 Monat",
+     "1 Monat",
+     "2 Monate",
+     "3 Monate",
+     "4 Monate",
+     "5 Monate"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Frühester Eintritt (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#gehaltswunsch",
+    "label": "Lohnvorstellung 100% brutto pro Jahr (nur Zahl) *",
+    "kind": "text",
+    "name": "bewerbung_form[gehaltswunsch]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie haben Sie uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Solique",
+     "aoz.ch",
+     "Gastrojobs",
+     "indeed.ch",
+     "job-room.ch",
+     "jobchannel.ch",
+     "jobs.ch"
+    ],
+    "options_count": 26,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#nation",
+    "label": "Aufenthaltsbewilligung *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#berufsausbildung_o_sb",
+    "label": "Berufsausbildung (Bezeichnung) *",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#berufsausbildung_m_sb",
+    "label": "Deutsch *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#freifeld4_sb",
+    "label": "Englisch *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#fuehrerschein",
+    "label": "Führerausweis Kategorie B vorhanden? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_260",
+    "label": "Sind Sie bei uns beschäftigt? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#captcha_input",
+    "label": "Captcha-Code *",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "d942f3330c42b943",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:45",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

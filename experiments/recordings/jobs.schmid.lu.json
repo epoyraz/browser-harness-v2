@@ -1,0 +1,75 @@
+[
+ {
+  "host": "jobs.schmid.lu",
+  "company": "Schmid Gruppe",
+  "recorded_from": "schmid-gruppe__SchmidGruppe_64b49941-f44e-4032-b5a4-b8704d882ac2",
+  "form_url": "https://ohws.prospective.ch/public/v1/application/64b49941-f44e-4032-b5a4-b8704d882ac2?lang=de&body=https%3A%2F%2Fohws.prospective.ch%2Fpublic%2Fv1%2Fjobs%2F64b49941-f44e-4032-b5a4-b8704d882ac2",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#content > div:nth-of-type(6) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phone",
+    "label": "Telefon",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#single-opt-in",
+    "label": "Ich stimme der Speicherung und Verarbeitung meiner persönlichen Daten durch die Schmid Gruppe zu.*\nIch habe die Datenschutzerklärung gelesen und ich bin damit einverstanden.*",
+    "kind": "checkbox",
+    "name": "single-opt-in",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "38f10a03ff896988",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:22",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

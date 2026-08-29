@@ -38,10 +38,14 @@ from applications.ontology import (
     norm,
     plan_for,
 )
+from applications.skills import apply_hints, with_hints
 from harness.ops.profile import ApplicantProfile, load_answer_file
 
 ROOT = Path.cwd()
 INPUT = Path(os.environ.get("BH_APPLICATION_INPUT", ROOT / "jobs.json"))
+# Type one field at a time (a watchable recording) instead of the one batched write.
+HUMAN_READABLE = os.environ.get("BH_HUMAN_READABLE", "0").strip() == "1"
+HUMAN_PAUSE = float(os.environ.get("BH_HUMAN_PAUSE", "0.18"))
 OUT = Path(os.environ.get(
     "BH_APPLICATION_TELEMETRY_OUT",
     ROOT / "outputs" / "job-form-telemetry-2026-08-08",
@@ -56,6 +60,42 @@ WORKER_LIMIT = int(os.environ.get("BH_APPLICATION_WORKER_LIMIT", "10"))
 RUN_TIMEOUT = float(os.environ.get("BH_APPLICATION_TIMEOUT_SECONDS", str(4 * 60 * 60)))
 MEMORY_INTERVAL = float(os.environ.get("BH_CHROME_MEMORY_INTERVAL_SECONDS", "2"))
 MAX_HOPS = 2
+# Optional per-input document resolver (label -> path(s)); the workflow attaches with
+# evidence and never submits. None keeps the CV-only `BH_APPLICATION_UPLOADS` path.
+FILE_RESOLVER = None
+# Experiment knobs (2026-08-29): both arms of an A/B run this same file.
+LOCATE_TIMEOUT = float(os.environ.get("BH_APPLICATION_LOCATE_TIMEOUT", "25"))
+TRANSITION_TIMEOUT = float(os.environ.get("BH_APPLICATION_TRANSITION_TIMEOUT", "15"))
+REUSE_TABS = os.environ.get("BH_APPLICATION_REUSE_TABS", "1").strip() != "0"
+ISOLATED = os.environ.get("BH_APPLICATION_ISOLATED", "0").strip() == "1"
+PREFLIGHT = os.environ.get("BH_APPLICATION_PREFLIGHT", "0").strip() == "1"
+
+
+def preflight(url: str, timeout: float = 6.0) -> dict[str, Any]:
+    """HTTP status of the apply link without a browser (HEAD, GET on 405)."""
+    import urllib.error
+    import urllib.request
+    t0 = time.perf_counter()
+    out: dict[str, Any] = {"status": None, "ms": None}
+    for method in ("HEAD", "GET"):
+        req = urllib.request.Request(url, method=method, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/128.0 Safari/537.36",
+            "Accept": "text/html,*/*;q=0.8", "Accept-Language": "de-CH,de;q=0.9,en;q=0.8"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                out["status"] = resp.status
+                out["final_url"] = resp.geturl()
+                break
+        except urllib.error.HTTPError as error:
+            out["status"] = error.code
+            if error.code == 405 and method == "HEAD":
+                continue
+            break
+        except Exception as error:
+            out["error"] = f"{type(error).__name__}: {str(error)[:80]}"
+            break
+    out["ms"] = round((time.perf_counter() - t0) * 1000, 1)
+    return out
 UPLOAD_CV = os.environ.get("BH_APPLICATION_UPLOADS", "").strip().lower() in {
     "1", "true", "yes",
 }
@@ -75,6 +115,7 @@ PROFILE = {
     "street_name": "Büchelerstrasse",
     "house_number": "12",
     "postal_code": "8212",
+    "state_province": "Schaffhausen",
     "city": "Neuhausen am Rheinfall",
     "country_en": "Switzerland",
     "country_de": "Schweiz",
@@ -103,9 +144,17 @@ PROFILE = {
 }
 
 REQUIRED = ROOT / "required.txt"
-APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=str(CV))
-if REQUIRED.is_file():
-    APPLICANT = APPLICANT.merged(load_answer_file(REQUIRED))
+# A persona file replaces the built-in profile wholesale (`BH_APPLICANT_PROFILE=<json>`),
+# and deliberately does NOT merge `required.txt`: a recording made as one applicant must
+# replay as another with none of the first one's answers leaking in.
+PERSONA = os.environ.get("BH_APPLICANT_PROFILE", "").strip()
+if PERSONA:
+    PROFILE = json.loads(Path(PERSONA).read_text(encoding="utf-8"))
+    APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=PERSONA)
+else:
+    APPLICANT = ApplicantProfile.from_mapping(PROFILE, source=str(CV))
+    if REQUIRED.is_file():
+        APPLICANT = APPLICANT.merged(load_answer_file(REQUIRED))
 # The ontology knows what fields ask for; this run supplies what to answer.
 ontology.configure(APPLICANT, PROFILE, str(CV))
 
@@ -655,23 +704,50 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     # rejects (23 `account`, 17 Workday, 4 iCIMS) burned 228 of 1,026 attempt-seconds and
     # filled nothing, and the record below is what keeps a filtered run comparable with an
     # unfiltered one — it lands in results.json and attempt-timing.csv like any other.
-    attempt, skip_reason = should_attempt(job)
+    # Skill hints (2026-08-29 experiment): a matched skill may supply the apply mode/ATS
+    # joblens did not know and learned posting -> application-view routes. Both arms run
+    # this code; `BH_APPLICATION_SKILLS=0` (or an empty registry) yields no hints.
+    hints: dict[str, Any] = {"mode": None, "ats": None, "renders_hidden": None, "routes": [], "ids": [], "bytes": 0}
+    if os.environ.get("BH_APPLICATION_SKILLS", "1").strip().lower() not in ("0", "false", "no", "off"):
+        try:
+            hints = apply_hints(session, start_url)
+        except Exception as error:
+            result["skill_hint_error"] = compact_error(error)
+    result["skill_hints"] = {k: hints.get(k) for k in ("mode", "ats", "renders_hidden", "ids", "bytes")}
+    result["skill_routes"] = list(hints.get("routes") or [])
+    attempt, skip_reason = should_attempt(with_hints(job, hints))
     result["dispatch_reason"] = skip_reason
     if not attempt:
-        result["status"] = "skipped_by_metadata"
+        own_attempt, _ = should_attempt(job)
+        result["status"] = "skipped_by_metadata" if not own_attempt else "skipped_by_skill"
         result["skip_reason"] = skip_reason
         result["navigate_ms"] = 0.0
         result["navigated"] = False
         result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
         return result
+    if PREFLIGHT:
+        # Experiment E18 (2026-08-29): one HTTP HEAD before a tab is spent. Only a definite
+        # "gone" (404/410) skips; anything else — 403 bot walls, timeouts — still navigates.
+        pf = preflight(start_url)
+        result["preflight"] = pf
+        if pf.get("status") in (404, 410):
+            result["status"] = "skipped_by_preflight"
+            result["navigate_ms"] = 0.0
+            result["navigated"] = False
+            result["wall_ms"] = round((time.perf_counter() - started) * 1000, 1)
+            return result
     with session.journal.bind(stage="diagnostics"):
         result["diagnostics_started"] = session.tab().start_diagnostics()
     try:
         application = run_application(
             session,
-            start_url, timeout=25, transition_timeout=15, hop_budget=6,
-            candidates=application_route_candidates(start_url),
-            planner=active_planner())
+            start_url, timeout=LOCATE_TIMEOUT, transition_timeout=TRANSITION_TIMEOUT, hop_budget=6,
+            candidates=list(hints.get("routes") or []) + application_route_candidates(start_url),
+            apply_hint=(hints.get("actions") if (hints.get("actions") or {}).get("labels")
+                        or (hints.get("actions") or {}).get("selectors") else None),
+            planner=active_planner(),
+            human_readable=HUMAN_READABLE, human_pause=HUMAN_PAUSE,
+            file_resolver=FILE_RESOLVER)
     except Exception as error:
         error_class = getattr(getattr(error, "cls", None), "value", type(error).__name__)
         result["status"] = ("navigation_failed" if error_class == "navigation_failed"
@@ -720,8 +796,12 @@ def one_job(job: dict[str, Any]) -> dict[str, Any]:
     plan, audit = application["plan"], application["audit"]
     result["field_audit"] = audit
     result["fill_plan_count"] = len(plan)
+    result["plan"] = plan          # what was written where — the replay recorder's input
     result["fill_ms"] = application.get("fill_ms")
     result["fill"] = application.get("fill")
+    if FILE_RESOLVER is not None:
+        # Distinct from the CV-only `uploads` list below, which is still written.
+        result["attachments"] = application.get("uploads")
 
     file_inputs = prepared.get("file_inputs") or []
     chosen, ambiguous = cv_inputs(file_inputs)
@@ -777,7 +857,7 @@ def main() -> None:
     try:
         records = parallel(
             jobs, one_job, workers=WORKERS, worker_limit=WORKER_LIMIT,
-            reuse_tabs=True, isolated=False, timeout=RUN_TIMEOUT, progress=progress,
+            reuse_tabs=REUSE_TABS, isolated=ISOLATED, timeout=RUN_TIMEOUT, progress=progress,
             events=activity.event, item_id=lambda job: job["job_id"],
         )
     finally:

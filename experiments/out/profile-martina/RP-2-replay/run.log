@@ -1,0 +1,77 @@
+phase 1: 53 items
+     CSS                      needs_input                               0.0s
+     DeepJudge                needs_input                               0.0s
+     SonarSource              needs_input                               0.0s
+  OK Kanton Luzern            discover        form_processed            3.4s
+  OK Wavestone                discover        form_processed            5.6s
+  OK Mimic                    replay                                    6.1s
+  OK BS-Team                  replay                                    4.1s
+  OK RUAG                     replay_fallback form_processed            7.6s
+     Digital Wave Finance AG  needs_input                               0.0s
+  OK Vaudoise                 replay_fallback form_processed            8.4s
+     Microsoft                discover        no_application_form       8.4s
+  OK EPAM                     replay_fallback form_processed            9.7s
+     MSC Cruises              needs_input                               0.0s
+  OK Rivia                    replay                                    7.7s
+     NZZ                      needs_input                               0.0s
+     Pax                      needs_input                               0.0s
+  OK Crypto Finance AG        replay                                    6.2s
+     Richemont                needs_input                               0.0s
+     NVIDIA                   discover        no_application_form      15.4s
+     Alohi                    needs_input                               0.0s
+     Destinus                 needs_input                               2.2s
+     ANYbotics                needs_input                               0.0s
+     ONLU AG                  needs_input                               0.0s
+     vlot                     discover        no_application_form      20.0s
+     Harmattan AI             needs_input                               0.0s
+     Meier Tobler             needs_input                               0.0s
+  OK Brack                    replay_fallback form_processed           13.4s
+     finnova                  needs_input                               0.0s
+     BKW                      needs_input                               0.0s
+     Hoshii AG                discover        no_application_form      21.8s
+     Advertima Vision         needs_input                               0.0s
+  OK Fincons Group            replay                                    6.7s
+  OK Zürcher Kantonalbank     replay_fallback form_processed           15.7s
+     ti&m                     replay_fallback no_application_form      19.9s
+  OK Kanton Genf              replay_fallback form_processed            6.9s
+  OK aity AG                  replay_fallback form_processed            7.9s
+     Universitätsspital Züric discover        generic_form              6.6s
+     Arina                    discover        no_application_form      18.5s
+  OK adesso                   replay_fallback form_processed           17.5s
+     Mettler Toledo           discover        no_application_form      11.7s
+     BCG                      discover        no_application_form      27.2s
+     Microservice Solutions   discover        no_application_form      18.7s
+     AutoForm                 discover        navigation_failed        43.6s
+phase 2: 47 items
+     CSS                      needs_input                               0.0s
+     SonarSource              needs_input                               0.0s
+  OK Kanton Luzern            replay_fallback form_processed            4.5s
+  OK Kanton Luzern            replay_fallback form_processed            4.7s
+  OK BS-Team                  replay                                    4.4s
+  OK Wavestone                discover        form_processed            5.2s
+  OK Mimic                    replay                                    5.6s
+  OK Vaudoise                 replay_fallback form_processed            7.1s
+  OK BS-Team                  replay                                    3.4s
+     Crypto Finance AG        needs_input                               2.2s
+  OK RUAG                     replay_fallback form_processed           17.0s
+  OK Zürcher Kantonalbank     replay_fallback form_processed           12.4s
+  OK Zürcher Kantonalbank     replay_fallback form_processed           12.5s
+     ti&m                     replay_fallback no_application_form      10.8s
+  OK Zürcher Kantonalbank     replay_fallback form_processed           13.3s
+     ti&m                     replay_fallback no_application_form       9.9s
+     MSC Cruises              needs_input                               0.0s
+  OK RUAG                     replay_fallback form_processed           19.6s
+     RUAG                     replay_fallback workflow_failed          20.2s
+     AutoForm                 discover        navigation_failed        16.0s
+     finnova                  needs_input                               0.0s
+  OK RUAG                     replay_fallback form_processed           22.3s
+  OK ti&m                     discover        form_processed           10.8s
+     ti&m                     discover        no_application_form      11.5s
+  OK ti&m                     discover        form_processed           10.9s
+     ti&m                     discover        no_application_form      13.0s
+  OK aity AG                  replay_fallback form_processed           10.3s
+     ti&m                     discover        no_application_form      12.7s
+  OK BCG                      discover        form_processed           31.2s
+  OK BCG                      discover        form_processed           31.2s
+  OK BCG                      discover        form_processed           31.9s
+{"wall_ms": 102998.8, "phase_walls_s": [50.3, 52.7], "employers": 53, "postings": 100, "failed_groups": 0, "mode": "auto", "by_mode": {"discover": {"n": 22, "ok": 8, "median_wall_ms": 15447.0}, "needs_input": {"n": 22, "ok": 0, "median_wall_ms": 2.2}, "skipped": {"n": 26, "ok": 0, "median_wall_ms": 0.0}, "replay_fallback": {"n": 22, "ok": 18, "median_wall_ms": 12380.8}, "replay": {"n": 8, "ok": 8, "median_wall_ms": 6099.3}}, "recordings": 32, "hidden_hosts": ["career.ti8m.com", "careers.bcg.com", "careers.richemont.com", "jobs.finnova.com"], "wall_hosts": ["carrieres.ansam.ch", "jobs.admin.ch"]}

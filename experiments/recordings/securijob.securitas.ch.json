@@ -1,0 +1,314 @@
+[
+ {
+  "host": "securijob.securitas.ch",
+  "company": "Securitas",
+  "recorded_from": "securitas__Securitas_j2469",
+  "form_url": "https://securijob.securitas.ch/Einsaetze-im-Eventbereich-Veranstaltungsdienst-10-40-mwd-de-f2469.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Liechtenstein",
+     "Österreich",
+     "Afghanistan"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country_2",
+    "label": "Staatsangehörigkeit *",
+    "kind": "select",
+    "name": "bewerbung_form[country_2]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Liechtenstein",
+     "Österreich",
+     "Afghanistan"
+    ],
+    "options_count": 221,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#kuendigungs_frist",
+    "label": "Kündigungsfrist",
+    "kind": "select",
+    "name": "bewerbung_form[kuendigungs_frist]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "1 Monat",
+     "2 Monate",
+     "3 Monate",
+     "6 Monate",
+     "sofort verfügbar",
+     "keine dieser Angaben",
+     "Sofort verfügbar"
+    ],
+    "options_count": 8,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#schulabschluss",
+    "label": "Höchste Ausbildung",
+    "kind": "select",
+    "name": "bewerbung_form[schulabschluss]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Keine Ausbildung",
+     "Oblig. Schule ohne abg. Berufsbild",
+     "Abgeschlossene Berufsausbildung (Fähigke",
+     "Matura (Gymnasium oder Berufsmaturität)",
+     "Höhere Berufsausbildung (eidg. Fachauswe",
+     "Bachelor-Abschluss",
+     "Master Abschluss"
+    ],
+    "options_count": 10,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Frühester Eintritt (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#vordef_bew_feld_01",
+    "label": "Wie sind Sie an den einzelnen Wochentagen zeitlich verfügbar (Montag bis Sonntag à 24h)? *",
+    "kind": "textarea",
+    "name": "bewerbung_form[vordef_bew_feld_01]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie haben Sie uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Jobs.ch Securitas AG - Regionaldirektion",
+     "finest-jobs.com",
+     "PastaHR",
+     "What's App",
+     "TiKTok",
+     "Linkedin/ Xing",
+     "Direktansprache"
+    ],
+    "options_count": 31,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#vordef_bew_feld_103",
+    "label": "Arbeits- und Aufenthaltserlaubnis *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_110",
+    "label": "Computerkenntnisse *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_106",
+    "label": "Sprachkenntnisse Deutsch mündlich *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_107",
+    "label": "Sprachkenntnisse Deutsch schriftlich *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#freifeld4_ms",
+    "label": "Welche privaten Führerausweise besitzen Sie? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#freifeld5_ms",
+    "label": "Über welche Fahrzeuge verfügen Sie, um sich fortzubewegen? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#freifeld1_txt",
+    "label": "Gewünschtes Arbeitspensum in % *",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_112",
+    "label": "Waren oder sind Sie zur Zeit in ein Strafverfahren in der Schweiz oder im Ausland verwickelt? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_114",
+    "label": "Wurde in der Schweiz oder im Ausland gegen Sie eine Strafe verhängt, eingeschlossen bedingt erlassene Strafen? (Original Strafregisterauszug - nicht älter als 3 Monate) *",
+    "kind": "select",
+    "semantic": "criminal_record"
+   },
+   {
+    "selector": "#vordef_bew_feld_133",
+    "label": "Sind Sie bevormundet oder verbeiständet (Schweizer Handlungsfähigkeitszeugnis - nicht älter als 3 Monate)? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_113",
+    "label": "Sind momentan gegen Sie Betreibungen, Konkurs-, Insolvenz- oder Liquidationsverfahren hängig oder bestehen auf Ihren Namen ausgestellte Verlustscheine? (Eintragsfreie Originalbescheinigungen nicht älter als 3 Monate)? *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "cf87f8813bd76daf",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:46",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

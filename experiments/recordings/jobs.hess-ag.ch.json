@@ -1,0 +1,84 @@
+[
+ {
+  "host": "jobs.hess-ag.ch",
+  "company": "Hess",
+  "recorded_from": "hess__Hess_80876",
+  "form_url": "https://jobs.hess-ag.ch/ojp/#!/cvdropper/59dcdbb3ce654a19b4d4045fc9ad0cbf/DE?src=o2khztlkncxfrfstdub4nrmhi23mjmw0af8ymb7cg454bhztjcq6yvmjcyztbpeg",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#izeb0s",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#CVdropperFirstName",
+    "label": "Ihr Vorname",
+    "kind": "text",
+    "name": "CVdropperFirstName",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#CVdropperLastName",
+    "label": "Ihr Nachname/Familienname",
+    "kind": "text",
+    "name": "CVdropperLastName",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#CVdropperApplicationEmail",
+    "label": "Ihre E-Mail-Adresse",
+    "kind": "email",
+    "name": "CVdropperApplicationEmail",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#CVdropperApplicationPhone",
+    "label": "Ihre Telefonnummer",
+    "kind": "tel",
+    "name": "CVdropperApplicationPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#CVdropperPossibleStartOfEmployment",
+    "label": "Mögliches Eintrittsdatum",
+    "kind": "text",
+    "name": "CVdropperPossibleStartOfEmployment",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#CVdropperApplicationTPP",
+    "label": "Ich habe die Datenschutzbestimmungen gelesen und akzeptiere diese.",
+    "kind": "checkbox",
+    "name": "CVdropperApplicationTPP",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "27833a0276c2b237",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:20",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

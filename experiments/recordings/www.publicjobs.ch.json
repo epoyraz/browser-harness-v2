@@ -1,0 +1,136 @@
+[
+ {
+  "host": "www.publicjobs.ch",
+  "company": "Kalaidos",
+  "recorded_from": "kalaidos__Kalaidos_c0327277d5",
+  "form_url": "https://www.publicjobs.ch/bewerben/~applyID16745",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#job-apply-external-btn",
+    "label": "BEWERBEN",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"apply_salutation\"]",
+    "label": "Persönliche Angaben",
+    "kind": "select",
+    "name": "apply_salutation",
+    "required": false,
+    "options_sample": [
+     "",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "label_source": "proximity",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"apply_firstname\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "apply_firstname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"apply_lastname\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "apply_lastname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"apply_email\"]",
+    "label": "E-Mail",
+    "kind": "text",
+    "name": "apply_email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"apply_phone\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "apply_phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"apply_address\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "apply_address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"apply_address_number\"]",
+    "label": "Nummer",
+    "kind": "text",
+    "name": "apply_address_number",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"apply_zip\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "apply_zip",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"apply_city\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "apply_city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "input[name=\"apply_birthday\"]",
+    "label": "Geburtsdatum (format tt.mm.jjjj)",
+    "kind": "text",
+    "name": "apply_birthday",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#apply-accept",
+    "label": "Mit Klick auf «Bewerbung einreichen» akzeptieren Sie die Datenschutzbestimmungen und die AGBs",
+    "kind": "checkbox",
+    "name": "apply_accept",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "9b2bac1f6f307e92",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:56",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

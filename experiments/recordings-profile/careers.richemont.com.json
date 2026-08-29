@@ -1,0 +1,62 @@
+[
+ {
+  "host": "careers.richemont.com",
+  "company": "Richemont",
+  "recorded_from": "Richemont_jr129923",
+  "form_url": "https://richemont.wd3.myworkdayjobs.com/de-DE/richemont/job/BUTTES/Chef-de-Projet-R-I-Firmware---Architecture-Ultra-Low-Power--H-F-_JR129923-2/apply/applyManually",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "a[data-automation-id=\"applyManually\"]",
+    "label": "Manuell bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-4",
+    "label": "E-Mail-Adresse*",
+    "kind": "text",
+    "name": "input-4",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input-9",
+    "label": "Ich stimme der vorliegenden Talent-Datenschutzrichtlinie zu.",
+    "kind": "checkbox",
+    "name": "input-9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#input-5",
+    "label": "Kennwort*",
+    "kind": "password",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#input-6",
+    "label": "Neues Kennwort bestätigen*",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "c8334499dae0754e",
+  "hops": 3,
+  "recorded_at": "2026-08-29T21:50:31",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

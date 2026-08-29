@@ -1,0 +1,71 @@
+[
+ {
+  "host": "apply.refline.ch",
+  "company": "Kanton Luzern",
+  "recorded_from": "Kanton_Luzern_gen_aaae17c6782c",
+  "form_url": "https://apply.refline.ch/891537/6091/dkKAfo0Opb63L-LOyTP0cscH.xconzYvdOyvGbGPJ7RKYHw.R6coeI/apply",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "value": true
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon *",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#form-widgets-contactComment",
+    "label": "Bei einer Empfehlung durch eine/n Mitarbeiter/in des Kantons Luzern bitte Vor- und Nachname sowie Funktion oder Abteilung/Dienststelle der Person angeben.",
+    "kind": "textarea",
+    "value": "Poyraz"
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:10",
+  "stats": {
+   "uses": 5,
+   "successes": 3,
+   "consecutive_failures": 2,
+   "last_ok": "2026-08-29T19:40:40"
+  },
+  "required_unplanned": []
+ }
+]

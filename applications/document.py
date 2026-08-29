@@ -13,6 +13,7 @@ whole exercise exists to avoid.
 """
 from __future__ import annotations
 
+import json
 import re
 from typing import Any
 from urllib.parse import urlsplit, urlunsplit
@@ -147,9 +148,10 @@ _PREPARE_JS = """(() => {
   const fileInputs = [...document.querySelectorAll('input[type=file]')].map(el => {
     const ref = bh.ref(el);
     const label = el.id ? document.querySelector('label[for="' + CSS.escape(el.id) + '"]') : null;
-    return {ref, name: el.name || el.id || 'file',
-            label: (label && label.innerText || el.getAttribute('aria-label') || '').trim(),
-            accept: el.accept || '', multiple: !!el.multiple};
+    const labelText = (label && label.innerText || el.getAttribute('aria-label') || '').trim();
+    return {el, ref, name: el.name || el.id || 'file',
+            label: labelText, accept: el.accept || '', multiple: !!el.multiple,
+            required: !!el.required || labelText.includes('*')};
   });
   // The verb is rarely the first word. "Auf diese Stelle bewerben" is the commonest German
   // apply label there is, and an anchored pattern can never match it — measured 1 hit in 34
@@ -172,11 +174,45 @@ _PREPARE_JS = """(() => {
     if (!APPLY_TEXT.test(txt)) return -1;
     return txt.length <= 30 ? 4 : 3;          // a button label, not a sentence
   };
+  // Action cache (2026-08-29): a skill may name the control that led to a form on this
+  // host before — by label and/or by a structural selector. A hinted control outranks
+  // the heuristic pick; a hinted label outside APPLY_TEXT ("I'm interested") still
+  // qualifies. The heuristic stays the fallback, so a stale hint costs nothing.
+  const hint = (__APPLY_HINT__) || {};
+  const hintLabels = (hint.labels || []).map(t => String(t).trim().toLowerCase()).filter(Boolean);
+  const hintSelectors = (hint.selectors || []).filter(Boolean);
+  const hintBoost = el => {
+    let b = 0;
+    const l = labelOf(el).trim().toLowerCase();
+    if (l && hintLabels.some(h => h === l || (h.length >= 6 && l.includes(h)))) b += 5;
+    for (const sel of hintSelectors) { try { if (el.matches(sel)) { b += 6; break; } } catch (e) {} }
+    return b;
+  };
+  const selectorOf = el => {
+    if (!el) return null;
+    if (el.id && !/\\d{4,}/.test(el.id)) return '#' + CSS.escape(el.id);
+    const tag = el.tagName.toLowerCase();
+    for (const attr of ['data-testid', 'data-test', 'data-automation-id', 'name', 'aria-label']) {
+      const v = el.getAttribute(attr); if (v && v.length < 80) return `${tag}[${attr}="${v.replace(/"/g, '\\"')}"]`;
+    }
+    const parts = []; let node = el;
+    for (let depth = 0; node && node.nodeType === 1 && depth < 4; depth++) {
+      const t = node.tagName.toLowerCase();
+      if (node.id && !/\\d{4,}/.test(node.id)) { parts.unshift('#' + CSS.escape(node.id)); break; }
+      let i = 1; for (let s = node.previousElementSibling; s; s = s.previousElementSibling) if (s.tagName === node.tagName) i++;
+      parts.unshift(`${t}:nth-of-type(${i})`); node = node.parentElement;
+    }
+    return parts.join(' > ');
+  };
+  // selectorOf is a const above this line's scan: fill the selector in here, drop the element.
+  for (const f of fileInputs) { f.selector = selectorOf(f.el); delete f.el; }
   let apply = null, bestScore = 0;
   for (const a of document.querySelectorAll('a[href]')) {
     const href = a.getAttribute('href') || '';
     if (!href || href.startsWith('#') || /^(javascript|mailto|tel):/i.test(href)) continue;
     let s = scoreLabel(labelOf(a));
+    const hb = hintBoost(a);
+    if (hb) s = Math.max(s, 3) + hb;
     if (s < 0) continue;
     if (APPLY_HREF.test(href)) s += 2;
     const r = a.getBoundingClientRect();
@@ -195,6 +231,8 @@ _PREPARE_JS = """(() => {
     // A submit inside a form that is already showing is the send button, not the way in.
     if (b.form && b.type === 'submit') continue;
     let s = scoreLabel(labelOf(b));
+    const hb = hintBoost(b);
+    if (hb) s = Math.max(s, 3) + hb;
     if (s < 0) continue;
     const r = b.getBoundingClientRect();
     // A laid-out control is strongly preferred, but an unpainted one is NOT discarded.
@@ -215,7 +253,8 @@ _PREPARE_JS = """(() => {
   if (ctl) {
     const ref = bh.ref(ctl);
     applyControl = {ref, label: labelOf(ctl).slice(0, 60), score: ctlScore,
-                    tag: ctl.tagName.toLowerCase(), painted: ctlPainted};
+                    tag: ctl.tagName.toLowerCase(), painted: ctlPainted,
+                    selector: selectorOf(ctl), hinted: hintBoost(ctl) > 0};
   }
   // Read-only structured-data tier. SPA shells often carry their routes in JSON-LD,
   // __NEXT_DATA__, or another application/json bootstrap even when no clickable control
@@ -257,6 +296,9 @@ _PREPARE_JS = """(() => {
           language: (document.documentElement && document.documentElement.lang)
                     || navigator.language || 'en',
           file_inputs: fileInputs, apply_link: apply ? apply.href : null,
+          apply_link_label: apply ? labelOf(apply).slice(0, 60) : null,
+          apply_link_selector: apply ? selectorOf(apply) : null,
+          apply_link_hinted: apply ? hintBoost(apply) > 0 : false,
           apply_control: applyControl, application_urls: applicationUrls.slice(0, 12)};
 })()""".replace("__SCHEMA__", SCHEMA_JS)
 
@@ -285,13 +327,17 @@ def application_route_candidates(url: str) -> list[str]:
 
 
 def prepare_document(tab: Tab, *, guard_submit: bool = True,
-                     timeout: float = 20.0) -> dict[str, Any]:
+                     timeout: float = 20.0,
+                     apply_hint: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return all application perception data in one round trip.
 
     ``guard_submit`` remains source-compatible, but cannot disable the session's automatic
     dry-run boundary. Every document is guarded before page script in ``Tab``.
+    ``apply_hint`` (``{"labels": [...], "selectors": [...]}``) is the action cache: a
+    control matching it outranks the heuristic pick; absent or stale, nothing changes.
     """
-    return tab._world_js(_PREPARE_JS, timeout=timeout)
+    source = _PREPARE_JS.replace("__APPLY_HINT__", json.dumps(apply_hint or None))
+    return tab._world_js(source, timeout=timeout)
 
 
 def application_schema(tab: Tab, *, timeout: float = 10.0) -> dict[str, Any]:

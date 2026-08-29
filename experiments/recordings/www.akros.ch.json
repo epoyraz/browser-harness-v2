@@ -1,0 +1,69 @@
+[
+ {
+  "host": "www.akros.ch",
+  "company": "Akros",
+  "recorded_from": "akros__Akros_devops-system-engineer_biel",
+  "form_url": "https://www.akros.ch/jobs/devops-system-engineer/biel/",
+  "language": "de",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#jobs_anrededd",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "jobs_anrede",
+    "required": true,
+    "options_sample": [
+     "Anrede*",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#jobs_source",
+    "label": "Wie bist du auf AKROS aufmerksam geworden?*",
+    "kind": "select",
+    "name": "jobs_source",
+    "required": true,
+    "options_sample": [
+     "Wie bist du auf AKROS aufmerksam geworde",
+     "Printinserat (Zeitung/Magazin)",
+     "Xing/LinkedIn",
+     "Website der Firma",
+     "Online Job-Portal",
+     "Messen",
+     "Blogs/Foren",
+     "Arbeitsvermittler/Headhunter"
+    ],
+    "options_count": 9,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#jobs_arbeitsortdd",
+    "label": "Bevorzugter Arbeitsort*",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "7f8723c545fabd04",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:03:15",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

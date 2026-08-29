@@ -1,0 +1,185 @@
+[
+ {
+  "host": "jobs.so-h.ch",
+  "company": "Solothurner Spitäler",
+  "recorded_from": "solothurner-spitaler__Solothurner_Spit_C3_A4ler_gen_2da031729326",
+  "form_url": "https://jobs.so-h.ch/successfactors/DC74_PROD/soh/de/apply?id=3480&jobPipeline=so-h.ch&canalId=2118&publishId=10163922&ohvk=17e3961f-3fa6-4e79-800a-38d1ffc633b9",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#salutation",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "cust_anrede",
+    "required": false,
+    "options_sample": [
+     "",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstName",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#postalCode",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Ägypten",
+     "Afghanistan"
+    ],
+    "options_count": 215,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Ort",
+    "kind": "text",
+    "required": false,
+    "autocomplete": "fomantic-search",
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "#email",
+    "label": "Land",
+    "kind": "text",
+    "name": "email",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#cust_empl",
+    "label": "Ich bin oder war bereits Mitarbeiter:in",
+    "kind": "select",
+    "name": "cust_empl",
+    "required": false,
+    "options_sample": [
+     "",
+     "Ja",
+     "Nein"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "E-Mail",
+    "kind": "text",
+    "name": "cust_empl_recomend",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ich akzeptiere die Datenschutzerklärung.",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "b5bd668a13034e01",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:40",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,73 @@
+[
+ {
+  "host": "careers.autoform.com",
+  "company": "AutoForm",
+  "recorded_from": "AutoForm_5158",
+  "form_url": "https://careers.autoform.com/en/jobs/application-form/?backpid=230&jobid=5158&cHash=7cc2c14d696392a2dee51a9d1027f7e5",
+  "language": "en-GB",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply now",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#powermail_field_vorname",
+    "label": "First Name *",
+    "kind": "text",
+    "name": "tx_powermail_pi1[field][vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#powermail_field_nachname",
+    "label": "Surname *",
+    "kind": "text",
+    "name": "tx_powermail_pi1[field][nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#powermail_field_e_mailadresse",
+    "label": "E-mail *",
+    "kind": "email",
+    "name": "tx_powermail_pi1[field][e_mailadresse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#powermail_field_telefon",
+    "label": "Phone *",
+    "kind": "tel",
+    "name": "tx_powermail_pi1[field][telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#powermail_field_anrede",
+    "label": "Gender *",
+    "kind": "select",
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "fingerprint": "de391956be18eeb4",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:51:06",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,722 @@
+[
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_67005910",
+  "form_url": "https://vaudoise.softgarden.io/applications/e012fd29-3806-424c-a382-b098bb57d9a4?41&isEditMode=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id30e",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id30f",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id310",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id312",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id315",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#id31f",
+    "label": "Où avez-vous trouvé cette offre d'emploi ? *",
+    "kind": "select",
+    "name": "questions:questions:1:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "LinkedIn",
+     "JobUp",
+     "Jobs.ch",
+     "Vaudoise.ch",
+     "Xing",
+     "Indeed",
+     "Glassdoor"
+    ],
+    "options_count": 14,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#id320",
+    "label": "Quel est votre préavis ? *",
+    "kind": "select",
+    "name": "questions:questions:2:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1 mois",
+     "2 mois",
+     "3 mois",
+     "6 mois",
+     "disponible de suite"
+    ],
+    "options_count": 6,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#id321",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#id322",
+    "label": "Veuillez renseigner votre niveau d'étude le plus élevé. *",
+    "kind": "select",
+    "name": "questions:questions:4:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1. Master Université",
+     "2. Bachelor Université",
+     "3. Master Haute Ecole",
+     "4. Bachelor Haute Ecole",
+     "5. Formation professionnelle supérieure ",
+     "6. Baccalauréat ou Maturité fédérale",
+     "7. Apprentissage avec CFC obtenu"
+    ],
+    "options_count": 10,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#id323",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#id318",
+    "label": "Wählen Sie eine Option, um Ihren Lebenslauf hochzuladen *",
+    "name": "cvBorder:cvBorder_body:cv:upload:oneRowPanel:cvParser:form:cvFileInput",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#id31c",
+    "label": "file upload button",
+    "name": "attachments:uploadForm:upload",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "892e4a3cb8170792",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:49:52",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_65778086",
+  "form_url": "https://vaudoise.softgarden.io/applications/452ebcf8-fa97-4782-a4ef-d9d15ab1eec3?46&isEditMode=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id35c",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id35d",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id35e",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id360",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id363",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#id36d",
+    "label": "Où avez-vous trouvé cette offre d'emploi ? *",
+    "kind": "select",
+    "name": "questions:questions:1:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "LinkedIn",
+     "JobUp",
+     "Jobs.ch",
+     "Vaudoise.ch",
+     "Xing",
+     "Indeed",
+     "Glassdoor"
+    ],
+    "options_count": 14,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#id36e",
+    "label": "Quel est votre préavis ? *",
+    "kind": "select",
+    "name": "questions:questions:2:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1 mois",
+     "2 mois",
+     "3 mois",
+     "6 mois",
+     "disponible de suite"
+    ],
+    "options_count": 6,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#id36f",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#id370",
+    "label": "Veuillez renseigner votre niveau d'étude le plus élevé. *",
+    "kind": "select",
+    "name": "questions:questions:4:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1. Master Université",
+     "2. Bachelor Université",
+     "3. Master Haute Ecole",
+     "4. Bachelor Haute Ecole",
+     "5. Formation professionnelle supérieure ",
+     "6. Baccalauréat ou Maturité fédérale",
+     "7. Apprentissage avec CFC obtenu"
+    ],
+    "options_count": 10,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#id371",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#id366",
+    "label": "Wählen Sie eine Option, um Ihren Lebenslauf hochzuladen *",
+    "name": "cvBorder:cvBorder_body:cv:upload:oneRowPanel:cvParser:form:cvFileInput",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#id36a",
+    "label": "file upload button",
+    "name": "attachments:uploadForm:upload",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "1dc71ebe895fd37f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:50:57",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_67005910",
+  "form_url": "https://vaudoise.softgarden.io/applications/e012fd29-3806-424c-a382-b098bb57d9a4?52&isEditMode=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id3aa",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id3ab",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id3ac",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id3ae",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id3b1",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#id3bb",
+    "label": "Où avez-vous trouvé cette offre d'emploi ? *",
+    "kind": "select",
+    "name": "questions:questions:1:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "LinkedIn",
+     "JobUp",
+     "Jobs.ch",
+     "Vaudoise.ch",
+     "Xing",
+     "Indeed",
+     "Glassdoor"
+    ],
+    "options_count": 14,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#id3bc",
+    "label": "Quel est votre préavis ? *",
+    "kind": "select",
+    "name": "questions:questions:2:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1 mois",
+     "2 mois",
+     "3 mois",
+     "6 mois",
+     "disponible de suite"
+    ],
+    "options_count": 6,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#id3bd",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#id3be",
+    "label": "Veuillez renseigner votre niveau d'étude le plus élevé. *",
+    "kind": "select",
+    "name": "questions:questions:4:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1. Master Université",
+     "2. Bachelor Université",
+     "3. Master Haute Ecole",
+     "4. Bachelor Haute Ecole",
+     "5. Formation professionnelle supérieure ",
+     "6. Baccalauréat ou Maturité fédérale",
+     "7. Apprentissage avec CFC obtenu"
+    ],
+    "options_count": 10,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#id3bf",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#id3b4",
+    "label": "Wählen Sie eine Option, um Ihren Lebenslauf hochzuladen *",
+    "name": "cvBorder:cvBorder_body:cv:upload:oneRowPanel:cvParser:form:cvFileInput",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#id3b8",
+    "label": "file upload button",
+    "name": "attachments:uploadForm:upload",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "98aeb2544bc5737c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:51:46",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "vaudoise.softgarden.io",
+  "company": "Vaudoise",
+  "recorded_from": "Vaudoise_65778086",
+  "form_url": "https://vaudoise.softgarden.io/applications/452ebcf8-fa97-4782-a4ef-d9d15ab1eec3?58&isEditMode=true&l=de",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applynow",
+    "label": "POSTULER",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#id3f8",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "salutationBorder:salutationBorder_body:salutationChoice",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Keine Angabe",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 5,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#id3f9",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "firstNameBorder:firstNameBorder_body:firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#id3fa",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "lastNameBorder:lastNameBorder_body:lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#id3fc",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "emailBorder:emailBorder_body:email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#id3ff",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "phoneBorder:phoneBorder_body:phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#id409",
+    "label": "Où avez-vous trouvé cette offre d'emploi ? *",
+    "kind": "select",
+    "name": "questions:questions:1:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "LinkedIn",
+     "JobUp",
+     "Jobs.ch",
+     "Vaudoise.ch",
+     "Xing",
+     "Indeed",
+     "Glassdoor"
+    ],
+    "options_count": 14,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#id40a",
+    "label": "Quel est votre préavis ? *",
+    "kind": "select",
+    "name": "questions:questions:2:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1 mois",
+     "2 mois",
+     "3 mois",
+     "6 mois",
+     "disponible de suite"
+    ],
+    "options_count": 6,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#id40b",
+    "label": "Veuillez indiquer votre date de naissance avec le format jj.mm.aaaa *",
+    "kind": "text",
+    "name": "questions:questions:3:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#id40c",
+    "label": "Veuillez renseigner votre niveau d'étude le plus élevé. *",
+    "kind": "select",
+    "name": "questions:questions:4:question:border:border_body:answer",
+    "required": true,
+    "options_sample": [
+     "",
+     "1. Master Université",
+     "2. Bachelor Université",
+     "3. Master Haute Ecole",
+     "4. Bachelor Haute Ecole",
+     "5. Formation professionnelle supérieure ",
+     "6. Baccalauréat ou Maturité fédérale",
+     "7. Apprentissage avec CFC obtenu"
+    ],
+    "options_count": 10,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "education"
+   },
+   {
+    "selector": "#id40d",
+    "label": "Veuillez indiquer vos prétentions salariales annuelles (fixe + variable) rapportées à un 100% (format : 75000). *",
+    "kind": "text",
+    "name": "questions:questions:5:question:border:border_body:answer",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#id402",
+    "label": "Wählen Sie eine Option, um Ihren Lebenslauf hochzuladen *",
+    "name": "cvBorder:cvBorder_body:cv:upload:oneRowPanel:cvParser:form:cvFileInput",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#id406",
+    "label": "file upload button",
+    "name": "attachments:uploadForm:upload",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "5be659c43a3e3cf9",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:52:35",
+  "stats": {
+   "uses": 2,
+   "successes": 2,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T21:58:12"
+  }
+ }
+]

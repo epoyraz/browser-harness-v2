@@ -1,0 +1,149 @@
+[
+ {
+  "host": "jobs.ems-group.com",
+  "company": "EMS Group",
+  "recorded_from": "ems-group__EMS_bfcd16eb",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/e62b7a05-8101-4e06-bca5-8a6dda946795/e9320dd6-5ed6-5b1c-1f98-a8fb21b74396?srcTextPMS=ems-chemie",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#buttonApply",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#d47e56ee-af48-43e0-a15c-b7a601cd02b3",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#\\33 b833c29-255e-435b-b43a-60c13b2a1da2",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_FirstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_LastName\"]",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_LastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#\\39 40d0d60-ed63-484e-93e4-590b4a7ca842-2",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_Street",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#\\31 edba052-ee6c-44fd-b70d-e0be0de5ed97-2",
+    "label": "Hausnummer",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_HouseNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "#\\33 e64f2a9-7ce6-4a10-93a3-799f7d54c5ad",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_Zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_City\"]",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_City",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Mobile\"]",
+    "label": "Mobiltelefon",
+    "kind": "tel",
+    "name": "LAMAPPL_xxx_Mobile",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_EMail\"]",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "LAMAPPL_xxx_EMail",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#\\35 7facfbe-0e85-4a0d-a7f0-2ba48ef2db0f",
+    "label": "Geburtsdatum*",
+    "kind": "date",
+    "name": "LAMAPPL_xxx_DateOfBirth",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"u_a_formularfelder_xxx__USERFIELD1\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?*",
+    "kind": "select",
+    "name": "u_a_formularfelder_xxx__USERFIELD1",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "e5d0c7572f3631b6",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:27",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

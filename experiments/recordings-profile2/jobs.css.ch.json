@@ -1,0 +1,275 @@
+[
+ {
+  "host": "jobs.css.ch",
+  "company": "CSS",
+  "recorded_from": "CSS_1a36e481",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/CSS/de/apply?id=22436&jobPipeline=jobs.css.ch&canalId=1000981&publishId=10161455&ohvk=1a36e481-f317-47f8-ae2d-f51ce3b497f9",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#title",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "title",
+    "required": false,
+    "options_sample": [
+     "Anrede *",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstname",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum *",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Tel.",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#postalCode",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land wählen",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "Land wählen *",
+     "Schweiz",
+     "Ägypten",
+     "Afghanistan",
+     "Albanien",
+     "Algerien",
+     "Andorra",
+     "Angola"
+    ],
+    "options_count": 215,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#cust_nationality",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "cust_nationality",
+    "required": false,
+    "options_sample": [
+     "Nationalität *",
+     "Schweiz",
+     "Afghanistan",
+     "Albanien",
+     "Algerien",
+     "Andorra",
+     "Angola",
+     "Anguilla"
+    ],
+    "options_count": 213,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Ort",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "city"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#email-confirm",
+    "label": "E-Mail bestätigen",
+    "kind": "email",
+    "name": "confirmEmail",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#question_1",
+    "label": "Was sind deine Lohnvorstellungen (total compensation Bruttojahreslohn bei 100%)?",
+    "kind": "textarea",
+    "name": "question_1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#referralSource",
+    "label": "Wie hast du von dieser Stelle erfahren?",
+    "kind": "select",
+    "name": "referralSource",
+    "required": false,
+    "options_sample": [
+     "Wie hast du von dieser Stelle erfahren? ",
+     "CSS Homepage",
+     "Jobs.ch",
+     "ICTJob.ch",
+     "Diverse Jobportale",
+     "LinkedIn",
+     "Facebook",
+     "Instagram"
+    ],
+    "options_count": 17,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#cust_already_empl",
+    "label": "Ich bin bereits CSS Mitarbeiter/in",
+    "kind": "select",
+    "name": "cust_already_empl",
+    "required": false,
+    "options_sample": [
+     "Ich bin bereits CSS Mitarbeiter/in *",
+     "Ja",
+     "Nein"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#privacy",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "privacy",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#curriculumsVitae",
+    "label": "Lebenslauf",
+    "name": "curriculumsVitae",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#motivationFile",
+    "label": "Motivationsschreiben",
+    "name": "motivationFile",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#others",
+    "label": "Weitere Unterlagen (Zeugnisse, Diplome usw.)",
+    "name": "others",
+    "required": false,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [
+   {
+    "selector": "#question_2",
+    "label": "Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "42946a73d4e7639a",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:04:08",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

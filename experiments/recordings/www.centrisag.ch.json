@@ -1,0 +1,201 @@
+[
+ {
+  "host": "www.centrisag.ch",
+  "company": "Centris AG",
+  "recorded_from": "centris-ag__Centris_1070",
+  "form_url": "https://recruitingapp-2824.umantis.com/Vacancies/1070/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"form_data5\"]",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "form_data5",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 4,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data10",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data15\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data15",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data16\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data16",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data17\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data17",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Lichtenstein",
+     "Italien",
+     "Frankreich",
+     "Gibraltar"
+    ],
+    "options_count": 238,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"form_data18\"]",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "form_data18",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutsch",
+     "Französisch",
+     "----------------------------------------",
+     "Afghanisch",
+     "Ägyptisch"
+    ],
+    "options_count": 207,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[name=\"form_data19\"]",
+    "label": "Mobiltelefon",
+    "kind": "text",
+    "name": "form_data19",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data30\"]",
+    "label": "Wie bist du auf diese Stelle aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data30",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Homepage: www.centrisag.ch",
+     "jobs.ch",
+     "itjobs.ch",
+     "ictjobs.ch",
+     "Andere Online Plattformen",
+     "Messeauftritt"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "textarea[name=\"form_data31\"]",
+    "label": "Bitte teile uns deine jährlichen Salärvorstellungen mit (Total Compensation)",
+    "kind": "textarea",
+    "name": "form_data31",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "input[name=\"form_data38\"]",
+    "label": "Ich bin damit einverstanden, dass meine Unterlagen auf weitere Stellenvakanzen innerhalb Centris AG geprüft werden.",
+    "kind": "radio",
+    "name": "form_data38",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data41\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data41",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "784fcf948868a35e",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:42",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

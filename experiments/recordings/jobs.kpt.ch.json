@@ -1,0 +1,109 @@
+[
+ {
+  "host": "jobs.kpt.ch",
+  "company": "KPT",
+  "recorded_from": "kpt__KPT_10164975",
+  "form_url": "https://atsconnector.prospective.ch/abacus/kpt/de/apply?jobId=120060_de&canalId=1007102&publishId=10164975&jobPipeline=kpt_internet&ohvk=6ae75c88-10e5-4cf5-a11c-0389f50c5e1d",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applyButton",
+    "label": "Jetzt bewerben!",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#LAMAPPL_xxx_Salutation",
+    "label": "Anrede\n*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Liebe",
+     "Lieber"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#LAMAPPL_xxx_FirstName",
+    "label": "Vorname\n*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_FirstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#LAMAPPL_xxx_LastName",
+    "label": "Nachname\n*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_LastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#LAMAPPL_xxx_EMail",
+    "label": "Mailadresse\n*",
+    "kind": "email",
+    "name": "LAMAPPL_xxx_EMail",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#LAMAPPL_xxx_Mobile",
+    "label": "Telefon\n*",
+    "kind": "tel",
+    "name": "LAMAPPL_xxx_Mobile",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#wohnort",
+    "label": "Wohnort\n*",
+    "kind": "text",
+    "name": "wohnort",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#LAMAPPL_xxx_DateOfBirth",
+    "label": "Geburtsdatum\n*",
+    "kind": "date",
+    "name": "LAMAPPL_xxx_DateOfBirth",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#dsgaccept",
+    "label": "Ich habe die Datenschutzerklärung gelesen und willige in die Datenverarbeitung zum Zweck der Durchführung des Bewerbungsverfahrens ein. *",
+    "kind": "checkbox",
+    "name": "u_9_fields_xxx__USERFIELD54",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "f3b8bd55cac63ecc",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:58",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

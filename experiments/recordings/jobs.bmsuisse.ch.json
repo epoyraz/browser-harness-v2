@@ -1,0 +1,146 @@
+[
+ {
+  "host": "jobs.bmsuisse.ch",
+  "company": "BMS",
+  "recorded_from": "bms__BMS_206",
+  "form_url": "https://bmsuisse.onlyfy.jobs/application/de/apply/txc4y0l3tokc0tex2ypqgm27at2k8u",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#main > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"personal_details[salutation]\"]",
+    "kind": "select",
+    "name": "personal_details[salutation]",
+    "required": false,
+    "options_sample": [
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#«R72qannenb»-form-item",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "personal_details[first_name]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#«R92qannenb»-form-item",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "personal_details[last_name]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#«Rb2qannenb»-form-item",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "personal_details[birthday]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#«Rd2qannenb»-form-item",
+    "label": "Straße und Hausnummer",
+    "kind": "text",
+    "name": "personal_details[street]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#«Rf2qannenb»-form-item",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "personal_details[zip_code]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#«Rh2qannenb»-form-item",
+    "label": "Wohnort",
+    "kind": "text",
+    "name": "personal_details[city]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "select[name=\"personal_details[country_of_residence]\"]",
+    "kind": "select",
+    "name": "personal_details[country_of_residence]",
+    "required": false,
+    "options_sample": [
+     "Deutschland",
+     "Österreich",
+     "Schweiz",
+     "Afghanistan",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln"
+    ],
+    "options_count": 250,
+    "widget": false,
+    "placeholder_first": false,
+    "semantic": "location"
+   },
+   {
+    "selector": "#«Rl2qannenb»-form-item",
+    "label": "E-Mail Adresse",
+    "kind": "email",
+    "name": "personal_details[email]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#«Rn2qannenb»-form-item",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "personal_details[phone]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#«R76qannenb»-form-item",
+    "label": "Gehaltsvorstellung Brutto im Monat",
+    "kind": "text",
+    "name": "questions[cf_712418]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "abfb28c6dcd2d7ea",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,178 @@
+[
+ {
+  "host": "jobs.globus.ch",
+  "company": "GLOBUS",
+  "recorded_from": "globus__GLOBUS_2503",
+  "form_url": "https://jobs.globus.ch/Lehrstelle-als-Kaufmann-frau-EFZ-de-f2503.html",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Geschlecht",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Männlich",
+     "Weiblich",
+     "Divers",
+     "Ohne Angabe"
+    ],
+    "options_count": 5,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": false,
+    "options_sample": [
+     "---",
+     "Deutschland",
+     "Österreich",
+     "Schweiz",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 220,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ)",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie hast du uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "finest-jobs.com",
+     "globus.ch",
+     "fashionjobs.ch",
+     "Indeed.ch",
+     "jobs.ch",
+     "Freunde / Bekannte",
+     "Social Media"
+    ],
+    "options_count": 11,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#vordef_bew_feld_01",
+    "label": "Warum fasziniert dich diese Stelle so sehr, dass du dich darauf bewirbst? *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_10",
+    "label": "Was bringst du mit, um bei uns den Unterschied zu machen? *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "4e7245eb11b1a8d2",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:57",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

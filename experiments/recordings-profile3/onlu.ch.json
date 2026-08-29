@@ -1,0 +1,74 @@
+[
+ {
+  "host": "onlu.ch",
+  "company": "ONLU AG",
+  "recorded_from": "ONLU_995",
+  "form_url": "https://onlu.ch/jobs/devops-software-engineer-m-w-80-100-2/",
+  "language": "de-DE",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#awsm-applicant-name",
+    "label": "Vollständiger Name *",
+    "kind": "text",
+    "name": "awsm_applicant_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#awsm-applicant-email",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "awsm_applicant_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#awsm-applicant-phone",
+    "label": "Telefon *",
+    "kind": "tel",
+    "name": "awsm_applicant_phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#awsm_form_privacy_policy",
+    "label": "By using this form you agree with the storage and handling of your data by this website. *",
+    "kind": "checkbox",
+    "name": "awsm_form_privacy_policy",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#awsm-application-file",
+    "label": "CV/Lebenslauf hochladen *",
+    "name": "awsm_file",
+    "required": true,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [
+   {
+    "selector": "#awsm-cover-letter",
+    "label": "Biografie *",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "6b95e424dff28a67",
+  "hops": 1,
+  "recorded_at": "2026-08-29T22:19:36",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

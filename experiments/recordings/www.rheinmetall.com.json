@@ -1,0 +1,225 @@
+[
+ {
+  "host": "www.rheinmetall.com",
+  "company": "Rheinmetall",
+  "recorded_from": "rheinmetall__Rheinmetall_1145819_de",
+  "form_url": "https://rheinmetall.recruitmentplatform.com/apply.html?jobId=QYIFK026203F3VBQB7V68V7G6-534719&langCode=de_DE",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(9) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN!",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form_of_address_2",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "form_of_address",
+    "required": false,
+    "options_sample": [
+     "--Bitte auswählen--",
+     "Frau",
+     "Herr",
+     "Divers"
+    ],
+    "options_count": 4,
+    "autocomplete": "honorific-prefix",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#first_name_3",
+    "label": "Vorname\n(erforderlich)",
+    "kind": "text",
+    "name": "first_name",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#last_name_4",
+    "label": "Nachname\n(erforderlich)",
+    "kind": "text",
+    "name": "last_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#e-mail_address_5",
+    "label": "E-Mail-Adresse\n(erforderlich)",
+    "kind": "email",
+    "name": "e-mail_address",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country-code_phone__home__6",
+    "label": "Telefon Privat (z.B. +41 44 XXXXXXX)",
+    "kind": "select",
+    "name": "country-codephone__home_",
+    "required": true,
+    "options_sample": [
+     "Ländercode",
+     "Afghanistan (+93)",
+     "Albanien (+355)",
+     "Algerien (+213)",
+     "Samoa (+1 684)",
+     "Andorra (+376)",
+     "Angola (+244)",
+     "Anguilla (+1 264)"
+    ],
+    "options_count": 238,
+    "autocomplete": "tel-country-code",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "#phone-number_phone__home__6",
+    "label": "Telefon Privat (z.B. +41 44 XXXXXXX)",
+    "kind": "text",
+    "name": "phone-numberphone__home_",
+    "required": true,
+    "autocomplete": "tel-national",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#country_7",
+    "label": "Land\n(erforderlich)",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "--Bitte auswählen--",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien",
+     "Andorra",
+     "Angola",
+     "Antigua"
+    ],
+    "options_count": 217,
+    "autocomplete": "country-name",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"custom_question_5474\"]",
+    "label": "Wie sind Sie auf diese Stelle aufmerksam geworden?\n(erforderlich)",
+    "kind": "select",
+    "name": "custom_question_5474",
+    "required": true,
+    "options_sample": [
+     "--Bitte auswählen--",
+     "Internet / Stellenportal",
+     "Familie & Freunde",
+     "Direktansprache durch Recruiter",
+     "Printmedien",
+     "Messe",
+     "Radio"
+    ],
+    "options_count": 7,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#suboption_country",
+    "label": "Region \n(erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_5472\"]",
+    "label": "Welches Stellenportal? (Erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_5477\"]",
+    "label": "Welche Art von Printmedien? (Erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_5479\"]",
+    "label": "Welche Art von Messe? (Erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#custom_question_324_20",
+    "label": "Bitte wählen Sie die angestrebte Einstiegsart aus:\n(erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#custom_question_341_23",
+    "label": "Wie lange soll die Dauer Ihrer Tätigkeit bei uns sein? (Erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1373\"]",
+    "label": "Tag",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1373\"]",
+    "label": "Monat",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1373\"]",
+    "label": "Jahr",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_1412\"]",
+    "label": "Wie lange soll die Dauer Ihrer Werkstudententätigkeit bei uns sein? (Erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_5475\"]",
+    "label": "Besitzen Sie eine gültige Arbeitserlaubnis für die Schweiz?\n(erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "select[name=\"custom_question_5476\"]",
+    "label": "Sind sie im Besitz einer EU/EFTA-Staatsbürgerschaft? (Erforderlich)",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "1510bdaa852e3ae8",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:01",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

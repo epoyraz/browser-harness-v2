@@ -1,0 +1,102 @@
+{
+  "available": true,
+  "platform": "win32",
+  "method": "CDP SystemInfo process IDs plus Windows working set/private bytes; per-tab OS RAM is the Chrome delta divided by new page targets.",
+  "caveat": "Incremental per-tab RAM is an average, not exact attribution: Chrome can share processes and create multiple renderer processes for one tab.",
+  "samples": 112,
+  "interval_seconds": 2.0,
+  "baseline": {
+    "timestamp": "2026-08-29T19:08:43+0200",
+    "offset_ms": 4.0,
+    "browser_pid": 48884,
+    "chrome_processes": 9,
+    "measured_processes": 9,
+    "working_set_bytes": 574914560,
+    "private_bytes": 260112384,
+    "page_targets": 1,
+    "by_process_type": {
+      "browser": {
+        "processes": 1,
+        "measured": 1,
+        "working_set_bytes": 131829760,
+        "private_bytes": 42508288
+      },
+      "renderer": {
+        "processes": 5,
+        "measured": 5,
+        "working_set_bytes": 349552640,
+        "private_bytes": 177508352
+      },
+      "GPU": {
+        "processes": 1,
+        "measured": 1,
+        "working_set_bytes": 40611840,
+        "private_bytes": 18739200
+      },
+      "network.mojom.NetworkService": {
+        "processes": 1,
+        "measured": 1,
+        "working_set_bytes": 33124352,
+        "private_bytes": 12185600
+      },
+      "storage.mojom.StorageService": {
+        "processes": 1,
+        "measured": 1,
+        "working_set_bytes": 19795968,
+        "private_bytes": 9170944
+      }
+    },
+    "active_attempts": 0,
+    "started_attempts": 0,
+    "completed_attempts": 0,
+    "peak_active_attempts": 0
+  },
+  "peak_working_set_bytes": 5841534976,
+  "peak_private_bytes": 3621650432,
+  "peak_working_set_delta_bytes": 5266620416,
+  "peak_private_delta_bytes": 3361538048,
+  "peak_page_targets": 11,
+  "peak_new_page_targets": 10,
+  "peak_active_attempts": 10,
+  "steady_full_pool_samples": 91,
+  "incremental_private_per_new_page_bytes": {
+    "count": 91,
+    "min": 23825613,
+    "mean": 165667644.2,
+    "median": 143763456,
+    "p95": 320505037,
+    "max": 336153805
+  },
+  "incremental_working_set_per_new_page_bytes": {
+    "count": 91,
+    "min": 53807514,
+    "mean": 279869030.4,
+    "median": 256320307,
+    "p95": 501712077,
+    "max": 526662042
+  },
+  "incremental_private_per_worker_tab_bytes": {
+    "count": 91,
+    "min": 23825612.8,
+    "mean": 165667644.2,
+    "median": 143763456.0,
+    "p95": 320505036.8,
+    "max": 336153804.8
+  },
+  "incremental_working_set_per_worker_tab_bytes": {
+    "count": 91,
+    "min": 53807513.6,
+    "mean": 279869030.4,
+    "median": 256320307.2,
+    "p95": 501712076.8,
+    "max": 526662041.6
+  },
+  "per_attempt_js_heap_used_bytes": {
+    "count": 80,
+    "min": 887740.0,
+    "mean": 13797342.4,
+    "median": 7755154.0,
+    "p95": 52585752.0,
+    "max": 98016428.0
+  }
+}

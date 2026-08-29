@@ -1,0 +1,147 @@
+[
+ {
+  "host": "theacutroniccompany.applytojob.com",
+  "company": "Acutronic",
+  "recorded_from": "acutronic__Acutronic_8onBXd9HiI",
+  "form_url": "https://theacutroniccompany.applytojob.com/apply/8onBXd9HiI/Procurement-Supply-Chain-Specialist-wmd",
+  "language": "en-us",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#resumator-firstname-value",
+    "label": "First Name*",
+    "kind": "text",
+    "name": "resumator-firstname-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#resumator-lastname-value",
+    "label": "Last Name*",
+    "kind": "text",
+    "name": "resumator-lastname-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#resumator-email-value",
+    "label": "Email Address*",
+    "kind": "email",
+    "name": "resumator-email-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#resumator-phone-value",
+    "label": "Phone*",
+    "kind": "tel",
+    "name": "resumator-phone-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#resumator-address-value",
+    "label": "Address",
+    "kind": "text",
+    "name": "resumator-address-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#resumator-city-value",
+    "label": "City",
+    "kind": "text",
+    "name": "resumator-city-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#resumator-state-value",
+    "label": "State/Province",
+    "kind": "text",
+    "name": "resumator-state-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "state_province"
+   },
+   {
+    "selector": "#resumator-postal-value",
+    "label": "Postal",
+    "kind": "text",
+    "name": "resumator-postal-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#resumator-linkedin-value",
+    "label": "LinkedIn Profile URL:",
+    "kind": "text",
+    "name": "resumator-linkedin-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "#resumator-salary-value",
+    "label": "Desired salary*",
+    "kind": "text",
+    "name": "resumator-salary-value",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#resumator-start-value",
+    "label": "Earliest start date?",
+    "kind": "text",
+    "name": "resumator-start-value",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#form_submit_new_resume > div:nth-of-type(1) > div:nth-of-type(12) > select:nth-of-type(1)",
+    "label": "Are you Swiss / European citizen or do you have a Swiss working permit?*",
+    "kind": "select",
+    "name": "resumator-questionnaire[2923216]",
+    "required": true,
+    "options_sample": [
+     "-- No answer --",
+     "Yes",
+     "No"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "#resumator-sms-consent",
+    "label": "I consent to receive SMS/text messages regarding my job application with Acutronic. These messages may include updates on my application status, interview invitations, reminders, and other information directly related to this job application. Message frequency will vary. Message and data rates may apply. Reply HELP for help or STOP to cancel.",
+    "kind": "checkbox",
+    "name": "resumator-sms-consent",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "e5de25bc6b5fbcfa",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:07:24",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

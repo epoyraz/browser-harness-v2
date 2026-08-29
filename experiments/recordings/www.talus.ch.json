@@ -1,0 +1,223 @@
+[
+ {
+  "host": "www.talus.ch",
+  "company": "Talus Informatik",
+  "recorded_from": "talus-informatik__TalusInformatik_45106",
+  "form_url": "https://www.talus.ch/de/talus-erleben/bei-uns-arbeiten/offene-stellen/bewerbung.php?id=45106&headline=Fachperson+HR+-+werde+Abacus+Berater%3Ain",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > button:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#customeraddressshopperanrede",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "customeraddressshopperanrede",
+    "required": true,
+    "options_sample": [
+     "Herr",
+     "Frau",
+     "Familie"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#customeraddressshoppervorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "customeraddressshoppervorname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#customeraddressshoppername",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "customeraddressshoppername",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#customeraddressshopperzusatz",
+    "label": "Zusatz",
+    "kind": "text",
+    "name": "customeraddressshopperzusatz",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#customeraddressstreetwithouthousenumber",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "customeraddressstreetwithouthousenumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#customeraddresshousenumber",
+    "label": "Hausnummer",
+    "kind": "text",
+    "name": "customeraddresshousenumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "#customeraddressshopperplz",
+    "label": "Plz *",
+    "kind": "text",
+    "name": "customeraddressshopperplz",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#customeraddressshopperort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "customeraddressshopperort",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#customeraddressshopperland",
+    "label": "Land *",
+    "kind": "select",
+    "name": "customeraddressshopperland",
+    "required": true,
+    "options_sample": [
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Vereinigte Staaten von Amerika",
+     "Afghanistan"
+    ],
+    "options_count": 252,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#customeraddressshoppertelefon",
+    "label": "Telefon / Mobile",
+    "kind": "text",
+    "name": "customeraddressshoppertelefon",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#customeraddressshopperaddressemail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "customeraddressshopperaddressemail",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#DateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "date",
+    "name": "DateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#Nationality",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "Nationality",
+    "required": false,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Vereinigte Staaten von Amerika"
+    ],
+    "options_count": 253,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#Start",
+    "label": "Möglicher Stellenantritt",
+    "kind": "date",
+    "name": "Start",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#u_9_fields__USERFIELD4",
+    "label": "Vermittlungsbüro E-Mail",
+    "kind": "text",
+    "name": "u_9_fields__USERFIELD4",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#u_9_fields__USERFIELD5",
+    "label": "Vermittlungsbüro Telefon",
+    "kind": "text",
+    "name": "u_9_fields__USERFIELD5",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#jobportal_imgagr",
+    "label": "Ich willige ausdrücklich darin ein, dass ein von mir hochgeladenes Foto in das Bewerbermanagement-System eingestellt wird. Soweit sich aus dem Foto Hinweise auf meine ethnische Herkunft, Religion oder Gesundheit ergeben (z. B. Hautfarbe, Kopfbedeckung, Brille), bezieht sich meine Einwilligung auch auf diese Informationen. Ich bin nicht verpflichtet, eine Einwilligung zu erteilen. Wenn ich diese nicht abgeben möchte, kann ich das Foto aus dem Bewerbungsformular löschen. Die Einwilligung kann jederzeit mit Wirkung für die Zukunft widerrufen werden. In einem solchen Fall wird dann mein Foto im Bewerbermanagement-System gelöscht. Weitere Informationen hierzu sind in der Datenschutzerklärung erhältlich.",
+    "kind": "checkbox",
+    "name": "jobportal_imgagr",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#jobportal_taca",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.",
+    "kind": "checkbox",
+    "name": "jobportal_taca",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "578cd5dba3e6473d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:27",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

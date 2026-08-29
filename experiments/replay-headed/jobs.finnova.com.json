@@ -1,0 +1,81 @@
+[
+ {
+  "host": "jobs.finnova.com",
+  "company": "finnova",
+  "recorded_from": "finnova_10099704",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/finnova/d4adf7d5-7181-a4d9-3680-40a3d839fe7f?jp=PROSPECTIVE&srcTextPMS=finnova",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#stickyHeaderWrapper > div:nth-of-type(3) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "ONLINE BEWERBUNG",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#\\36 f9ad083-8e8d-4f9d-a14a-eaca4b3dabf3",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [
+     "Bitte Land wählen",
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Afghanistan"
+    ],
+    "options_count": 253,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Nationality\"]",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Nationality",
+    "required": false,
+    "options_sample": [
+     "Schweiz",
+     "Liechtenstein",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Afghanistan",
+     "Albanien"
+    ],
+    "options_count": 252,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Language\"]",
+    "label": "Kommunikationssprache*",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "c2a513be96374f87",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:51:30",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

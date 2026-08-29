@@ -1,0 +1,178 @@
+[
+ {
+  "host": "jobs.barmelweid.ch",
+  "company": "Barmelweid",
+  "recorded_from": "barmelweid__Barmelweid_8a8b95b39f9289ee01a01fb254a246be",
+  "form_url": "https://karriere.barmelweid.ch/engage/jobexchange/renderApplicationForm.do?j=myjobexchange&organizationUnitId=&source=&jobOfferId=8a8b95b39f9289ee01a01fb254a246be",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[aria-label=\"Vorname\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c0].entity.name01",
+    "required": false,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[aria-label=\"Nachname\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c3].entity.name02",
+    "required": false,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[aria-label=\"Strasse\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38bd].entity.street",
+    "required": false,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[aria-label=\"PLZ\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c1].entity.zipCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[aria-label=\"Ort\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c9].entity.city",
+    "required": false,
+    "autocomplete": "address-level1",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[aria-label=\"Land\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38bc].entity.country",
+    "required": false,
+    "options_sample": [
+     "",
+     "Schweiz",
+     "Deutschland",
+     "/",
+     "Afghanistan",
+     "Aland Inseln",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 244,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[aria-label=\"Nationalität\"]",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c4].entity.nationality",
+    "required": false,
+    "options_sample": [
+     "",
+     "schweizerisch",
+     "deutsch",
+     "afghanisch",
+     "ägyptisch",
+     "albanisch",
+     "algerisch",
+     "amerikanisch"
+    ],
+    "options_count": 106,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[aria-label=\"Geburtstag (TT.MM.JJJJ)\"]",
+    "label": "Geburtstag (TT.MM.JJJJ)",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38bf].entity.birthday",
+    "required": false,
+    "autocomplete": "bday",
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "männlich",
+    "kind": "radio",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38be].entity.gender",
+    "required": false,
+    "group_label": "Geschlecht",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[aria-label=\"Telefon\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c2].entity.telNumber",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[aria-label=\"Email\"]",
+    "label": "Email",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c6].entity.email",
+    "required": false,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[aria-label=\"Email (Wiederholung)\"]",
+    "label": "Email (Wiederholung)",
+    "kind": "text",
+    "name": "contentMap[8a8ab1a26148de850161b86b7b7d38c8].entity.emailPrivate",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[aria-label=\"Diplome/Zertifikate\"]",
+    "label": "Diplome/Zertifikate",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "education"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "2d55c35190d9b544",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:10",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

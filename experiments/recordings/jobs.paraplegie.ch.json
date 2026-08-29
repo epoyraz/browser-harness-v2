@@ -1,0 +1,116 @@
+[
+ {
+  "host": "jobs.paraplegie.ch",
+  "company": "Schweizer Paraplegiker-Gruppe",
+  "recorded_from": "schweizer-paraplegiker-gruppe__SchweizerParaplegikerGruppe_b3db3873-cd21-45ae-81",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2782/de/apply/3526?srcIDPMS=10162759&srcTextPMS=spz-schweizer-paraplegiker-zentrum&source=spz-schweizer-paraplegiker-zentrum&canalId=1001777&publishId=10162759&ohvk=b3db3873-cd21-45ae-8128-09ef39d020db",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#stickyFooter > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#lang_Salutation_M",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail Adresse",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#applicant_recommendation",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "recommendation_source",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "paraplegie.ch",
+     "jobs.ch",
+     "Freunde / Bekannte",
+     "Facebook / Instagram / Tiktok",
+     "LinkedIn / Xing",
+     "Youtube",
+     "Suchmaschine (Google/Bing)"
+    ],
+    "options_count": 15,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#profile_notes",
+    "label": "Willst du uns noch was mitteilen?",
+    "kind": "textarea",
+    "name": "education_level_comment",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "education"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich habe die Datenschutzerklärung gesehen und bin damit einverstanden.",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "7521ca8e7bf4e896",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:31",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

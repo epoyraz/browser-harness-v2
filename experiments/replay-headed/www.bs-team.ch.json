@@ -1,0 +1,59 @@
+[
+ {
+  "host": "www.bs-team.ch",
+  "company": "BS-Team",
+  "recorded_from": "BSTeam_37987",
+  "form_url": "https://www.bs-team.ch/jobs/expert-sharepoint-m365/",
+  "language": "fr-FR",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#awsm-applicant-name",
+    "label": "Prénom et nom *",
+    "kind": "text",
+    "name": "awsm_applicant_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#awsm-applicant-email",
+    "label": "Email *",
+    "kind": "email",
+    "name": "awsm_applicant_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#awsm-applicant-phone",
+    "label": "Téléphone *",
+    "kind": "tel",
+    "name": "awsm_applicant_phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#awsm_text_1",
+    "label": "Lieu de résidence (Code postal, ville) *",
+    "kind": "text",
+    "name": "awsm_text_1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "location"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "235eea1caaaf7b89",
+  "hops": 1,
+  "recorded_at": "2026-08-29T19:51:07",
+  "stats": {
+   "uses": 8,
+   "successes": 8,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T20:11:57"
+  }
+ }
+]

@@ -1,0 +1,92 @@
+[
+ {
+  "host": "jobs.psychiatrie-sg.ch",
+  "company": "Psychiatrie St.Gallen",
+  "recorded_from": "psychiatrie-st-gallen__PsychiatrieSG_50be8798-f0d2-403f-811a-7c258e663360",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2964/de/apply/1376?srcIDPMS=10164065&srcTextPMS=psg&source=psg&canalId=1005765&publishId=10164065&ohvk=50be8798-f0d2-403f-811a-7c258e663360",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#stickyHeader > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"first_name\"]",
+    "label": "Frau",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"last_name\"]",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"address_street\"]",
+    "kind": "text",
+    "name": "address_street",
+    "required": false,
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"address_zip\"]",
+    "kind": "text",
+    "name": "address_zip",
+    "required": false,
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"address_city\"]",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "address_city",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "kind": "text",
+    "name": "email",
+    "required": false,
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "semantic": "phone"
+   },
+   {
+    "selector": "#recommendation_source > input:nth-of-type(2)",
+    "label": "Wie bist Du auf uns aufmerksam geworden?",
+    "kind": "text",
+    "required": false,
+    "autocomplete": "fomantic-search",
+    "label_source": "proximity",
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "6a623e1708d3200f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:19",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

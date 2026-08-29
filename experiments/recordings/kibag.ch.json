@@ -1,0 +1,92 @@
+[
+ {
+  "host": "kibag.ch",
+  "company": "Kibag",
+  "recorded_from": "kibag__Kibag_gen_149689f62f3c",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/302c375f-16f1-4938-9292-8c21971542d2/a0be5903-febc-5dec-a049-592aa4428647?jp=ABACUS",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "BEWERBUNGS-LINK",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [
+     "Herr"
+    ],
+    "options_count": 1,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Nationality\"]",
+    "label": "Nationalität*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Nationality",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "autocomplete": "nationality",
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"u_a_bewerber_xxx__USERFIELD2\"]",
+    "label": "So bin ich auf KIBAG aufmerksam geworden",
+    "kind": "select",
+    "name": "u_a_bewerber_xxx__USERFIELD2",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Language\"]",
+    "label": "Sprachcode*",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "bfe7e6c128893a6e",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:56",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

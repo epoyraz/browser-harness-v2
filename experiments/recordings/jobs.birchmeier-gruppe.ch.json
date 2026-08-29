@@ -1,0 +1,52 @@
+[
+ {
+  "host": "jobs.birchmeier-gruppe.ch",
+  "company": "Birchmeier",
+  "recorded_from": "birchmeier__Birchmeier_795ee4af-f229-9935-35fe-635b82789eeb",
+  "form_url": "https://jobs.birchmeier-gruppe.ch/application-process/fc6240b2-9ab6-6bab-f381-5a1c67e71908",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#iiz48",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"AcceptPrivacyTerms\"]",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+    "kind": "checkbox",
+    "name": "AcceptPrivacyTerms",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "65874e198b1f5bff",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

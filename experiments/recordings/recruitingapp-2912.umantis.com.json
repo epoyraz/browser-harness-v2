@@ -1,0 +1,124 @@
+[
+ {
+  "host": "recruitingapp-2912.umantis.com",
+  "company": "Klinik im Hasel",
+  "recorded_from": "klinik-im-hasel__KlinikImHasel_476",
+  "form_url": "https://recruitingapp-2912.umantis.com/Vacancies/476/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#button > a:nth-of-type(1)",
+    "label": "jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data7",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data10",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "E-Mail-Adresse",
+    "kind": "text",
+    "name": "form_data13",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data19\"]",
+    "label": "Telefon / Mobile",
+    "kind": "text",
+    "name": "form_data19",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data30\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data30",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Freunde, Bekannte",
+     "Homepage der Unternehmung",
+     "Interne Stellenausschreibung",
+     "Internet-Suchmaschine",
+     "Online Stellenmärkte",
+     "Zeitung, andere Printmedien"
+    ],
+    "options_count": 9,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data36\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data36",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data39\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data39",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "3029100f86b65f10",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

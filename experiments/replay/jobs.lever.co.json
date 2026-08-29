@@ -1,0 +1,347 @@
+[
+ {
+  "host": "jobs.lever.co",
+  "company": "ANYbotics",
+  "recorded_from": "ANYbotics_7e305a48-4628-4a6a-b054-0367b6f6e586",
+  "form_url": "https://jobs.lever.co/anybotics/7e305a48-4628-4a6a-b054-0367b6f6e586/apply",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "APPLY FOR THIS JOB",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"name\"]",
+    "label": "Full name\n✱",
+    "kind": "text",
+    "value": "Enes Poyraz"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "Email\n✱",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Phone",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#location-input",
+    "label": "Current location",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall, Switzerland"
+   },
+   {
+    "selector": "input[name=\"org\"]",
+    "label": "Current company",
+    "kind": "text",
+    "value": "Xona AI"
+   },
+   {
+    "selector": "input[name=\"urls[LinkedIn]\"]",
+    "label": "LinkedIn URL",
+    "kind": "text",
+    "value": "https://www.linkedin.com/in/enes-poyraz-a17b07133/"
+   },
+   {
+    "selector": "input[name=\"consent[marketing]\"]",
+    "label": "Yes, ANYbotics can contact me about future job opportunities for up to 2 years",
+    "kind": "checkbox",
+    "value": true
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:34:02",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "jobs.lever.co",
+  "company": "SonarSource",
+  "recorded_from": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+  "form_url": "https://jobs.lever.co/sonarsource/13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0/apply",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "APPLY FOR THIS JOB",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"name\"]",
+    "label": "Full name\n✱",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "value": "Enes Poyraz"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "Email\n✱",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Phone\n✱",
+    "kind": "text",
+    "name": "phone",
+    "required": true,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#location-input",
+    "label": "Current location\n✱",
+    "kind": "text",
+    "name": "location",
+    "required": true,
+    "value": "Neuhausen am Rheinfall, Switzerland"
+   },
+   {
+    "selector": "input[name=\"org\"]",
+    "label": "Current company",
+    "kind": "text",
+    "name": "org",
+    "required": false,
+    "value": "Xona AI"
+   },
+   {
+    "selector": "input[name=\"urls[LinkedIn]\"]",
+    "label": "LinkedIn URL\n✱",
+    "kind": "text",
+    "name": "urls[LinkedIn]",
+    "required": true,
+    "value": "https://www.linkedin.com/in/enes-poyraz-a17b07133/"
+   },
+   {
+    "selector": "div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Male",
+    "kind": "radio",
+    "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+    "required": false,
+    "value": true
+   },
+   {
+    "selector": "input[name=\"consent[marketing]\"]",
+    "label": "Yes, Sonar can contact me about future job opportunities for up to 3 years\nPrivacy policy",
+    "kind": "checkbox",
+    "name": "consent[marketing]",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c96ffa59ce6d2461",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:40:57",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.lever.co",
+  "company": "SonarSource",
+  "recorded_from": "SonarSource_063c3fa2-788a-4e2b-b35e-80ff7b122739",
+  "form_url": "https://jobs.lever.co/sonarsource/063c3fa2-788a-4e2b-b35e-80ff7b122739/apply",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "APPLY FOR THIS JOB",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"name\"]",
+    "label": "Full name\n✱",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "value": "Enes Poyraz"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "Email\n✱",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Phone\n✱",
+    "kind": "text",
+    "name": "phone",
+    "required": true,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#location-input",
+    "label": "Current location\n✱",
+    "kind": "text",
+    "name": "location",
+    "required": true,
+    "value": "Neuhausen am Rheinfall, Switzerland"
+   },
+   {
+    "selector": "input[name=\"org\"]",
+    "label": "Current company",
+    "kind": "text",
+    "name": "org",
+    "required": false,
+    "value": "Xona AI"
+   },
+   {
+    "selector": "input[name=\"urls[LinkedIn]\"]",
+    "label": "LinkedIn URL\n✱",
+    "kind": "text",
+    "name": "urls[LinkedIn]",
+    "required": true,
+    "value": "https://www.linkedin.com/in/enes-poyraz-a17b07133/"
+   },
+   {
+    "selector": "textarea[name=\"cards[d44410c4-7a1f-43e1-af1f-7f98a67a7a41][field0]\"]",
+    "label": "What is your current notice period?",
+    "kind": "textarea",
+    "name": "cards[d44410c4-7a1f-43e1-af1f-7f98a67a7a41][field0]",
+    "required": true,
+    "value": "immediately"
+   },
+   {
+    "selector": "div:nth-of-type(2) > ul:nth-of-type(1) > li:nth-of-type(2) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Male",
+    "kind": "radio",
+    "name": "surveysResponses[6fedd15b-74d7-410a-ba75-a820d5516541][responses][field2]",
+    "required": false,
+    "value": true
+   },
+   {
+    "selector": "input[name=\"consent[marketing]\"]",
+    "label": "Yes, Sonar can contact me about future job opportunities for up to 3 years\nPrivacy policy",
+    "kind": "checkbox",
+    "name": "consent[marketing]",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "044d32fcbc50cecc",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:05",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "jobs.lever.co",
+  "company": "ANYbotics",
+  "recorded_from": "ANYbotics_7e305a48-4628-4a6a-b054-0367b6f6e586",
+  "form_url": "https://jobs.lever.co/anybotics/7e305a48-4628-4a6a-b054-0367b6f6e586/apply",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "APPLY FOR THIS JOB",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"name\"]",
+    "label": "Full name\n✱",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "value": "Enes Poyraz"
+   },
+   {
+    "selector": "input[name=\"email\"]",
+    "label": "Email\n✱",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "Phone",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#location-input",
+    "label": "Current location",
+    "kind": "text",
+    "name": "location",
+    "required": false,
+    "value": "Neuhausen am Rheinfall, Switzerland"
+   },
+   {
+    "selector": "input[name=\"org\"]",
+    "label": "Current company",
+    "kind": "text",
+    "name": "org",
+    "required": false,
+    "value": "Xona AI"
+   },
+   {
+    "selector": "input[name=\"urls[LinkedIn]\"]",
+    "label": "LinkedIn URL",
+    "kind": "text",
+    "name": "urls[LinkedIn]",
+    "required": false,
+    "value": "https://www.linkedin.com/in/enes-poyraz-a17b07133/"
+   },
+   {
+    "selector": "input[name=\"consent[marketing]\"]",
+    "label": "Yes, ANYbotics can contact me about future job opportunities for up to 2 years",
+    "kind": "checkbox",
+    "name": "consent[marketing]",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c67155d289c86b88",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:26",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

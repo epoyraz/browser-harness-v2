@@ -1,0 +1,201 @@
+[
+ {
+  "host": "career.onedoc.ch",
+  "company": "OneDoc",
+  "recorded_from": "onedoc__OneDoc_139",
+  "form_url": "https://career.onedoc.ch/de/jobs/apply/customer-support-officer-romandie-139",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#o231ixmr9bu9",
+    "label": "Vorname & Nachname *",
+    "kind": "text",
+    "name": "partner_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#ooupzonj8st",
+    "label": "Email *",
+    "kind": "email",
+    "name": "email_from",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#o57hxtkp04g",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "partner_phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#olpo1uyjt2v",
+    "label": "zum Beispiel: + 41 77 123 45 67",
+    "kind": "select",
+    "name": "x_studio_country_of_residence_id",
+    "required": false,
+    "options_sample": [
+     "Afghanistan",
+     "Åland Islands",
+     "Albania",
+     "Algeria",
+     "American Samoa",
+     "Andorra",
+     "Angola",
+     "Anguilla"
+    ],
+    "options_count": 250,
+    "label_source": "proximity",
+    "placeholder_first": false,
+    "semantic": "location"
+   },
+   {
+    "selector": "#o1nuobkdn742",
+    "label": "Arbeitsbewilligung *",
+    "kind": "select",
+    "name": "x_studio_work_permit_id",
+    "required": true,
+    "options_sample": [
+     "Schweizer Nationalität",
+     "Ausweis C",
+     "Ausweis B",
+     "Ausweis G",
+     "Keine"
+    ],
+    "options_count": 5,
+    "label_source": "proximity",
+    "placeholder_first": false,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "#o71bxbii1a7p",
+    "label": "Erfahrungsjahre *",
+    "kind": "number",
+    "name": "x_studio_years_of_experience_in_equivalent_role",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "experience_years"
+   },
+   {
+    "selector": "select[name=\"x_studio_available_in_id\"]",
+    "label": "Verfügbar in *",
+    "kind": "select",
+    "name": "x_studio_available_in_id",
+    "required": true,
+    "options_sample": [
+     "Sofort",
+     "1 Monat",
+     "2 Monate",
+     "3 Monate oder mehr"
+    ],
+    "options_count": 4,
+    "label_source": "proximity",
+    "placeholder_first": false,
+    "semantic": "availability"
+   },
+   {
+    "selector": "select[name=\"x_studio_level_of_english_id\"]",
+    "label": "Englischkenntnisse *",
+    "kind": "select",
+    "name": "x_studio_level_of_english_id",
+    "required": true,
+    "options_sample": [
+     "Keine",
+     "Anfänger",
+     "Mittelstufe",
+     "Gute Mittelstufe",
+     "Flüssig",
+     "Muttersprache"
+    ],
+    "options_count": 6,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "english_level"
+   },
+   {
+    "selector": "#ojez4rmuost",
+    "label": "LinkedIn-Profil",
+    "kind": "text",
+    "name": "linkedin_profile",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "#osbi3j4kzcpg",
+    "label": "Wo haben Sie von uns erfahren?",
+    "kind": "select",
+    "name": "x_studio_hear_about_us_id",
+    "required": true,
+    "options_sample": [
+     "www.onedoc.ch",
+     "Recommendation",
+     "LinkedIn",
+     "Jobup",
+     "Moonwork",
+     "Social Media",
+     "Other"
+    ],
+    "options_count": 7,
+    "label_source": "proximity",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#odj8bn2uq7yn",
+    "label": "Abschluss",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#onvupmg1vyd",
+    "label": "Französischkenntnisse *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#owi25d3fxxaa",
+    "label": "Deutschkenntnisse *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#od6bcwhk58d4",
+    "label": "Schweizerdeutsch",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#oi6exadbnay",
+    "label": "Italienischkenntnisse *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "5b70013063b32a0d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:09:08",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

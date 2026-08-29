@@ -1,0 +1,177 @@
+[
+ {
+  "host": "jobs.spitalstsag.ch",
+  "company": "Spital Thun",
+  "recorded_from": "spital-thun__Spital_Thun_dd880936-cecc-4a3a-b88c-27be9d0f071e",
+  "form_url": "https://recruitingapp-2798.umantis.com/Vacancies/2823/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data5",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data10",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "textarea[name=\"form_data13\"]",
+    "label": "Strasse",
+    "kind": "textarea",
+    "name": "form_data13",
+    "required": false,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data14\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data14",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data15\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data15",
+    "required": false,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data16\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data16",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Italien",
+     "Frankreich",
+     "Spanien",
+     "Portugal"
+    ],
+    "options_count": 239,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Handy / Telefon",
+    "kind": "text",
+    "name": "form_data18",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data31\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data31",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Unsere Homepage",
+     "PastaHR",
+     "Kennenlern-Kaffee",
+     "Webekampagne \"Mehr als ein Job\"",
+     "Freunde, Bekannte",
+     "----------------------------------------"
+    ],
+    "options_count": 35,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data39\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data39",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data42\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data42",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "b56b8eeaeb318d36",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:28",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

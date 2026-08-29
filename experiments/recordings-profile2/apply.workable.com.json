@@ -1,0 +1,338 @@
+[
+ {
+  "host": "apply.workable.com",
+  "company": "Digital Wave Finance AG",
+  "recorded_from": "DigitalWaveFinanceAG_B1B5C73CAF",
+  "form_url": "https://apply.workable.com/dwf/j/B1B5C73CAF/apply/",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "div[aria-label=\"Telephone country code\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "combobox",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "semantic": "city"
+   },
+   {
+    "selector": "#postcode",
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#input_files_input_NyUI9nJDSbLWPTGH",
+    "label": "",
+    "name": "input_files_input_NyUI9nJDSbLWPTGH",
+    "required": true,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(5) > label:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "*\nIn one word, what does struct save you from (vs class)?",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(6) > label:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "*\nIn one word: What does querySelector operate on?",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "7cb7562cf4d4b0c7",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:04:03",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.workable.com",
+  "company": "Crypto Finance AG",
+  "recorded_from": "CryptoFinance_49C70CEE5E",
+  "form_url": "https://apply.workable.com/crypto-finance/j/49C70CEE5E/apply/",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "name": "headline",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "current_title"
+   },
+   {
+    "selector": "div[aria-label=\"Telephone country code\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "combobox",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "semantic": "city"
+   },
+   {
+    "selector": "#postcode",
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "input[name=\"CA_12762\"]",
+    "label": "*\nAnnual salary expectations in CHF",
+    "kind": "text",
+    "name": "CA_12762",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "input[name=\"CA_12763\"]",
+    "label": "*\nStart Date / Notice Period",
+    "kind": "text",
+    "name": "CA_12763",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#zfm4h8cYSB9ei3dW",
+    "label": "YES",
+    "kind": "radio",
+    "name": "QA_12094207",
+    "required": true,
+    "group_label": "Are you eligible to work in Switzerland without sponsorship for employment visa status?",
+    "label_source": "markup",
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#input_files_input_M2X9TULt5oNjTRGd",
+    "label": "",
+    "name": "input_files_input_M2X9TULt5oNjTRGd",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#input_files_input_eygqUECM1qOIA9h8",
+    "label": "",
+    "name": "input_files_input_eygqUECM1qOIA9h8",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#input_files_input_NEd4AkkyBi9av36B",
+    "label": "",
+    "name": "input_files_input_NEd4AkkyBi9av36B",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#input_files_input_CBlDTQeoIUU3Fq96",
+    "label": "",
+    "name": "input_files_input_CBlDTQeoIUU3Fq96",
+    "required": true,
+    "multiple": false
+   },
+   {
+    "selector": "#input_files_input_RRNiFUy36sdvgK2F",
+    "label": "",
+    "name": "input_files_input_RRNiFUy36sdvgK2F",
+    "required": true,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "9d376563f1087f0c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:04:06",
+  "stats": {
+   "uses": 4,
+   "successes": 3,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T22:07:41"
+  }
+ }
+]

@@ -1,0 +1,239 @@
+[
+ {
+  "host": "jobs.css.ch",
+  "company": "CSS",
+  "recorded_from": "CSS_1a36e481",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/CSS/de/apply?id=22436&jobPipeline=jobs.css.ch&canalId=1000981&publishId=10161455&ohvk=1a36e481-f317-47f8-ae2d-f51ce3b497f9",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "Vorname",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum *",
+    "kind": "text",
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Tel.",
+    "kind": "tel",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#postalCode",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "value": "8212"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#form > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "value": "8212"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Ort",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#email-confirm",
+    "label": "E-Mail bestätigen",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#question_1",
+    "label": "Was sind deine Lohnvorstellungen (total compensation Bruttojahreslohn bei 100%)?",
+    "kind": "textarea",
+    "value": "105000"
+   },
+   {
+    "selector": "#privacy",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "value": true
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:19",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "jobs.css.ch",
+  "company": "CSS",
+  "recorded_from": "CSS_1a36e481",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/CSS/de/apply?id=22436&jobPipeline=jobs.css.ch&canalId=1000981&publishId=10161455&ohvk=1a36e481-f317-47f8-ae2d-f51ce3b497f9",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum *",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": true,
+    "value": "05.02.1987"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Tel.",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": false,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#postalCode",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#form > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": null,
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Ort",
+    "kind": "text",
+    "name": null,
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#email-confirm",
+    "label": "E-Mail bestätigen",
+    "kind": "email",
+    "name": "confirmEmail",
+    "required": false,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#question_1",
+    "label": "Was sind deine Lohnvorstellungen (total compensation Bruttojahreslohn bei 100%)?",
+    "kind": "textarea",
+    "name": "question_1",
+    "required": true,
+    "value": "105000"
+   },
+   {
+    "selector": "#privacy",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "privacy",
+    "required": true,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "e31c60bf1ef704ce",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:40:57",
+  "stats": {
+   "uses": 1,
+   "successes": 1,
+   "consecutive_failures": 0,
+   "last_ok": "2026-08-29T19:41:01"
+  }
+ }
+]

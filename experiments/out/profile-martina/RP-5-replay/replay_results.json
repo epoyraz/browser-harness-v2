@@ -1,0 +1,2668 @@
+{
+ "summary": {
+  "wall_ms": 170784.7,
+  "phase_walls_s": [
+   79.9,
+   90.9
+  ],
+  "employers": 53,
+  "postings": 100,
+  "failed_groups": 0,
+  "mode": "auto",
+  "by_mode": {
+   "discover": {
+    "n": 24,
+    "ok": 8,
+    "median_wall_ms": 21129.4
+   },
+   "needs_input": {
+    "n": 18,
+    "ok": 0,
+    "median_wall_ms": 3.5
+   },
+   "skipped": {
+    "n": 26,
+    "ok": 0,
+    "median_wall_ms": 0.0
+   },
+   "replay": {
+    "n": 18,
+    "ok": 18,
+    "median_wall_ms": 11693.2
+   },
+   "replay_fallback": {
+    "n": 14,
+    "ok": 9,
+    "median_wall_ms": 43492.2
+   }
+  },
+  "recordings": 26,
+  "hidden_hosts": [
+   "apply.workable.com",
+   "career.ti8m.com",
+   "careers.bcg.com",
+   "careers.msccruises.com",
+   "careers.richemont.com",
+   "jobs.finnova.com",
+   "jobs.gem.com"
+  ],
+  "wall_hosts": [
+   "carrieres.ansam.ch",
+   "jobs.admin.ch"
+  ]
+ },
+ "entries": [
+  {
+   "job_id": "Kanton_Luzern_gen_aaae17c6782c",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 0,
+   "url": "https://apply.refline.ch/891537/6091/pub/1/index.html",
+   "mode": "discover",
+   "wall_ms": 17200.8,
+   "status": "workflow_failed",
+   "ok": false,
+   "discover_ms": 17200.7,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "CSS_1a36e481",
+   "company": "CSS",
+   "host": "jobs.css.ch",
+   "position": 0,
+   "url": "https://jobs.css.ch/offene-stellen/expert-data-engineer-w-m/1a36e481-f317-47f8-ae2d-f51ce3b497f9",
+   "mode": "needs_input",
+   "wall_ms": 3.5,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+     "planned": 18,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "CSS_1a36e481",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Expleo_55519",
+   "company": "Expleo",
+   "host": "expleo-jobs-ch-en.icims.com",
+   "position": 0,
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/55519/devops-engineer-%28m-w%29/job?in_iframe=1",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "vlot_15332446",
+   "company": "vlot",
+   "host": "join.com",
+   "position": 0,
+   "url": "https://join.com/companies/vlot/16618722-fintech-software-entwickler-f-c-react",
+   "mode": "discover",
+   "wall_ms": 29412.2,
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 19051.6,
+   "fill_plan_count": null,
+   "hops": 4,
+   "window": "retry"
+  },
+  {
+   "job_id": "NVIDIA_893397378484",
+   "company": "NVIDIA",
+   "host": "jobs.nvidia.com",
+   "position": 0,
+   "url": "https://jobs.nvidia.com/careers/job/893397378484",
+   "mode": "discover",
+   "wall_ms": 27909.0,
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 13369.1,
+   "fill_plan_count": null,
+   "hops": 1,
+   "window": "retry"
+  },
+  {
+   "job_id": "RUAG_gen_adf64bc1fdab",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 0,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/f48073a5-1687-46d4-b2ae-62a60c51c9ad",
+   "mode": "replay",
+   "wall_ms": 31350.5,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 31284.8,
+     "recording": "RUAG_gen_c326bb5d7369",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 31284.8,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "Roche_202608-121795",
+   "company": "Roche",
+   "host": "roche.wd3.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://roche.wd3.myworkdayjobs.com/roche-ext/job/Basel/Machine-Learning-Engineer_202608-121795-2/apply",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Vaudoise_67005910",
+   "company": "Vaudoise",
+   "host": "vaudoise.softgarden.io",
+   "position": 0,
+   "url": "https://vaudoise.softgarden.io/job/67005910",
+   "mode": "replay",
+   "wall_ms": 20836.8,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 10,
+     "filled": 10,
+     "partial": null,
+     "unfilled": null,
+     "ms": 20827.5,
+     "recording": "Vaudoise_65778086",
+     "changed": [],
+     "healed": 10,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 20827.5,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "Salesforce_JR350958",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Lead-Forward-Deployed-Engineer_JR350958",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Bundesverwaltung_10160647",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 0,
+   "url": "https://jobs.admin.ch/offene-stellen/ict-system-spezialist-in-senior-1327/a10da274-8361-454e-9fa0-ecd2ba0ea5c6",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "learnt_account_wall",
+   "ok": false
+  },
+  {
+   "job_id": "Mimic_am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+   "company": "Mimic",
+   "host": "jobs.gem.com",
+   "position": 0,
+   "url": "https://jobs.gem.com/mimicrobotics-com/am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+   "mode": "replay_fallback",
+   "wall_ms": 39905.9,
+   "window": "retry",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "resolve",
+     "reason": "form changed: 5 of 5 recorded fields not found by selector or label",
+     "planned": 5,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 9761.8,
+     "recording": "Mimic_am9icG9zdDohvbB9aDWzwurqy6QSQzMi",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    },
+    {
+     "ok": false,
+     "stage": "resolve",
+     "reason": "form changed: 2 of 7 recorded fields not found by selector or label",
+     "planned": 7,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 10006.1,
+     "recording": "Rivia_am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 7484.7,
+   "fill_plan_count": 4,
+   "hops": 1,
+   "recorded": "4b12cd779f7c3296"
+  },
+  {
+   "job_id": "Ansam_8232616",
+   "company": "Ansam Group",
+   "host": "carrieres.ansam.ch",
+   "position": 0,
+   "url": "https://carrieres.ansam.ch/jobs/8232616-responsable-applicatif",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "learnt_account_wall",
+   "ok": false
+  },
+  {
+   "job_id": "Wavestone_62655224",
+   "company": "Wavestone",
+   "host": "switzerland-career.wavestone.com",
+   "position": 0,
+   "url": "https://switzerland-career.wavestone.com/jobs/62655224/Consultant-Agile-Transformation-Schweiz-all-genders-/",
+   "mode": "discover",
+   "wall_ms": 13122.5,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 13122.5,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+   "company": "DeepJudge",
+   "host": "jobs.ashbyhq.com",
+   "position": 0,
+   "url": "https://jobs.ashbyhq.com/deepjudge/6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+   "mode": "needs_input",
+   "wall_ms": 0.8,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): What is your most relevant work experience / project for this role and why is it relevant?",
+     "planned": 4,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Microsoft_1970393556933021",
+   "company": "Microsoft",
+   "host": "apply.careers.microsoft.com",
+   "position": 0,
+   "url": "https://apply.careers.microsoft.com/careers/job/1970393556933021",
+   "mode": "discover",
+   "wall_ms": 25025.2,
+   "status": "workflow_failed",
+   "ok": false,
+   "discover_ms": 25025.0,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+   "company": "SonarSource",
+   "host": "jobs.lever.co",
+   "position": 0,
+   "url": "https://jobs.lever.co/sonarsource/13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+   "mode": "needs_input",
+   "wall_ms": 1.5,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): None, Type your response, None",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "Type your response",
+       "semantic": "tailored_response",
+       "status": "unplanned_at_recording"
+      },
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "Type your response",
+     "semantic": "tailored_response",
+     "status": "unplanned_at_recording"
+    },
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "JuliusBaer_r-18971",
+   "company": "Julius Bär",
+   "host": "juliusbaer.wd3.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Senior-System-Architect-ML---AI-100---f-m-d-_r-18971-2",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "epam_bltlhinbqhlvbryudmk",
+   "company": "EPAM",
+   "host": "careers.epam.com",
+   "position": 0,
+   "url": "https://careers.epam.com/en/vacancy/oms-lead-engineer-bltlhinbqhlvbryudmk_en",
+   "mode": "discover",
+   "wall_ms": 21998.2,
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 8403.0,
+   "fill_plan_count": null,
+   "hops": 2,
+   "window": "retry"
+  },
+  {
+   "job_id": "HoshiiAG_16520465",
+   "company": "Hoshii AG",
+   "host": "join.com",
+   "position": 0,
+   "url": "https://join.com/companies/hoshii/16577727-forward-deployed-software-engineer",
+   "mode": "discover",
+   "wall_ms": 21094.6,
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 9256.5,
+   "fill_plan_count": null,
+   "hops": 2,
+   "window": "retry"
+  },
+  {
+   "job_id": "BSTeam_37987",
+   "company": "BS-Team",
+   "host": "www.bs-team.ch",
+   "position": 0,
+   "url": "https://www.bs-team.ch/jobs/expert-sharepoint-m365/",
+   "mode": "replay",
+   "wall_ms": 21880.7,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 5,
+     "filled": 5,
+     "partial": null,
+     "unfilled": null,
+     "ms": 21858.3,
+     "recording": "BSTeam_37987",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 21858.3,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "ThomsonReuters_JREQ200738",
+   "company": "Thomson Reuters",
+   "host": "thomsonreuters.wd5.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://thomsonreuters.wd5.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland-Zug-Zug/Senior-Product-Security-Engineer_JREQ200738",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Rivia_am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+   "company": "Rivia",
+   "host": "jobs.gem.com",
+   "position": 0,
+   "url": "https://jobs.gem.com/rivia/am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+   "mode": "replay",
+   "wall_ms": 20334.0,
+   "window": "learnt",
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 12214.5,
+     "recording": "Rivia_am9icG9zdDovIlEPtanzFeYrUQtUf4ic",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 12214.5,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": false,
+     "max_mustermann": false
+    },
+    "clean": false
+   }
+  },
+  {
+   "job_id": "BakerHughes_R164293",
+   "company": "Baker Hughes",
+   "host": "bakerhughes.wd5.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/job/CH-ZH-ZURICH-TECHNOPARK-STRASSE-1/Software-Engineer---Embedded-Software--d-f-m-_R164293-1",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "AutoForm_5158",
+   "company": "AutoForm",
+   "host": "careers.autoform.com",
+   "position": 0,
+   "url": "https://careers.autoform.com/en/jobs/job-search/advertisement/senior-software-engineer-26-12-jw/",
+   "mode": "replay",
+   "wall_ms": 11693.2,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 11673.7,
+     "recording": "AutoForm_5158",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 11673.7,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "DigitalWaveFinanceAG_B1B5C73CAF",
+   "company": "Digital Wave Finance AG",
+   "host": "apply.workable.com",
+   "position": 0,
+   "url": "https://apply.workable.com/dwf/j/B1B5C73CAF",
+   "mode": "needs_input",
+   "wall_ms": 314.5,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): *\nIn one word, what does struct save you from (vs class)?, *\nIn one word: What does querySelector operate on?",
+     "planned": 11,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "DigitalWaveFinanceAG_B1B5C73CAF",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "*\nIn one word, what does struct save you from (vs class)?",
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "*\nIn one word: What does querySelector operate on?",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "*\nIn one word, what does struct save you from (vs class)?",
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "*\nIn one word: What does querySelector operate on?",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_1ba9e9f4c1f8",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 0,
+   "url": "https://apply.refline.ch/792841/11284/pub/1",
+   "mode": "discover",
+   "wall_ms": 10869.5,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 10869.4,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "CryptoFinance_49C70CEE5E",
+   "company": "Crypto Finance AG",
+   "host": "apply.workable.com",
+   "position": 0,
+   "url": "https://apply.workable.com/j/49C70CEE5E",
+   "mode": "replay",
+   "wall_ms": 11522.9,
+   "window": "known",
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 15,
+     "filled": 14,
+     "partial": true,
+     "unfilled": [
+      "*\nPhone\n+41"
+     ],
+     "ms": 11119.2,
+     "recording": "CryptoFinance_49C70CEE5E",
+     "changed": [],
+     "healed": 8,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 11119.2,
+   "partial": true,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": false,
+     "max_mustermann": false
+    },
+    "clean": false
+   }
+  },
+  {
+   "job_id": "Brack_gen_e9539f58830f",
+   "company": "Brack",
+   "host": "jobs.brackalltron.ch",
+   "position": 0,
+   "url": "https://jobs.brackalltron.ch/offene-stellen/senior-software-engineer/78db4f7a-d102-458b-8921-22e8f150f1e9",
+   "mode": "replay",
+   "wall_ms": 10155.0,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 6,
+     "filled": 6,
+     "partial": null,
+     "unfilled": null,
+     "ms": 10127.2,
+     "recording": "Brack_gen_e9539f58830f",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 10127.2,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "TiM_dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 0,
+   "url": "https://career.ti8m.com/offene-stellen/praktikum-java-kotlin/dad56f23-70a7-49c9-8b73-5b69ff18d9c5",
+   "mode": "replay_fallback",
+   "wall_ms": 45431.8,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "resolve",
+     "reason": "form changed: 9 of 9 recorded fields not found by selector or label",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 9374.8,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "workflow_failed",
+   "ok": false,
+   "discover_ms": 34643.1,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "MSC_Cruises_17244",
+   "company": "MSC Cruises",
+   "host": "careers.msccruises.com",
+   "position": 0,
+   "url": "https://careers.msccruises.com/gb/en/job/17244/Test-Analyst",
+   "mode": "needs_input",
+   "wall_ms": 394.2,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Specific source*",
+     "planned": 12,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "MSC_Cruises_17171",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Specific source*",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Specific source*",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Eraneos_JR100288",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/Senior-Consultant-Generative-AI---Agentic-AI-60-100-_JR100288",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "BCG_794",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 0,
+   "url": "https://careers.bcg.com/global/en/job/794",
+   "mode": "discover",
+   "wall_ms": 28437.7,
+   "window": "known",
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 27534.2,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+   "company": "NZZ",
+   "host": "karriere.nzz.ch",
+   "position": 0,
+   "url": "https://karriere.nzz.ch/offene-stellen/data-generalist-senior-data-scientist-engineer-w-m/c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+   "mode": "needs_input",
+   "wall_ms": 4.2,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Grenzgänger? *, None, Welchen Beschäftigungsgrad suchst du?, Lebenslauf*, Lösung Rechenaufgabe*",
+     "planned": 15,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "NZZ_c3a0f054-8a9c-4fc9-bc4c-ed1cecbedd07",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Grenzgänger? *",
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "Welchen Beschäftigungsgrad suchst du?",
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "Lebenslauf*",
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "Lösung Rechenaufgabe*",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Grenzgänger? *",
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "Welchen Beschäftigungsgrad suchst du?",
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "Lebenslauf*",
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "Lösung Rechenaufgabe*",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Pax_10094251",
+   "company": "Pax",
+   "host": "ohws.prospective.ch",
+   "position": 0,
+   "url": "https://ohws.prospective.ch/public/v1/jobs/319c2e03-10af-4c4b-810b-6a50c0123156",
+   "mode": "needs_input",
+   "wall_ms": 3.0,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): None",
+     "planned": 16,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "Pax_10094251",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Arina_16298292",
+   "company": "Arina",
+   "host": "join.com",
+   "position": 0,
+   "url": "https://join.com/companies/arina/16634644-forensic-solution-engineer-m-w-d",
+   "mode": "discover",
+   "wall_ms": 44235.7,
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 32874.4,
+   "fill_plan_count": null,
+   "hops": 4,
+   "window": "retry"
+  },
+  {
+   "job_id": "Richemont_jr129923",
+   "company": "Richemont",
+   "host": "careers.richemont.com",
+   "position": 0,
+   "url": "https://careers.richemont.com/en/jobs/jr129923/ingenieur-ri-firmware-architecture-ultra-low-power-hf/",
+   "mode": "discover",
+   "wall_ms": 8521.8,
+   "window": "known",
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 7751.0,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "MonolithicPower_R-1456",
+   "company": "Monolithic Power Systems",
+   "host": "monolithicpower.wd12.myworkdayjobs.com",
+   "position": 0,
+   "url": "https://monolithicpower.wd12.myworkdayjobs.com/MPS_Careers/job/Schaffhausen---Switzerland/IT-Infrastrucure-Engineer_R-1456",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Destinus_47D8F41867",
+   "company": "Destinus",
+   "host": "apply.workable.com",
+   "position": 0,
+   "url": "https://apply.workable.com/j/47D8F41867",
+   "mode": "needs_input",
+   "wall_ms": 4865.8,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "resolve",
+     "reason": "form changed: 2 of 15 recorded fields not found by selector or label",
+     "planned": 15,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 3625.4,
+     "recording": "CryptoFinance_49C70CEE5E",
+     "changed": [],
+     "healed": 1,
+     "missing_required": null
+    },
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): *\nIn one word, what does struct save you from (vs class)?, *\nIn one word: What does querySelector operate on?",
+     "planned": 11,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "DigitalWaveFinanceAG_B1B5C73CAF",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "*\nIn one word, what does struct save you from (vs class)?",
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "*\nIn one word: What does querySelector operate on?",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "*\nIn one word, what does struct save you from (vs class)?",
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "*\nIn one word: What does querySelector operate on?",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Alohi_c04ce541-0cda-46eb-807f-914853681c67",
+   "company": "Alohi",
+   "host": "jobs.ashbyhq.com",
+   "position": 0,
+   "url": "https://jobs.ashbyhq.com/alohi/c04ce541-0cda-46eb-807f-914853681c67",
+   "mode": "needs_input",
+   "wall_ms": 0.9,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): What is your most relevant work experience / project for this role and why is it relevant?",
+     "planned": 4,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "adesso_2680",
+   "company": "adesso",
+   "host": "www.adesso.ch",
+   "position": 0,
+   "url": "https://www.adesso.ch/de_ch/jobs-karriere/unsere-stellenangebote/stellenangebot.html?yid=2680",
+   "mode": "discover",
+   "wall_ms": 6621.8,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 6620.4,
+   "fill_plan_count": 15,
+   "hops": 2,
+   "recorded": "3e6c3ccf87f3cf85"
+  },
+  {
+   "job_id": "ANYbotics_7e305a48-4628-4a6a-b054-0367b6f6e586",
+   "company": "ANYbotics",
+   "host": "jobs.lever.co",
+   "position": 0,
+   "url": "https://jobs.lever.co/anybotics/7e305a48-4628-4a6a-b054-0367b6f6e586",
+   "mode": "needs_input",
+   "wall_ms": 1.6,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): None, Type your response, None",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "Type your response",
+       "semantic": "tailored_response",
+       "status": "unplanned_at_recording"
+      },
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "Type your response",
+     "semantic": "tailored_response",
+     "status": "unplanned_at_recording"
+    },
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "ONLU_995",
+   "company": "ONLU AG",
+   "host": "onlu.ch",
+   "position": 0,
+   "url": "https://onlu.ch/jobs/devops-software-engineer-m-w-80-100-2/",
+   "mode": "needs_input",
+   "wall_ms": 1.0,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Biografie *",
+     "planned": 4,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "ONLU_995",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Biografie *",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Biografie *",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "FinconsGroup_hEPeMkC7c1",
+   "company": "Fincons Group",
+   "host": "fincons.applytojob.com",
+   "position": 0,
+   "url": "https://fincons.applytojob.com/apply/hEPeMkC7c1/Senior-ApplikationsEntwickler-In-80-100",
+   "mode": "discover",
+   "wall_ms": 3161.9,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 3160.2,
+   "fill_plan_count": 11,
+   "hops": 1,
+   "recorded": "34cb3261db669635"
+  },
+  {
+   "job_id": "harmattan_ai_4c08b32b-5abf-426f-8ee0-b172bd7a8ead",
+   "company": "Harmattan AI",
+   "host": "jobs.ashbyhq.com",
+   "position": 0,
+   "url": "https://jobs.ashbyhq.com/harmattan-ai/4c08b32b-5abf-426f-8ee0-b172bd7a8ead",
+   "mode": "needs_input",
+   "wall_ms": 1.0,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): What is your most relevant work experience / project for this role and why is it relevant?",
+     "planned": 4,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Meier_Tobler_2b0b6e61-4708-4619-91af-b56ab9d1d0c8",
+   "company": "Meier Tobler",
+   "host": "ohws.prospective.ch",
+   "position": 0,
+   "url": "https://ohws.prospective.ch/public/v1/jobs/2b0b6e61-4708-4619-91af-b56ab9d1d0c8",
+   "mode": "needs_input",
+   "wall_ms": 2.6,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): None",
+     "planned": 16,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "Pax_10094251",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "MicroserviceSolutions_senior-backend-developer",
+   "company": "Microservice Solutions",
+   "host": "microservice-solutions.ch",
+   "position": 0,
+   "url": "https://microservice-solutions.ch/career/senior-backend-developer",
+   "mode": "discover",
+   "wall_ms": 43892.3,
+   "status": "workflow_failed",
+   "ok": false,
+   "discover_ms": 43892.3,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "finnova_10099704",
+   "company": "finnova",
+   "host": "jobs.finnova.com",
+   "position": 0,
+   "url": "https://jobs.finnova.com/offene-stellen/software-engineer-kartenverwaltung-schalter-all/3914a5fc-ec52-4974-b11a-f477303803fc",
+   "mode": "needs_input",
+   "wall_ms": 982.7,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Kommunikationssprache*",
+     "planned": 3,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "finnova_10159332",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Kommunikationssprache*",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Kommunikationssprache*",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "BKW_7298",
+   "company": "BKW",
+   "host": "job.bkw.com",
+   "position": 0,
+   "url": "https://job.bkw.com/offene-stellen/quantitative-commodity-analyst-all/e0a5a6c3-658d-4626-bb31-2ab1f6d48c29",
+   "mode": "discover",
+   "wall_ms": 25640.7,
+   "status": "workflow_failed",
+   "ok": false,
+   "discover_ms": 25640.5,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "Aity_10163811",
+   "company": "aity AG",
+   "host": "jobs.aity.ch",
+   "position": 0,
+   "url": "https://jobs.aity.ch/offene-stellen/servicenow-engineer-a/3a964941-e62c-4a7c-b1fe-4ecc351a4462",
+   "mode": "replay_fallback",
+   "wall_ms": 39702.3,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "timeout: timeout: no 'load' lifecycle event in 25.0s",
+     "planned": 13,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 36095.4,
+     "recording": "Aity_10159359",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 3602.4,
+   "fill_plan_count": 13,
+   "hops": 2,
+   "recorded": "a3704a9465cdbae4"
+  },
+  {
+   "job_id": "AdvertimaVision_aFKdIK5rZD",
+   "company": "Advertima Vision",
+   "host": "advertimavisionag.applytojob.com",
+   "position": 0,
+   "url": "https://advertimavisionag.applytojob.com/apply/aFKdIK5rZD/Senior-Software-Engineer-Full-Stack-Fleet-Management",
+   "mode": "discover",
+   "wall_ms": 21889.8,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 21888.5,
+   "fill_plan_count": 8,
+   "hops": 1,
+   "recorded": "1a04d24bed36e0b0"
+  },
+  {
+   "job_id": "Kanton_Genf_gen_48d923bc5346",
+   "company": "Kanton Genf",
+   "host": "www.ge.ch",
+   "position": 0,
+   "url": "https://www.ge.ch/offres-emploi-etat-geneve/liste-offres/1912",
+   "mode": "replay_fallback",
+   "wall_ms": 35939.9,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "navigate",
+     "reason": "timeout: timeout: no 'load' lifecycle event in 25.0s",
+     "planned": 12,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 29315.5,
+     "recording": "Kanton_Genf_gen_48d923bc5346",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 6619.2,
+   "fill_plan_count": 12,
+   "hops": 2,
+   "recorded": "f00ef4b98bddf64d"
+  },
+  {
+   "job_id": "MettlerToledo_99655860032",
+   "company": "Mettler Toledo",
+   "host": "jobs.mt.com",
+   "position": 0,
+   "url": "https://jobs.mt.com/de/stellenbeschreibung/nanikon/dsp-engineer/36870/99655860032",
+   "mode": "discover",
+   "wall_ms": 20451.7,
+   "status": "navigation_failed",
+   "ok": false,
+   "discover_ms": 20451.7,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "Universitätsspital_Zürich_10158611",
+   "company": "Universitätsspital Zürich",
+   "host": "jobs.usz.ch",
+   "position": 0,
+   "url": "https://jobs.usz.ch/offene-stellen/data-platform-engineer/840b991b-5c55-42ef-9b5d-333181ea06e2",
+   "mode": "discover",
+   "wall_ms": 21129.4,
+   "status": "navigation_failed",
+   "ok": false,
+   "discover_ms": 21129.3,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "Kanton_Luzern_gen_caefeda5688e",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 1,
+   "url": "https://apply.refline.ch/891537/5996/pub/5/index.html",
+   "mode": "discover",
+   "wall_ms": 4049.4,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 4047.4,
+   "fill_plan_count": 8,
+   "hops": 2,
+   "recorded": "59eff0f8b5fc7a98"
+  },
+  {
+   "job_id": "Kanton_Luzern_gen_67cc89d18824",
+   "company": "Kanton Luzern",
+   "host": "apply.refline.ch",
+   "position": 2,
+   "url": "https://apply.refline.ch/891537/6008/pub/10/index.html",
+   "mode": "discover",
+   "wall_ms": 3811.8,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 3810.2,
+   "fill_plan_count": 8,
+   "hops": 2,
+   "recorded": "59eff0f8b5fc7a98"
+  },
+  {
+   "job_id": "CSS_679e9fe7",
+   "company": "CSS",
+   "host": "jobs.css.ch",
+   "position": 1,
+   "url": "https://jobs.css.ch/offene-stellen/seniorjava-integration-engineer-w-m/679e9fe7-b3dd-43c2-a64c-b4b014c0c9dc",
+   "mode": "needs_input",
+   "wall_ms": 3.5,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+     "planned": 18,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "CSS_1a36e481",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Diese Stelle setzt fliessende Deutschkenntnisse voraus. Bitte beschreibe deine Sprachkenntnisse, sollte Deutsch nicht deine Muttersprache sein.",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Expleo_50717",
+   "company": "Expleo",
+   "host": "expleo-jobs-ch-en.icims.com",
+   "position": 1,
+   "url": "https://expleo-jobs-ch-en.icims.com/jobs/50717/business-analyst/job?in_iframe=1",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "RUAG_gen_c326bb5d7369",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 1,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/cf3f0f85-7f62-49ca-bb40-906799bf4ec6",
+   "mode": "replay",
+   "wall_ms": 27500.6,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 27493.2,
+     "recording": "RUAG_gen_c326bb5d7369",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 27493.2,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "RUAG_gen_221f77a253ef",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 2,
+   "url": "https://jobs.ruag.ch/offene-stellen/devops-engineer-c5i/261ba52f-b169-4e6a-b842-6019e4b2c7aa",
+   "mode": "replay",
+   "wall_ms": 27463.4,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 27457.7,
+     "recording": "RUAG_gen_c326bb5d7369",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 27457.7,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "RUAG_gen_a982422a50b7",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 3,
+   "url": "https://jobs.ruag.ch/offene-stellen/ai-engineer-c5i/4afaa9aa-74c1-4b4d-9232-cf65651ce8ec",
+   "mode": "replay",
+   "wall_ms": 27486.3,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 27480.4,
+     "recording": "RUAG_gen_c326bb5d7369",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 27480.4,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "RUAG_gen_92274acc2551",
+   "company": "RUAG",
+   "host": "jobs.ruag.ch",
+   "position": 4,
+   "url": "https://jobs.ruag.ch/offene-stellen/software-engineer-c5i/ec08db9a-3b4f-4aad-8eb5-6134c5e87458",
+   "mode": "replay",
+   "wall_ms": 12229.7,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 12214.0,
+     "recording": "RUAG_gen_c326bb5d7369",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 12214.0,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "Vaudoise_65778086",
+   "company": "Vaudoise",
+   "host": "vaudoise.softgarden.io",
+   "position": 1,
+   "url": "https://vaudoise.softgarden.io/job/65778086",
+   "mode": "replay",
+   "wall_ms": 3027.7,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 10,
+     "filled": 10,
+     "partial": null,
+     "unfilled": null,
+     "ms": 3008.7,
+     "recording": "Vaudoise_65778086",
+     "changed": [],
+     "healed": 10,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 3008.7,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "Salesforce_JR350960",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 1,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Lausanne/Forward-Deployed-Engineer_JR350960",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Salesforce_JR350790",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 2,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Forward-Deployed-Engineer_JR350790",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Salesforce_JR349194",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 3,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Forward-Deployed-Engineer_JR349194",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Salesforce_JR349201",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 4,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Lead-Forward-Deployed-Engineer_JR349201",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Salesforce_JR349191",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 5,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Lead-Forward-Deployed-Engineer_JR349191",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Salesforce_JR349988-1",
+   "company": "Salesforce",
+   "host": "salesforce.wd12.myworkdayjobs.com",
+   "position": 6,
+   "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Switzerland---Zurich/Senior-Forward-Deployed-Engineer_JR349988-1",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Bundesverwaltung_10128744",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 1,
+   "url": "https://jobs.admin.ch/offene-stellen/ict-system-spezialist-in-senior-1211/320ac8fc-3043-4966-ba8c-50fce0571734",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "learnt_account_wall",
+   "ok": false
+  },
+  {
+   "job_id": "Bundesverwaltung_10123612",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 2,
+   "url": "https://jobs.admin.ch/offene-stellen/ict-devops-engineer-data-analytics-senior/cc6f8275-0088-4fea-847a-f640949bc33b",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "learnt_account_wall",
+   "ok": false
+  },
+  {
+   "job_id": "Bundesverwaltung_10158697",
+   "company": "Bundesverwaltung",
+   "host": "jobs.admin.ch",
+   "position": 3,
+   "url": "https://jobs.admin.ch/offene-stellen/lehrgang-als-ict-systemspezialist-in-junior-an-der-ict-warrior-academy-start-im-maerz-2027/3ca76392-4a89-4ede-9360-9811c3427b92",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "learnt_account_wall",
+   "ok": false
+  },
+  {
+   "job_id": "Mimic_am9icG9zdDohvbB9aDWzwurqy6QSQzMi",
+   "company": "Mimic",
+   "host": "jobs.gem.com",
+   "position": 1,
+   "url": "https://jobs.gem.com/mimicrobotics-com/am9icG9zdDohvbB9aDWzwurqy6QSQzMi",
+   "mode": "replay",
+   "wall_ms": 5268.9,
+   "window": "known",
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 4,
+     "filled": 4,
+     "partial": null,
+     "unfilled": null,
+     "ms": 4115.5,
+     "recording": "Mimic_am9icG9zdDpf_w-swC05rWf8pz7dagbB",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 4115.5,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": false,
+     "max_mustermann": false
+    },
+    "clean": false
+   }
+  },
+  {
+   "job_id": "Ansam_8268016",
+   "company": "Ansam Group",
+   "host": "carrieres.ansam.ch",
+   "position": 1,
+   "url": "https://carrieres.ansam.ch/jobs/8268016-developpeur-euse-delphi",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "learnt_account_wall",
+   "ok": false
+  },
+  {
+   "job_id": "Wavestone_64928931",
+   "company": "Wavestone",
+   "host": "switzerland-career.wavestone.com",
+   "position": 1,
+   "url": "https://switzerland-career.wavestone.com/jobs/64928931/Scrum-Master-Agile-Transformation-Schweiz-all-genders-/",
+   "mode": "discover",
+   "wall_ms": 5074.9,
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 5074.8,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "SonarSource_063c3fa2-788a-4e2b-b35e-80ff7b122739",
+   "company": "SonarSource",
+   "host": "jobs.lever.co",
+   "position": 1,
+   "url": "https://jobs.lever.co/sonarsource/063c3fa2-788a-4e2b-b35e-80ff7b122739",
+   "mode": "needs_input",
+   "wall_ms": 2.2,
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): None, Type your response, None",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "SonarSource_13148e9e-7cb4-4c19-ab5d-e1f5dc352ae0",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      },
+      {
+       "label": "Type your response",
+       "semantic": "tailored_response",
+       "status": "unplanned_at_recording"
+      },
+      {
+       "label": null,
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    },
+    {
+     "label": "Type your response",
+     "semantic": "tailored_response",
+     "status": "unplanned_at_recording"
+    },
+    {
+     "label": null,
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "JuliusBaer_r-16579",
+   "company": "Julius Bär",
+   "host": "juliusbaer.wd3.myworkdayjobs.com",
+   "position": 1,
+   "url": "https://juliusbaer.wd3.myworkdayjobs.com/en-US/External/job/Zurich/Citrix-NetScaler-Engineer-100---f-m-d-_r-16579-2",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "BSTeam_36773",
+   "company": "BS-Team",
+   "host": "www.bs-team.ch",
+   "position": 1,
+   "url": "https://www.bs-team.ch/jobs/chef-de-projet-it/",
+   "mode": "replay",
+   "wall_ms": 3918.4,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 5,
+     "filled": 5,
+     "partial": null,
+     "unfilled": null,
+     "ms": 3902.9,
+     "recording": "BSTeam_37987",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 3902.9,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "BSTeam_32288",
+   "company": "BS-Team",
+   "host": "www.bs-team.ch",
+   "position": 2,
+   "url": "https://www.bs-team.ch/jobs/product-owner-plan-de-reprise-dactivite-pra-disaster-recovery-plan-drp/",
+   "mode": "replay",
+   "wall_ms": 4596.9,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 5,
+     "filled": 5,
+     "partial": null,
+     "unfilled": null,
+     "ms": 4564.1,
+     "recording": "BSTeam_37987",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 4564.1,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "AutoForm_5157",
+   "company": "AutoForm",
+   "host": "careers.autoform.com",
+   "position": 1,
+   "url": "https://careers.autoform.com/en/jobs/job-search/advertisement/senior-software-engineer-m-f-80-100-1/",
+   "mode": "replay",
+   "wall_ms": 1634.4,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 7,
+     "filled": 7,
+     "partial": null,
+     "unfilled": null,
+     "ms": 1627.1,
+     "recording": "AutoForm_5158",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 1627.1,
+   "partial": false,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_238727d9ac12",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 1,
+   "url": "https://apply.refline.ch/792841/11241/pub/1",
+   "mode": "replay_fallback",
+   "wall_ms": 48106.4,
+   "window": "retry",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "apply control not found: Jetzt bewerben",
+     "planned": 8,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 33674.3,
+     "recording": "Kanton_Luzern_gen_caefeda5688e",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 5495.1,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_bb2244e94443",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 2,
+   "url": "https://apply.refline.ch/792841/11287/pub/3",
+   "mode": "replay_fallback",
+   "wall_ms": 48405.4,
+   "window": "retry",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "apply control not found: Jetzt bewerben",
+     "planned": 8,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 33579.8,
+     "recording": "Kanton_Luzern_gen_caefeda5688e",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 5570.6,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "Zürcher_Kantonalbank_gen_37ad9a0532c7",
+   "company": "Zürcher Kantonalbank",
+   "host": "apply.refline.ch",
+   "position": 3,
+   "url": "https://apply.refline.ch/792841/11331/pub/1",
+   "mode": "replay_fallback",
+   "wall_ms": 49495.5,
+   "window": "retry",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "apply control not found: Jetzt bewerben",
+     "planned": 8,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 33207.4,
+     "recording": "Kanton_Luzern_gen_caefeda5688e",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 5801.4,
+   "fill_plan_count": 0,
+   "hops": 2,
+   "not_recordable": true
+  },
+  {
+   "job_id": "CryptoFinance_CC933BBD7A",
+   "company": "Crypto Finance AG",
+   "host": "apply.workable.com",
+   "position": 1,
+   "url": "https://apply.workable.com/j/CC933BBD7A",
+   "mode": "replay",
+   "wall_ms": 3795.0,
+   "window": "known",
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 15,
+     "filled": 14,
+     "partial": true,
+     "unfilled": [
+      "*\nPhone\n+41"
+     ],
+     "ms": 3079.6,
+     "recording": "CryptoFinance_49C70CEE5E",
+     "changed": [],
+     "healed": 2,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 3079.6,
+   "partial": true,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": false,
+     "max_mustermann": false
+    },
+    "clean": false
+   }
+  },
+  {
+   "job_id": "TiM_9feefbec-a75c-4822-82a8-f9141ce4d24d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 1,
+   "url": "https://career.ti8m.com/offene-stellen/senior-fullstack-engineer-java-angular/9feefbec-a75c-4822-82a8-f9141ce4d24d",
+   "mode": "replay_fallback",
+   "wall_ms": 43785.2,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "timeout: timeout: no 'load' lifecycle event in 25.0s",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 26455.1,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 16315.2,
+   "fill_plan_count": 9,
+   "hops": 2,
+   "recorded": "06b8d0d83be68880"
+  },
+  {
+   "job_id": "TiM_fc2dd119-3d49-4799-82ec-36cc58326a0e",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 2,
+   "url": "https://career.ti8m.com/offene-stellen/senior-data-engineer/fc2dd119-3d49-4799-82ec-36cc58326a0e",
+   "mode": "replay_fallback",
+   "wall_ms": 43492.2,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "timeout: timeout: no 'load' lifecycle event in 25.0s",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 35754.7,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 6171.1,
+   "fill_plan_count": 9,
+   "hops": 2,
+   "recorded": "6d1918a76da02632"
+  },
+  {
+   "job_id": "TiM_5b10ee45-d5a1-4521-a337-b237aa1eb70d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 3,
+   "url": "https://career.ti8m.com/offene-stellen/senior-system-engineer-mit-schwerpunkt-kubernetes-openshift/5b10ee45-d5a1-4521-a337-b237aa1eb70d",
+   "mode": "replay_fallback",
+   "wall_ms": 44415.7,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "step:click",
+     "reason": "timeout: timeout: no 'load' lifecycle event in 25.0s",
+     "planned": 9,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 34856.0,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 8594.3,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 4,
+   "url": "https://career.ti8m.com/offene-stellen/professional-data-engineer/1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+   "mode": "replay_fallback",
+   "wall_ms": 42736.9,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "partial",
+     "reason": "batched fill: 6/9 succeeded",
+     "planned": 9,
+     "filled": 6,
+     "partial": null,
+     "unfilled": [
+      "Anrede*",
+      "Nachname*",
+      "E-Mail*"
+     ],
+     "ms": 33447.9,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 7262.2,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_f114aa82-f48f-42a9-a47d-ecae2da39ce4",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 5,
+   "url": "https://career.ti8m.com/offene-stellen/lead-engineer-frontend-product-architect-frontend/f114aa82-f48f-42a9-a47d-ecae2da39ce4",
+   "mode": "replay_fallback",
+   "wall_ms": 28213.5,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "partial",
+     "reason": "batched fill: 6/9 succeeded",
+     "planned": 9,
+     "filled": 6,
+     "partial": null,
+     "unfilled": [
+      "Anrede*",
+      "Nachname*",
+      "E-Mail*"
+     ],
+     "ms": 18075.2,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 7944.5,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "TiM_e2f0a4af-8d2e-472d-9ffa-3e3ae8a5a21d",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 6,
+   "url": "https://career.ti8m.com/offene-stellen/application-engineer-technical-project-manager/e2f0a4af-8d2e-472d-9ffa-3e3ae8a5a21d",
+   "mode": "replay_fallback",
+   "wall_ms": 27235.4,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "partial",
+     "reason": "batched fill: 6/9 succeeded",
+     "planned": 9,
+     "filled": 6,
+     "partial": null,
+     "unfilled": [
+      "Anrede*",
+      "Nachname*",
+      "E-Mail*"
+     ],
+     "ms": 18219.2,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "form_processed",
+   "ok": true,
+   "discover_ms": 6922.7,
+   "fill_plan_count": 9,
+   "hops": 2,
+   "recorded": "6d1918a76da02632"
+  },
+  {
+   "job_id": "TiM_d4613aaf-ae08-4f4a-a836-da47919b73ec",
+   "company": "ti&m",
+   "host": "career.ti8m.com",
+   "position": 7,
+   "url": "https://career.ti8m.com/offene-stellen/azure-cloud-architect/d4613aaf-ae08-4f4a-a836-da47919b73ec",
+   "mode": "replay_fallback",
+   "wall_ms": 29921.7,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "partial",
+     "reason": "batched fill: 6/9 succeeded",
+     "planned": 9,
+     "filled": 6,
+     "partial": null,
+     "unfilled": [
+      "Anrede*",
+      "Nachname*",
+      "E-Mail*"
+     ],
+     "ms": 18858.3,
+     "recording": "TiM_1fb1656d-9cb5-4989-95af-d6d25e5c628a",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 9535.5,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "MSC_Cruises_17171",
+   "company": "MSC Cruises",
+   "host": "careers.msccruises.com",
+   "position": 1,
+   "url": "https://careers.msccruises.com/gb/en/job/17171/AI-Tech-Lead",
+   "mode": "needs_input",
+   "wall_ms": 928.8,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Specific source*",
+     "planned": 12,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "MSC_Cruises_17171",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Specific source*",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Specific source*",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Eraneos_JR100287",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 1,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/Senior-Consultant-Generative-AI---Agentic-AI-60-100-_JR100287-1",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Eraneos_JR100116",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 2,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/XMLNAME--Senior--Consultant-Solution-Architect-Financial-Services--60-100---all-genders-_JR100116",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Eraneos_JR100263",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 3,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/Enterprise-Solution-Architect-80-100-_JR100263",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "Eraneos_JR100258",
+   "company": "Eraneos",
+   "host": "eraneos.wd3.myworkdayjobs.com",
+   "position": 4,
+   "url": "https://eraneos.wd3.myworkdayjobs.com/en-US/Eraneos_External_Career_Site/job/Zurich/XMLNAME--Senior--Data-Analytics-Consultant-60-80-_JR100258",
+   "mode": "skipped",
+   "wall_ms": 0.0,
+   "reason": "declared_mode_account",
+   "ok": false
+  },
+  {
+   "job_id": "BCG_795",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 1,
+   "url": "https://careers.bcg.com/global/en/job/795",
+   "mode": "discover",
+   "wall_ms": 14149.3,
+   "window": "known",
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 13321.2,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "BCG_799",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 2,
+   "url": "https://careers.bcg.com/global/en/job/799",
+   "mode": "discover",
+   "wall_ms": 28108.9,
+   "window": "known",
+   "status": "no_application_form",
+   "ok": false,
+   "discover_ms": 27481.4,
+   "fill_plan_count": null,
+   "hops": 2
+  },
+  {
+   "job_id": "BCG_802",
+   "company": "BCG",
+   "host": "careers.bcg.com",
+   "position": 3,
+   "url": "https://careers.bcg.com/global/en/job/802",
+   "mode": "discover",
+   "wall_ms": 38031.3,
+   "window": "known",
+   "status": "workflow_failed",
+   "ok": false,
+   "discover_ms": 36878.3,
+   "fill_plan_count": null,
+   "hops": 0
+  },
+  {
+   "job_id": "finnova_10159332",
+   "company": "finnova",
+   "host": "jobs.finnova.com",
+   "position": 1,
+   "url": "https://jobs.finnova.com/offene-stellen/product-owner-gebuehren-tarife-und-geldwaescherei-all/ea9d05d6-8c57-496d-b439-65f7ec098ade",
+   "mode": "needs_input",
+   "wall_ms": 934.8,
+   "window": "known",
+   "replays": [
+    {
+     "ok": false,
+     "stage": "preflight",
+     "reason": "applicant cannot answer required field(s): Kommunikationssprache*",
+     "planned": 3,
+     "filled": 0,
+     "partial": null,
+     "unfilled": null,
+     "ms": 0.0,
+     "recording": "finnova_10159332",
+     "changed": [],
+     "healed": 0,
+     "missing_required": [
+      {
+       "label": "Kommunikationssprache*",
+       "semantic": null,
+       "status": "unclassified"
+      }
+     ]
+    }
+   ],
+   "ok": false,
+   "missing_required": [
+    {
+     "label": "Kommunikationssprache*",
+     "semantic": null,
+     "status": "unclassified"
+    }
+   ]
+  },
+  {
+   "job_id": "Aity_10159359",
+   "company": "aity AG",
+   "host": "jobs.aity.ch",
+   "position": 1,
+   "url": "https://jobs.aity.ch/offene-stellen/datenbank-engineer-a/6c44e887-e6f9-4524-a3de-af2725f641fb",
+   "mode": "replay",
+   "wall_ms": 3165.9,
+   "replays": [
+    {
+     "ok": true,
+     "stage": "filled",
+     "reason": null,
+     "planned": 13,
+     "filled": 12,
+     "partial": true,
+     "unfilled": [
+      "e9"
+     ],
+     "ms": 3076.2,
+     "recording": "Aity_10163811",
+     "changed": [],
+     "healed": 0,
+     "missing_required": null
+    }
+   ],
+   "ok": true,
+   "replay_ms": 3076.2,
+   "partial": true,
+   "persona_check": {
+    "expected": "martina_musterfrau",
+    "seen": {
+     "martina_musterfrau": true,
+     "max_mustermann": false
+    },
+    "clean": true
+   }
+  }
+ ],
+ "failed_groups": []
+}

@@ -1,0 +1,128 @@
+[
+ {
+  "host": "jobs.srgssr.ch",
+  "company": "SRF",
+  "recorded_from": "srf__SRF_af977dd7-0da1-45f7-b728-14e5db8a1863",
+  "form_url": "https://recruitingapp-2894.umantis.com/Vacancies/5271/Application/New/3",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#apply-button",
+    "label": "Postuler",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Prénom",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "Nom",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Date de naissance",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data12\"]",
+    "label": "Adresse e-mail/Identifiant",
+    "kind": "text",
+    "name": "form_data12",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "select[name=\"form_data17\"]",
+    "label": "Pays",
+    "kind": "select",
+    "name": "form_data17",
+    "required": false,
+    "options_sample": [
+     "Veuillez faire votre choix",
+     "----------------------------------------",
+     "Suisse",
+     "Allemagne",
+     "Liechtenstein",
+     "France",
+     "Italie",
+     "----------------------------------------"
+    ],
+    "options_count": 237,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Téléphone",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data19\"]",
+    "label": "Nationalité",
+    "kind": "select",
+    "name": "form_data19",
+    "required": false,
+    "options_sample": [
+     "Veuillez faire votre choix",
+     "----------------------------------------",
+     "Suisse",
+     "Allemagne",
+     "Liechtenstein",
+     "France",
+     "Italie",
+     "----------------------------------------"
+    ],
+    "options_count": 440,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[name=\"form_data45\"]",
+    "label": "J’accepte que mes données soient enregistrées au delà d’un poste concret, afin d’être tenu informé des postes qui pourraient m’intéresser.",
+    "kind": "radio",
+    "name": "form_data45",
+    "required": false,
+    "group_label": "Autorisation d’utilisation des données",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "b9f40753b566e624",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:57",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

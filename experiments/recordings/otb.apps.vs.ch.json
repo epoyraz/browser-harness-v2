@@ -1,0 +1,87 @@
+[
+ {
+  "host": "otb.apps.vs.ch",
+  "company": "Kanton Wallis",
+  "recorded_from": "kanton-wallis__Kanton_Wallis_gen_08fc6b7957af",
+  "form_url": "https://otb.apps.vs.ch/iapply/?source=EXTERNAL&job=107357&publication=2635",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#lastname",
+    "label": "Name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "form:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > input:nth-of-type(1)",
+    "label": "Vorname",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "form:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(7) > input:nth-of-type(1)",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "street"
+   },
+   {
+    "selector": "div:nth-of-type(8) > p-dropdown:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > select:nth-of-type(1)",
+    "label": "Land wählen",
+    "kind": "select",
+    "required": false,
+    "options_sample": [
+     "Land wählen"
+    ],
+    "options_count": 1,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#localitySelected",
+    "label": "Geben Sie mind. 3 Zeichen beim Wohnort oder bei der PLZ ein",
+    "kind": "combobox",
+    "name": "localitySelected",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "form:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(11) > input:nth-of-type(1)",
+    "label": "E-Mail",
+    "kind": "email",
+    "required": true,
+    "label_source": "proximity",
+    "semantic": "email"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(10) > div:nth-of-type(1) > p-inputmask:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "099 999 99 99",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "ee05463428f3404c",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:04:57",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

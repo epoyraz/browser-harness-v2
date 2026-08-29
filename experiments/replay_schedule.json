@@ -1,0 +1,6 @@
+[
+ {"name": "R-replay-1", "exp": "replay", "workers": 10, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "1", "BH_REPLAY_DIR": "C:/Users/enesp/Desktop/coding/harness/experiments/replay", "BH_APPLICATION_SKILLS": "0"}},
+ {"name": "R-base-1", "exp": "replay", "workers": 10, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "0", "BH_APPLICATION_SKILLS": "0"}},
+ {"name": "R-replay-2", "exp": "replay", "workers": 10, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "1", "BH_REPLAY_DIR": "C:/Users/enesp/Desktop/coding/harness/experiments/replay", "BH_APPLICATION_SKILLS": "0"}},
+ {"name": "R-base-2", "exp": "replay", "workers": 10, "script": "tools/replay_corpus.py", "env": {"BH_REPLAY": "0", "BH_APPLICATION_SKILLS": "0"}}
+]

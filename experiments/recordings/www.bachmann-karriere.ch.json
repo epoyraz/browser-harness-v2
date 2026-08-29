@@ -1,0 +1,165 @@
+[
+ {
+  "host": "www.bachmann-karriere.ch",
+  "company": "Confiserie Bachmann",
+  "recorded_from": "confiserie-bachmann__ConfiserieBachmann_46100",
+  "form_url": "https://jobs.confiserie.ch/public/bewerbung/?id=1689",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "html:nth-of-type(1) > body:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(2)",
+    "label": "Spontanbewerbung",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#bw_anrede",
+    "label": "Anrede *",
+    "kind": "select",
+    "name": "bw_anrede",
+    "required": true,
+    "options_sample": [
+     "-- Bitte wählen --",
+     "Ohne Angabe",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 4,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#bw_vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bw_vorname",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#bw_name",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bw_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#bw_geburtsdatum",
+    "label": "Geburtsdatum *",
+    "kind": "date",
+    "name": "bw_geburtsdatum",
+    "required": true,
+    "autocomplete": "bday",
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#bw_strasse",
+    "label": "Straße *",
+    "kind": "text",
+    "name": "bw_strasse",
+    "required": true,
+    "autocomplete": "address-line1",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#bw_plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bw_plz",
+    "required": true,
+    "autocomplete": "postal-code",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#bw_ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bw_ort",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#bw_mobil",
+    "label": "Mobil *",
+    "kind": "tel",
+    "name": "bw_mobil",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#bw_email",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "bw_email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#freitextfeld3",
+    "label": "Wie bist du auf uns aufmerksam geworden? *",
+    "kind": "select",
+    "name": "freitextfeld3",
+    "required": true,
+    "options_sample": [
+     "-- Bitte wählen --",
+     "Bachmann-Karriereseite",
+     "Bachmann-Mitarbeiter/in",
+     "Indeed",
+     "Jobs.ch",
+     "LinkedIn",
+     "Professional.ch",
+     "RAV"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#freitextfeld8",
+    "label": "Lohnvorstellung pro Monat Brutto (13x)",
+    "kind": "text",
+    "name": "freitextfeld8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#freitextfeld9",
+    "label": "Kündigungsfrist/Verfügbarkeit",
+    "kind": "text",
+    "name": "freitextfeld9",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "4f4d1a8c4a18310f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:02",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,198 @@
+[
+ {
+  "host": "see-spital.ch",
+  "company": "See-Spital",
+  "recorded_from": "see-spital__SeeSpital_1283",
+  "form_url": "https://recruitingapp-2939.umantis.com/Vacancies/1283/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(5) > button:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": true
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data9",
+    "required": false,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data10",
+    "required": false,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "textarea[name=\"form_data16\"]",
+    "label": "Strasse",
+    "kind": "textarea",
+    "name": "form_data16",
+    "required": false,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "input[name=\"form_data21\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data21",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data28\"]",
+    "label": "AHV-Nr.",
+    "kind": "text",
+    "name": "form_data28",
+    "required": false,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "select[name=\"form_data29\"]",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "form_data29",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweizerisch",
+     "Deutsch",
+     "Österreichisch",
+     "Französisch",
+     "Italienisch",
+     "Liechtensteinisch"
+    ],
+    "options_count": 208,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[name=\"form_data31\"]",
+    "label": "Vorstellung Jahresgehalt",
+    "kind": "text",
+    "name": "form_data31",
+    "required": false,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "select[name=\"form_data38\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data38",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Homepage See-Spital",
+     "Internet-Suchmaschine",
+     "Online Stellenmärkte",
+     "Mitarbeiter/in See-Spital",
+     "Freunde, Bekannte",
+     "Job-Abo"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data54\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data54",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data56\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data56",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8bbd715be1fc222b",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:03",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

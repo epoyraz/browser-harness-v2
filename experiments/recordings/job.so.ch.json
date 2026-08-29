@@ -1,0 +1,178 @@
+[
+ {
+  "host": "job.so.ch",
+  "company": "Kanton Solothurn",
+  "recorded_from": "kanton-solothurn__Kanton_Solothurn_35eac920-78d1-4fa2-b308-ea4121b54715",
+  "form_url": "https://job.so.ch/successfactors/DC74_PROD/amtfrinfor/de/apply?id=1673&jobPipeline=ktso.prospective.ch&canalId=1001566&publishId=10161459&ohvk=35eac920-78d1-4fa2-b308-ea4121b54715",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applyCTA > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#cust_anrede",
+    "kind": "select",
+    "name": "title",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse/Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "label": "Wohnort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#zip",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "country",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Ägypten",
+     "Afghanistan"
+    ],
+    "options_count": 215,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(6) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#cust_rcmaufmerksamL",
+    "label": "Wie bist Du auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "cust_rcmaufmerksamL",
+    "required": false,
+    "options_sample": [
+     "Keine Auswahl",
+     "LinkedIn",
+     "Jobs.ch",
+     "Jobup.ch",
+     "Itjobs.ch",
+     "Sozjobs.ch",
+     "Jobs.nzz.ch",
+     "Weblaw.ch"
+    ],
+    "options_count": 13,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ich habe die \nDatenschutzerklärung\n gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "69c6664d252524b2",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:12",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

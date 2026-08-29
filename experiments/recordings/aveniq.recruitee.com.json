@@ -1,0 +1,90 @@
+[
+ {
+  "host": "aveniq.recruitee.com",
+  "company": "Aveniq",
+  "recorded_from": "aveniq__Aveniq_2720873",
+  "form_url": "https://aveniq.recruitee.com/o/senior-sap-business-solution-architect/c/new",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#tabs--26--tab--1",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-candidate\\.name-4",
+    "label": "Vor- und Nachname *",
+    "kind": "text",
+    "name": "candidate.name",
+    "required": true,
+    "autocomplete": "name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input-candidate\\.email-5",
+    "label": "E-Mail-Adresse *",
+    "kind": "email",
+    "name": "candidate.email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input-candidate\\.phone-6",
+    "label": "Telefonnummer *",
+    "kind": "tel",
+    "name": "candidate.phone",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Verlinke dein LinkedIn Profil",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7450802.content",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Teile uns deine Kündigungsfrist mit *",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7450803.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Was sind deine Gehaltsvorstellungen?  *",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7450804.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "ad4b83e2567da7e6",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:07:08",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

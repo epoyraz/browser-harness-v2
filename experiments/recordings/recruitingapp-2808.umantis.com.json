@@ -1,0 +1,175 @@
+[
+ {
+  "host": "recruitingapp-2808.umantis.com",
+  "company": "Stadt Schaffhausen",
+  "recorded_from": "stadt-schaffhausen__StadtSchaffhausen_umantis_5167",
+  "form_url": "https://recruitingapp-2808.umantis.com/Vacancies/5167/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(6) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data3\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data3",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data4",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data5",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data9",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data10",
+    "required": true,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data11\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data11",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Lichtenstein",
+     "Italien",
+     "Frankreich"
+    ],
+    "options_count": 238,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data13",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data15\"]",
+    "label": "So bin ich auf euch aufmerksam geworden",
+    "kind": "select",
+    "name": "form_data15",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Karrierewebsite Stadt Schaffhausen / SH ",
+     "Freunde / Bekannte / Familie, die bei de",
+     "jobs.ch",
+     "Yousty",
+     "Sonstige Online Stellenmärkte",
+     "LinkedIn"
+    ],
+    "options_count": 13,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data34\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden.",
+    "kind": "checkbox",
+    "name": "form_data34",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data35\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden.",
+    "kind": "radio",
+    "name": "form_data35",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "ab63d99fa0450a3f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:00",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

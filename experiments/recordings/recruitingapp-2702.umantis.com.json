@@ -1,0 +1,130 @@
+[
+ {
+  "host": "recruitingapp-2702.umantis.com",
+  "company": "Kanton Neuchâtel",
+  "recorded_from": "kanton-neuchatel__KantonNeuchatel_6584",
+  "form_url": "https://recruitingapp-2702.umantis.com/Vacancies/6584/Application/New/3",
+  "language": "fr",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "a[aria-label=\" Je suis intéressé et souhaite poser ma candidature.\"]",
+    "label": "Je suis intéressé et souhaite poser ma candidature.",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Prénom",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nom",
+    "kind": "text",
+    "name": "form_data8",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Date de naissance",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data11\"]",
+    "label": "Adresse e-mail/Identifiant",
+    "kind": "text",
+    "name": "form_data11",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data19\"]",
+    "label": "Ville",
+    "kind": "text",
+    "name": "form_data19",
+    "required": true,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data20\"]",
+    "label": "Pays",
+    "kind": "select",
+    "name": "form_data20",
+    "required": true,
+    "options_sample": [
+     "Veuillez faire votre choix",
+     "----------------------------------------",
+     "Suisse",
+     "France",
+     "Italie",
+     "Autriche",
+     "Allemagne",
+     "Afghanistan"
+    ],
+    "options_count": 237,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data23\"]",
+    "label": "Téléphone mobile",
+    "kind": "text",
+    "name": "form_data23",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"form_data54\"]",
+    "label": "J’accepte la déclaration de protection des données.",
+    "kind": "checkbox",
+    "name": "form_data54",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "Mot de passe",
+    "kind": "password",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "Code postal",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "dc9e69f504d01b04",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:31",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

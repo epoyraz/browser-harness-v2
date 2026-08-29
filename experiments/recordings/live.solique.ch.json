@@ -1,0 +1,1218 @@
+[
+ {
+  "host": "live.solique.ch",
+  "company": "Ottos",
+  "recorded_from": "ottos__Ottos_4061706",
+  "form_url": "https://ottosag.pi-asp.de/bewerber-web/?company=100-FIRMA-ID&tenant=&lang=DS#position,id=66c0325f-d8f9-433b-8191-d89464e093d7,jobportalid=7d51b858-e466-400d-8696-5e01d3b26140",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#container > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Anrede*",
+    "kind": "combobox",
+    "name": "59d0b92e-9d7f-4089-9098-3d9162461259",
+    "required": true,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#LG_FFC_3",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "d31760f2-7219-40be-85c6-834f192408e3",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#LG_FFC_4",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "51ecd5db-195f-4134-aab3-fcb57566d46c",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#LG_FFC_5",
+    "label": "E-Mail*",
+    "kind": "text",
+    "name": "41475411-8483-490b-943f-287263a83bce",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#gwt-uid-1",
+    "label": "Bitte bestätigen Sie, dass Sie die Datenschutzrichtlinien verstanden haben.*",
+    "kind": "checkbox",
+    "name": "b390c9d2-0810-4505-a7c5-c72c1cbce705",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#LG_FFC_7",
+    "label": "Geburtsdatum*",
+    "kind": "text",
+    "name": "244ade0f-2896-487e-b073-229c7112df67",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#LG_FFC_11 > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Diplome/Zertifikate",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "education"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#LG_FFC_9 > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Lebenslauf*",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Aufmerksam auf Unternehmen durch*",
+    "kind": "combobox",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "065e83fc71edae7d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:38",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "ZFV",
+  "recorded_from": "zfv__ZFV_gen_8f7c2a76f861",
+  "form_url": "https://jobs.zfv.ch/betriebsassistentin-90-100-de-f4700.html?jobPipeline=ZFV-Unternehmungen%20-%20Internet",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "body:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#gender",
+    "label": "Geschlecht *",
+    "kind": "select",
+    "name": "bewerbung_form[gender]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Männlich",
+     "Weiblich",
+     "Divers",
+     "Ohne Angabe"
+    ],
+    "options_count": 5,
+    "widget": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Strasse *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "autocomplete": "postal-code",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#ort",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "bewerbung_form[ort]",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "bewerbung_form[country]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 221,
+    "widget": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "autocomplete": "bday",
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#geburtsort",
+    "label": "Heimatort *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsort]",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "birth_place"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#country_2",
+    "label": "Nationalität *",
+    "kind": "select",
+    "name": "bewerbung_form[country_2]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien",
+     "Algerien"
+    ],
+    "options_count": 223,
+    "widget": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#eintrittsdatum",
+    "label": "Frühester Eintritt (TT.MM.JJJJ)",
+    "kind": "text",
+    "name": "bewerbung_form[eintrittsdatum]",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#gehaltswunsch",
+    "label": "Gehaltswunsch Jahreslohn (nur Zahl)",
+    "kind": "text",
+    "name": "bewerbung_form[gehaltswunsch]",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#wie_gefunden",
+    "label": "Wie haben Sie uns gefunden? *",
+    "kind": "select",
+    "name": "bewerbung_form[wie_gefunden]",
+    "required": true,
+    "options_sample": [
+     "---",
+     "Hotelcareer ZFV Unternehmungen",
+     "Solique Gastronomie",
+     "finest-jobs.com",
+     "Homepage zfv.ch",
+     "jobzueri.ch, jobasel.ch, jobmittelland.c",
+     "Indeed",
+     "Persönliche Empfehlung"
+    ],
+    "options_count": 14,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#vordef_bew_feld_104",
+    "label": "Aufenthaltsbewilligung *",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "dc1b09b5b4793089",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:39",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Planzer",
+  "recorded_from": "planzer__Planzer_4060246",
+  "form_url": "https://live.solique.ch/planzer/apply/id/1895751/?jobPipline=Planzer%20-%20Internet",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "header:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#salutation",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Herr",
+     "Frau",
+     "Divers"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#country",
+    "label": "Land",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Schweiz",
+     "Deutschland",
+     "Frankreich",
+     "Italien",
+     "Österreich",
+     "Afghanistan",
+     "Ägypten",
+     "Åland"
+    ],
+    "options_count": 246,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#employer",
+    "label": "Ich bin bereits Mitarbeiter/in",
+    "kind": "select",
+    "name": "employer",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "Nein",
+     "Ja"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "former_employee"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "0f211ecac47fce1a",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:41",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Spital Emmental",
+  "recorded_from": "spital-emmental__Spital_Emmental_4059907",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/6aed649f-1244-4d60-8314-372ee773489d/82fad245-e3dc-c2a5-77de-1f2b4f3a9dad",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#e747f6ca-958f-b1c4-ea18-7a2aaf90ad58",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "autocomplete": "name-title",
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_FirstName\"]",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_FirstName",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_LastName\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_LastName",
+    "required": false,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Street\"]",
+    "label": "Strasse*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_Street",
+    "required": true,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#\\33 49a8f1d-f0d9-46a9-a2c8-d074aab76e62-2",
+    "label": "Hausnummer*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_HouseNumber",
+    "required": true,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "house_number"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Zip\"]",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_Zip",
+    "required": true,
+    "autocomplete": "postal-code",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#\\31 e165a9a-ba33-4a45-89ae-b23d94d8fb6a-2",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_City",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "autocomplete": "country",
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Phone\"]",
+    "label": "Telefon",
+    "kind": "tel",
+    "name": "LAMAPPL_xxx_Phone",
+    "required": false,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_EMail\"]",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "LAMAPPL_xxx_EMail",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_DateOfBirth\"]",
+    "label": "Geburtsdatum*",
+    "kind": "date",
+    "name": "LAMAPPL_xxx_DateOfBirth",
+    "required": true,
+    "autocomplete": "birthdate",
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Nationality\"]",
+    "label": "Nationalität*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Nationality",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "autocomplete": "nationality",
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#a03e9a24-e37d-3be8-99c2-b3bce7bba0fe",
+    "label": "Einwilligung Datenschutz + AGB",
+    "kind": "checkbox",
+    "name": "u_a_indivbwmgt_xxx__USERFIELD2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "select[name=\"u_9_aufmerksam_xxx__USERFIELD2\"]",
+    "label": "Wo wurde die Stellenausschreibung entdeckt?*",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "8f6d52a3729ead1f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:21",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Adullam",
+  "recorded_from": "adullam__Adullam_3132539",
+  "form_url": "https://recruitingapp-2562.umantis.com/Vacancies/1059/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data6",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data10",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data16\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data16",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "LinkedIn-Profil",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "input[name=\"form_data37\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data37",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data40\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data40",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data12\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "bc7b3d24f7fb0a7e",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:02",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Vebego",
+  "recorded_from": "vebego__Vebego_80956",
+  "form_url": "https://odm.ostendis.com/ojp/#!/cvdropper/4a9bb23ada794002b57e2a4218120b7f/DE?source=Vebego%20Internet",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#CVdropperFirstName",
+    "label": "Dein Vorname",
+    "kind": "text",
+    "name": "CVdropperFirstName",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#CVdropperLastName",
+    "label": "Dein Nachname/Familienname",
+    "kind": "text",
+    "name": "CVdropperLastName",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#CVdropperApplicationEmail",
+    "label": "Deine E-Mail-Adresse",
+    "kind": "email",
+    "name": "CVdropperApplicationEmail",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#CVdropperApplicationPhone",
+    "label": "Deine Telefonnummer",
+    "kind": "tel",
+    "name": "CVdropperApplicationPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#CVdropperApplicationTPP",
+    "label": "Ich habe die Datenschutzbestimmungen gelesen und akzeptiere diese.",
+    "kind": "checkbox",
+    "name": "CVdropperApplicationTPP",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "bccc7ef6dcb8ebef",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:20",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Spital Muri",
+  "recorded_from": "spital-muri__Spital_Muri_gen_9b8b904b5f44",
+  "form_url": "https://recruitingapp-2997.umantis.com/Vacancies/623/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data5",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data15\"]",
+    "label": "E-Mail-Adresse",
+    "kind": "text",
+    "name": "form_data15",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data33\"]",
+    "label": "Ich bin damit einverstanden, dass die Bewerberdaten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde (Aufnahme Bewerberpool).",
+    "kind": "radio",
+    "name": "form_data33",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data36\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data36",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8f0eaa97c4d4f2de",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:33",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Spitalverbund Appenzell Ausserrhoden",
+  "recorded_from": "spitalverbund-appenzell-ausserrhoden__Spitalverbund_Appenzell_Ausserrhoden_40583",
+  "form_url": "https://recruitingapp-2859.umantis.com/Vacancies/4619/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#container > section:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data4\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data4",
+    "required": false,
+    "group_label": "Anrede *:",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data6\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data6",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data9\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data9",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "form_data13",
+    "required": true,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data14\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data14",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data15\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data15",
+    "required": true,
+    "autocomplete": " ",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data16\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data16",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "----------------------------------------"
+    ],
+    "options_count": 240,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "form_data17",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "select[name=\"form_data32\"]",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data32",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Arbeitsagentur",
+     "Flyer, Informationsbroschüre",
+     "Freunde, Bekannte",
+     "Homepage der Unternehmung",
+     "Interne Stellenausschreibung",
+     "Internet-Suchmaschine"
+    ],
+    "options_count": 12,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data39\"]",
+    "label": "Ich bin damit einverstanden, dass meine Daten auch über eine konkrete Stellenbesetzung hinaus gespeichert werden und ich auf interessante Stellenangebote hingewiesen werde.",
+    "kind": "radio",
+    "name": "form_data39",
+    "required": false,
+    "group_label": "Datenfreigabe *:",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data42\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data42",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"form_data10\"]",
+    "label": "Passwort",
+    "kind": "password",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "0b0d4ce18c16656e",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:02",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Solviva Care",
+  "recorded_from": "solviva-care__SolvivaCare_4047499",
+  "form_url": "https://jobs.solviva-care.ch/ojp/#!/cvdropper/4fab4ffb516a4c1a86e13f51ce17a24f/DE?src=e2j4yf6jm0yxczxewhpticid3j3oivqwzamo2ffjcbzcjiqvyfad1t2osc7c1rp8",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "a[aria-label=\"Jetzt bewerben (öffnet in neuem Fenster)\"]",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#CVdropperFirstName",
+    "label": "Ihr Vorname",
+    "kind": "text",
+    "name": "CVdropperFirstName",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#CVdropperLastName",
+    "label": "Ihr Nachname/Familienname",
+    "kind": "text",
+    "name": "CVdropperLastName",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#CVdropperApplicationEmail",
+    "label": "Ihre E-Mail-Adresse",
+    "kind": "email",
+    "name": "CVdropperApplicationEmail",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#CVdropperApplicationPhone",
+    "label": "Ihre Telefonnummer",
+    "kind": "tel",
+    "name": "CVdropperApplicationPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#CVdropperSalaryExpectations",
+    "label": "Lohnvorstellung",
+    "kind": "text",
+    "name": "CVdropperSalaryExpectations",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#CVdropperPossibleStartOfEmployment",
+    "label": "Mögliches Eintrittsdatum",
+    "kind": "text",
+    "name": "CVdropperPossibleStartOfEmployment",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#CVdropperApplicationTPP",
+    "label": "Ich habe die Datenschutzbestimmungen gelesen und akzeptiere diese.",
+    "kind": "checkbox",
+    "name": "CVdropperApplicationTPP",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "1eccc4ccfb675eae",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:57",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "live.solique.ch",
+  "company": "Rieter",
+  "recorded_from": "rieter__Rieter_4057804",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/8addc4fa-df9e-4bc1-85a2-c019356f5ab7/d88cfc6a-c0fd-7859-2cb3-a210b7169cd1?jp=SOLIQUE",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > footer:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "APPLY NOW",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#cade501a-f4ce-41ad-b58b-fdc13b7d77df",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+    "kind": "checkbox",
+    "name": "AcceptPrivacyTerms",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Country\"]",
+    "label": "Land*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Country",
+    "required": true,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Language\"]",
+    "label": "Sprache",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Language",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "correspondence_language"
+   },
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Sex\"]",
+    "label": "Geschlecht",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Sex",
+    "required": false,
+    "options_sample": [],
+    "options_count": 0,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "354820fa92153871",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:51",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

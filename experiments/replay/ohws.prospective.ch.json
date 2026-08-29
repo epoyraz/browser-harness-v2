@@ -1,0 +1,225 @@
+[
+ {
+  "host": "ohws.prospective.ch",
+  "company": "Pax",
+  "recorded_from": "Pax_10094251",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_ROT/Pax/de/apply?id=2702&jobPipeline=pax&canalId=1000422&publishId=10094251&ohvk=319c2e03-10af-4c4b-810b-6a50c0123156",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"anrede_visible\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "value": true
+   },
+   {
+    "selector": "#firstName",
+    "label": "Vorname",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Name",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Nationalität",
+    "kind": "text",
+    "value": "Schweiz"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#zip",
+    "label": "PLZ",
+    "kind": "text",
+    "value": "8212"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(10) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "value": "Schweiz"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "E-Mail",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#cellPhone",
+    "label": "Telefonnummer",
+    "kind": "text",
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#cust_Period_of_notice",
+    "label": "Frühestmöglicher Arbeitsbeginn am:",
+    "kind": "text",
+    "value": "immediately"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und bin damit einverstanden.*",
+    "kind": "checkbox",
+    "value": true
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:48",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "ohws.prospective.ch",
+  "company": "Pax",
+  "recorded_from": "Pax_10094251",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_ROT/Pax/de/apply?id=2702&jobPipeline=pax&canalId=1000422&publishId=10094251&ohvk=319c2e03-10af-4c4b-810b-6a50c0123156",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "footer:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"anrede_visible\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "anrede_visible",
+    "required": false,
+    "value": true
+   },
+   {
+    "selector": "#firstName",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "name",
+    "required": false,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastName",
+    "label": "Name",
+    "kind": "text",
+    "name": "surname",
+    "required": false,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Nationalität",
+    "kind": "text",
+    "name": null,
+    "required": false,
+    "value": "Schweiz"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse und Hausnummer",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#zip",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "postalCode",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(10) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land",
+    "kind": "text",
+    "name": null,
+    "required": false,
+    "value": "Schweiz"
+   },
+   {
+    "selector": "#contactEmail",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": false,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#cellPhone",
+    "label": "Telefonnummer",
+    "kind": "text",
+    "name": "phoneNumber",
+    "required": false,
+    "value": "+41 77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#cust_Period_of_notice",
+    "label": "Frühestmöglicher Arbeitsbeginn am:",
+    "kind": "text",
+    "name": "cust_Period_of_notice",
+    "required": false,
+    "value": "immediately"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und bin damit einverstanden.*",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "27dfeea543b078f2",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:21",
+  "stats": {
+   "uses": 1,
+   "successes": 0,
+   "consecutive_failures": 1,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,103 @@
+[
+ {
+  "host": "jobs.valens.ch",
+  "company": "Kliniken Valens",
+  "recorded_from": "kliniken-valens__Kliniken_Valens_10165678",
+  "form_url": "https://atsconnector.prospective.ch/umantis/2946/de/apply/1343?srcIDPMS=10165678&srcTextPMS=klinikenvalensinternet&source=klinikenvalensinternet&canalId=1005103&publishId=10165678&sort=-60&ohvk=e930e1c5-a463-40d8-9ab9-56732205ba7d",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#applyAuswahl > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#Salutation_M",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#applicant_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "first_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#applicant_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "last_name",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#applicant_email",
+    "label": "E-Mail",
+    "kind": "text",
+    "name": "email",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#applicant_phone",
+    "label": "Telefon",
+    "kind": "text",
+    "name": "phone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#birthdate",
+    "label": "Datum auswählen oder eingeben",
+    "kind": "text",
+    "name": "birthdate",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#caf\\.applicant_customer-defined-text-11",
+    "label": "Gehaltsvorstellung",
+    "kind": "text",
+    "name": "applicant_customer-defined-text-11",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "#applicant_data_protection",
+    "label": "Ich stimme der Datenschutzerklärung zu.",
+    "kind": "checkbox",
+    "name": "data_protection_accepted",
+    "required": false,
+    "label_source": "option_text",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "ce36199d99a2e1f5",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:01:47",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

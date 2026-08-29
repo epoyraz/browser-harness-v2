@@ -1,0 +1,231 @@
+[
+ {
+  "host": "www.zhaw.ch",
+  "company": "ZHAW",
+  "recorded_from": "zhaw__ZHAW_3829738",
+  "form_url": "https://apply.refline.ch/828190/4941/yszf3wyjSY2GT2UiHrKD5je9JaIOSKvx6428Xvl7yU3g0vnmiE7XRI/apply",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3) > a:nth-of-type(1)",
+    "label": "Apply online now",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#form-widgets-salutation-1",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form.widgets.salutation",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#form-widgets-firstName",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "form.widgets.firstName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#form-widgets-lastName",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "form.widgets.lastName",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#form-widgets-birthDate",
+    "label": "Geburtsdatum (TT.MM.JJJJ) *",
+    "kind": "text",
+    "name": "form.widgets.birthDate",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#s2id_autogen1",
+    "label": "Nationalitäten *",
+    "kind": "text",
+    "name": "s2id_autogen1",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-nationalities",
+    "label": "Nationalitäten *",
+    "kind": "select",
+    "name": "form.widgets.nationalities:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form-widgets-street",
+    "label": "Strasse, Nr *",
+    "kind": "text",
+    "name": "form.widgets.street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#form-widgets-zip",
+    "label": "PLZ *",
+    "kind": "text",
+    "name": "form.widgets.zip",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#form-widgets-city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "form.widgets.city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#form-widgets-country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "form.widgets.country:list",
+    "required": true,
+    "options_sample": [
+     "Afghanistan",
+     "Ägypten",
+     "Åland-Inseln",
+     "Albanien",
+     "Algerien",
+     "Amerikanisch-Samoa",
+     "Amerikanische Jungferninseln",
+     "Andorra"
+    ],
+    "options_count": 250,
+    "widget": true,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form-widgets-email",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "form.widgets.email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#form-widgets-email2",
+    "label": "E-Mail bestätigen *",
+    "kind": "text",
+    "name": "form.widgets.email2",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#form-widgets-homePhone",
+    "label": "Telefon Privat/Mobil *",
+    "kind": "text",
+    "name": "form.widgets.homePhone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#form-widgets-workPhone",
+    "label": "Telefon Geschäft",
+    "kind": "text",
+    "name": "form.widgets.workPhone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Wie lange dauert Ihre Kündigungsfrist? *",
+    "kind": "text",
+    "name": "form.widgets.435929501",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > textarea:nth-of-type(1)",
+    "label": "Wie hoch sind Ihre Lohnvorstellungen? (Bitte Bruttojahreslohn bei 100% angeben) *",
+    "kind": "textarea",
+    "name": "form.widgets.435929504",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Hiermit erkläre ich mich einverstanden, dass von der ZHAW in den Rekrutierungsprozess involvierte externe Personen Zugriff auf mein Dossier erhalten.",
+    "kind": "checkbox",
+    "name": "form.widgets.435929507:list",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "#form-widgets-contactType",
+    "label": "So bin ich auf die Stelle aufmerksam geworden: *",
+    "kind": "select",
+    "name": "form.widgets.contactType:list",
+    "required": true,
+    "options_sample": [
+     "(Kein Wert)",
+     "academiceurope.com",
+     "Includingyou.ch",
+     "ZHAW Website",
+     "jobs.ch",
+     "google for jobs",
+     "LinkedIn – Stelleninserat",
+     "LinkedIn – Direktansprache"
+    ],
+    "options_count": 16,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "d3a33d492413ad5a",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:04:28",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

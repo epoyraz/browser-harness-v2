@@ -1,0 +1,71 @@
+[
+ {
+  "host": "www.kistler.com",
+  "company": "Kistler",
+  "recorded_from": "kistler__Kistler_3773",
+  "form_url": "https://www.kistler.com/CH/de/sensormonteur-pe-shop-w-m-d-100-/job/3773",
+  "language": "de-CH",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#apply-form > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Vorname *",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#apply-form > div:nth-of-type(1) > div:nth-of-type(2) > input:nth-of-type(1)",
+    "label": "Nachname *",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#apply-form > div:nth-of-type(1) > div:nth-of-type(3) > input:nth-of-type(1)",
+    "label": "E-Mail-Adresse *",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#apply-form > div:nth-of-type(1) > div:nth-of-type(4) > input:nth-of-type(1)",
+    "label": "E-Mail-Adresse wiederholen *",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email_confirm"
+   },
+   {
+    "selector": "#apply-form > div:nth-of-type(1) > div:nth-of-type(5) > input:nth-of-type(1)",
+    "label": "Telefonnummer (mit Ländervorwahl) *",
+    "kind": "text",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "cx-page-layout:nth-of-type(1) > cx-page-slot:nth-of-type(1) > kiep-footer-newsletter-link:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Email-Adresse",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "51032fac14fc2168",
+  "hops": 1,
+  "recorded_at": "2026-08-29T20:07:31",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,54 @@
+[
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "DeepJudge",
+  "recorded_from": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+  "form_url": "https://jobs.ashbyhq.com/deepjudge/6013c74a-3165-44d2-a66a-0a5a6a8f5c88/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "textarea[name=\"be9b8f1c-a3ee-4778-9f49-e5d9c52fccf4\"]",
+    "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "input[name=\"73d3483e-32e9-4cc3-b89c-7c51a0eb9e4c\"]",
+    "label": "What is your earliest start date, and are there any constraints we should be aware of?",
+    "kind": "text",
+    "semantic": "availability"
+   }
+  ],
+  "fingerprint": "13fa0ee7ec458bad",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:50:51",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

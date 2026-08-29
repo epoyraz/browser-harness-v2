@@ -1,0 +1,87 @@
+[
+ {
+  "host": "jobs.klinik-sgm.ch",
+  "company": "Klinik SGM Langenthal",
+  "recorded_from": "klinik-sgm-langenthal__KlinikSGMLangenthal_50be073e-4d10-4c31-a624-159f478c9016",
+  "form_url": "https://k61225.coveto.de/public/bewerbung/?id=1072&ChannelID=1002870&Channel=kliniksgm",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(12) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#bw_anrede",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "bw_anrede",
+    "required": false,
+    "options_sample": [
+     "-- Bitte wählen --",
+     "Ohne Angabe",
+     "Herr",
+     "Frau"
+    ],
+    "options_count": 4,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#bw_vorname",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "bw_vorname",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#bw_name",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "bw_name",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#bw_email",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "bw_email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#bw_telefon",
+    "label": "Telefon *",
+    "kind": "text",
+    "name": "bw_telefon",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "45f373b8e85fb280",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:55",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

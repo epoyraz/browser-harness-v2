@@ -1,0 +1,157 @@
+[
+ {
+  "host": "jobs.dualoo.com",
+  "company": "Robert Aebi AG",
+  "recorded_from": "robert-aebi-ag__RobertAebiAG_ceb76e6b-8c87-4e8c-af4f-952871c5dd5b",
+  "form_url": "https://jobs.dualoo.com/portal/rgk927ov/ceb76e6b-8c87-4e8c-af4f-952871c5dd5b/apply?lang=DE",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#container > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(2)",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#genderMale",
+    "label": "männlich",
+    "kind": "radio",
+    "name": "gender",
+    "required": true,
+    "group_label": "Anrede*",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#firstname",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#street",
+    "label": "Strasse (mit Hausnummer)",
+    "kind": "text",
+    "name": "street",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#phoneCategoryRequired",
+    "label": "Telefonnummer Typ",
+    "kind": "select",
+    "name": "phoneCategoryRequired",
+    "required": false,
+    "options_sample": [
+     "Mobil",
+     "Festnetz"
+    ],
+    "options_count": 2,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "#phoneRequired",
+    "label": "Telefonnummer",
+    "kind": "tel",
+    "name": "phoneRequired",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#phoneCategoryOptional",
+    "label": "Telefonnummer Typ",
+    "kind": "select",
+    "name": "phoneCategoryOptional",
+    "required": false,
+    "options_sample": [
+     "Festnetz"
+    ],
+    "options_count": 1,
+    "label_source": "markup",
+    "placeholder_first": false,
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "#homePhoneOptional",
+    "label": "Weitere Telefonnummer",
+    "kind": "tel",
+    "name": "homePhoneOptional",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#birthday",
+    "label": "Geburtstag",
+    "kind": "date",
+    "name": "birthday",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#comment",
+    "label": "Um deine Bewerbung abschliessend beurteilen zu können, benötigen wir deine Salärvorstellung sowie dein frühestes Startdatum.",
+    "kind": "textarea",
+    "name": "comment",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "#acceptAgreement",
+    "label": "Hiermit erkläre ich mich mit den Nutzungsbedingungen und der Datenschutzerklärung einverstanden.",
+    "kind": "checkbox",
+    "name": "acceptAgreement",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#academicGrade",
+    "label": "Höchste Schulausbildung",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "7e611edf85ae5f13",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:11",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,250 @@
+[
+ {
+  "host": "kempinski.pinpointhq.com",
+  "company": "Kempinski Hotels",
+  "recorded_from": "kempinski-hotels__KempinskiHotels_568293",
+  "form_url": "https://kempinski.pinpointhq.com/de-F/postings/28b74c9d-836f-4a47-8353-fcbe549cd2e5/applications/new",
+  "language": "en-GB",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#external-jobs-show-apply-now > a:nth-of-type(1)",
+    "label": "JETZT BEWERBEN",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#application_form_application_first_name",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "application_form[application][first_name]",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#application_form_application_middle_name",
+    "label": "Zweiter Vorname",
+    "kind": "text",
+    "name": "application_form[application][middle_name]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#application_form_application_last_name",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "application_form[application][last_name]",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#application_form_application_email",
+    "label": "E-Mail-Adresse",
+    "kind": "email",
+    "name": "application_form[application][email]",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#application_form_application_phone",
+    "label": "Telefon",
+    "kind": "tel",
+    "name": "application_form[application][phone]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#application_form\\[application\\]\\[country\\]",
+    "label": "Land / Staat",
+    "kind": "combobox",
+    "name": "application_form[application][country]",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "proximity",
+    "semantic": "country"
+   },
+   {
+    "selector": "#address1",
+    "label": "Adresszeile 1",
+    "kind": "text",
+    "name": "application_form[application][address1]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#address2",
+    "label": "Adresszeile 2",
+    "kind": "text",
+    "name": "application_form[application][address2]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#town",
+    "label": "Stadt / Ort",
+    "kind": "text",
+    "name": "application_form[application][town]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#postcode",
+    "label": "Postleitzahl",
+    "kind": "text",
+    "name": "application_form[application][postcode]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#application_form_application_date_of_birth_3i",
+    "label": "Tag",
+    "kind": "select",
+    "name": "application_form[application][date_of_birth(3i)]",
+    "required": false,
+    "options_sample": [
+     "Tag",
+     "1",
+     "2",
+     "3",
+     "4",
+     "5",
+     "6",
+     "7"
+    ],
+    "options_count": 32,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#application_form_application_date_of_birth_2i",
+    "label": "Monat",
+    "kind": "select",
+    "name": "application_form[application][date_of_birth(2i)]",
+    "required": false,
+    "options_sample": [
+     "Monat",
+     "Januar",
+     "Februar",
+     "März",
+     "April",
+     "Mai",
+     "Juni",
+     "Juli"
+    ],
+    "options_count": 13,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#application_form_application_date_of_birth_1i",
+    "label": "Jahr",
+    "kind": "select",
+    "name": "application_form[application][date_of_birth(1i)]",
+    "required": false,
+    "options_sample": [
+     "Jahr",
+     "2011",
+     "2010",
+     "2009",
+     "2008",
+     "2007",
+     "2006",
+     "2005"
+    ],
+    "options_count": 113,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#personal-summary",
+    "label": "Persönliche Zusammenfassung \nNutzen Sie es, um uns ein wenig mehr über sich zu erzählen.",
+    "kind": "textarea",
+    "name": "application_form[application][summary]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "#application_form_application_answers_attributes_0_mobile_select",
+    "label": "What is your level of English?",
+    "kind": "select",
+    "name": "application_form_application_answers_attributes_0_mobile_select",
+    "required": false,
+    "options_sample": [
+     "Select...",
+     "Elementary (A1/A2)",
+     "Intermediate (B1/B2)",
+     "Advanced (C1/C2)",
+     "Native"
+    ],
+    "options_count": 5,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "english_level"
+   },
+   {
+    "selector": "#application_form_equality_monitoring_Gender",
+    "kind": "select",
+    "name": "application_form_equality_monitoring_Gender",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen...",
+     "Male",
+     "Female",
+     "Non-Binary"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#application_form_equality_monitoring_Gender\\ Identity",
+    "kind": "select",
+    "name": "application_form_equality_monitoring_Gender Identity",
+    "required": false,
+    "options_sample": [
+     "Bitte auswählen...",
+     "Intersex",
+     "Transsexual",
+     "Transgender",
+     "Prefer Not To Say",
+     "Male",
+     "Female"
+    ],
+    "options_count": 7,
+    "widget": false,
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "7d0757bc6d381cb7",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:49",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

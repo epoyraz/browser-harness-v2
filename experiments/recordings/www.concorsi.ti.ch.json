@@ -1,0 +1,157 @@
+[
+ {
+  "host": "www.concorsi.ti.ch",
+  "company": "Kanton Tessin",
+  "recorded_from": "kanton-tessin__KantonTessin_4264",
+  "form_url": "https://www.concorsi.ti.ch/forma-di-lavoro.html?yid=4264&sid=g35jeb2oupbbbh70447u35e9b7",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#btn_online_application > a:nth-of-type(1)",
+    "label": "candidatura online »",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#vorname",
+    "label": "Nome *",
+    "kind": "text",
+    "name": "bewerbung_form[vorname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#nachname",
+    "label": "Cognome *",
+    "kind": "text",
+    "name": "bewerbung_form[nachname]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#geburtsdatum",
+    "label": "Data di nascita (GG.MM.AAAA) *",
+    "kind": "text",
+    "name": "bewerbung_form[geburtsdatum]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#mail",
+    "label": "E-Mail *",
+    "kind": "text",
+    "name": "bewerbung_form[mail]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#telefon",
+    "label": "Telefono fisso / Telefono privato",
+    "kind": "text",
+    "name": "bewerbung_form[telefon]",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#handy",
+    "label": "Telefono mobile / Cellulare *",
+    "kind": "text",
+    "name": "bewerbung_form[handy]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#strasse",
+    "label": "Indirizzo *",
+    "kind": "text",
+    "name": "bewerbung_form[strasse]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#plz",
+    "label": "CAP *",
+    "kind": "text",
+    "name": "bewerbung_form[plz]",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#sex_w",
+    "label": "Appellativo *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#ort",
+    "label": "Località *",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#country",
+    "label": "Nazione (di residenza) *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#staatsangehoerigkeit",
+    "label": "Tipo di permesso *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_168",
+    "label": "Italiano parlato\n*",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_169",
+    "label": "Italiano scritto\n*",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#berufsausbildung_m_sb",
+    "label": "Situazione lavorativa attuale\n*",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#erfahrung_ausland",
+    "label": "Autorizzo la Sezione delle risorse umane ad inviarmi in formato elettronico la decisione inerente il presente concorso (la versione cartacea sarà inviata su esplicita richiesta)\n*",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#vordef_bew_feld_117",
+    "label": "Come ha saputo di questo concorso?\n*",
+    "kind": "select",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "a91eb7fc046ed91d",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:45",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

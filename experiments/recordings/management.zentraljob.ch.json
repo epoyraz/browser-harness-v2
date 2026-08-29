@@ -1,0 +1,203 @@
+[
+ {
+  "host": "management.zentraljob.ch",
+  "company": "Kanton Obwalden",
+  "recorded_from": "kanton-obwalden__Kanton_Obwalden_219353",
+  "form_url": "https://forms.swisshrmonline.ch/230574783418867?xvna=Sachbearbeiterin%20Gerichtskanzlei%20/%20Sachbearbeiter%20Gerichtskanzlei&xvnu=1765&xsou=%25mediaName%25",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input_7",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "q7_hrm_salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Frau",
+     "Herr"
+    ],
+    "options_count": 3,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#input_47",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "q47_hrm_firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#input_48",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "q48_hrm_lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input_90",
+    "label": "Strasse und Nr.*",
+    "kind": "text",
+    "name": "q90_hrm_address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#input_62",
+    "label": "Land*",
+    "kind": "select",
+    "name": "q62_hrm_country",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz (CH)",
+     "Deutschland (DE)",
+     "Frankreich (FR)",
+     "Österreich (AT)",
+     "Algerien (DZ)",
+     "Australien (AU)",
+     "Belgien (BE)"
+    ],
+    "options_count": 69,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#input_52",
+    "label": "Postleitzahl*",
+    "kind": "text",
+    "name": "q52_hrm_postcode",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#input_53",
+    "label": "Ort*",
+    "kind": "text",
+    "name": "q53_hrm_city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#lite_mode_21",
+    "label": "Geburtsdatum*",
+    "kind": "text",
+    "name": "lite_mode_21",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#input_92",
+    "label": "Nationalität*",
+    "kind": "select",
+    "name": "q92_Nationality",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Schweiz (CH)",
+     "Deutschland (DE)",
+     "Frankreich (FR)",
+     "Österreich (AT)",
+     "Algerien (DZ)",
+     "Australien (AU)",
+     "Belgien (BE)"
+    ],
+    "options_count": 69,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#input_58_full",
+    "label": "Mobile Telefonnummer *",
+    "kind": "tel",
+    "name": "q58_hrm_mobile[full]",
+    "required": true,
+    "autocomplete": "section-input_58 tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#input_4_full",
+    "label": "Festnetz Telefonnummer",
+    "kind": "tel",
+    "name": "q4_hrm_phone[full]",
+    "required": false,
+    "autocomplete": "section-input_4 tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#input_5",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "q5_hrm_email",
+    "required": true,
+    "autocomplete": "section-input_5 email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input_6",
+    "label": "Wie sind Sie auf uns aufmerksam geworden?*",
+    "kind": "select",
+    "name": "q6_hrm_foundsource",
+    "required": true,
+    "options_sample": [
+     "Bitte auswählen",
+     "Printmedien",
+     "Fachzeitschriften",
+     "Jobs.ch",
+     "Zentraljob.ch",
+     "Soziale Medien",
+     "Homepage ow.ch",
+     "Mitarbeiter/in Kanton Obwalden"
+    ],
+    "options_count": 8,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#input_93",
+    "label": "Gehaltserwartung (Monatslohn 100% brutto)",
+    "kind": "text",
+    "name": "q93_hrm_salary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "8e18b13cbc3c5c5c",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:08:30",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

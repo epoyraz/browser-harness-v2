@@ -1,0 +1,172 @@
+[
+ {
+  "host": "www.sanatorium-kilchberg.jobs",
+  "company": "Sanatorium Kilchberg AG",
+  "recorded_from": "sanatorium-kilchberg-ag__SanatoriumKilchbergAG_664",
+  "form_url": "https://recruitingapp-3010.umantis.com/Vacancies/664/Application/New/1",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > p:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "input[name=\"form_data5\"]",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "form_data5",
+    "required": false,
+    "group_label": "Anrede",
+    "label_source": "markup",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"form_data7\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "form_data7",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[name=\"form_data8\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "form_data8",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > fieldset:nth-of-type(1) > label:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Geburtsdatum",
+    "kind": "text",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[name=\"form_data13\"]",
+    "label": "E-Mail-Adresse/Login",
+    "kind": "text",
+    "name": "form_data13",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"form_data17\"]",
+    "label": "Strasse",
+    "kind": "text",
+    "name": "form_data17",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[name=\"form_data18\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "form_data18",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[name=\"form_data19\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "form_data19",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[name=\"form_data20\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "form_data20",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Liechtenstein",
+     "----------------------------------------",
+     "Afghanistan"
+    ],
+    "options_count": 239,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[name=\"form_data34\"]",
+    "label": "Wie sind Sie auf diese Stelle aufmerksam geworden?",
+    "kind": "select",
+    "name": "form_data34",
+    "required": false,
+    "options_sample": [
+     "Bitte wählen",
+     "----------------------------------------",
+     "Homepage der Unternehmung",
+     "Durch Mitarbeitende vom Sanatorium Kilch",
+     "Freunde, Bekannte",
+     "Social Media",
+     "jobs.ch",
+     "weitere Jobplattformen"
+    ],
+    "options_count": 14,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"form_data35\"]",
+    "label": "Sie wurden durch eine/n Mitarbeitende/ des Sanatoriums Kilchberg empfohlen? Bitte tragen Sie hier Vor - und Nachnamen ein",
+    "kind": "text",
+    "name": "form_data35",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"form_data43\"]",
+    "label": "Ich stimme zu, dass die Sanatorium Kilchberg AG meine Daten für mögliche zukünftige Stellenbesetzungen für einen Zeitraum von bis zu einem Jahr speichern und aufbewahren darf. Die Speicherung erfolgt auf einem Server in der Schweiz.",
+    "kind": "radio",
+    "name": "form_data43",
+    "required": false,
+    "group_label": "Datenfreigabe",
+    "label_source": "markup",
+    "semantic": "consent"
+   },
+   {
+    "selector": "input[name=\"form_data46\"]",
+    "label": "Ich bin mit der Datenschutzerklärung einverstanden",
+    "kind": "checkbox",
+    "name": "form_data46",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "fe004c99ef46708f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:06:59",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

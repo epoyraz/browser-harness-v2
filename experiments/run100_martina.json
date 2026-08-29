@@ -1,0 +1,4 @@
+[{"name": "R100-1-record", "exp": "run100-martina", "workers": 10, "headed": true, "script": "tools/replay_corpus.py", "input": "jobs_run100.json",
+  "env": {"BH_REPLAY": "auto", "BH_REPLAY_DIR": "C:/Users/enesp/Desktop/coding/harness/experiments/recordings", "BH_APPLICATION_SKILLS": "0", "BH_PARALLEL_OWN_WINDOW": "1", "BH_APPLICANT_PROFILE": "C:/Users/enesp/Desktop/coding/harness/v2/tests/fixtures/personas/martina_musterfrau.json"}},
+ {"name": "R100-2-replay", "exp": "run100-martina", "workers": 10, "headed": true, "script": "tools/replay_corpus.py", "input": "jobs_run100.json",
+  "env": {"BH_REPLAY": "auto", "BH_REPLAY_DIR": "C:/Users/enesp/Desktop/coding/harness/experiments/recordings", "BH_APPLICATION_SKILLS": "0", "BH_PARALLEL_OWN_WINDOW": "1", "BH_APPLICANT_PROFILE": "C:/Users/enesp/Desktop/coding/harness/v2/tests/fixtures/personas/martina_musterfrau.json"}}]

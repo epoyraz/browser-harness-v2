@@ -1,0 +1,324 @@
+[
+ {
+  "host": "jobs.valiant.ch",
+  "company": "Valiant",
+  "recorded_from": "valiant__Valiant_4b91d8b9-a7d4-4809-aeda-af411fa89016",
+  "form_url": "https://atsconnector.prospective.ch/successfactors/EMEA_PREMIUM/ValiantP/de/apply?id=2819&jobPipeline=valiantbank&canalId=1000394&publishId=10153477&ohvk=4b91d8b9-a7d4-4809-aeda-af411fa89016",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#contact-apply-button",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#salutation",
+    "label": "Anrede",
+    "kind": "select",
+    "name": "cust_salutation",
+    "required": false,
+    "options_sample": [
+     "Anrede",
+     "Herr",
+     "Frau",
+     "keine Angabe"
+    ],
+    "options_count": 4,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "#name",
+    "label": "Vorname *",
+    "kind": "text",
+    "name": "name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#surname",
+    "label": "Nachname *",
+    "kind": "text",
+    "name": "surname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#dateOfBirth",
+    "label": "Geburtsdatum *",
+    "kind": "text",
+    "name": "dateOfBirth",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "cust_nationality",
+    "required": true,
+    "options_sample": [
+     "Nationalität",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Italien",
+     "Afghanistan",
+     "Ägypten"
+    ],
+    "options_count": 251,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#form > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Nationalität *",
+    "kind": "text",
+    "required": true,
+    "autocomplete": "fomantic-search",
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "#cust_workPermit",
+    "label": "Arbeitsbewilligung *",
+    "kind": "select",
+    "name": "cust_workPermit",
+    "required": true,
+    "options_sample": [
+     "Arbeitsbewilligung",
+     "Schweizer/-in",
+     "B (Aufenthaltsbewilligung)",
+     "B (Aufenthaltsbewilligung - Student)",
+     "C (Niederlassungsbewilligung)",
+     "G (Grenzgängerbewilligung)",
+     "L (Kurzaufenthaltsbewilligung)",
+     "Keine Arbeitsbewilligung"
+    ],
+    "options_count": 8,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "work_authorization"
+   },
+   {
+    "selector": "#commLanguage",
+    "label": "Korrespondenzsprache",
+    "kind": "select",
+    "name": "cust_corrlanguage",
+    "required": false,
+    "options_sample": [
+     "Korrespondenzsprache",
+     "Deutsch",
+     "Französisch"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "placeholder_option",
+    "placeholder_first": true,
+    "semantic": "correspondence_language"
+   },
+   {
+    "selector": "#phoneNumber",
+    "label": "Telefonnummer Mobile *",
+    "kind": "tel",
+    "name": "phoneNumber",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#cust_homephone",
+    "label": "Telefonnummer Festnetz",
+    "kind": "tel",
+    "name": "cust_homephone",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#email",
+    "label": "E-Mail *",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#address",
+    "label": "Strasse / Nr. *",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#zip",
+    "label": "Postleitzahl *",
+    "kind": "text",
+    "name": "postalCode",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#city",
+    "label": "Ort *",
+    "kind": "text",
+    "name": "city",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "#country",
+    "label": "Land *",
+    "kind": "select",
+    "name": "country",
+    "required": true,
+    "options_sample": [
+     "Land",
+     "Schweiz",
+     "Deutschland",
+     "Österreich",
+     "Frankreich",
+     "Afghanistan",
+     "Ägypten",
+     "Albanien"
+    ],
+    "options_count": 204,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "#form > div:nth-of-type(9) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Land *",
+    "kind": "text",
+    "required": true,
+    "autocomplete": "fomantic-search",
+    "label_source": "markup",
+    "semantic": "country"
+   },
+   {
+    "selector": "#cust_linkedIn",
+    "label": "LinkedIn Profil URL",
+    "kind": "text",
+    "name": "cust_linkedIn",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "linkedin_url"
+   },
+   {
+    "selector": "#cust_formerEmployee",
+    "label": "Früherer Mitarbeiter *",
+    "kind": "select",
+    "name": "cust_formerEmployee",
+    "required": true,
+    "options_sample": [
+     "Früherer Mitarbeiter",
+     "Ja",
+     "Nein"
+    ],
+    "options_count": 3,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "former_employee"
+   },
+   {
+    "selector": "#cust_noticePeriod",
+    "label": "Aktuelle Kündigungsfrist",
+    "kind": "select",
+    "name": "cust_noticePeriod",
+    "required": false,
+    "options_sample": [
+     "Aktuelle Kündigungsfrist",
+     "1 Monat",
+     "2 Monate",
+     "3 Monate",
+     "4 Monate",
+     "5 Monate",
+     "6 Monate",
+     "Keine Kündigungsfrist"
+    ],
+    "options_count": 8,
+    "widget": false,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "availability"
+   },
+   {
+    "selector": "#disclaimerAcknowledge",
+    "label": "Ja, ich habe die Datenschutzerklärung gelesen und akzeptiere sie.",
+    "kind": "checkbox",
+    "name": "disclaimerAcknowledge",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "#question_1",
+    "label": "Was ist Ihre Motivation in der Beratung von Unternehmenskunden bei Valiant zu arbeiten?",
+    "kind": "textarea",
+    "semantic": "tailored_response"
+   },
+   {
+    "selector": "#question_2",
+    "label": "Welche Erfahrungen bringen Sie im Bereich Unternehmenskundenberatung mit?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#question_3",
+    "label": "Wie sieht Ihr Netzwerk in der KMU-Welt in der Region Ostschweiz aus?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#question_4",
+    "label": "Was sind Ihre Salärerwartungen (inkl. variabler Anteil)?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#cust_source",
+    "label": "Bitte auswählen *",
+    "kind": "select",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "#equation",
+    "label": "Ich bin kein Roboter und löse die folgende Rechnung *",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "26c4c56f0bb97a04",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:05:11",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

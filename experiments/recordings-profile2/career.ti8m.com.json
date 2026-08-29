@@ -1,0 +1,258 @@
+[
+ {
+  "host": "career.ti8m.com",
+  "company": "ti&m",
+  "recorded_from": "TiM_e2f0a4af-8d2e-472d-9ffa-3e3ae8a5a21d",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/d63de249-091f-46c0-bc61-f299b814740f/85523197-dc2d-028e-b10d-6983f0e3f52a?srcTextPMS=ti8m-internet",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "autocomplete": "name-title",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_FirstName\"]",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_FirstName",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#\\31 6b3e850-e2c5-4d80-a939-a92bcd86ad03",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_LastName",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_City\"]",
+    "label": "Wohnort*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_City",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#\\34 17fdd79-b9d4-433e-80c9-9cbcac5ba1ae",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "LAMAPPL_xxx_EMail",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Mobile\"]",
+    "label": "Mobiltelefon*",
+    "kind": "tel",
+    "name": "LAMAPPL_xxx_Mobile",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"u_9_fields_xxx__USERFIELD22\"]",
+    "label": "Frühestes Startdatum",
+    "kind": "text",
+    "name": "u_9_fields_xxx__USERFIELD22",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "input[name=\"u_9_fields_xxx__USERFIELD25\"]",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "text",
+    "name": "u_9_fields_xxx__USERFIELD25",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "input[name=\"AcceptPrivacyTerms\"]",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+    "kind": "checkbox",
+    "name": "AcceptPrivacyTerms",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "input[name=\"Weitere Dokumente\"]",
+    "label": "Dokumente (max.10)*",
+    "name": "Weitere Dokumente",
+    "required": true,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "6d1918a76da02632",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:08:27",
+  "stats": {
+   "uses": 8,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "career.ti8m.com",
+  "company": "ti&m",
+  "recorded_from": "TiM_9feefbec-a75c-4822-82a8-f9141ce4d24d",
+  "form_url": "https://app.jobportal.abaservices.ch/application-process/d63de249-091f-46c0-bc61-f299b814740f/8fd43d22-9cb9-074e-e941-bc94288a3685?srcTextPMS=ti8m-internet",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "select[name=\"LAMAPPL_xxx_Salutation\"]",
+    "label": "Anrede*",
+    "kind": "select",
+    "name": "LAMAPPL_xxx_Salutation",
+    "required": true,
+    "options_sample": [
+     "Bitte wählen"
+    ],
+    "options_count": 1,
+    "autocomplete": "name-title",
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_FirstName\"]",
+    "label": "Vorname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_FirstName",
+    "required": true,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#\\31 6b3e850-e2c5-4d80-a939-a92bcd86ad03",
+    "label": "Nachname*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_LastName",
+    "required": true,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_City\"]",
+    "label": "Wohnort*",
+    "kind": "text",
+    "name": "LAMAPPL_xxx_City",
+    "required": true,
+    "autocomplete": "address-level2",
+    "label_source": "markup",
+    "semantic": "location"
+   },
+   {
+    "selector": "#\\34 17fdd79-b9d4-433e-80c9-9cbcac5ba1ae",
+    "label": "E-Mail*",
+    "kind": "email",
+    "name": "LAMAPPL_xxx_EMail",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"LAMAPPL_xxx_Mobile\"]",
+    "label": "Mobiltelefon*",
+    "kind": "tel",
+    "name": "LAMAPPL_xxx_Mobile",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "input[name=\"u_9_fields_xxx__USERFIELD22\"]",
+    "label": "Frühestes Startdatum",
+    "kind": "text",
+    "name": "u_9_fields_xxx__USERFIELD22",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "input[name=\"u_9_fields_xxx__USERFIELD25\"]",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "text",
+    "name": "u_9_fields_xxx__USERFIELD25",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "#eaf26cd2-36d2-43d6-a2dd-74a713b58dbd",
+    "label": "Ich habe die Datenschutzerklärung zur Kenntnis genommen.*",
+    "kind": "checkbox",
+    "name": "AcceptPrivacyTerms",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "consent"
+   }
+  ],
+  "files": [
+   {
+    "selector": "input[name=\"Weitere Dokumente\"]",
+    "label": "Dokumente (max.10)*",
+    "name": "Weitere Dokumente",
+    "required": true,
+    "multiple": true
+   }
+  ],
+  "required_unplanned": [],
+  "fingerprint": "06b8d0d83be68880",
+  "hops": 2,
+  "recorded_at": "2026-08-29T22:08:22",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

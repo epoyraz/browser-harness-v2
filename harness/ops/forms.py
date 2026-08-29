@@ -49,6 +49,26 @@ _SCHEMA_BODY_JS = """(() => {
   //: so the proximity fallback picked it as four custom questions' labels, and a caller
   //: was told the field was called "\\u2731".
   const LETTER = /[^\\W\\d_]/u;
+  //: A selector that survives the document: refs die with the page, but the same tenant
+  //: serves the same form for every posting, so a recorded selector re-resolves there.
+  //: Prefer an authored id or name; fall back to a short nth-of-type path.
+  const selectorOf = el => {
+    if (!el) return null;
+    if (el.id && !/\\d{4,}/.test(el.id)) return '#' + CSS.escape(el.id);
+    const tag = el.tagName.toLowerCase();
+    for (const attr of ['name', 'data-testid', 'data-test', 'data-automation-id', 'aria-label']) {
+      const v = el.getAttribute(attr);
+      if (v && v.length < 80 && !/\\d{6,}/.test(v)) return tag + '[' + attr + '="' + v.replace(/"/g, '\\\\"') + '"]';
+    }
+    const parts = []; let node = el;
+    for (let depth = 0; node && node.nodeType === 1 && depth < 5; depth++) {
+      const t = node.tagName.toLowerCase();
+      if (node.id && !/\\d{4,}/.test(node.id)) { parts.unshift('#' + CSS.escape(node.id)); break; }
+      let i = 1; for (let s = node.previousElementSibling; s; s = s.previousElementSibling) if (s.tagName === node.tagName) i++;
+      parts.unshift(t + ':nth-of-type(' + i + ')'); node = node.parentElement;
+    }
+    return parts.join(' > ');
+  };
   const labelFor = el => {
     if (el.id) {
       // A control inside a shadow root is labelled from inside that root; `document`
@@ -244,6 +264,7 @@ _SCHEMA_BODY_JS = """(() => {
       : el.isContentEditable && tag !== 'input' && tag !== 'textarea' ? 'richtext'
       : tag === 'select' ? 'select' : tag === 'textarea' ? 'textarea' : (type || 'text');
     const f = {ref, kind, label,
+               selector: selectorOf(el),
                label_source: marked ? 'markup' : optText ? 'option_text'
                              : label ? 'proximity' : null,
                name: el.name || el.id || null,

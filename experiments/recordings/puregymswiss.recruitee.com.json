@@ -1,0 +1,120 @@
+[
+ {
+  "host": "puregymswiss.recruitee.com",
+  "company": "PureGym",
+  "recorded_from": "puregym__PureGym_2725701",
+  "form_url": "https://puregymswiss.recruitee.com/o/assistant-manager-fitness-clubs-mwd-18/c/new",
+  "language": "de",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "#tabs--31--tab--1",
+    "label": "Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#input-candidate\\.name-5",
+    "label": "Vor- und Nachname *",
+    "kind": "text",
+    "name": "candidate.name",
+    "required": true,
+    "autocomplete": "name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#input-candidate\\.email-6",
+    "label": "E-Mail-Adresse *",
+    "kind": "email",
+    "name": "candidate.email",
+    "required": true,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#input-candidate\\.phone-7",
+    "label": "Telefonnummer *",
+    "kind": "tel",
+    "name": "candidate.phone",
+    "required": true,
+    "autocomplete": "tel",
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Wohnort (PLZ, Ort):  *",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7464327.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Welche Ausbildung hast Du im Bezug auf Fitness und Sport absolviert? Abschlusstitel? *",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7464328.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "education"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Lohnvorstellungen pro Monat in CHF (Vollzeit, 12 Monatslöhne, brutto)? *",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7464331.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Wann kannst Du starten? Wie lange ist Deine Kündigungsfrist? *",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7464332.content",
+    "required": true,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(7) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "Wie bist du auf uns aufmerksam geworden?",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7464333.content",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "referral_source"
+   },
+   {
+    "selector": "fieldset:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(8) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "PureGym Mitarbeiterempfehlung (Name, Vorname):",
+    "kind": "text",
+    "name": "candidate.openQuestionAnswers.7464334.content",
+    "required": false,
+    "autocomplete": "on",
+    "label_source": "markup",
+    "semantic": "first_name"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "22853dfd419dc2a3",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:03:36",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -1,0 +1,81 @@
+[
+ {
+  "host": "jobs.ashbyhq.com",
+  "company": "DeepJudge",
+  "recorded_from": "DeepJudge_6013c74a-3165-44d2-a66a-0a5a6a8f5c88",
+  "form_url": "https://jobs.ashbyhq.com/deepjudge/6013c74a-3165-44d2-a66a-0a5a6a8f5c88/application",
+  "language": "en",
+  "steps": [],
+  "fields": [
+   {
+    "selector": "#_systemfield_name",
+    "label": "Name",
+    "kind": "text",
+    "name": "_systemfield_name",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "full_name"
+   },
+   {
+    "selector": "#_systemfield_email",
+    "label": "Email",
+    "kind": "email",
+    "name": "_systemfield_email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[name=\"73d3483e-32e9-4cc3-b89c-7c51a0eb9e4c\"]",
+    "label": "What is your earliest start date, and are there any constraints we should be aware of?",
+    "kind": "text",
+    "name": "73d3483e-32e9-4cc3-b89c-7c51a0eb9e4c",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "availability"
+   },
+   {
+    "selector": "div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "How did you hear about this position?",
+    "kind": "text",
+    "name": "209166cb-b977-4d88-a3c7-914f29d380ef",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "referral_source"
+   }
+  ],
+  "files": [
+   {
+    "selector": "#form > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "",
+    "name": "file",
+    "required": false,
+    "multiple": false
+   },
+   {
+    "selector": "#_systemfield_resume",
+    "label": "Resume",
+    "name": "_systemfield_resume",
+    "required": true,
+    "multiple": false
+   }
+  ],
+  "required_unplanned": [
+   {
+    "selector": "textarea[name=\"be9b8f1c-a3ee-4778-9f49-e5d9c52fccf4\"]",
+    "label": "What is your most relevant work experience / project for this role and why is it relevant?",
+    "kind": "textarea",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "197e4709ee21502f",
+  "hops": 2,
+  "recorded_at": "2026-08-29T21:49:54",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

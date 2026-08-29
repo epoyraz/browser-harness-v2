@@ -1,0 +1,641 @@
+[
+ {
+  "host": "apply.workable.com",
+  "company": "Destinus",
+  "recorded_from": "Destinus_47D8F41867",
+  "form_url": "https://apply.workable.com/destinusgroup/j/47D8F41867/apply/",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "value": "Senior Full-Stack Software Engineer & Co-Founder"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "value": "77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "Address (Optional)",
+    "kind": "text",
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#city",
+    "label": null,
+    "kind": "text",
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#postcode",
+    "label": null,
+    "kind": "text",
+    "value": "8212"
+   },
+   {
+    "selector": "#country",
+    "label": null,
+    "kind": "text",
+    "value": "Switzerland"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "value": "Senior Full-Stack Software Engineer with over 8 years of experience building and operating cloud-native web platforms with C#/.NET, TypeScript/Next.js and Microsoft Azure. Hands-on co-founder of an AI SaaS platform with strengths in identity and access management, Kubernetes, Terraform and CI/CD."
+   },
+   {
+    "selector": "input[name=\"CA_35953\"]",
+    "label": "*\nWhen are you available to start working with us? Approximated notice period.",
+    "kind": "text",
+    "value": "immediately"
+   },
+   {
+    "selector": "input[name=\"CA_35954\"]",
+    "label": "*\nWhat is your expected yearly compensation in €?",
+    "kind": "text",
+    "value": "105000"
+   },
+   {
+    "selector": "#YjCPRh740viR3oCh",
+    "label": "YES",
+    "kind": "radio",
+    "value": true
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "value": true
+   }
+  ],
+  "files": [],
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:33:55",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  },
+  "required_unplanned": []
+ },
+ {
+  "host": "apply.workable.com",
+  "company": "Digital Wave Finance AG",
+  "recorded_from": "DigitalWaveFinanceAG_B1B5C73CAF",
+  "form_url": "https://apply.workable.com/dwf/j/B1B5C73CAF/apply/",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "value": "77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#city",
+    "label": null,
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#postcode",
+    "label": null,
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#country",
+    "label": null,
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "value": "Switzerland"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer with over 8 years of experience building and operating cloud-native web platforms with C#/.NET, TypeScript/Next.js and Microsoft Azure. Hands-on co-founder of an AI SaaS platform with strengths in identity and access management, Kubernetes, Terraform and CI/CD."
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "20ffdb87ffcb9734",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:08",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.workable.com",
+  "company": "Crypto Finance AG",
+  "recorded_from": "CryptoFinance_49C70CEE5E",
+  "form_url": "https://apply.workable.com/crypto-finance/j/49C70CEE5E/apply/",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "name": "headline",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer & Co-Founder"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "value": "77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#city",
+    "label": null,
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#postcode",
+    "label": null,
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#country",
+    "label": null,
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "value": "Switzerland"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer with over 8 years of experience building and operating cloud-native web platforms with C#/.NET, TypeScript/Next.js and Microsoft Azure. Hands-on co-founder of an AI SaaS platform with strengths in identity and access management, Kubernetes, Terraform and CI/CD."
+   },
+   {
+    "selector": "input[name=\"CA_12762\"]",
+    "label": "*\nAnnual salary expectations in CHF",
+    "kind": "text",
+    "name": "CA_12762",
+    "required": true,
+    "value": "105000"
+   },
+   {
+    "selector": "input[name=\"CA_12763\"]",
+    "label": "*\nStart Date / Notice Period",
+    "kind": "text",
+    "name": "CA_12763",
+    "required": true,
+    "value": "immediately"
+   },
+   {
+    "selector": "#BgQ0uUbmXlSonwLF",
+    "label": "YES",
+    "kind": "radio",
+    "name": "QA_12094207",
+    "required": true,
+    "value": true
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "6c2ef2434e9ed263",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:10",
+  "stats": {
+   "uses": 2,
+   "successes": 0,
+   "consecutive_failures": 2,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.workable.com",
+  "company": "Crypto Finance AG",
+  "recorded_from": "CryptoFinance_CC933BBD7A",
+  "form_url": "https://apply.workable.com/crypto-finance/j/CC933BBD7A/apply/",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "name": "headline",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer & Co-Founder"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "value": "77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#city",
+    "label": null,
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#postcode",
+    "label": null,
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#country",
+    "label": null,
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "value": "Switzerland"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer with over 8 years of experience building and operating cloud-native web platforms with C#/.NET, TypeScript/Next.js and Microsoft Azure. Hands-on co-founder of an AI SaaS platform with strengths in identity and access management, Kubernetes, Terraform and CI/CD."
+   },
+   {
+    "selector": "input[name=\"CA_12762\"]",
+    "label": "*\nAnnual salary expectations in CHF",
+    "kind": "text",
+    "name": "CA_12762",
+    "required": true,
+    "value": "105000"
+   },
+   {
+    "selector": "input[name=\"CA_12763\"]",
+    "label": "*\nStart Date / Notice Period",
+    "kind": "text",
+    "name": "CA_12763",
+    "required": true,
+    "value": "immediately"
+   },
+   {
+    "selector": "#CgOu9zz3TX92tV1t",
+    "label": "YES",
+    "kind": "radio",
+    "name": "QA_11972754",
+    "required": true,
+    "value": true
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "290ec7e79be210f3",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:14",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.workable.com",
+  "company": "Destinus",
+  "recorded_from": "Destinus_47D8F41867",
+  "form_url": "https://apply.workable.com/destinusgroup/j/47D8F41867/apply/",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "value": "Enes"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "value": "Poyraz"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "value": "epoyraz.eth@gmail.com"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "name": "headline",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer & Co-Founder"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "value": "77 266 98 58",
+    "mode": "insert"
+   },
+   {
+    "selector": "#address",
+    "label": "Address (Optional)",
+    "kind": "text",
+    "name": "address",
+    "required": false,
+    "value": "Büchelerstrasse 12"
+   },
+   {
+    "selector": "#city",
+    "label": null,
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "value": "Neuhausen am Rheinfall"
+   },
+   {
+    "selector": "#postcode",
+    "label": null,
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "value": "8212"
+   },
+   {
+    "selector": "#country",
+    "label": null,
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "value": "Switzerland"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "value": "Senior Full-Stack Software Engineer with over 8 years of experience building and operating cloud-native web platforms with C#/.NET, TypeScript/Next.js and Microsoft Azure. Hands-on co-founder of an AI SaaS platform with strengths in identity and access management, Kubernetes, Terraform and CI/CD."
+   },
+   {
+    "selector": "input[name=\"CA_35953\"]",
+    "label": "*\nWhen are you available to start working with us? Approximated notice period.",
+    "kind": "text",
+    "name": "CA_35953",
+    "required": true,
+    "value": "immediately"
+   },
+   {
+    "selector": "input[name=\"CA_35954\"]",
+    "label": "*\nWhat is your expected yearly compensation in €?",
+    "kind": "text",
+    "name": "CA_35954",
+    "required": true,
+    "value": "105000"
+   },
+   {
+    "selector": "#ReH1Rqzp7wkiVLjQ",
+    "label": "YES",
+    "kind": "radio",
+    "name": "QA_10982455",
+    "required": true,
+    "value": true
+   },
+   {
+    "selector": "input[name=\"gdpr\"]",
+    "label": "I have read, understand and accept the content of the Privacy Notice and consent to the processing of my data as part of this application.",
+    "kind": "checkbox",
+    "name": "gdpr",
+    "required": false,
+    "value": true
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "d97753b66fa8dab7",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:41:21",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

@@ -39,3 +39,9 @@ def test_prepare_source_has_a_bounded_structured_application_route_tier():
     assert "visited++ > 5000" in _PREPARE_JS
     assert "const urlShaped" in _PREPARE_JS
     assert "if (!raw || /[<>\"'\\s]/.test(raw)) return" in _PREPARE_JS
+
+
+def test_prepare_source_reports_file_input_requirement():
+    from applications.document import _PREPARE_JS
+
+    assert "required: !!el.required || labelText.includes('*')" in _PREPARE_JS

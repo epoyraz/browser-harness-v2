@@ -1,0 +1,271 @@
+[
+ {
+  "host": "apply.workable.com",
+  "company": "Digital Wave Finance AG",
+  "recorded_from": "DigitalWaveFinanceAG_B1B5C73CAF",
+  "form_url": "https://apply.workable.com/dwf/j/B1B5C73CAF/apply/",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "div[aria-label=\"Telephone country code\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "combobox",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "semantic": "city"
+   },
+   {
+    "selector": "#postcode",
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "div:nth-of-type(5) > label:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "*\nIn one word, what does struct save you from (vs class)?",
+    "kind": "text",
+    "semantic": "unclassified"
+   },
+   {
+    "selector": "div:nth-of-type(6) > label:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "*\nIn one word: What does querySelector operate on?",
+    "kind": "text",
+    "semantic": "unclassified"
+   }
+  ],
+  "fingerprint": "a6cecff82c25e615",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:51:10",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ },
+ {
+  "host": "apply.workable.com",
+  "company": "Crypto Finance AG",
+  "recorded_from": "CryptoFinance_49C70CEE5E",
+  "form_url": "https://apply.workable.com/crypto-finance/j/49C70CEE5E/apply/",
+  "language": "en",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Apply for this job",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "#firstname",
+    "label": "*\nFirst name",
+    "kind": "text",
+    "name": "firstname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "#lastname",
+    "label": "*\nLast name",
+    "kind": "text",
+    "name": "lastname",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "#email",
+    "label": "*\nEmail",
+    "kind": "email",
+    "name": "email",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "#headline",
+    "label": "Headline (Optional)",
+    "kind": "text",
+    "name": "headline",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "current_title"
+   },
+   {
+    "selector": "div[aria-label=\"Telephone country code\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "combobox",
+    "required": false,
+    "needs_interaction": true,
+    "label_source": "markup",
+    "semantic": "phone_country_code"
+   },
+   {
+    "selector": "input[name=\"phone\"]",
+    "label": "*\nPhone\n+41",
+    "kind": "tel",
+    "name": "phone",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "phone"
+   },
+   {
+    "selector": "#address",
+    "label": "*\nAddress",
+    "kind": "text",
+    "name": "address",
+    "required": true,
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "#city",
+    "kind": "text",
+    "name": "city",
+    "required": false,
+    "semantic": "city"
+   },
+   {
+    "selector": "#postcode",
+    "kind": "text",
+    "name": "postcode",
+    "required": false,
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "#country",
+    "kind": "text",
+    "name": "country",
+    "required": false,
+    "semantic": "country"
+   },
+   {
+    "selector": "#summary",
+    "label": "Summary (Optional)",
+    "kind": "textarea",
+    "name": "summary",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "profile_summary"
+   },
+   {
+    "selector": "#nex4qd59n9ifDeHJ",
+    "label": "YES",
+    "kind": "radio",
+    "name": "QA_12094207",
+    "required": true,
+    "group_label": "Are you eligible to work in Switzerland without sponsorship for employment visa status?",
+    "label_source": "markup",
+    "semantic": "work_authorization"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [
+   {
+    "selector": "input[name=\"CA_12762\"]",
+    "label": "*\nAnnual salary expectations in CHF",
+    "kind": "text",
+    "semantic": "salary_expectation"
+   },
+   {
+    "selector": "input[name=\"CA_12763\"]",
+    "label": "*\nStart Date / Notice Period",
+    "kind": "text",
+    "semantic": "availability"
+   }
+  ],
+  "fingerprint": "f71ad12a545891d6",
+  "hops": 2,
+  "recorded_at": "2026-08-29T19:51:11",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]

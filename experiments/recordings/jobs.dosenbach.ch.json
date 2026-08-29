@@ -1,0 +1,177 @@
+[
+ {
+  "host": "jobs.dosenbach.ch",
+  "company": "Dosenbach",
+  "recorded_from": "dosenbach__Dosenbach_DOCVKDOS-2026-038289",
+  "form_url": "https://www.deichmann.com/engage/jobexchange/renderApplicationForm.do?languageChanged=true&j=DO_myjobexchange&jobOfferId=2c92820e9eb709a901a014ccb9885d64",
+  "language": "de-DE",
+  "steps": [
+   {
+    "action": "click",
+    "selector": "div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > a:nth-of-type(1)",
+    "label": "Jetzt Bewerben",
+    "new_target": false
+   }
+  ],
+  "fields": [
+   {
+    "selector": "table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(4) > input:nth-of-type(1)",
+    "label": "Herr",
+    "kind": "radio",
+    "name": "contentMap[117d4f723ee66445013eeb97a99b3f6d].entity.gender",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "gender_or_salutation"
+   },
+   {
+    "selector": "input[aria-label=\"Vorname\"]",
+    "label": "Vorname",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99a3f66].entity.name01",
+    "required": false,
+    "autocomplete": "given-name",
+    "label_source": "markup",
+    "semantic": "first_name"
+   },
+   {
+    "selector": "input[aria-label=\"Nachname\"]",
+    "label": "Nachname",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99b3f68].entity.name02",
+    "required": false,
+    "autocomplete": "family-name",
+    "label_source": "markup",
+    "semantic": "last_name"
+   },
+   {
+    "selector": "input[aria-label=\"Straße und Hausnummer\"]",
+    "label": "Straße und Hausnummer",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99a3f67].entity.street",
+    "required": false,
+    "autocomplete": "street-address",
+    "label_source": "markup",
+    "semantic": "street"
+   },
+   {
+    "selector": "input[aria-label=\"PLZ\"]",
+    "label": "PLZ",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99a3f62].entity.zipCode",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "postal_code"
+   },
+   {
+    "selector": "input[aria-label=\"Ort\"]",
+    "label": "Ort",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99b3f6a].entity.city",
+    "required": false,
+    "autocomplete": "address-level1",
+    "label_source": "markup",
+    "semantic": "city"
+   },
+   {
+    "selector": "select[aria-label=\"Land\"]",
+    "label": "Land",
+    "kind": "select",
+    "name": "contentMap[117d4f723ee66445013eeb97a99b3f69].entity.country",
+    "required": false,
+    "options_sample": [
+     "",
+     "Afghanistan",
+     "Aland Inseln",
+     "Albanien",
+     "Algerien",
+     "American Samoa",
+     "Andorra",
+     "Angola"
+    ],
+    "options_count": 242,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "country"
+   },
+   {
+    "selector": "select[aria-label=\"Nationalität\"]",
+    "label": "Nationalität",
+    "kind": "select",
+    "name": "contentMap[117d4f723ee66445013eeb9bfffc3f6e].entity.nationality",
+    "required": false,
+    "options_sample": [
+     "",
+     "Sonstige",
+     "Ägypten",
+     "Albanien",
+     "Algerien",
+     "Äquatorial Guinea",
+     "Australien",
+     "Bahrain"
+    ],
+    "options_count": 78,
+    "label_source": "markup",
+    "placeholder_first": true,
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[aria-label=\"Andere Nationalität\"]",
+    "label": "Andere Nationalität",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb9c85493f6f].entity.additionalNationality",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "nationality"
+   },
+   {
+    "selector": "input[aria-label=\"Geburtstag (TT.MM.JJJJ)\"]",
+    "label": "Geburtstag (TT.MM.JJJJ)",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99b3f6b].entity.birthday",
+    "required": false,
+    "autocomplete": "bday",
+    "label_source": "markup",
+    "semantic": "birth_date"
+   },
+   {
+    "selector": "input[aria-label=\"Email\"]",
+    "label": "Email",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a99a3f63].entity.email",
+    "required": false,
+    "autocomplete": "email",
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "input[aria-label=\"Email (Wiederholung)\"]",
+    "label": "Email (Wiederholung)",
+    "kind": "text",
+    "name": "contentMap[117d4f723ee66445013eeb97a9993f5d].entity.emailPrivate",
+    "required": false,
+    "label_source": "markup",
+    "semantic": "email"
+   },
+   {
+    "selector": "table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1) > input:nth-of-type(1)",
+    "label": "DATENSCHUTZBESTIMMUNGEN",
+    "kind": "checkbox",
+    "name": "contentMap[117d4f723ee66445013eef4162a24a46].entity.dataPrivacyTermsAccepted",
+    "required": false,
+    "label_source": "proximity",
+    "semantic": "consent"
+   }
+  ],
+  "files": [],
+  "required_unplanned": [],
+  "fingerprint": "c8f0f8fae0611ff9",
+  "hops": 2,
+  "recorded_at": "2026-08-29T20:02:22",
+  "stats": {
+   "uses": 0,
+   "successes": 0,
+   "consecutive_failures": 0,
+   "last_ok": null
+  }
+ }
+]
