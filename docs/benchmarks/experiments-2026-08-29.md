@@ -290,8 +290,9 @@ in the parallel run and fills fine when opened alone in the same profile (probe:
 controls, form processed). Ten overlapping windows on a desktop leave the SPA unpainted;
 the profile is not the cause. The critical path moved from BCG (204 s) to ti&m (57 s).
 
-**Tiled worker windows** (`Session.place_window`, on by default for `own_window`,
-`BH_PARALLEL_TILE=0` to disable): `Target.createTarget(newWindow, background)` stacks
+**Tiled worker windows — removed again the same night.** The user wants tabs, only tabs,
+and no code that can open a window: `own_window`, `new_window` and `place_window` are gone
+from master (they live on the exploration branch). What was measured, for the record: `Target.createTarget(newWindow, background)` stacks
 every worker window at one cascade position behind the user's foreground app — the user
 saw none of the ten windows, and Windows stops painting occluded windows. Same run as
 above with the windows tiled in a 4×3 grid (`P-base-2-tiled`): **76 s wall, 58 forms of

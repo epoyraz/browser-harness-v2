@@ -228,7 +228,6 @@ def _cleanup_observation_failure(session: Any, kind: str, identifier: str,
 
 def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
              workers: int = 0, reuse_tabs: bool = True, isolated: bool = False,
-             own_window: bool | None = None,
              worker_limit: int = MAX_WORKERS,
              timeout: float | None = None, token: CancelToken | None = None,
              progress: Callable[[int, int, dict[str, Any]], None] | None = None,
@@ -249,11 +248,6 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
         return []
     worker_count = workers or int(os.environ.get("BH_WORKERS") or 0) or DEFAULT_WORKERS
     worker_count = max(1, min(worker_count, len(todo), max(1, worker_limit)))
-    windowed = (bool(own_window) if own_window is not None
-                else os.environ.get("BH_PARALLEL_OWN_WINDOW", "").strip().lower() in ("1", "true", "yes"))
-    # Own windows are tiled across the screen unless BH_PARALLEL_TILE=0: visible to the
-    # user, and not occluding each other (occluded windows stop painting on Windows).
-    tiled = os.environ.get("BH_PARALLEL_TILE", "1").strip().lower() not in ("0", "false", "no")
     cancel = token or CancelToken(timeout=timeout)
     if token is not None and timeout is not None:
         deadline = time.monotonic() + max(0.0, timeout)
@@ -341,15 +335,8 @@ def parallel(session: Any, items: Iterable[Any], fn: Callable[[Any], Any], *,
                             worker_context = item_context
                     context_id = worker_context if reuse_tabs else item_context
                     if worker_tab is None or not reuse_tabs:
-                        tab = (session.new_tab(context_id=context_id, new_window=True)
-                               if windowed else session.new_tab(context_id=context_id))
+                        tab = session.new_tab(context_id=context_id)
                         item_tab = tab.target_id
-                        if windowed and tiled:
-                            try:
-                                session.place_window(item_tab, slot=worker_id, slots=worker_count)
-                            except Exception as error:  # noqa: BLE001 — placement is best effort
-                                session.journal.write("note", event="window_place_failed",
-                                                      worker_id=worker_id, error=str(error)[:120])
                         ledger.acquire("tab", item_tab,
                                        lambda tid=item_tab: session.close_tab(
                                            tid, wait=not reuse_tabs))
