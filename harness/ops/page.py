@@ -311,7 +311,7 @@ SAFETY_JS = """(() => {
   // authorize one narrowly validated authentication request without opening a route to
   // application submission.  The budget belongs to this document and expires after the
   // click helper returns.
-  const state = {attempts, armed: false, authBudget: 0};
+  const state = {attempts, armed: false, authBudget: 0, uploadBudget: 0};
   const record = (kind, detail = {}) => {
     attempts.push({kind, detail, ts: Date.now()});
     console.warn('browser-harness dry-run policy blocked', kind, detail);
@@ -338,6 +338,17 @@ SAFETY_JS = """(() => {
   const consumeAuth = () => {
     if (state.authBudget !== 1 || !authContext()) return false;
     state.authBudget = 0;
+    return true;
+  };
+  // Attaching a document is a separate boundary from submitting one: many career sites
+  // (Personio, Greenhouse) POST the file the instant it lands on the input, so a strict
+  // dry run cannot upload at all.  `upload_file` arms exactly one request here and
+  // revokes it as soon as it returns, so the allowance covers the page's own immediate
+  // upload and nothing after it.  Submission stays blocked: the submit listener below
+  // never consults this budget.
+  const consumeUpload = () => {
+    if (state.uploadBudget !== 1) return false;
+    state.uploadBudget = 0;
     return true;
   };
   document.addEventListener('submit', event => {
@@ -394,7 +405,7 @@ SAFETY_JS = """(() => {
     configurable: true, writable: true,
     value: function(input, init = {}) {
       const method = init.method || (input && input.method) || 'GET';
-      if (mutating(method) && !consumeAuth()) {
+      if (mutating(method) && !consumeAuth() && !consumeUpload()) {
         record('fetch', {method: String(method).toUpperCase(), url: String(input && input.url || input)});
         return Promise.reject(new DOMException('blocked by browser-harness dry-run policy', 'NotAllowedError'));
       }
@@ -412,7 +423,7 @@ SAFETY_JS = """(() => {
   Object.defineProperty(XMLHttpRequest.prototype, 'send', {
     configurable: true, writable: true,
     value: function(body) {
-      if (mutating(this.__bhMethod) && !consumeAuth()) {
+      if (mutating(this.__bhMethod) && !consumeAuth() && !consumeUpload()) {
         record('xhr', {method: this.__bhMethod, url: this.__bhUrl});
         throw new DOMException('blocked by browser-harness dry-run policy', 'NotAllowedError');
       }
@@ -3478,9 +3489,32 @@ class Tab:
         node = self.cdp("DOM.describeNode", {"objectId": handle["objectId"]},
                         timeout=timeout)["node"]
         with self._j.call("upload_file", ref=ref, n=len(files)):
-            self.cdp("DOM.setFileInputFiles",
-                     {"files": [str(Path(f).resolve()) for f in files],
-                      "backendNodeId": node["backendNodeId"]}, timeout=timeout)
+            # Sites that upload on change (Personio, Greenhouse) fire their POST the
+            # moment the file lands, so grant exactly one mutating request for it. The
+            # budget is armed immediately before the attach and revoked in `finally`,
+            # so it cannot survive into a later submit. A document with no guard is
+            # not an error here: the attach itself is not a side effect.
+            try:
+                self.js("(() => {const s=window[Symbol.for('browser-harness.dry-run')];"
+                        " if(s) s.uploadBudget=1; return true;})()", timeout=5.0)
+            except HarnessError:
+                pass
+            try:
+                self.cdp("DOM.setFileInputFiles",
+                         {"files": [str(Path(f).resolve()) for f in files],
+                          "backendNodeId": node["backendNodeId"]}, timeout=timeout)
+            finally:
+                # The change handler often issues its POST a tick after the attach
+                # returns (it may read the File asynchronously first), so revoking
+                # immediately would refuse the very request this budget exists for.
+                # Waiting briefly keeps the allowance one-shot -- the first mutating
+                # request consumes it -- while giving that request time to start.
+                time.sleep(1.5)
+                try:
+                    self.js("(() => {const s=window[Symbol.for('browser-harness.dry-run')];"
+                            " if(s) s.uploadBudget=0; return true;})()", timeout=5.0)
+                except HarnessError:
+                    pass
         got = self._world_js(
             f"(() => {{const e = {resolve}; if (!e) return [];"
             f" return [...(e.files||[])].map(f => f.name);}})()", timeout=timeout)
