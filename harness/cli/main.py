@@ -23,7 +23,8 @@ USAGE = """bh — browser-harness v2
   bh --doctor [--json]  classify why the browser can or cannot be reached
   bh mcp                serve the helper surface to MCP clients over stdio
   bh mac-approve        answer Chrome's macOS "Allow remote debugging?" sheet
-  bh daemon [name]      run the daemon in the foreground (usually auto-spawned)
+  bh daemon run [name]  run the daemon in the foreground (usually auto-spawned)
+  bh daemon status|stop|reload [name]  inspect, stop, or reload that daemon
   bh helpers --init     create a file for your own helpers
   bh skills which URL  explain offline skill resolution and trust
   bh skills search Q   search configured skill indexes
@@ -103,13 +104,39 @@ def main() -> int:
         return run_cli(args[1:])
 
     if args and args[0] == "daemon":
+        if len(args) > 1 and args[1] in {"status", "stop", "reload"}:
+            import json as _json
+
+            from harness.connect.client import daemon_status, reload_daemon, stop_daemon
+            from harness.core import ipc
+            from harness.core.outcome import HarnessError
+
+            if len(args) > 3:
+                print("usage: bh daemon status|stop|reload [name]", file=sys.stderr)
+                return 2
+            name = args[2] if len(args) > 2 else os.environ.get("BU_NAME", "default")
+            try:
+                value = {"status": daemon_status, "stop": stop_daemon,
+                         "reload": reload_daemon}[args[1]](name)
+            except HarnessError as error:
+                print(_json.dumps(error.outcome.to_json()), file=sys.stderr)
+                return 1
+            except (ipc.IPCError, ValueError) as error:
+                print(_json.dumps({"ok": False, "detail": str(error)}), file=sys.stderr)
+                return 1
+            print(_json.dumps(value))
+            return 1 if value.get("state") == "unreachable" else 0
         from harness.connect.daemon import serve
+        rest = args[2:] if len(args) > 1 and args[1] == "run" else args[1:]
+        if len(rest) > 1:
+            print("usage: bh daemon run [name]", file=sys.stderr)
+            return 2
         # Foreground daemons used to ignore the same BH_JOURNAL contract every client
         # honors. That hid the only evidence capable of distinguishing a browser-websocket
         # failure from an overloaded client event queue. Share the append-only journal;
         # records contain protocol shape and counts, never page content.
         return serve(
-            args[1] if len(args) > 1 else "default",
+            rest[0] if rest else os.environ.get("BU_NAME", "default"),
             journal_path=os.environ.get("BH_JOURNAL") or None,
         )
 

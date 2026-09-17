@@ -2,6 +2,25 @@
 import subprocess
 import sys
 
+import pytest
+
+
+@pytest.mark.parametrize("arguments, expected", [
+    (["daemon", "run", "stop"], "stop"),
+    (["daemon", "run", "status"], "status"),
+    (["daemon", "run"], "from-env"),
+    (["daemon", "legacy-name"], "legacy-name"),
+])
+def test_daemon_run_accepts_command_names_as_daemon_names(monkeypatch, arguments, expected):
+    from harness.cli.main import main
+    calls = []
+    monkeypatch.setattr(sys, "argv", ["bh", *arguments])
+    monkeypatch.setenv("BU_NAME", "from-env")
+    monkeypatch.setattr("harness.connect.daemon.serve",
+                        lambda name, **kwargs: calls.append(name) or 0)
+    assert main() == 0
+    assert calls == [expected]
+
 
 def _bh(*args, stdin="", env=None):
     return subprocess.run(

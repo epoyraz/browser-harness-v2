@@ -29,22 +29,74 @@ from harness.core.outcome import (
     Class,
     HarnessError,
     ProtocolMismatch,
+    ScopeRefused,
     Timeout,
     fail,
 )
-from harness.version import PROTOCOL_VERSION, VERSION
+from harness.version import PROTOCOL_VERSION, VERSION, source_digest
 
 #: How long to wait for a freshly spawned daemon to answer `ping`.
 SPAWN_TIMEOUT = 30.0
 
 
-def _validate_protocol(reply: dict[str, Any]) -> None:
+def _validate_protocol(reply: dict[str, Any], name: str = "default") -> None:
     got = reply.get("protocol")
     if got != PROTOCOL_VERSION:
         raise ProtocolMismatch(
             f"client protocol {PROTOCOL_VERSION} cannot use daemon protocol {got!r}",
             client_protocol=PROTOCOL_VERSION, daemon_protocol=got,
             client_version=VERSION, daemon_version=reply.get("version"))
+    if ((reply.get("source_digest") and reply["source_digest"] != source_digest())
+            or reply.get("version") not in (None, VERSION)):
+        print(f"bh: daemon {name!r} runs different code; run `bh daemon reload {name}`",
+              file=sys.stderr)
+
+
+def daemon_status(name: str = "default") -> dict[str, Any]:
+    """Inspect a named daemon without discovering or starting a browser."""
+    ipc.check_name(name)
+    pong = ipc.ping(name)
+    if pong is None:
+        endpoint = ipc.port_path(name) if ipc.IS_WINDOWS else ipc.sock_path(name)
+        return {"name": name, "state": "unreachable" if endpoint.exists() else "stopped"}
+    return {"name": name, "state": "running", **pong,
+            "source_matches": (pong["source_digest"] == source_digest()
+                               if pong.get("source_digest") else None),
+            "version_matches": pong.get("version") == VERSION}
+
+
+def stop_daemon(name: str = "default", *, timeout: float = 10.0) -> dict[str, Any]:
+    """Stop the exact authenticated IPC peer, never kill a PID or an unknown endpoint."""
+    status = daemon_status(name)
+    if status["state"] == "stopped":
+        return {"ok": True, **status}
+    if status["state"] == "unreachable":
+        raise BrowserDisconnected("daemon endpoint exists but does not answer; left untouched",
+                                  daemon=name)
+    instance = status.get("instance_id")
+    if not instance:
+        raise ScopeRefused("daemon predates controlled shutdown; cannot verify its generation",
+                           daemon=name)
+    deadline = time.monotonic() + timeout
+    from harness.connect.daemon import request
+    request(name, {"meta": "shutdown", "instance_id": instance}, timeout=timeout)
+    while time.monotonic() < deadline:
+        endpoint = ipc.port_path(name) if ipc.IS_WINDOWS else ipc.sock_path(name)
+        if not endpoint.exists():
+            return {"ok": True, "name": name, "state": "stopped", "instance_id": instance}
+        pong = ipc.ping(name, timeout=min(0.2, max(0.01, deadline - time.monotonic())))
+        if pong and pong.get("instance_id") != instance:
+            raise ScopeRefused("another daemon now owns this name; replacement left untouched",
+                               daemon=name)
+        time.sleep(0.02)
+    raise Timeout("daemon acknowledged shutdown but has not released its endpoint", daemon=name)
+
+
+def reload_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> dict[str, Any]:
+    """Release the old browser connection before starting a fresh daemon."""
+    stop_daemon(name, timeout=timeout)
+    pong = ensure_daemon(name, timeout=timeout)
+    return {"ok": True, "name": name, "state": "running", **pong}
 
 
 def _spawn_kwargs() -> dict[str, Any]:
@@ -68,7 +120,7 @@ def _spawn_daemon(name: str) -> None:
     # which is exactly why its failures could not be diagnosed.
     with open(log, "ab", buffering=0) as fh:
         subprocess.Popen(
-            [sys.executable, "-m", "harness.cli.main", "daemon", name],
+            [sys.executable, "-m", "harness.cli.main", "daemon", "run", name],
             stdout=fh, stderr=fh, stdin=subprocess.DEVNULL,
             env={**os.environ, "PYTHONPATH": os.environ.get("PYTHONPATH", "")},
             **_spawn_kwargs(),
@@ -88,7 +140,7 @@ def ensure_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> d
     to hold one browser connection across many short-lived client runs.
     """
     if (pong := ipc.ping(name)) is not None and pong.get("browser"):
-        _validate_protocol(pong)
+        _validate_protocol(pong, name)
         return pong
     spawns = 0
     spawned_since_gone = False
@@ -101,7 +153,7 @@ def ensure_daemon(name: str = "default", *, timeout: float = SPAWN_TIMEOUT) -> d
     while time.monotonic() < deadline:
         if (pong := ipc.ping(name)) is not None:
             if pong.get("browser"):
-                _validate_protocol(pong)
+                _validate_protocol(pong, name)
                 return pong
             last = pong
             spawned_since_gone = False     # it is answering again; a later loss is new news
@@ -186,7 +238,7 @@ class RemoteConnection:
             payload["methods"] = EVENT_FILTER
         subscribed = self._call(payload, timeout=10.0)
         value = subscribed.get("value") or {}
-        _validate_protocol(value)
+        _validate_protocol(value, name)
 
     # -- the Connection interface -----------------------------------------
 

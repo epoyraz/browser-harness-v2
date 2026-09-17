@@ -149,9 +149,36 @@ applications/   1,666   job-application workflow, field ontology  ─┐ depend 
 evidence/       1,647   recordings, screencasts, bench, telemetry ─┘ never the reverse
 ```
 
-Both optional layers install themselves into a script namespace; core never imports them by
-name. `bh stats`, `bench`, `trace`, `recordings` and `video` are still `bh` verbs, dispatched
-outward to `evidence` if it is present and absent if it is not.
+Both layers ship in the distribution and install themselves into a script namespace when
+requested. `bh stats`, `bench`, `trace`, `recordings` and `video` dispatch outward to
+`evidence`. The MCP server also ships in the wheel; install `browser-harness-v2[mcp]`
+to include its optional dependencies, then run `bh mcp`.
+
+## Daemon lifecycle
+
+Use `bh daemon status [name]`, `bh daemon stop [name]`, or `bh daemon reload [name]`.
+`bh daemon run [name]` starts a foreground daemon, including names such as `stop` that
+would otherwise be parsed as commands. The older `bh daemon <name>` form still works
+for names that are not commands.
+The name defaults to `BU_NAME`, otherwise `default`. Status reports browser readiness,
+the process generation, and whether its version/source match this installation. Clients
+warn when a reachable daemon runs different code.
+
+Stop verifies the exact daemon generation and closes its connection; browser tabs stay
+open. Reload stops it before starting the replacement. Unreachable endpoints and daemons
+that predate generation-aware shutdown are refused without killing an unverified process.
+Reload disconnects active clients, so use it between tasks.
+
+## Validation
+
+`uv sync --dev --extra mcp --frozen` installs the test dependencies. Run `uv run pytest`
+and `uv run python tests/packaging_check.py` for the suite and an isolated sdist-to-wheel
+installation check. Relevant pull requests also run scratch-profile Chrome checks for
+parallel cleanup, daemon lifecycle, and MCP error signaling.
+
+Parallel worker reuse waits for a 200 ms quiet window for owned popups by default. This
+covers the delayed-popup regression fixture; it cannot bound arbitrary future page timers.
+Use `reuse_tabs=False` when each item requires a fresh tab.
 
 ## Reading further
 
@@ -162,7 +189,5 @@ outward to `evidence` if it is present and absent if it is not.
 
 Status: active development.
 
-**Known-red:** two `tests/unit/test_field_ontology.py` cases fail on a clean checkout.
-`required.txt` was untracked in `06cb421`, and they depend on the populated
-`rules.APPLICANT` it provided; they pass only where that file still exists locally. The fix
-is for those two tests to supply their own profile, as the neighbouring test already does.
+Ontology tests supply synthetic applicant facts directly and do not read local profiles,
+CVs, or `required.txt`.

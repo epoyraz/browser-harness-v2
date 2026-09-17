@@ -184,6 +184,18 @@ def ping(name: str, timeout: float = 1.0) -> dict[str, Any] | None:
             pass
 
 
+def endpoint_identity(name: str) -> object:
+    """Identify the currently published endpoint without exposing it in diagnostics."""
+    if IS_WINDOWS:
+        port, token = read_port(name)
+        return (port, token) if port is not None else None
+    try:
+        info = sock_path(name).stat()
+        return info.st_dev, info.st_ino
+    except OSError:
+        return None
+
+
 def cleanup(name: str) -> None:
     """Best effort; silent if already gone. Never raises — including when the path
     itself is unrepresentable (an over-long sun_path must not block teardown)."""

@@ -200,6 +200,9 @@ def main() -> int:
         check("late-popup probe returns targets to baseline", tabs_returned_to_baseline(),
               f"baseline={len(baseline_targets)} now={len(target_ids())}")
 
+        # The next check must report its own errors, not inherit a failed late timer.
+        popup_timer_errors.clear()
+
         click_tab = session.new_tab(f"{base}/click-owner")
         foreign_tab = session.new_tab(f"{base}/foreign-owner")
         click_tab.js("""(() => {

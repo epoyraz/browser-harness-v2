@@ -518,6 +518,43 @@ def test_a_malformed_request_is_an_outcome_not_a_crash(runtime):
     daemon.stop()
 
 
+def test_stopping_pending_handshake_closes_transport_that_arrives_after_shutdown(runtime):
+    from harness.connect.client import stop_daemon
+    gate = threading.Event()
+    entered = threading.Event()
+    browser = FakeBrowser("a")
+
+    def handshake():
+        entered.set()
+        gate.wait(5)
+        return browser
+
+    daemon = Daemon("pending-stop", handshake).start()
+    threading.Thread(target=daemon.serve_forever, daemon=True).start()
+    try:
+        assert entered.wait(3)
+        assert stop_daemon("pending-stop")["state"] == "stopped"
+        gate.set()
+        assert daemon._settled.wait(3)
+        assert browser._closed
+        assert browser.calls == []
+    finally:
+        gate.set()
+        daemon.stop()
+
+
+def test_old_daemon_does_not_unlink_a_replacement_endpoint(runtime):
+    from harness.core import ipc
+    old = _serve("replaced-endpoint", FakeBrowser("old"))
+    new = _serve("replaced-endpoint", FakeBrowser("new"))
+    try:
+        old.stop()
+        assert ipc.ping("replaced-endpoint")["instance_id"] == new.instance_id
+    finally:
+        old.stop()
+        new.stop()
+
+
 def test_attach_is_reported_with_its_session(runtime):
     daemon = _serve("att", FakeBrowser("a"))
     reply = request("att", {"meta": "attach", "target_id": "a"})

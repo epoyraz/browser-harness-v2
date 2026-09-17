@@ -32,7 +32,7 @@ from harness.connect.session import SessionRegistry
 from harness.core import ipc
 from harness.core.journal import Journal
 from harness.core.outcome import BrowserDisconnected, Class, HarnessError, fail, ok
-from harness.version import PROTOCOL_VERSION, VERSION
+from harness.version import PROTOCOL_VERSION, VERSION, source_digest
 
 #: A tab the adopt fallback may hand out. `about:blank` counts; chrome:// internals and
 #: devtools do not. The single definition: `Session` used to carry a second copy for its
@@ -131,7 +131,7 @@ class _Peer:
     __slots__ = (
         "_buffered", "_enqueued_bytes", "_enqueued_frames", "_filtered_frames", "_max_bytes",
         "_outbound", "_overflows", "_peak_bytes", "_peak_frames", "_sent_bytes",
-        "_sent_frames", "_state_lock", "_writer", "closed", "methods", "sock",
+        "_sent_frames", "_state_lock", "_writer", "closed", "drained", "methods", "sock",
     )
 
     _STOP = object()
@@ -140,6 +140,8 @@ class _Peer:
                  max_bytes: int = _PEER_OUTBOUND_BYTES):
         self.sock = sock
         self.closed = threading.Event()
+        self.drained = threading.Event()
+        self.drained.set()
         #: Event filter negotiated at `subscribe`: None forwards every CDP event (the
         #: pre-2026-08-29 contract, kept for old clients). Measured on a 10-worker
         #: 100-posting run: unfiltered fan-out enqueued 265 MB / 39,638 frames in 41 s,
@@ -180,6 +182,7 @@ class _Peer:
                     # Includes the frame while sendall is in progress.  A writer blocked
                     # in the kernel therefore still consumes the peer's byte budget.
                     self._buffered += len(line)
+                    self.drained.clear()
                     self._enqueued_frames += 1
                     self._enqueued_bytes += len(line)
                     self._peak_frames = max(self._peak_frames, self._outbound.qsize())
@@ -208,6 +211,8 @@ class _Peer:
             if self.closed.is_set():
                 with self._state_lock:
                     self._buffered -= len(frame)
+                    if self._buffered == 0:
+                        self.drained.set()
                 return
             try:
                 self.sock.sendall(frame)
@@ -220,6 +225,8 @@ class _Peer:
             finally:
                 with self._state_lock:
                     self._buffered -= len(frame)
+                    if self._buffered == 0:
+                        self.drained.set()
 
     def stats(self) -> dict[str, int]:
         """Privacy-safe transport pressure for diagnosing retries and disconnects."""
@@ -262,6 +269,8 @@ class Daemon:
                  browser_identity: BrowserIdentity | None = None,
                  trace_cdp: bool = True):
         self.name = ipc.check_name(name)
+        self.instance_id = secrets.token_hex(16)
+        self.source_digest = source_digest()
         self.journal = journal or Journal(None)
         # A callable defers the handshake until after the endpoint is published; a live
         # transport is used as-is, which is what every unit test passes.
@@ -278,8 +287,11 @@ class Daemon:
         self._token = token
         self._browser_identity = browser_identity
         self._server: socket.socket | None = None
+        self._endpoint_identity: object = None
         self._threads: list[threading.Thread] = []
         self._stop = threading.Event()
+        self._stop_lock = threading.Lock()
+        self._approval_stop = threading.Event()
         self._peers: set[_Peer] = set()
         self._plock = threading.Lock()
         # A lease is deliberately an opaque capability, not another daemon-wide
@@ -332,6 +344,7 @@ class Daemon:
         waiting for.
         """
         self._server = ipc.bind(self.name)
+        self._endpoint_identity = ipc.endpoint_identity(self.name)
         # On Windows `bind()` mints the token it published in the port file; adopting it is
         # what makes `_answer`'s check a real boundary rather than a no-op. None on POSIX.
         if self._token is None:
@@ -353,7 +366,7 @@ class Daemon:
         # import or from arm() skipped the `finally` and left `_settled` unset — which makes
         # `_browser_is_dead` False forever, so `_expired` never fires and the daemon wedges
         # answering `connecting: true`. A convenience must never be able to do that.
-        approval_stop = threading.Event()
+        approval_stop = self._approval_stop
         handshake_pending = threading.Event()
         try:
             if self._make_transport is not None:
@@ -372,7 +385,12 @@ class Daemon:
                         "daemon", event="mac_approve_unavailable", error=str(e)[:200])
                 handshake_pending.set()
                 try:
-                    self.conn.attach(self._make_transport())
+                    transport = self._make_transport()
+                    with self._stop_lock:
+                        if self._stop.is_set():
+                            transport.close()
+                            return
+                        self.conn.attach(transport)
                 finally:
                     # This exact constructor either returned or raised.  The sidecar has
                     # no authority to inspect UI after that handshake ceased to be pending.
@@ -472,7 +490,13 @@ class Daemon:
         return (time.monotonic() - self._died_at) >= self._linger
 
     def stop(self) -> None:
-        self._stop.set()
+        # Only one teardown owns endpoint cleanup. A second call (serve's finally, for
+        # example) must never unlink the socket a replacement daemon has since published.
+        with self._stop_lock:
+            if self._stop.is_set():
+                return
+            self._stop.set()
+            self._approval_stop.set()
         if self._server is not None:
             try:
                 self._server.close()
@@ -488,7 +512,9 @@ class Daemon:
         for peer in peers:
             peer.close()
         self._request_pool.shutdown(wait=False, cancel_futures=True)
-        ipc.cleanup(self.name)
+        if self._endpoint_identity is not None \
+                and ipc.endpoint_identity(self.name) == self._endpoint_identity:
+            ipc.cleanup(self.name)
 
     def __enter__(self) -> Self:
         return self.start()
@@ -524,7 +550,13 @@ class Daemon:
                 # reply to the call, the same way CDP's own `id` works.
                 if (rid := _rid_of(line)) is not None:
                     reply = {**reply, "rid": rid}
-                peer.send(reply)
+                sent = peer.send(reply)
+                if reply.get("ok") and reply.get("shutdown"):
+                    # Let the acknowledgement reach the caller before closing its socket.
+                    # Bounded even if the caller stops reading; teardown still proceeds.
+                    if sent:
+                        peer.drained.wait(1.0)
+                    self.stop()
             except OSError:
                 pass        # the peer went away mid-reply; the read loop will notice
             finally:
@@ -687,6 +719,11 @@ class Daemon:
 
     def _meta(self, meta: str, request: dict[str, Any],
               peer: _Peer | None = None) -> dict[str, Any]:
+        if meta == "shutdown":
+            if request.get("instance_id") != self.instance_id:
+                return fail(Class.SCOPE_REFUSED,
+                            "daemon generation changed; inspect status before stopping it").to_json()
+            return {"ok": True, "shutdown": True, "instance_id": self.instance_id}
         if meta == "ping":
             # Liveness means *both* processes are alive: a meta-only pong from a daemon whose
             # browser socket is dead is what v1 needed six PRs to stop reporting as healthy.
@@ -701,6 +738,8 @@ class Daemon:
             live = settled and not self._connect_error and not self.conn.closed
             out: dict[str, Any] = {"pong": True, "browser": live,
                                    "protocol": PROTOCOL_VERSION, "version": VERSION,
+                                   "instance_id": self.instance_id, "pid": os.getpid(),
+                                   "source_digest": self.source_digest,
                                    "targets": self.sessions.live_targets}
             if not live:
                 out["connecting"] = not settled

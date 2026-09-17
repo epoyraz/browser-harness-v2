@@ -40,6 +40,7 @@ from pathlib import Path
 from typing import Any
 
 from mcp.server import MCPServer
+from mcp_types import CallToolResult, TextContent
 
 from harness.core.outcome import HarnessError
 from harness.session import Session
@@ -112,7 +113,7 @@ def _quiet_stdout():
 
 
 def _tool(fn):
-    """Expose a function as an MCP tool returning JSON text, never raising.
+    """Expose JSON evidence and signal operational failures at the MCP boundary.
 
     The failure shape is the point. A `HarnessError` already holds its outcome, so the
     client receives the class, the observed evidence, `retryable`, and the recovery line
@@ -124,14 +125,17 @@ def _tool(fn):
         try:
             with _quiet_stdout():
                 result = fn(*args, **kwargs)
-            return _dump(_session()._bound_agent_value(fn.__name__, result))
+            failed = (result.get("ok") is False if isinstance(result, dict)
+                      else getattr(result, "ok", None) is False)
+            value = _session()._bound_agent_value(fn.__name__, result)
         except HarnessError as error:
-            return _dump(error.outcome.to_json())
+            value, failed = error.outcome.to_json(), True
         except Exception as error:                                  # noqa: BLE001
             # Not a browser failure: a bad argument, or a bug here. Say which rather than
             # dressing it up as a harness outcome class it does not belong to.
-            return _dump({"ok": False, "class": "tool_error",
-                          "detail": f"{type(error).__name__}: {error}"})
+            value, failed = {"ok": False, "class": "tool_error",
+                             "detail": f"{type(error).__name__}: {error}"}, True
+        return CallToolResult(content=[TextContent(text=_dump(value))], isError=failed)
 
     return SERVER.tool(name=fn.__name__, description=fn.__doc__ or "")(wrapper)
 

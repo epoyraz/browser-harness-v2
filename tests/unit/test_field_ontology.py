@@ -9,23 +9,26 @@ only a corpus replay.
 """
 from __future__ import annotations
 
-import importlib.util
-from pathlib import Path
-
 import pytest
 
 from applications import ontology
-
-# The ontology is a package beside the harness now, so this imports it instead of loading
-# a benchmark script. It needs answers to map fields onto, and the corpus profile is the
-# set these cases were captured against.
-_TOOL = Path(__file__).parents[2] / "tools" / "collect_job_form_telemetry.py"
-_SPEC = importlib.util.spec_from_file_location("collect_job_form_telemetry", _TOOL)
-_corpus = importlib.util.module_from_spec(_SPEC)
-assert _SPEC.loader is not None
-_SPEC.loader.exec_module(_corpus)
+from harness.ops.profile import ApplicantProfile
 
 rules = ontology
+
+
+@pytest.fixture(autouse=True)
+def synthetic_applicant(monkeypatch):
+    """No telemetry imports, environment profiles, CVs, or local answer files."""
+    profile = {"state_province": "Schaffhausen", "postal_code": "8212",
+               "phone": "+41 79 000 00 00", "education": "Master of Science",
+               "experience_years": "8", "salutation_de": "Herr", "salutation_en": "Mr",
+               "availability": "Immediately"}
+    monkeypatch.setattr(rules, "APPLICANT",
+                        ApplicantProfile.from_mapping(profile, source="synthetic-test"))
+    monkeypatch.setattr(rules, "PROFILE", profile)
+    monkeypatch.setattr(rules, "CV", "synthetic-test.pdf")
+    monkeypatch.setattr(rules, "SEMANTIC_CACHE", {})
 
 
 def classify(label, name=None, kind="text", options=None, group_label=None):

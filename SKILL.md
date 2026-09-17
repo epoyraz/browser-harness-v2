@@ -269,6 +269,12 @@ print(diagnostics())             # bounded; no URLs, text, headers, or bodies
 `parallel()` owns and closes its worker tabs. For work split across fresh `bh` processes,
 use `lease_tab()` and resume with `BH_TARGET_LEASE`; do not guess a target from tab order.
 
+`bh daemon status [name]` reports readiness and whether the running source matches the
+client. Use `bh daemon reload [name]` between tasks after changing daemon code, or
+`bh daemon stop [name]` to release its connection. These commands preserve browser tabs;
+reload disconnects active clients. They default to `BU_NAME`, otherwise `default`, and
+refuse unreachable or unverifiable daemon generations.
+
 Set `BH_RECORD=1` for the backward-compatible `review` recording, or name a profile with
 `BH_RECORD=evidence|review|cinematic`. `evidence` keeps one final proof frame at each
 high-level action boundary, `review` keeps the established diagnostic action frames, and

@@ -25,12 +25,11 @@ DEFAULT_WORKERS = 8
 # 150 ms), so a single immediate Target.getTargets snapshot is not an isolation boundary.
 # The event-driven wait adds only the quiet window, never an unconditional max-duration
 # sleep, and the cap prevents a page that continuously opens targets from holding a worker.
-# 200 → 50 ms (2026-08-29): two replicates of the 100-posting corpus at 50 ms — 320 items —
-# announced zero late popups, and the four opener descendants that did appear were all
-# caught. Cleanup dropped from 20.9 s to 6.2 s per run; forms were unchanged (+3/−0, +5/−0,
-# +2/−3 against adjacent controls). `cleanup_descendants` in the run summary is the
-# tripwire: a descendant found *after* the window would show up as a leaked tab there.
-POPUP_CLEANUP_QUIET = max(0.0, float(os.environ.get("BH_POPUP_QUIET_MS", "50") or 50) / 1000)
+# The 50 ms experiment missed the live fixture's 150 ms delayed popup: the worker was
+# reused and closed before the popup opened. Zero late popups in a corpus was not proof
+# of a safe shorter window. This is a bounded grace period, not a guarantee about timers
+# scheduled arbitrarily far in the future; callers needing that isolation use reuse_tabs=False.
+POPUP_CLEANUP_QUIET = max(0.0, float(os.environ.get("BH_POPUP_QUIET_MS", "200") or 200) / 1000)
 POPUP_CLEANUP_MAX_WAIT = 0.8
 
 

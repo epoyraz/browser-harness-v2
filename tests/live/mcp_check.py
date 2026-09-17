@@ -9,18 +9,34 @@ and a value `json.dumps` refuses. Both only appear over the wire.
 """
 import itertools
 import json
+import os
+import queue
+import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-proc = subprocess.Popen(["uv","run","python","-m","mcp_server"], cwd=ROOT,
+import _browser
+
+scratch = Path(tempfile.mkdtemp(prefix="bh-mcp-"))
+runtime = Path(tempfile.mkdtemp(prefix="bhmcp-", dir="/tmp" if os.name != "nt" else None))
+_browser.launch(scratch)
+env = {**os.environ, "BH_RUNTIME_DIR": str(runtime), "BH_PROFILE_DIRS": str(scratch),
+       "BU_CDP_URL": "", "BU_CDP_WS": "", "PYTHONPATH": str(ROOT)}
+
+proc = subprocess.Popen([sys.executable, "-m", "harness.cli.main", "mcp"], cwd=ROOT, env=env,
     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
 errs=[]
 threading.Thread(target=lambda: [errs.append(l) for l in proc.stderr], daemon=True).start()
+lines = queue.Queue()
+threading.Thread(target=lambda: [lines.put(line) for line in proc.stdout], daemon=True).start()
 
 _next_id = itertools.count(1)
 
@@ -31,7 +47,10 @@ def send(method, params=None):
                                  "params":params or {}})+"\n"); proc.stdin.flush()
     deadline=time.time()+60
     while time.time()<deadline:
-        line=proc.stdout.readline()
+        try:
+            line = lines.get(timeout=max(0.01, deadline - time.time()))
+        except queue.Empty:
+            break
         if not line: break
         try: msg=json.loads(line)
         except json.JSONDecodeError:
@@ -71,16 +90,19 @@ try:
         content = (r.get("result") or {}).get("content") or []
         return json.loads(content[0]["text"]) if content else r
 
-    got = call("browser_goto", {"url":"https://example.com"})
-    check("a real navigation through MCP", got.get("landed","").startswith("https://example.com"),
+    fixture = "data:text/html,<title>MCP fixture</title><button type=button>Test button</button>"
+    got = call("browser_goto", {"url": fixture})
+    check("a real navigation through MCP", got.get("landed", "") == fixture,
           str(got.get("landed"))[:40])
     page = call("browser_read_page", {"max_chars":400})
-    check("read_page returns structure", page.get("title")=="Example Domain", str(page.get("title")))
+    check("read_page returns structure", page.get("title")=="MCP fixture", str(page.get("title")))
     ax = call("browser_ax", {"limit":5})
     check("ax reaches the accessibility tree", isinstance(ax, list) and any(r.get("role") for r in ax),
           str([r.get("role") for r in ax][:3]))
 
-    bad = call("browser_click", {"ref":"e999"})
+    bad_result = send("tools/call", {"name": "browser_click", "arguments": {"ref": "e999"}})
+    check("a failed action sets the MCP error flag", bad_result["result"].get("isError") is True)
+    bad = json.loads(bad_result["result"]["content"][0]["text"])
     check("a failure keeps its typed class", bad.get("class")=="element_gone", str(bad.get("class")))
     check("and carries a recovery line", bool(bad.get("recovery")), str(bad.get("recovery"))[:44])
     # A missing required argument is rejected by MCP's own schema validation before the
@@ -104,6 +126,16 @@ finally:
         proc.wait(timeout=10)
     except subprocess.TimeoutExpired:
         proc.kill()
+        proc.wait(timeout=10)
+    try:
+        stopped = subprocess.run(
+            [sys.executable, "-m", "harness.cli.main", "daemon", "stop", "mcp"],
+            cwd=ROOT, env=env, capture_output=True, text=True, timeout=20, check=False)
+        check("MCP daemon shuts down cleanly", stopped.returncode == 0, stopped.stderr[-100:])
+    finally:
+        _browser.kill(scratch)
+        shutil.rmtree(scratch, ignore_errors=True)
+        shutil.rmtree(runtime, ignore_errors=True)
 noise = [e for e in errs if "Traceback" in e]
 print(f"\n{ok}/{ok+fail} passed" + (f"   stderr tracebacks: {len(noise)}" if noise else ""))
 sys.exit(1 if fail else 0)

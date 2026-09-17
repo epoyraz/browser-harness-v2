@@ -1,5 +1,14 @@
 name: live-browser
 on:
+  pull_request:
+    paths:
+      - "harness/**"
+      - "applications/**"
+      - "mcp_server.py"
+      - "tests/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/live.yml"
   workflow_dispatch:
   schedule:
     - cron: "17 4 * * 1"
@@ -15,6 +24,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
+      - run: uv sync --dev --extra mcp --frozen
       - name: Real Chrome parallelism, isolation, cleanup, and dry-run safety
         run: uv run python tests/live/parallel_check.py
+      - name: Real Chrome daemon lifecycle and form operations
+        run: uv run python tests/live/daemon_check.py
+      - name: Real Chrome MCP protocol and error flags
+        run: uv run python tests/live/mcp_check.py

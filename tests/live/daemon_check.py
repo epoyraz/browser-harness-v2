@@ -211,12 +211,28 @@ print(json.dumps(upload_file(inp["ref"], {str(sample)!r})))
               r8.returncode == 0 and "cv.txt" in r8.stdout,
               (r8.stdout.strip()[-60:] if r8.returncode == 0 else r8.stderr.strip()[-160:]))
 
+        def control(verb):
+            result = subprocess.run(
+                [sys.executable, "-m", "harness.cli.main", "daemon", verb, name],
+                cwd=ROOT, env=env, capture_output=True, text=True, timeout=60, check=False)
+            assert result.returncode == 0, result.stderr
+            return json.loads(result.stdout)
+
+        before = control("status")
+        check("daemon status identifies the running code", before["source_matches"] is True)
+        reloaded = control("reload")
+        check("reload creates a new daemon generation", reloaded["instance_id"] != before["instance_id"])
+        preserved = bh(f"use_tab({tids[0]!r}); print(js('document.title'))", env)
+        check("reload preserves existing browser tabs", preserved.returncode == 0,
+              preserved.stdout.strip()[:60])
+        stopped = control("stop")
+        check("stop releases the daemon endpoint", stopped["state"] == "stopped"
+              and ipc.ping(name) is None)
+
     finally:
         with contextlib.suppress(Exception):
-            bh("pass", env, timeout=10)
-        for f in runtime.glob("*.sock"):
-            with contextlib.suppress(Exception):
-                f.unlink()
+            subprocess.run([sys.executable, "-m", "harness.cli.main", "daemon", "stop", name],
+                           cwd=ROOT, env=env, capture_output=True, timeout=20, check=False)
         _browser.kill(scratch)
         site.shutdown()
         shutil.rmtree(scratch, ignore_errors=True)

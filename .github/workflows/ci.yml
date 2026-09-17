@@ -10,9 +10,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv sync --dev
-      - run: uv run ruff check harness tests
+      - run: uv sync --dev --extra mcp --frozen
+      - run: uv run ruff check harness applications evidence mcp_server.py tests
       - run: uv run pytest
+      - name: Build from sdist and smoke-test a clean wheel installation
+        run: uv run python tests/packaging_check.py
+      - run: git diff --check
       - name: every module has a test file (DESIGN.md §2.2)
         shell: bash
         run: |

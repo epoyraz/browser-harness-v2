@@ -13,10 +13,19 @@ from harness.connect.client import (
     RemoteConnection,
     RemoteRegistry,
     _validate_protocol,
+    daemon_status,
     ensure_daemon,
+    reload_daemon,
+    stop_daemon,
 )
 from harness.connect.daemon import Daemon
-from harness.core.outcome import BrowserDisconnected, Class, HarnessError, ProtocolMismatch
+from harness.core.outcome import (
+    BrowserDisconnected,
+    Class,
+    HarnessError,
+    ProtocolMismatch,
+    ScopeRefused,
+)
 from harness.version import PROTOCOL_VERSION
 from tests.fake_browser import FakeBrowser
 
@@ -46,6 +55,67 @@ def test_a_client_speaks_the_connection_interface(served):
     with RemoteConnection("clienttest") as conn:
         assert conn.request("Runtime.evaluate", {"expression": "x"})["result"]["echo"] == "x"
         assert callable(conn.subscribe) and conn.journal is not None
+
+
+def test_shutdown_acknowledges_exact_instance_and_preserves_browser_tabs(served):
+    from harness.core import ipc
+    browser, daemon = served
+    status = daemon_status("clienttest")
+    assert status["source_matches"] is True
+    assert status["instance_id"] == daemon.instance_id
+    with pytest.raises(ScopeRefused):
+        from harness.connect.daemon import request
+        request("clienttest", {"meta": "shutdown", "instance_id": "stale-generation"})
+    assert ipc.ping("clienttest")
+    stopped = stop_daemon("clienttest")
+    assert stopped["state"] == "stopped" and stopped["instance_id"] == daemon.instance_id
+    assert ipc.ping("clienttest") is None
+    assert not any(call["method"] in {"Target.closeTarget", "Browser.close"}
+                   for call in browser.calls)
+    assert stop_daemon("clienttest")["state"] == "stopped"
+
+
+def test_reload_stops_old_instance_before_spawning_and_old_cleanup_is_harmless(served, monkeypatch):
+    from harness.core import ipc
+    _, old = served
+    replacements = []
+
+    def spawn(name):
+        assert old._stop.is_set() and ipc.ping(name) is None
+        new = Daemon(name, FakeBrowser("replacement")).start()
+        replacements.append(new)
+        threading.Thread(target=new.serve_forever, daemon=True).start()
+
+    monkeypatch.setattr("harness.connect.client._spawn_daemon", spawn)
+    try:
+        result = reload_daemon("clienttest", timeout=3)
+        assert result["instance_id"] != old.instance_id
+        old.stop()
+        assert ipc.ping("clienttest")["instance_id"] == result["instance_id"]
+    finally:
+        for daemon in replacements:
+            daemon.stop()
+
+
+def test_source_mismatch_reports_exact_reload_command(served, capsys):
+    _, daemon = served
+    daemon.source_digest = "old-code"
+    assert daemon_status("clienttest")["source_matches"] is False
+    ensure_daemon("clienttest")
+    assert "bh daemon reload clienttest" in capsys.readouterr().err
+
+
+def test_unreachable_endpoint_is_not_removed(runtime):
+    from harness.core import ipc
+    listener = ipc.bind("unreachable")
+    identity = ipc.endpoint_identity("unreachable")
+    try:
+        with pytest.raises(BrowserDisconnected):
+            stop_daemon("unreachable", timeout=0.1)
+        assert ipc.endpoint_identity("unreachable") == identity
+    finally:
+        listener.close()
+        ipc.cleanup("unreachable")
 
 
 def test_events_reach_the_client_through_the_daemon(served):
